@@ -32,7 +32,7 @@ export function calculateMatchPlay(input: MatchPlayInput): MatchPlayResult {
     const grossA = playerA.grossStrokes[i]
     const grossB = playerB.grossStrokes[i]
 
-    if (grossA === null || grossB === null) {
+    if (grossA === null || grossB === null || grossA === undefined || grossB === undefined) {
       holeResults.push('pending')
       continue
     }

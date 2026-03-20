@@ -25,7 +25,7 @@ export function calculateStableford(input: StablefordInput): StablefordResult {
     const gross = grossStrokes[i]
     const strokes = strokesPerHole[i] ?? 0
 
-    if (gross === null || hole === undefined) {
+    if (gross === null || gross === undefined || hole === undefined) {
       pointsPerHole.push(0)
       netStrokes.push(null)
       continue
