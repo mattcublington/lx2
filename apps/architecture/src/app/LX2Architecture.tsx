@@ -1,724 +1,594 @@
+'use client'
 import { useState } from "react";
 
-const modules = {
+// ─── Module registry ──────────────────────────────────────────────────────────
+
+const GITHUB = "https://github.com/mattcublington/lx2/blob/main"
+const APP = "https://lx2.golf"
+
+const modules: Record<string, Module> = {
   score_entry: {
-    name: "Score entry",
-    phase: "mvp",
-    tier: "player",
+    name: "Score entry", phase: "mvp", tier: "player", status: "building",
     sub: "Hole-by-hole, offline-first",
-    desc: "Mobile-first hole-by-hole score input. The core interaction during a round. Must work offline with automatic sync when connectivity returns.",
-    deps: ["Handicap engine", "Course database", "Realtime layer", "Offline / PWA", "Auth"],
+    desc: "Mobile-first hole-by-hole score input. The core interaction during a round.",
+    deps: ["handicap", "course_db", "auth"],
     data: ["hole_scores", "scorecards"],
+    liveUrl: `${APP}/score`,
+    prdUrl: `${GITHUB}/docs/prd/score-entry.md`,
+    codeUrl: `${GITHUB}/apps/web/src/app/score/ScoreEntry.tsx`,
     features: [
-      "One-tap score entry per hole with large targets (48px min)",
-      "Running total and Stableford points shown after each hole",
-      "Match Play status display (\"2 up with 5 to play\")",
-      "Offline queue — scores saved to IndexedDB, synced on reconnect",
-      "Visual sync status indicator (green = synced, amber = pending)",
-      "Undo last hole entry",
-      "NTP/LD result entry on designated contest holes",
-      "Auto-advance to next hole on entry",
+      "One-tap score entry per hole with large targets",
+      "Running Stableford points after each hole",
+      "Match Play status display",
+      "Offline queue — scores saved locally, synced on reconnect",
+      "NTP/LD result entry on designated holes",
+      "Full scorecard view",
+      "Auto-advance to next player after entry",
     ],
-    tech: "Next.js page with Supabase Realtime subscription. Service worker caches app shell. IndexedDB stores pending scores. Sync manager batches uploads on reconnect.",
+    tech: "Next.js App Router. useReducer for local state. Supabase Realtime for sync.",
   },
   leaderboard: {
-    name: "Live leaderboard",
-    phase: "mvp",
-    tier: "player",
+    name: "Live leaderboard", phase: "mvp", tier: "player", status: "planned",
     sub: "Real-time, TV mode",
-    desc: "Real-time ranking page that auto-updates as scores arrive via WebSocket. Shareable URL. TV/full-screen display mode for clubhouse screens.",
-    deps: ["Scoring engines (all)", "Realtime layer", "Course database"],
+    desc: "Real-time ranking page that auto-updates as scores arrive. Shareable URL. TV mode for clubhouse screens.",
+    deps: ["stableford", "strokeplay", "matchplay", "realtime", "course_db"],
     data: ["scorecards", "hole_scores", "events", "event_players"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
     features: [
-      "Auto-updating positions as scores arrive (sub-second latency)",
-      "Format-aware: points for Stableford, net strokes for Stroke Play, match status for Match Play",
-      "\"Through X holes\" indicator per player",
-      "NTP/LD results shown alongside main leaderboard",
-      "TV mode: full-screen, auto-scroll through flights, large typography",
-      "Shareable URL with Open Graph preview (event name, date, course)",
-      "Player highlighting — tap to see hole-by-hole breakdown",
+      "Auto-updating positions via Supabase Realtime",
+      "Format-aware: Stableford / Stroke Play / Match Play",
+      "Through X holes indicator per player",
+      "NTP/LD results panel",
+      "TV mode: full-screen, large typography",
+      "Shareable URL with OG preview",
       "Countback tiebreaker display",
     ],
-    tech: "Next.js page subscribing to Supabase Realtime on scorecards table. Client-side scoring engine recalculates positions on each change. CSS media queries for TV mode (1920×1080 optimised).",
+    tech: "Supabase Realtime subscription on hole_scores. Client-side scoring engine recalculates on each change.",
   },
   results: {
-    name: "Results & history",
-    phase: "mvp",
-    tier: "player",
+    name: "Results & history", phase: "mvp", tier: "player", status: "planned",
     sub: "Permanent shareable page",
-    desc: "Permanent results page that persists at a stable URL after the event. Final standings, NTP/LD winners, prize info. The thing players share and come back to.",
-    deps: ["Scoring engines", "Event creation", "Course database"],
-    data: ["events", "scorecards", "contest_results"],
+    desc: "Permanent results page at a stable URL. Final standings, NTP/LD winners, prize info.",
+    deps: ["stableford", "strokeplay", "event_create", "course_db"],
+    data: ["events", "scorecards", "contest_entries"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
     features: [
       "Final standings with positions, scores/points, handicap used",
       "NTP/LD contest winners with distances",
-      "Full scorecard view per player (hole-by-hole breakdown)",
-      "Share buttons (WhatsApp, copy link) with rich preview",
-      "Persistent URL (e.g. /events/{id}/results) — never expires",
-      "Photo gallery from event feed (Phase 2)",
+      "Full scorecard view per player",
+      "Share buttons (WhatsApp, copy link)",
+      "Persistent URL — never expires",
     ],
-    tech: "Static generation with ISR (Incremental Static Regeneration) once event is finalised. Cached at edge for fast loading.",
+    tech: "Next.js ISR once event is finalised. Cached at edge.",
   },
   profiles: {
-    name: "Player profiles",
-    phase: "soon",
-    tier: "player",
+    name: "Player profiles", phase: "soon", tier: "player", status: "planned",
     sub: "Stats across events",
-    desc: "Cumulative statistics across all events a player has participated in. The hook for repeat engagement — players want to see their history and improvement.",
-    deps: ["Auth", "Scoring engines", "Results & history"],
+    desc: "Cumulative stats across all events. The hook for repeat engagement.",
+    deps: ["auth", "stableford", "results"],
     data: ["users", "scorecards", "events"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
     features: [
       "Win/loss/draw record across events",
       "Average Stableford points, scoring average",
-      "Best round, worst round, most recent",
-      "Events played list with links to results",
-      "Head-to-head record against other players (Phase 3)",
-      "Handicap trend over time (when WHS integration available)",
+      "Best and worst rounds",
+      "Handicap trend over time",
     ],
-    tech: "Server-rendered page with aggregation queries. Consider materialised views for stats if query performance degrades.",
+    tech: "Server-rendered with aggregation queries. Materialised views if needed.",
   },
   event_create: {
-    name: "Event creation",
-    phase: "mvp",
-    tier: "organiser",
-    sub: "Date, course, format, fee, NTP/LD holes",
-    desc: "The organiser creates an event by selecting a date, course, format, entry fee, and configuring side contests. This is the top of the funnel — everything flows from here.",
-    deps: ["Course database", "Auth", "Payments"],
+    name: "Event creation", phase: "mvp", tier: "organiser", status: "building",
+    sub: "Date, course, format, fee, NTP/LD",
+    desc: "The organiser creates an event — selects course, format, entry fee, side contests. Top of the funnel. Everything flows from here.",
+    deps: ["course_db", "auth", "payments"],
     data: ["events", "courses"],
+    liveUrl: null, prdUrl: `${GITHUB}/docs/prd/event-creation.md`, codeUrl: null,
     features: [
-      "Select or search from imported UK course database",
+      "Select course from UK database with typeahead",
       "Choose format: Stableford, Stroke Play, Match Play",
       "Set entry fee (or free event)",
-      "Designate NTP/LD holes from the course scorecard",
+      "Designate NTP/LD holes",
       "Set max players and group size",
-      "Configure handicap allowance (95% Stableford default, 100% Stroke Play)",
+      "Configure handicap allowance",
       "Generate unique shareable invite link",
-      "Edit event details after creation",
-      "Duplicate event for recurring society fixtures",
+      "Duplicate event for recurring fixtures",
     ],
-    tech: "Next.js form page. Writes to events table in Supabase. Course selection uses typeahead search against course_db table.",
+    tech: "Next.js form page. Writes to events table. Course search uses Supabase full-text search.",
   },
   invite: {
-    name: "Invite & RSVP",
-    phase: "mvp",
-    tier: "organiser",
+    name: "Invite & RSVP", phase: "mvp", tier: "organiser", status: "planned",
     sub: "Shareable link, no account needed",
-    desc: "Shareable link flow. Players tap the link, see event details, enter their name and handicap, and confirm attendance. No account creation required — progressive auth.",
-    deps: ["Event creation", "Auth"],
+    desc: "Players tap a link, see event details, enter name and handicap, confirm attendance. No account required.",
+    deps: ["event_create", "auth"],
     data: ["event_players", "users"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
     features: [
-      "Shareable URL with rich Open Graph preview for WhatsApp/iMessage",
-      "No account required to RSVP — just name, email, and handicap index",
-      "Progressive account creation (optional — prompted after first event)",
+      "Shareable URL with OG preview for WhatsApp/iMessage",
+      "No account required — just name, email, handicap",
+      "Progressive account creation (optional)",
       "RSVP status: confirmed / declined / waitlisted",
-      "Organiser can manually add players who don't use the link",
-      "Automatic email confirmation with event details and calendar invite",
-      "Withdraw / change RSVP before event date",
+      "Organiser can manually add players",
+      "Email confirmation with calendar invite",
     ],
-    tech: "Public Next.js page (no auth required to view). Supabase anonymous auth for RSVP, upgraded to magic link auth if player creates account.",
+    tech: "Public Next.js page. Supabase anonymous auth for RSVP.",
   },
   payments: {
-    name: "Payments",
-    phase: "mvp",
-    tier: "organiser",
+    name: "Payments", phase: "mvp", tier: "organiser", status: "planned",
     sub: "Stripe Checkout, live tracker",
-    desc: "Stripe Checkout for entry fee collection. Organiser sees real-time payment status on their dashboard. Players pay when they RSVP.",
-    deps: ["Invite & RSVP", "Event creation"],
-    data: ["payments", "event_players"],
+    desc: "Stripe Checkout for entry fee collection. Organiser sees real-time payment status.",
+    deps: ["invite", "event_create"],
+    data: ["event_players"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
     features: [
-      "Stripe Checkout embedded in RSVP flow",
-      "Real-time payment status on organiser dashboard",
-      "Manual 'mark as paid' for cash payments",
-      "Automatic refund if player withdraws (configurable)",
-      "Payment reminder email to unpaid confirmed players",
+      "Stripe Checkout in RSVP flow",
+      "Real-time payment status on dashboard",
+      "Manual mark-as-paid for cash",
+      "Payment reminder emails",
       "Stripe Connect for club payouts (Phase 3)",
-      "Platform fee configuration (Phase 3)",
     ],
-    tech: "Stripe Checkout Session created via Next.js API route. Webhook handler updates payment status in Supabase. Stripe Connect added in Phase 3.",
+    tech: "Stripe Checkout Session via Next.js API route. Webhook updates Supabase.",
   },
   dashboard: {
-    name: "Organiser dashboard",
-    phase: "mvp",
-    tier: "organiser",
+    name: "Organiser dashboard", phase: "mvp", tier: "organiser", status: "planned",
     sub: "Flights, status, proxy scoring",
-    desc: "The organiser's command centre. View confirmed players, payment status, manage groups/flights, enter scores on behalf of players who aren't using phones.",
-    deps: ["Event creation", "Invite & RSVP", "Payments", "Score entry"],
-    data: ["events", "event_players", "payments", "scorecards"],
+    desc: "The organiser's command centre. Player list, payment status, flight management, proxy score entry.",
+    deps: ["event_create", "invite", "payments", "score_entry"],
+    data: ["events", "event_players", "scorecards"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
     features: [
       "Player list with RSVP and payment status",
-      "Drag-and-drop flight/group management",
+      "Drag-and-drop flight management",
       "Auto-generate balanced flights from handicaps",
-      "Proxy score entry (enter scores for any player)",
-      "Print-friendly draw sheet and start sheet",
-      "Live event status overview during play",
+      "Proxy score entry for any player",
+      "Print-friendly draw sheet",
       "Finalise event and generate results",
       "Export results to CSV",
     ],
-    tech: "Next.js page with Supabase Realtime subscription. Desktop-optimised but usable on mobile for on-day management.",
+    tech: "Next.js desktop-optimised page. Supabase Realtime for live status.",
   },
   stableford: {
-    name: "Stableford",
-    phase: "mvp",
-    tier: "scoring",
+    name: "Stableford engine", phase: "mvp", tier: "scoring", status: "done",
     sub: "Points from net score vs par",
-    desc: "Calculates Stableford points per hole from gross strokes, par, and handicap strokes received. The most common society format in the UK.",
-    deps: ["Handicap engine", "Course database"],
+    desc: "Calculates Stableford points from gross strokes, par, and handicap strokes. Most common UK society format.",
+    deps: ["handicap"],
     data: [],
+    liveUrl: null,
+    prdUrl: null,
+    codeUrl: `${GITHUB}/packages/scoring/src/stableford.ts`,
     features: [
-      "Net score = gross strokes minus handicap strokes on this hole",
-      "Points: 0 (double+), 1 (bogey), 2 (par), 3 (birdie), 4 (eagle), 5 (albatross)",
-      "Total = sum of points across all holes (higher is better)",
-      "Pick-up handling: 0 points for incomplete holes",
-      "Countback tiebreaker: back 9, back 6, back 3, last hole",
-      "95% handicap allowance (configurable)",
+      "Net score = gross minus handicap strokes on hole",
+      "0/1/2/3/4/5 points (double bogey to albatross)",
+      "Pick-up handling: 0 points",
+      "Countback: back 9, 6, 3, last hole",
+      "95% allowance (configurable)",
     ],
-    tech: "Pure TypeScript function. No database dependency. Input: strokes[], par[], strokeIndex[], playingHandicap. Output: points[], total, position.",
+    tech: "Pure TypeScript in @lx2/scoring. Zero database dependency. Fully tested.",
   },
   strokeplay: {
-    name: "Stroke play",
-    phase: "mvp",
-    tier: "scoring",
+    name: "Stroke play engine", phase: "mvp", tier: "scoring", status: "done",
     sub: "Gross and net totals",
-    desc: "Total gross strokes minus playing handicap = net score. Simplest format. Lower is better.",
-    deps: ["Handicap engine", "Course database"],
+    desc: "Gross strokes minus playing handicap = net score. Lower is better.",
+    deps: ["handicap"],
     data: [],
+    liveUrl: null, prdUrl: null,
+    codeUrl: `${GITHUB}/packages/scoring/src/strokeplay.ts`,
     features: [
       "Gross total = sum of strokes",
       "Net total = gross minus playing handicap",
       "Relative to par display (+3, -1, E)",
-      "NR (No Return) for incomplete rounds",
-      "Countback tiebreaker on net scores",
+      "NR for incomplete rounds",
     ],
-    tech: "Pure TypeScript function. Shares handicap allocation logic with Stableford engine.",
+    tech: "Pure TypeScript in @lx2/scoring. Shares handicap logic with Stableford.",
   },
   matchplay: {
-    name: "Match play",
-    phase: "mvp",
-    tier: "scoring",
+    name: "Match play engine", phase: "mvp", tier: "scoring", status: "done",
     sub: "Holes up/down, early close",
-    desc: "Each hole is a separate contest. Lower net score wins the hole. Match status expressed as 'holes up/down'. Match can end early when result is certain.",
-    deps: ["Handicap engine", "Course database"],
+    desc: "Hole-by-hole contest. Lower net score wins each hole. Match ends early when result is certain.",
+    deps: ["handicap"],
     data: [],
+    liveUrl: null, prdUrl: null,
+    codeUrl: `${GITHUB}/packages/scoring/src/matchplay.ts`,
     features: [
-      "Hole-by-hole: win / lose / halve based on net scores",
-      "Handicap strokes based on DIFFERENCE between two players' playing handicaps",
+      "Hole-by-hole: win / lose / halve",
+      "Handicap = DIFFERENCE between two players",
       "Match status: '2 up', 'all square', '1 down'",
-      "Early termination: match over when lead > holes remaining (e.g. '4&3')",
-      "Dormie detection (up by same number as holes remaining)",
-      "Pair and team variants (foursomes, fourballs) — Phase 2",
+      "Early termination: '4 and 3'",
+      "Dormie detection",
     ],
-    tech: "Pure TypeScript function. Different interface from Stableford/Stroke Play — operates on two players' scores simultaneously. Returns match status per hole and final result.",
+    tech: "Pure TypeScript in @lx2/scoring. Different interface from Stableford/Stroke Play.",
+  },
+  handicap: {
+    name: "Handicap engine", phase: "mvp", tier: "scoring", status: "done",
+    sub: "Index → playing HC via slope",
+    desc: "Converts handicap index to playing handicap using WHS formula. Distributes strokes by stroke index. Shared by all engines.",
+    deps: ["course_db"],
+    data: [],
+    liveUrl: null, prdUrl: null,
+    codeUrl: `${GITHUB}/packages/scoring/src/handicap.ts`,
+    features: [
+      "Playing HC = round(Index × Slope/113 + (Rating − Par)) × allowance",
+      "Stroke distribution by stroke index",
+      "Plus handicap support",
+      "Manual handicap entry (MVP)",
+      "WHS API lookup (Phase 4)",
+    ],
+    tech: "Pure TypeScript in @lx2/scoring. Fully tested with Vitest.",
   },
   ntp_ld: {
-    name: "NTP / longest drive",
-    phase: "mvp",
-    tier: "scoring",
-    sub: "Side contests per hole",
-    desc: "Side contest tracking. Organiser designates holes. During the round, results are recorded as player name + distance. Winners shown on leaderboard and results.",
-    deps: ["Event creation", "Course database"],
-    data: ["contest_results"],
+    name: "NTP / Longest Drive", phase: "mvp", tier: "scoring", status: "building",
+    sub: "Side contest tracking",
+    desc: "Side contest result capture on designated holes. Runs alongside main scoring format.",
+    deps: ["event_create"],
+    data: ["contest_entries"],
+    liveUrl: `${APP}/score`,
+    prdUrl: null, codeUrl: null,
     features: [
-      "Organiser designates contest holes at event creation",
-      "Record: player name + distance (yards/feet/metres)",
-      "Multiple contests per event (e.g. NTP on holes 4, 8, 13; LD on hole 7)",
-      "Winners displayed on leaderboard and results page",
-      "Sponsor attribution field (Phase 3: 'NTP hole 7 — sponsored by...')",
+      "Organiser designates NTP and LD holes at event creation",
+      "Player name + distance recorded per contest",
+      "Winners shown on leaderboard and results",
+      "Multiple contests per event",
     ],
-    tech: "Simple contest_results table: event_id, hole_number, contest_type (ntp/ld), player_name, distance, unit. Minimal complexity.",
-  },
-  scramble: {
-    name: "Texas scramble",
-    phase: "soon",
-    tier: "scoring",
-    sub: "Team best-ball scoring",
-    desc: "Team format — all players hit from the best ball position. One score per team per hole. Team handicap is a configurable fraction of combined individual handicaps.",
-    deps: ["Handicap engine", "Course database"],
-    data: [],
-    features: [
-      "One score per team per hole (not per player)",
-      "Configurable team handicap: typically 10% of sum for 4-person, 15% for 3-person",
-      "Stableford or stroke play team scoring (configurable)",
-      "Team composition management in organiser dashboard",
-    ],
-    tech: "Pure TypeScript. Simpler than individual formats — fewer edge cases. Reuses Stableford/Stroke Play calculation with team handicap.",
+    tech: "contest_entries table. UI built into score entry overlay.",
   },
   skins: {
-    name: "Skins",
-    phase: "soon",
-    tier: "scoring",
-    sub: "Hole-by-hole with carry-over",
-    desc: "Hole-by-hole prize format. Lowest net score wins the skin. Ties carry over, increasing the next hole's prize. Popular in society groups with a gambling culture.",
-    deps: ["Handicap engine", "Course database"],
+    name: "Skins engine", phase: "soon", tier: "scoring", status: "planned",
+    sub: "Carry-over pot per hole",
+    desc: "Each hole is worth a pot. Carry-over if tied. Runs alongside Stableford.",
+    deps: ["stableford", "handicap"],
     data: [],
+    liveUrl: null, prdUrl: null, codeUrl: null,
     features: [
-      "Lowest net score on each hole wins the skin",
-      "Tied holes: skin carries over to next hole",
-      "Final hole accumulation of all remaining carry-overs",
-      "Configurable skin value (£ per skin or equal division of pot)",
-      "Display: which holes were won, by whom, for how many skins",
+      "Each hole worth 1 skin (carry-over if tied)",
+      "Configurable skin value",
+      "Works alongside Stableford main event",
     ],
-    tech: "Pure TypeScript. Operates on completed hole_scores for all players. Returns array of {hole, winner, skins_value, carried_from[]}.",
+    tech: "Extension of @lx2/scoring. Operates on completed hole_scores.",
   },
   rvb: {
-    name: "Reds vs Blues",
-    phase: "soon",
-    tier: "scoring",
+    name: "Reds vs Blues", phase: "soon", tier: "scoring", status: "planned",
     sub: "Ryder Cup team format",
-    desc: "Ryder Cup-style team match. Two teams, multiple match play pairings. Aggregate team score. The hero feature for golf trips and society events.",
-    deps: ["Match play engine", "Handicap engine"],
+    desc: "Two teams, multiple Match Play pairings. Aggregate team score. The hero format for golf trips.",
+    deps: ["matchplay", "handicap"],
     data: ["events", "event_players"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
     features: [
       "Two teams with configurable names and colours",
       "Multiple concurrent match play pairings",
-      "Aggregate team score (points from each pairing)",
-      "Up to 72 players (36 per team)",
-      "Projected team result based on current match states",
-      "Dramatic team leaderboard display",
+      "Aggregate team score",
+      "Up to 72 players",
+      "Projected result from current match states",
     ],
-    tech: "Extends Match Play engine. Additional UI layer for team composition, pairing creation, and aggregate scoring.",
-  },
-  handicap: {
-    name: "Handicap engine",
-    phase: "mvp",
-    tier: "scoring",
-    sub: "Index → playing HC via slope",
-    desc: "Converts handicap index to playing handicap using course slope/rating. Distributes handicap strokes across holes by stroke index. Shared by all scoring engines.",
-    deps: ["Course database"],
-    data: [],
-    features: [
-      "Playing handicap = Handicap Index × (Slope Rating ÷ 113), rounded",
-      "Allowance: 95% for Stableford/Bogey, 100% for Stroke Play, difference-based for Match Play",
-      "Stroke distribution: handicap 18 = 1 stroke per hole; 24 = 2 on SI 1–6, 1 on rest",
-      "Manual handicap index entry (MVP)",
-      "WHS API lookup (Phase 4 — requires ISV licence)",
-    ],
-    tech: "Pure TypeScript. No external dependencies in MVP. Course slope/rating from course_db table.",
+    tech: "Extends Match Play engine. Additional UI for team composition.",
   },
   course_db: {
-    name: "Course database",
-    phase: "mvp",
-    tier: "course",
+    name: "Course database", phase: "mvp", tier: "course", status: "planned",
     sub: "Par, SI, yardage, slope, rating",
-    desc: "All UK golf course data — par, stroke index, yardage per tee, slope rating, course rating. Seeded from free APIs, verified by users.",
+    desc: "UK golf course data seeded from golfcourseapi.com (~30,000 courses). Manually verified for active courses.",
     deps: [],
     data: ["courses", "course_holes", "course_tees"],
+    liveUrl: null,
+    prdUrl: `${GITHUB}/docs/db/schema-notes.md`,
+    codeUrl: `${GITHUB}/packages/db/migrations/001_initial_schema.sql`,
     features: [
-      "~2,000–2,500 UK courses imported from free APIs",
+      "~30,000 UK courses from golfcourseapi.com",
       "Per hole: par, stroke index",
-      "Per tee: name, yardage per hole, total yardage, slope rating, course rating",
-      "Course search with typeahead (by name, location)",
-      "Admin: manual course entry/edit for missing or incorrect data",
-      "Cumberwell Park's five 9-hole loops pre-verified",
+      "Per tee: yardage, slope, course rating",
+      "Typeahead course search",
+      "Admin: manual entry/edit",
+      "Cumberwell Park 5 loops pre-verified",
     ],
-    tech: "Supabase tables: courses (id, name, club, location, holes_count), course_holes (course_id, hole_number, par, stroke_index), course_tees (course_id, tee_name, hole_yardages[], slope, rating).",
-  },
-  course_import: {
-    name: "API import pipeline",
-    phase: "mvp",
-    tier: "course",
-    sub: "golfcourseapi.com + bthree.uk",
-    desc: "Automated scripts to pull course data from golfcourseapi.com (free, 300 req/day) and the Jacobbrewer1/golf-data open source API (UK-only, no auth).",
-    deps: ["Course database"],
-    data: ["courses", "course_holes", "course_tees"],
-    features: [
-      "golfcourseapi.com: free tier, 300 requests/day — full UK import in ~8–10 days",
-      "Jacobbrewer1/golf-data (api.bthree.uk/golf/v1): free, UK-only, no auth, no rate limits",
-      "Cross-reference both sources — flag discrepancies for manual review",
-      "Schema mapping: API response → normalised course_db format",
-      "Idempotent import (re-run safely without duplicates)",
-      "Fallback: golfapi.io paid CSV export if free sources have significant gaps",
-    ],
-    tech: "Node.js script (can run as Supabase Edge Function or local CLI). Scheduled background fetch. Stores raw API responses for debugging.",
-  },
-  course_verify: {
-    name: "Community verification",
-    phase: "soon",
-    tier: "course",
-    sub: "Flag & fix incorrect data",
-    desc: "Let organisers and players flag incorrect course data. When someone creates an event, they see the imported scorecard and can confirm or edit it.",
-    deps: ["Course database", "Event creation"],
-    data: ["course_corrections"],
-    features: [
-      "During event creation: 'Does this scorecard look right?' prompt",
-      "Edit: change par, stroke index, or yardage for any hole",
-      "Flag: report 'data looks wrong' with optional note",
-      "Admin review queue for flagged corrections",
-      "Correction history per course",
-    ],
-    tech: "Supabase table: course_corrections (course_id, hole_number, field, old_value, new_value, submitted_by, status). Admin page to review and apply.",
+    tech: "Supabase tables: courses, course_holes, course_tees. Bulk import script.",
   },
   auth: {
-    name: "Auth",
-    phase: "mvp",
-    tier: "infra",
-    sub: "Magic links + anonymous access",
-    desc: "Authentication via Supabase Auth. Magic links (email) for registered users. Anonymous access for RSVP-only players. Progressive upgrade from anonymous to registered.",
+    name: "Authentication", phase: "mvp", tier: "infra", status: "planned",
+    sub: "Magic links + anonymous play",
+    desc: "Magic link email auth. Players can score a full round before being prompted to create an account.",
     deps: [],
     data: ["users"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
     features: [
-      "Magic link auth (email, no password)",
-      "Anonymous auth for players joining via invite link",
-      "Progressive upgrade: anonymous → registered after first event",
+      "Email magic link (no password)",
+      "Anonymous play: score first, account later",
       "Google and Apple OAuth (Phase 2)",
-      "Role-based access: player, organiser, club admin",
+      "Row-level security on all tables",
     ],
-    tech: "Supabase Auth with magic links. Row Level Security (RLS) policies on all tables. Anonymous sessions stored in Supabase with upgrade path.",
+    tech: "Supabase Auth. Anonymous session with progressive account creation.",
   },
   realtime: {
-    name: "Realtime layer",
-    phase: "mvp",
-    tier: "infra",
-    sub: "Supabase WebSocket subscriptions",
-    desc: "Supabase Realtime WebSocket subscriptions on scorecards and hole_scores tables. Powers live leaderboard updates and organiser dashboard.",
-    deps: ["Auth"],
-    data: ["scorecards", "hole_scores"],
+    name: "Realtime layer", phase: "mvp", tier: "infra", status: "planned",
+    sub: "WebSocket subscriptions",
+    desc: "Live score updates pushed to leaderboard clients the moment a hole is saved.",
+    deps: ["auth"],
+    data: ["hole_scores", "scorecards"],
+    liveUrl: null, prdUrl: null, codeUrl: `${GITHUB}/packages/db/migrations/001_initial_schema.sql`,
     features: [
-      "Subscribe to scorecards table changes for a specific event",
-      "Sub-second latency from score entry to leaderboard update",
-      "Automatic reconnection on connection drop",
-      "Channel-based subscriptions (one channel per event)",
-      "Broadcast messages for non-database events (e.g. 'event finalised')",
+      "Supabase Realtime on hole_scores and scorecards",
+      "Client-side recalculation on each change",
+      "Presence: show which players are scoring",
+      "Reconnection with state reconciliation",
     ],
-    tech: "Supabase Realtime with PostgreSQL CDC (Change Data Capture). Client subscribes via supabase-js. One subscription per event, filtered by event_id.",
+    tech: "Supabase Realtime (postgres_changes). Enabled in migration.",
   },
-  offline: {
-    name: "Offline / PWA",
-    phase: "mvp",
-    tier: "infra",
-    sub: "IndexedDB + service worker",
-    desc: "Service worker for offline score entry. IndexedDB for local storage. PWA manifest for add-to-home-screen. Essential for golf courses with patchy signal.",
-    deps: ["Score entry", "Realtime layer"],
+  pwa: {
+    name: "PWA / offline mode", phase: "soon", tier: "infra", status: "planned",
+    sub: "Add to home screen, offline scoring",
+    desc: "Service worker caches the app. Scores written to IndexedDB offline, synced on reconnect.",
+    deps: ["score_entry", "auth"],
     data: [],
+    liveUrl: null, prdUrl: null, codeUrl: null,
     features: [
-      "Service worker caches app shell and course data",
-      "IndexedDB stores pending score entries",
-      "Sync manager: batch upload on reconnect, last-write-wins",
-      "Visual status: 'Synced' (green) or 'Will sync when online' (amber)",
-      "PWA manifest: add to home screen, full-screen launch, custom icon",
-      "Web Push notifications on Android (event reminders, leaderboard updates)",
+      "Service worker for offline scorecard",
+      "IndexedDB buffering of scores",
+      "Background sync on reconnect",
+      "Add to home screen prompt",
+      "Works on iOS Safari and Android Chrome",
     ],
-    tech: "next-pwa or Workbox for service worker. IndexedDB via idb library. Background Sync API where supported, polling fallback.",
+    tech: "next-pwa. Workbox. IndexedDB via idb library.",
   },
-  mobile_path: {
-    name: "Native apps",
-    phase: "later",
-    tier: "infra",
-    sub: "React Native via Expo",
-    desc: "iOS and Android native apps via React Native / Expo. Stage 3 of the mobile path — only when 500+ regular users justify the investment.",
-    deps: ["All MVP modules", "Auth", "Realtime layer"],
-    data: [],
+  club_erp: {
+    name: "Club ERP layer", phase: "later", tier: "club", status: "planned",
+    sub: "Cumberwell-first integration",
+    desc: "Full club management: members, competitions, tee time booking. Pilot target: Cumberwell Park.",
+    deps: ["event_create", "auth", "payments"],
+    data: ["events", "users"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
     features: [
-      "Share ~70–80% component logic with Next.js web app",
-      "Same Supabase backend, same real-time subscriptions",
-      "Native push notifications (APNs + FCM)",
-      "Apple Watch companion for on-wrist scoring (future)",
-      "Bluetooth integration for Trackman simulator (future)",
-      "Lock Screen widgets for live match status (future)",
+      "Member management (intelligentgolf import)",
+      "Competition calendar",
+      "Tee time booking (replaces golfbook/255it)",
+      "Club admin dashboard",
     ],
-    tech: "React Native via Expo. TypeScript scoring engines reused directly. Supabase JS client works in React Native. Platform-specific: navigation (React Navigation), native UI components.",
-  },
-  club_profile: {
-    name: "Club profile",
-    phase: "later",
-    tier: "club",
-    sub: "Courses, packages, availability",
-    desc: "Public-facing club page with courses, society day packages, and availability calendar. The landing page for club discovery.",
-    deps: ["Course database"],
-    data: ["clubs"],
-    features: [
-      "Club info: name, location, facilities, contact",
-      "Courses with scorecards",
-      "Society day packages and pricing",
-      "Availability calendar for event booking",
-      "Photo gallery",
-    ],
-    tech: "Next.js page with SSG. Club admin can edit via dashboard.",
-  },
-  club_admin: {
-    name: "Club admin",
-    phase: "later",
-    tier: "club",
-    sub: "Bookings, calendar, revenue",
-    desc: "Club management dashboard. Incoming society bookings, event calendar, revenue reporting. The value proposition for clubs.",
-    deps: ["Club profile", "Payments", "Event creation"],
-    data: ["clubs", "events", "payments"],
-    features: [
-      "Incoming booking requests from organisers",
-      "Event calendar with status tracking",
-      "Revenue dashboard (entries, fees, payouts)",
-      "Club branding configuration",
-      "Staff accounts with role-based access",
-    ],
-    tech: "Next.js dashboard. Supabase RLS policies for club-scoped data access.",
-  },
-  tv_board: {
-    name: "TV leaderboard",
-    phase: "later",
-    tier: "club",
-    sub: "Branded full-screen display",
-    desc: "Full-screen leaderboard display for clubhouse TVs. Club branding (logo, colours). Auto-scrolling. The wow factor for club sales.",
-    deps: ["Live leaderboard", "Club profile"],
-    data: ["scorecards", "clubs"],
-    features: [
-      "1920×1080 optimised layout",
-      "Club logo and colour scheme",
-      "Auto-scroll through flights",
-      "NTP/LD results ticker",
-      "Sponsor logos (configurable)",
-    ],
-    tech: "Dedicated Next.js route. CSS custom properties for club branding. Auto-refresh via Supabase Realtime.",
-  },
-  stripe_connect: {
-    name: "Stripe Connect",
-    phase: "later",
-    tier: "club",
-    sub: "Club payouts, platform fee",
-    desc: "Split payments between the platform and clubs. Clubs receive payouts. Platform takes a configurable fee (2–3%).",
-    deps: ["Payments", "Club admin"],
-    data: ["payments", "clubs"],
-    features: [
-      "Club onboarding to Stripe Connect",
-      "Automatic payout splitting",
-      "Configurable platform fee per club",
-      "Payout reporting for clubs",
-      "Refund handling",
-    ],
-    tech: "Stripe Connect in destination charges mode. Webhook handler for payout status.",
-  },
-  tee_sheet: {
-    name: "Tee sheet",
-    phase: "future",
-    tier: "club",
-    sub: "Full slot management",
-    desc: "Full tee-time slot management for daily club operations. The most complex module — deliberate Phase 4 deferral.",
-    deps: ["Club admin", "Course database", "Membership"],
-    data: ["tee_slots", "bookings"],
-    features: [
-      "Time-slot configuration per course",
-      "Member priority windows",
-      "Visitor booking with dynamic pricing",
-      "Block booking for events",
-      "Waitlist management",
-      "Check-in workflow",
-    ],
-    tech: "Complex scheduling engine. Supabase with optimistic locking for concurrent booking. Significant UI investment.",
-  },
-  membership: {
-    name: "Membership",
-    phase: "future",
-    tier: "club",
-    sub: "Billing, CRM, categories",
-    desc: "Club membership administration. Billing, CRM, categories, renewals. Large module deferred to Phase 4.",
-    deps: ["Club admin", "Auth", "Payments"],
-    data: ["memberships", "members"],
-    features: [
-      "Membership categories with pricing tiers",
-      "Recurring billing (Stripe Subscriptions)",
-      "Member CRM with tags and segments",
-      "Renewal management and reminders",
-      "Family/linked accounts",
-    ],
-    tech: "Stripe Subscriptions for billing. Complex CRM data model. Significant admin UI investment.",
+    tech: "Extended Supabase schema. intelligentgolf export format integration.",
   },
   whs: {
-    name: "WHS integration",
-    phase: "future",
-    tier: "club",
-    sub: "ISV licence, DotGolf sync",
-    desc: "Official World Handicap System integration. Submit scores to England Golf via DotGolf API. Requires ISV licence — target Q4 2026 at earliest.",
-    deps: ["Scoring engines", "Auth", "Course database"],
-    data: ["whs_submissions"],
+    name: "WHS integration", phase: "later", tier: "course", status: "planned",
+    sub: "Live handicap lookup",
+    desc: "Live WHS handicap lookup via England Golf / DotGolf API. Requires ISV licence.",
+    deps: ["handicap", "auth"],
+    data: ["users"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
     features: [
-      "ISV licence with England Golf",
-      "Submit qualifying scores to WHS platform",
-      "Retrieve current handicap index for players",
-      "CDH (Central Database of Handicaps) lookup",
-      "Competition designation (qualifying vs non-qualifying)",
+      "Handicap index lookup by CDH number",
+      "Auto-populate on player record",
+      "Submit qualifying round results",
+      "Requires ISV licence from England Golf",
     ],
-    tech: "DotGolf API integration. ISV compliance requirements. Likely REST API with specific payload format.",
+    tech: "DotGolf API. Manual entry remains as fallback.",
   },
-  discovery: {
-    name: "Event discovery",
-    phase: "future",
-    tier: "club",
-    sub: "Find and join public events",
-    desc: "Public marketplace for finding and joining open golf events. The network-effects play. Requires critical mass to be valuable.",
-    deps: ["Event creation", "Invite & RSVP", "Payments", "Club profile"],
-    data: ["events"],
-    features: [
-      "Browse public events by location, date, format",
-      "Search and filter",
-      "Book and pay directly",
-      "Club-promoted events",
-      "Event recommendations based on history",
-    ],
-    tech: "Next.js with geolocation-based search. Supabase PostGIS extension for location queries.",
-  },
-};
+}
 
-const tierOrder = ["player", "organiser", "scoring", "course", "infra", "club"];
-const tierLabels = {
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+interface Module {
+  name: string; phase: string; tier: string; status: string
+  sub: string; desc: string; deps: string[]; data: string[]
+  liveUrl: string | null; prdUrl: string | null; codeUrl: string | null
+  features: string[]; tech: string
+}
+
+// ─── Config ──────────────────────────────────────────────────────────────────
+
+const tierOrder = ["player", "organiser", "scoring", "course", "infra", "club"]
+const tierLabels: Record<string, string> = {
   player: "Player-facing experience",
   organiser: "Organiser tools",
   scoring: "Scoring engines",
-  course: "Course data",
+  course: "Course & handicap data",
   infra: "Platform infrastructure",
   club: "Club-facing (phase 3–4)",
-};
-const tierNotes = {
-  player: "Consumes scores and leaderboard data via Supabase Realtime",
-  scoring: "Pure functions — input strokes, output rankings. Shared handicap allocation logic",
-};
+}
+const tierNotes: Record<string, string> = {
+  scoring: "Pure TypeScript in @lx2/scoring — zero database dependency. Fully tested.",
+  infra: "Shared by all tiers above",
+}
 
-const phaseColors = {
-  mvp: { bg: "#E8F5EE", text: "#1D9E75", label: "MVP" },
-  soon: { bg: "#E6F1FB", text: "#185FA5", label: "P2" },
-  later: { bg: "#FAEEDA", text: "#854F0B", label: "P3" },
+const phaseColors: Record<string, { bg: string; text: string; label: string }> = {
+  mvp:    { bg: "#E8F5EE", text: "#1D9E75", label: "MVP" },
+  soon:   { bg: "#E6F1FB", text: "#185FA5", label: "P2" },
+  later:  { bg: "#FAEEDA", text: "#854F0B", label: "P3" },
   future: { bg: "#F1EFE8", text: "#5F5E5A", label: "P4" },
-};
+}
+
+const statusConfig: Record<string, { color: string; bg: string; label: string }> = {
+  done:     { color: "#1D9E75", bg: "#E8F5EE", label: "Done" },
+  building: { color: "#B8660B", bg: "#FEF3E2", label: "Building" },
+  planned:  { color: "#9CA3AF", bg: "#F3F4F6", label: "Planned" },
+}
 
 const legendItems = [
-  { phase: "mvp", label: "MVP (weeks 1–6)" },
-  { phase: "soon", label: "Phase 2 (weeks 7–18)" },
-  { phase: "later", label: "Phase 3 (weeks 19–30)" },
+  { phase: "mvp",    label: "MVP" },
+  { phase: "soon",   label: "Phase 2" },
+  { phase: "later",  label: "Phase 3" },
   { phase: "future", label: "Phase 4+" },
-];
+]
+
+// ─── Component ───────────────────────────────────────────────────────────────
 
 export default function LX2Architecture() {
-  const [selected, setSelected] = useState(null);
-  const mod = selected ? modules[selected] : null;
+  const [selected, setSelected] = useState<string | null>(null)
+  const [view, setView] = useState<"modules" | "deps">("modules")
+  const mod = selected ? modules[selected] : null
 
-  const grouped = {};
+  const grouped: Record<string, (Module & { id: string })[]> = {}
   for (const [id, m] of Object.entries(modules)) {
-    if (!grouped[m.tier]) grouped[m.tier] = [];
-    grouped[m.tier].push({ id, ...m });
+    if (!grouped[m.tier]) grouped[m.tier] = []
+    grouped[m.tier]!.push({ id, ...m })
   }
 
+  // Build stats
+  const allMods = Object.values(modules)
+  const done = allMods.filter(m => m.status === "done").length
+  const building = allMods.filter(m => m.status === "building").length
+  const planned = allMods.filter(m => m.status === "planned").length
+  const mvpMods = allMods.filter(m => m.phase === "mvp")
+  const mvpDone = mvpMods.filter(m => m.status === "done").length
+
   return (
-    <div className="p-4 max-w-3xl mx-auto" style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}>
+    <div className="p-4 max-w-3xl mx-auto" style={{ fontFamily: "system-ui, -apple-system, sans-serif", color: "#111" }}>
+
+      {/* Build progress bar */}
+      <div className="mb-5 p-3 rounded-xl" style={{ background: "rgba(0,0,0,0.03)", border: "0.5px solid rgba(0,0,0,0.08)" }}>
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">MVP progress</div>
+          <div className="text-xs text-gray-400">{mvpDone} of {mvpMods.length} modules</div>
+        </div>
+        <div className="h-1.5 rounded-full" style={{ background: "rgba(0,0,0,0.08)" }}>
+          <div className="h-1.5 rounded-full" style={{ width: `${(mvpDone / mvpMods.length) * 100}%`, background: "#1D9E75", transition: "width 0.3s" }} />
+        </div>
+        <div className="flex gap-4 mt-2">
+          {[{ label: "Done", n: done, color: "#1D9E75" }, { label: "Building", n: building, color: "#B8660B" }, { label: "Planned", n: planned, color: "#9CA3AF" }].map(s => (
+            <div key={s.label} className="flex items-center gap-1 text-xs" style={{ color: s.color }}>
+              <div className="w-1.5 h-1.5 rounded-full" style={{ background: s.color }} />
+              {s.n} {s.label}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* View toggle */}
+      <div className="flex gap-2 mb-4">
+        {(["modules", "deps"] as const).map(v => (
+          <button key={v} onClick={() => setView(v)} className="text-xs px-3 py-1.5 rounded-lg" style={{ background: view === v ? "#111" : "transparent", color: view === v ? "#fff" : "#6b7280", border: view === v ? "none" : "0.5px solid rgba(0,0,0,0.15)", cursor: "pointer", fontWeight: view === v ? 500 : 400 }}>
+            {v === "modules" ? "All modules" : "Dependencies"}
+          </button>
+        ))}
+      </div>
+
       {/* Legend */}
       <div className="flex flex-wrap gap-4 mb-4">
         {legendItems.map((l) => (
           <div key={l.phase} className="flex items-center gap-1.5 text-xs text-gray-500">
-            <div
-              className="w-2 h-2 rounded-sm"
-              style={{ background: phaseColors[l.phase].text }}
-            />
+            <div className="w-2 h-2 rounded-sm" style={{ background: phaseColors[l.phase]!.text }} />
             {l.label}
           </div>
         ))}
       </div>
 
-      {/* Tiers */}
-      {tierOrder.map((tier) => (
+      {/* Deps view */}
+      {view === "deps" && (
+        <div className="mb-6">
+          {Object.entries(modules).filter(([,m]) => m.deps.length > 0).map(([id, m]) => (
+            <div key={id} className="flex items-start gap-2 py-1.5 text-xs border-b" style={{ borderColor: "rgba(0,0,0,0.06)" }}>
+              <div className="font-medium" style={{ minWidth: 160, color: phaseColors[m.phase]!.text }}>{m.name}</div>
+              <div className="flex flex-wrap gap-1">
+                {m.deps.map(dep => {
+                  const depMod = Object.entries(modules).find(([id]) => id === dep)
+                  return (
+                    <span key={dep} className="px-1.5 py-0.5 rounded text-xs cursor-pointer"
+                      style={{ background: depMod ? phaseColors[depMod[1].phase]!.bg : "#f3f4f6", color: depMod ? phaseColors[depMod[1].phase]!.text : "#6b7280", border: `0.5px solid ${depMod ? phaseColors[depMod[1].phase]!.text + "40" : "rgba(0,0,0,0.1)"}` }}
+                      onClick={() => { setSelected(dep); setView("modules") }}>
+                      → {depMod ? depMod[1].name : dep}
+                    </span>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Modules view */}
+      {view === "modules" && tierOrder.map((tier) => (
         <div key={tier} className="mb-1">
           <div className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2 mt-5">
             {tierLabels[tier]}
           </div>
           <div className="flex flex-wrap gap-2">
             {(grouped[tier] || []).map((m) => {
-              const pc = phaseColors[m.phase];
-              const isSel = selected === m.id;
+              const pc = phaseColors[m.phase]!
+              const sc = statusConfig[m.status]!
+              const isSel = selected === m.id
               return (
-                <button
-                  key={m.id}
-                  onClick={() => setSelected(isSel ? null : m.id)}
+                <button key={m.id} onClick={() => setSelected(isSel ? null : m.id)}
                   className="text-left relative rounded-xl px-3 py-2.5 transition-all"
-                  style={{
-                    flex: "1 1 150px",
-                    minWidth: 140,
-                    maxWidth: 220,
-                    background: isSel ? "rgba(59,130,246,0.06)" : "transparent",
-                    border: isSel
-                      ? "1.5px solid rgba(59,130,246,0.4)"
-                      : "0.5px solid rgba(0,0,0,0.1)",
-                  }}
-                >
-                  <span
-                    className="absolute top-1.5 right-2 text-[10px] font-medium px-1.5 py-0.5 rounded"
-                    style={{ background: pc.bg, color: pc.text }}
-                  >
-                    {pc.label}
-                  </span>
-                  <div className="text-sm font-medium text-gray-900 pr-8">{m.name}</div>
+                  style={{ flex: "1 1 150px", minWidth: 140, maxWidth: 220, background: isSel ? "rgba(59,130,246,0.06)" : "transparent", border: isSel ? "1.5px solid rgba(59,130,246,0.4)" : "0.5px solid rgba(0,0,0,0.1)", cursor: "pointer" }}>
+                  <span className="absolute top-1.5 right-2 text-[10px] font-medium px-1.5 py-0.5 rounded"
+                    style={{ background: pc.bg, color: pc.text }}>{pc.label}</span>
+                  <div className="text-sm font-medium pr-8" style={{ color: "#111" }}>{m.name}</div>
                   <div className="text-xs text-gray-500 mt-0.5 leading-tight">{m.sub}</div>
+                  <div className="flex items-center gap-1 mt-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full" style={{ background: sc.color }} />
+                    <span className="text-[10px]" style={{ color: sc.color }}>{sc.label}</span>
+                  </div>
                 </button>
-              );
+              )
             })}
           </div>
           {tierNotes[tier] && (
-            <div className="text-[11px] text-gray-400 italic mt-1 ml-1">
-              ↑ {tierNotes[tier]} ↑
-            </div>
+            <div className="text-[11px] text-gray-400 italic mt-1 ml-1">↑ {tierNotes[tier]} ↑</div>
           )}
         </div>
       ))}
 
       {/* Detail panel */}
       {mod && (
-        <div className="mt-4 rounded-xl p-5" style={{ background: "rgba(0,0,0,0.03)" }}>
-          <div className="text-base font-medium text-gray-900">{mod.name}</div>
+        <div className="mt-5 rounded-xl p-5" style={{ background: "rgba(0,0,0,0.03)", border: "0.5px solid rgba(0,0,0,0.08)" }}>
+          <div className="flex items-start justify-between gap-3 mb-1">
+            <div className="text-base font-medium" style={{ color: "#111" }}>{mod.name}</div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <div className="w-2 h-2 rounded-full" style={{ background: statusConfig[mod.status]!.color }} />
+              <span className="text-xs" style={{ color: statusConfig[mod.status]!.color }}>{statusConfig[mod.status]!.label}</span>
+            </div>
+          </div>
           <p className="text-sm text-gray-600 mt-1 leading-relaxed">{mod.desc}</p>
+
+          {/* Links row */}
+          <div className="flex flex-wrap gap-2 mt-3">
+            {mod.liveUrl && (
+              <a href={mod.liveUrl} target="_blank" rel="noreferrer" className="text-xs px-2.5 py-1 rounded-lg no-underline" style={{ background: "#E8F5EE", color: "#1D9E75", border: "0.5px solid #1D9E7540" }}>
+                ↗ Live
+              </a>
+            )}
+            {mod.prdUrl && (
+              <a href={mod.prdUrl} target="_blank" rel="noreferrer" className="text-xs px-2.5 py-1 rounded-lg no-underline" style={{ background: "#E6F1FB", color: "#185FA5", border: "0.5px solid #185FA540" }}>
+                ↗ PRD
+              </a>
+            )}
+            {mod.codeUrl && (
+              <a href={mod.codeUrl} target="_blank" rel="noreferrer" className="text-xs px-2.5 py-1 rounded-lg no-underline" style={{ background: "#F1EFE8", color: "#5F5E5A", border: "0.5px solid rgba(0,0,0,0.1)" }}>
+                ↗ Code
+              </a>
+            )}
+          </div>
 
           {mod.deps.length > 0 && (
             <>
-              <div className="text-xs font-medium text-gray-400 uppercase tracking-wider mt-4 mb-1.5">
-                Depends on
-              </div>
+              <div className="text-xs font-medium text-gray-400 uppercase tracking-wider mt-4 mb-1.5">Depends on</div>
               <div className="flex flex-wrap gap-1.5">
-                {mod.deps.map((d) => (
-                  <span
-                    key={d}
-                    className="text-xs px-2 py-0.5 rounded border text-gray-500"
-                    style={{ borderColor: "rgba(0,0,0,0.1)" }}
-                  >
-                    {d}
-                  </span>
-                ))}
+                {mod.deps.map((dep) => {
+                  const depMod = modules[dep]
+                  return (
+                    <button key={dep} onClick={() => setSelected(dep)}
+                      className="text-xs px-2 py-0.5 rounded border cursor-pointer"
+                      style={{ borderColor: "rgba(0,0,0,0.1)", background: depMod ? phaseColors[depMod.phase]!.bg : "transparent", color: depMod ? phaseColors[depMod.phase]!.text : "#6b7280" }}>
+                      {depMod ? depMod.name : dep}
+                    </button>
+                  )
+                })}
               </div>
             </>
           )}
 
           {mod.data.length > 0 && (
             <>
-              <div className="text-xs font-medium text-gray-400 uppercase tracking-wider mt-3 mb-1.5">
-                Data tables
-              </div>
+              <div className="text-xs font-medium text-gray-400 uppercase tracking-wider mt-3 mb-1.5">DB tables</div>
               <div className="flex flex-wrap gap-1.5">
                 {mod.data.map((d) => (
-                  <code
-                    key={d}
-                    className="text-xs px-2 py-0.5 rounded border text-gray-500"
-                    style={{
-                      borderColor: "rgba(0,0,0,0.1)",
-                      fontFamily: "monospace",
-                      fontSize: 11,
-                    }}
-                  >
-                    {d}
-                  </code>
+                  <code key={d} className="text-xs px-2 py-0.5 rounded border" style={{ borderColor: "rgba(0,0,0,0.1)", fontFamily: "monospace", fontSize: 11, color: "#6b7280" }}>{d}</code>
                 ))}
               </div>
             </>
           )}
 
-          <div className="text-xs font-medium text-gray-400 uppercase tracking-wider mt-3 mb-1.5">
-            Key features
-          </div>
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wider mt-3 mb-1.5">Features</div>
           <ol className="text-sm text-gray-700 leading-relaxed pl-4 list-decimal">
-            {mod.features.map((f, i) => (
-              <li key={i} className="mb-0.5">
-                {f}
-              </li>
-            ))}
+            {mod.features.map((f, i) => <li key={i} className="mb-0.5">{f}</li>)}
           </ol>
 
-          <div className="text-xs font-medium text-gray-400 uppercase tracking-wider mt-3 mb-1.5">
-            Technical approach
-          </div>
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wider mt-3 mb-1.5">Technical approach</div>
           <p className="text-sm text-gray-600 leading-relaxed">{mod.tech}</p>
         </div>
       )}
     </div>
-  );
+  )
 }
