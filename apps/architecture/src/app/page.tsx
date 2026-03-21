@@ -3,13 +3,19 @@ import LX2Architecture from './LX2Architecture'
 
 export default function ArchitecturePage() {
   return (
-    <div className="min-h-screen" style={{ background: '#fafaf9' }}>
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="flex items-baseline gap-3 mb-6">
-          <h1 className="text-2xl font-medium">
-            LX<span style={{ color: '#1D9E75' }}>2</span>
-          </h1>
-          <span className="text-sm text-gray-400">Platform architecture</span>
+    <div style={{ minHeight: '100vh', background: '#F0F4EC' }}>
+      <div style={{ maxWidth: 820, margin: '0 auto', padding: '0 20px' }}>
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, padding: '28px 0 4px' }}>
+          <div style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 22, color: '#666', letterSpacing: -0.5 }}>
+            LX<span style={{ color: '#2E7D32' }}>2</span>
+          </div>
+          <div style={{ fontFamily: "'Lexend', sans-serif", fontSize: 13, color: '#6B8C6B', fontWeight: 300 }}>
+            Platform architecture
+          </div>
+          <div style={{ marginLeft: 'auto', fontFamily: "'Lexend', sans-serif", fontSize: 11, color: '#A0B898', letterSpacing: '0.04em' }}>
+            v0.2 · March 2026
+          </div>
         </div>
         <LX2Architecture />
       </div>
