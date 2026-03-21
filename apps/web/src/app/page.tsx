@@ -54,7 +54,7 @@ export default function HomePage() {
         }
 
         .logo img {
-          height: 36px;
+          height: 56px;
           width: auto;
         }
 
