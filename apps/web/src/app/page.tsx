@@ -49,24 +49,13 @@ export default function HomePage() {
 
         .logo {
           display: flex;
-          align-items: baseline;
-          gap: 0;
+          align-items: center;
           text-decoration: none;
         }
 
-        .logo-lx {
-          font-family: 'Manrope', sans-serif;
-          font-weight: 800;
-          font-size: 26px;
-          color: #666666;
-          letter-spacing: -0.5px;
-          line-height: 1;
-        }
-
-        .logo-golfer-wrap {
-          display: flex;
-          align-items: center;
-          margin-left: 2px;
+        .logo img {
+          height: 36px;
+          width: auto;
         }
 
         .nav-links {
@@ -317,18 +306,7 @@ export default function HomePage() {
         {/* Nav */}
         <nav className="nav">
           <a href="/" className="logo">
-            <span className="logo-lx">LX</span>
-            <span className="logo-golfer-wrap">
-              {/* Inline golfer SVG — matches logo asset */}
-              <svg width="28" height="32" viewBox="0 0 100 115" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* Golfer figure as the 2 */}
-                <circle cx="72" cy="12" r="10" fill="#2E7D32"/>
-                <path d="M20 105 Q35 85 55 70 Q65 62 72 50 Q80 36 78 22" stroke="#2E7D32" strokeWidth="8" strokeLinecap="round" fill="none"/>
-                <path d="M55 70 L30 95 L20 105" stroke="#2E7D32" strokeWidth="8" strokeLinecap="round" fill="none"/>
-                <path d="M72 50 Q90 35 95 20 Q98 10 90 8" stroke="#2E7D32" strokeWidth="5" strokeLinecap="round" fill="none"/>
-                <line x1="18" y1="105" x2="100" y2="105" stroke="#2E7D32" strokeWidth="6" strokeLinecap="round"/>
-              </svg>
-            </span>
+            <img src="/lx2-logo.svg" alt="LX2" height={36} />
           </a>
           <div className="nav-links">
             <a href="/play" className="nav-link">Play</a>
