@@ -313,7 +313,7 @@ const journeys: Journey[] = [
     label: 'Player — join a round',
     height: 500,
     steps: [
-      { id: 'home',     label: 'lx2.golf home',       sub: 'entry point',              status: 'done',     moduleId: undefined,        x: 240, y: 20  },
+      { id: 'home',     label: 'lx2.golf home',       sub: 'entry point',              status: 'done',                                 x: 240, y: 20  },
       { id: 'landing',  label: 'Event landing page',   sub: 'via WhatsApp invite link', status: 'building', moduleId: 'event_landing',   x: 60,  y: 120 },
       { id: 'auth',     label: 'Sign in',              sub: 'magic link (optional)',    status: 'building', moduleId: 'auth',             x: 420, y: 120 },
       { id: 'score',    label: 'Score entry',          sub: 'hole-by-hole on PWA',      status: 'building', moduleId: 'score_entry',      x: 240, y: 230 },
@@ -337,7 +337,7 @@ const journeys: Journey[] = [
     label: 'Organiser — run an event',
     height: 560,
     steps: [
-      { id: 'org_home',   label: '/organise page',      sub: 'organiser entry',        status: 'done',     moduleId: undefined,         x: 240, y: 20  },
+      { id: 'org_home',   label: '/organise page',      sub: 'organiser entry',        status: 'done',                                  x: 240, y: 20  },
       { id: 'org_auth',   label: 'Sign in',             sub: 'magic link required',    status: 'building', moduleId: 'auth',             x: 240, y: 110 },
       { id: 'org_create', label: 'Event creation',      sub: '3-step form',            status: 'building', moduleId: 'event_create',     x: 240, y: 200 },
       { id: 'org_invite', label: 'Invite & RSVP',       sub: 'players join via link',  status: 'planned',  moduleId: 'invite',           x: 240, y: 300 },
@@ -360,7 +360,7 @@ const journeys: Journey[] = [
     label: 'Solo scorer',
     height: 430,
     steps: [
-      { id: 's_home',    label: '/play page',     sub: 'player entry',           status: 'done',     moduleId: undefined,      x: 240, y: 20  },
+      { id: 's_home',    label: '/play page',     sub: 'player entry',           status: 'done',                               x: 240, y: 20  },
       { id: 's_auth',    label: 'Auth (optional)', sub: 'anonymous or signed-in', status: 'building', moduleId: 'auth',          x: 240, y: 110 },
       { id: 's_course',  label: 'Choose course',  sub: 'course database search', status: 'planned',  moduleId: 'course_db',     x: 240, y: 200 },
       { id: 's_score',   label: 'Score entry',    sub: 'hole-by-hole',           status: 'building', moduleId: 'score_entry',   x: 240, y: 295 },
