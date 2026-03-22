@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
 export default function HomePage() {
@@ -305,9 +306,9 @@ export default function HomePage() {
       <div className="home">
         {/* Nav */}
         <nav className="nav">
-          <a href="/" className="logo">
+          <Link href="/" className="logo">
             <img src="/lx2-logo.svg" alt="LX2" height={36} />
-          </a>
+          </Link>
           <div className="nav-links">
             <a href="/play" className="nav-link">Play</a>
             <a href="/organise" className="nav-link">Organise</a>

@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import Link from 'next/link'
 import { createEvent, type EventFormData } from './actions'
 import { searchCourses, getCourse, type Course } from '@/lib/courses'
 
@@ -164,9 +165,9 @@ export default function NewEventPage() {
     <div style={S.wrap}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
-        <a href="/" style={{ fontSize: 20, fontWeight: 700, letterSpacing: -0.5, textDecoration: 'none', color: '#111' }}>
+        <Link href="/" style={{ fontSize: 20, fontWeight: 700, letterSpacing: -0.5, textDecoration: 'none', color: '#111' }}>
           LX<span style={{ color: '#1D9E75' }}>2</span>
-        </a>
+        </Link>
         <div style={{ fontSize: 16, fontWeight: 600, color: '#111' }}>New event</div>
       </div>
 
