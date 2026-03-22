@@ -1,623 +1,906 @@
-'use client'
-import { useState } from 'react'
-import Image from 'next/image'
+"use client"
+import { useState } from "react"
 
-const GITHUB = 'https://github.com/mattcublington/lx2/blob/main'
-const APP    = 'https://lx2.golf'
+// ─── Module registry ──────────────────────────────────────────────────────────
 
-type Phase   = 'mvp' | 'soon' | 'later' | 'future'
-type Tier    = 'player-pwa' | 'player-web' | 'organiser' | 'scoring' | 'course' | 'infra' | 'club'
-type Status  = 'done' | 'building' | 'planned'
-type Surface = 'player' | 'organiser' | 'club' | 'shared'
+const GITHUB = "https://github.com/mattcublington/lx2/blob/main"
+
+const modules: Record<string, Module> = {
+
+  // ── Player — on-course PWA ──────────────────────────────────────────────────
+
+  score_entry: {
+    id: "score_entry", name: "Score entry", phase: "mvp", tier: "player_app", status: "building",
+    sub: "Hole-by-hole, mobile-first",
+    desc: "The core on-course interaction. One-tap score entry per hole, running Stableford points and Match Play status shown live. Must work offline with automatic sync on reconnect.",
+    deps: ["handicap", "course_db", "realtime", "auth"],
+    data: ["hole_scores", "scorecards"],
+    liveUrl: null, prdUrl: `${GITHUB}/docs/prd/score-entry.md`, codeUrl: `${GITHUB}/apps/web/src/app/score`,
+    features: [
+      "One-tap entry per hole, large 48px targets",
+      "Running Stableford points after each hole",
+      "Match Play status — '2 up with 5 to play'",
+      "Offline queue — IndexedDB → sync on reconnect",
+      "Visual sync status: green = synced, amber = pending",
+      "NTP/LD result entry on contest holes",
+      "Auto-advance to next hole on entry",
+      "Undo last hole",
+    ],
+    tech: "Next.js page + Supabase Realtime. Service worker for app shell. IndexedDB for offline score queue.",
+  },
+
+  ntp_ld: {
+    id: "ntp_ld", name: "NTP / Longest Drive", phase: "mvp", tier: "player_app", status: "building",
+    sub: "Side contest tracking",
+    desc: "Nearest-to-pin and Longest Drive contests run alongside the main round. Organisers nominate holes; players submit results on-course. Shareable winner announcement at close.",
+    deps: ["score_entry", "event_create"],
+    data: ["contests", "contest_results"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
+    features: [
+      "Organiser nominates NTP and LD holes at setup",
+      "Player submits result inline during score entry",
+      "Live contest leaderboard visible to all players",
+      "Multiple contests per event",
+      "Winner announced on results page",
+      "Sponsor branding surface on contest holes",
+    ],
+    tech: "contests and contest_results tables. Extends score entry UI with contest input on designated holes.",
+  },
+
+  leaderboard: {
+    id: "leaderboard", name: "Live leaderboard", phase: "mvp", tier: "player_app", status: "planned",
+    sub: "Real-time, shareable, TV mode",
+    desc: "Auto-updating leaderboard pushed via WebSocket as scores arrive. Shareable URL requires no login. TV/full-screen display mode for clubhouse screens. Score hiding on final holes preserves competition drama. Projected team results keep Reds vs Blues and team formats exciting.",
+    deps: ["score_entry", "realtime", "scoring_stableford", "scoring_stroke", "scoring_matchplay"],
+    data: ["scorecards", "hole_scores"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
+    features: [
+      "WebSocket-pushed rankings — no polling",
+      "Shareable public URL — no login needed",
+      "TV / full-screen display mode for clubhouse",
+      "Score hiding on final holes (anti-spoiler)",
+      "Projected team scores for team formats",
+      "Countback tiebreaker display",
+      "NTP / LD contest results panel",
+      "Results locked and permanent at close",
+    ],
+    tech: "Supabase Realtime (postgres_changes). Client recalculates on each event. Public row-level security for shareable URLs.",
+  },
+
+  event_landing: {
+    id: "event_landing", name: "Event landing page", phase: "mvp", tier: "player_app", status: "building",
+    sub: "Player entry point via invite link",
+    desc: "The page a player lands on when they tap their invite link. Shows event details, allows RSVP and payment without creating an account. Entry point to the scoring PWA on the day.",
+    deps: ["invite", "payments", "auth"],
+    data: ["events", "rsvps"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
+    features: [
+      "Event details: format, date, course, organiser",
+      "RSVP: yes / no / maybe",
+      "Payment via Stripe Checkout inline",
+      "No account required to join",
+      "Tee time and flight assignment shown",
+      "Link to scoring PWA on event day",
+      "Shareable — works in WhatsApp and iMessage",
+    ],
+    tech: "Next.js dynamic route /events/[id]. Supabase anon auth. Stripe Checkout redirect.",
+  },
+
+  branded_event_site: {
+    id: "branded_event_site", name: "Branded event site", phase: "soon", tier: "player_app", status: "planned",
+    sub: "Sponsor logos, custom colours, sharable recap",
+    desc: "Upgrade the event landing page into a fully branded tournament microsite. Organiser uploads sponsor logos, picks accent colour, gets a shareable URL for pre-event marketing and post-event recap. Key commercial surface for corporate days and club competitions.",
+    deps: ["event_landing", "event_create"],
+    data: ["events", "brand_assets"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
+    features: [
+      "Custom colour theme per event",
+      "Sponsor logo placement (header, leaderboard, contest holes)",
+      "Pre-event landing page for marketing",
+      "Post-event recap page with results, photos, highlights",
+      "Shareable URL — works without login",
+      "PDF results export for prize-giving",
+    ],
+    tech: "Event brand_assets table. CSS custom property injection per event. Vercel edge for fast shareable URLs.",
+  },
+
+  // ── Player — web & stats ────────────────────────────────────────────────────
+
+  player_home: {
+    id: "player_home", name: "Player home (/play)", phase: "soon", tier: "player_web", status: "planned",
+    sub: "Stats dashboard, golfer web entry point",
+    desc: "The authenticated golfer's home screen on the web. Shows recent rounds, handicap trend, upcoming events, and quick links to stats. Strava-style feed of golfing activity.",
+    deps: ["auth", "score_entry", "results"],
+    data: ["users", "scorecards", "events"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
+    features: [
+      "Recent rounds with scores and formats",
+      "Handicap index trend chart",
+      "Upcoming events with RSVP status",
+      "Quick stats: fairways, GIR, putts, scoring average",
+      "Friends' recent rounds feed",
+      "Link to book or join events",
+    ],
+    tech: "Next.js /play route. Supabase RLS — own data only. Recharts for handicap trend.",
+  },
+
+  player_profile: {
+    id: "player_profile", name: "Player profile", phase: "soon", tier: "player_web", status: "planned",
+    sub: "Public stats page",
+    desc: "Public-facing golfer profile. Shows career stats, best rounds, courses played, and season performance. Shareable — the golfer's identity on the platform.",
+    deps: ["player_home", "auth"],
+    data: ["users", "scorecards"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
+    features: [
+      "Handicap index history",
+      "Best gross and net rounds",
+      "Courses played log",
+      "Win and podium count by format",
+      "Season performance summary",
+      "Privacy controls — public / friends / private",
+    ],
+    tech: "Next.js /players/[id]. Public by default with RLS privacy flag.",
+  },
+
+  results: {
+    id: "results", name: "Results & history", phase: "mvp", tier: "player_web", status: "planned",
+    sub: "Permanent shareable results page",
+    desc: "Every event produces a permanent results page. Shareable without login. Shows final leaderboard, winner, NTP/LD results, and scorecard breakdown. The post-round social object.",
+    deps: ["leaderboard", "score_entry"],
+    data: ["scorecards", "events", "contest_results"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
+    features: [
+      "Permanent URL per event",
+      "Full leaderboard with countback",
+      "Individual scorecard breakdown",
+      "NTP / LD contest winners",
+      "Shareable — WhatsApp, iMessage, X",
+      "PDF download for club records",
+    ],
+    tech: "Static generation at event close. Supabase public RLS for results.",
+  },
+
+  join_a_game: {
+    id: "join_a_game", name: "Join a game", phase: "later", tier: "player_web", status: "planned",
+    sub: "Browse and join open rounds",
+    desc: "Discovery surface for open events and rounds. Players can find and join events with available slots — society days open to visitors, club competition entries, group rounds with space. Fill-rate mechanic for organisers; discovery mechanic for players.",
+    deps: ["event_create", "invite", "payments", "event_landing"],
+    data: ["events", "rsvps"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
+    features: [
+      "Browse public events by date, course, format",
+      "Filter by format, distance, handicap range",
+      "Join with one tap + payment",
+      "Organiser controls: open / invite-only / closed",
+      "Fill-rate notifications to organiser",
+      "Club-promoted events given priority placement",
+    ],
+    tech: "Supabase PostGIS for location-based search. Event visibility enum: public / invite / private.",
+  },
+
+  gps: {
+    id: "gps", name: "GPS / rangefinder", phase: "future", tier: "player_web", status: "planned",
+    sub: "Distances on 40k+ courses",
+    desc: "On-course GPS distances to front, middle, and back of green. Shot measurement and sharing. 40,000+ courses via golfcourseapi.com dataset. Key daily-use utility that drives habitual engagement outside of events — the gap between LX2 and Golf GameBook's player-side product.",
+    deps: ["course_db"],
+    data: ["courses", "course_gps"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
+    features: [
+      "Front / middle / back distance to green",
+      "Hazard distances",
+      "Shot measurement — tap start and end",
+      "Share shot distance to social feed",
+      "Works offline via cached course map",
+      "40,000+ courses globally",
+    ],
+    tech: "Browser Geolocation API. Course GPS data from golfcourseapi.com. IndexedDB cache for offline use.",
+  },
+
+  // ── Organiser tools ─────────────────────────────────────────────────────────
+
+  event_create: {
+    id: "event_create", name: "Event creation", phase: "mvp", tier: "organiser", status: "building",
+    sub: "Set up new event — 3-step form",
+    desc: "Three-step wizard: define the event (name, format, date, course), configure scoring (handicap allowance, NTP/LD holes, tee colours), set payment and entry. Produces invite link and event landing page.",
+    deps: ["auth", "course_db", "payments"],
+    data: ["events", "courses"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
+    features: [
+      "Step 1: name, format, date, course, max players",
+      "Step 2: handicap allowance, tee colour, NTP/LD holes",
+      "Step 3: entry fee (optional), payment split",
+      "Instant invite link on completion",
+      "Event landing page auto-generated",
+      "Draft save — resume later",
+    ],
+    tech: "Multi-step Next.js form. Supabase events table. Stripe Connect for payment routing.",
+  },
+
+  invite: {
+    id: "invite", name: "Invite & RSVP", phase: "mvp", tier: "organiser", status: "planned",
+    sub: "No account needed to join",
+    desc: "Organiser sends invite link via WhatsApp or email. Players RSVP without creating an account — anonymous session upgrades to full account later. Organiser sees live RSVP list and can chase non-responders.",
+    deps: ["event_create", "auth"],
+    data: ["rsvps", "events", "users"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
+    features: [
+      "Shareable invite link — one tap to RSVP",
+      "No account required for players",
+      "Anonymous session → account upgrade flow",
+      "Organiser RSVP dashboard with counts",
+      "WhatsApp-optimised link preview",
+      "Re-send nudge to non-responders",
+    ],
+    tech: "Supabase anonymous auth. RSVP table. Open Graph meta for WhatsApp link previews.",
+  },
+
+  payments: {
+    id: "payments", name: "Payments", phase: "mvp", tier: "organiser", status: "planned",
+    sub: "Stripe Checkout, live tracker",
+    desc: "Entry fee collection via Stripe Checkout. Organiser sets the fee; players pay on RSVP. Live payment tracker in organiser dashboard. Automatic reconciliation at event close.",
+    deps: ["invite", "auth"],
+    data: ["payments", "events"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
+    features: [
+      "Entry fee at RSVP — Stripe Checkout",
+      "Organiser sets fee and optional split (e.g. prize fund vs admin)",
+      "Live payment status per player",
+      "Automatic payout to organiser at event close",
+      "Refund handling for withdrawals",
+      "Receipt emails via Stripe",
+    ],
+    tech: "Stripe Checkout + webhooks. Stripe Connect for organiser payouts. payments table.",
+  },
+
+  organiser_dash: {
+    id: "organiser_dash", name: "Organiser dashboard", phase: "mvp", tier: "organiser", status: "planned",
+    sub: "Flights, payments, proxy scoring",
+    desc: "The organiser's control centre on event day. Shows flight assignments, payment status, live scoring, and allows proxy score entry for players without phones. Override and close tools.",
+    deps: ["event_create", "invite", "payments", "leaderboard"],
+    data: ["events", "rsvps", "payments", "scorecards"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
+    features: [
+      "Flight assignment — drag-and-drop groups",
+      "Payment status per player (paid / unpaid / refunded)",
+      "Proxy score entry on behalf of players",
+      "Live leaderboard view with organiser controls",
+      "Force-close event and lock results",
+      "Export start list to PDF",
+    ],
+    tech: "Supabase RLS — organiser role. Real-time dashboard using Supabase Realtime.",
+  },
+
+  // ── Scoring engines ─────────────────────────────────────────────────────────
+
+  scoring_stableford: {
+    id: "scoring_stableford", name: "Stableford engine", phase: "mvp", tier: "scoring", status: "done",
+    sub: "Points from net score vs par",
+    desc: "Pure TypeScript scoring function. Input: strokes[], par[], strokeIndex[], playingHandicap. Output: points[], total, position. Zero database dependency — fully tested.",
+    deps: ["handicap"],
+    data: [],
+    liveUrl: null, prdUrl: null, codeUrl: `${GITHUB}/packages/scoring/src/stableford.ts`,
+    features: [
+      "Net score = gross minus handicap strokes on hole",
+      "0/1/2/3/4/5 points (double-bogey to albatross)",
+      "Pick-up handling (0 points for incomplete holes)",
+      "Countback tiebreaker: back 9, 6, 3, last hole",
+      "95% handicap allowance (configurable)",
+    ],
+    tech: "Pure TypeScript. packages/scoring/src/stableford.ts. 100% test coverage.",
+  },
+
+  scoring_stroke: {
+    id: "scoring_stroke", name: "Stroke play engine", phase: "mvp", tier: "scoring", status: "done",
+    sub: "Gross and net totals",
+    desc: "Gross and net stroke play scoring. Relative-to-par display. NR handling for incomplete rounds.",
+    deps: ["handicap"],
+    data: [],
+    liveUrl: null, prdUrl: null, codeUrl: `${GITHUB}/packages/scoring/src/strokeplay.ts`,
+    features: [
+      "Gross total = sum of strokes",
+      "Net total = gross minus playing handicap",
+      "Relative to par display (+3, -1, E)",
+      "NR (No Return) for incomplete rounds",
+      "Countback tiebreaker on net scores",
+    ],
+    tech: "Pure TypeScript. Shares handicap allocation logic with Stableford.",
+  },
+
+  scoring_matchplay: {
+    id: "scoring_matchplay", name: "Match play engine", phase: "mvp", tier: "scoring", status: "done",
+    sub: "Holes up/down, early close",
+    desc: "Hole-by-hole match play scoring. Tracks holes up/down, dormie, and early close. Supports net match play with stroke index allocation.",
+    deps: ["handicap"],
+    data: [],
+    liveUrl: null, prdUrl: null, codeUrl: `${GITHUB}/packages/scoring/src/matchplay.ts`,
+    features: [
+      "Hole winner determination (net or gross)",
+      "Running status: 2 UP, AS, 3 DOWN",
+      "Early close: 4&3, dormie detection",
+      "Net match play via stroke index",
+      "Supports singles and better ball pairs",
+    ],
+    tech: "Pure TypeScript. packages/scoring/src/matchplay.ts.",
+  },
+
+  handicap: {
+    id: "handicap", name: "Handicap engine", phase: "mvp", tier: "scoring", status: "done",
+    sub: "Index → playing HC via slope",
+    desc: "Converts a WHS handicap index to a course playing handicap using slope rating and course rating. Allocates strokes to holes via stroke index.",
+    deps: [],
+    data: [],
+    liveUrl: null, prdUrl: null, codeUrl: `${GITHUB}/packages/scoring/src/handicap.ts`,
+    features: [
+      "Playing HC = (index × slope / 113) + (CR − par)",
+      "Stroke allocation per hole via SI",
+      "Configurable allowance percentage",
+      "Supports multiple tee colours",
+    ],
+    tech: "Pure TypeScript. WHS formula.",
+  },
+
+  scoring_skins: {
+    id: "scoring_skins", name: "Skins engine", phase: "soon", tier: "scoring", status: "planned",
+    sub: "Carry-over pot per hole",
+    desc: "Hole-by-hole prize logic. Tied holes carry the skin to the next. Works as an overlay on any format — net or gross. Great engagement loop for social rounds.",
+    deps: ["handicap"],
+    data: [],
+    liveUrl: null, prdUrl: null, codeUrl: null,
+    features: [
+      "Net or gross skins",
+      "Tied hole carries skin to next",
+      "Running pot value display",
+      "Works as overlay on stroke play or Stableford",
+      "Multi-player support",
+    ],
+    tech: "Pure TypeScript. Zero DB dependency.",
+  },
+
+  scoring_reds_blues: {
+    id: "scoring_reds_blues", name: "Reds vs Blues", phase: "soon", tier: "scoring", status: "planned",
+    sub: "Ryder Cup team format",
+    desc: "Ryder Cup-style team match play. Two teams, multiple matches (singles, pairs, foursomes) across sessions. Aggregate points table. Supports up to 72 players. Hero feature for golf trips.",
+    deps: ["scoring_matchplay", "handicap"],
+    data: [],
+    liveUrl: null, prdUrl: null, codeUrl: null,
+    features: [
+      "Two teams, customisable names and colours",
+      "Singles, better ball, and foursome sessions",
+      "Aggregate points table updated live",
+      "Projected final result",
+      "Up to 72 players",
+      "Dramatic reveal mode for final standings",
+    ],
+    tech: "Pure TypeScript. Extends match play engine with team aggregation.",
+  },
+
+  scoring_scramble: {
+    id: "scoring_scramble", name: "Scramble engine", phase: "soon", tier: "scoring", status: "planned",
+    sub: "Team scramble format",
+    desc: "One of the most common corporate and charity event formats. All players hit, best shot selected, all play from there. Supports 2-, 3-, and 4-person scrambles. Net scramble via team handicap calculation.",
+    deps: ["handicap"],
+    data: [],
+    liveUrl: null, prdUrl: null, codeUrl: null,
+    features: [
+      "2, 3, and 4-player scramble",
+      "Best shot selection per hole",
+      "Net scramble via composite team handicap",
+      "Stroke play and Stableford scramble variants",
+      "Works with any number of teams",
+    ],
+    tech: "Pure TypeScript. Team handicap = 20% low + 15% 2nd + 10% 3rd + 5% 4th.",
+  },
+
+  scoring_betterball: {
+    id: "scoring_betterball", name: "Better ball stableford", phase: "soon", tier: "scoring", status: "planned",
+    sub: "Pair points — best score counts",
+    desc: "Pair format where the best Stableford score from each pair counts per hole. One of the most common society and club competition formats. Essential for away days and charity events.",
+    deps: ["scoring_stableford", "handicap"],
+    data: [],
+    liveUrl: null, prdUrl: null, codeUrl: null,
+    features: [
+      "Pair-level best Stableford score per hole",
+      "Individual scores visible within pair",
+      "Net scoring via handicap allocation",
+      "Stroke play variant (best ball gross/net)",
+      "Countback at pair level",
+    ],
+    tech: "Pure TypeScript. Composes Stableford engine with pair reduction.",
+  },
+
+  // ── Course & handicap data ──────────────────────────────────────────────────
+
+  course_db: {
+    id: "course_db", name: "Course database", phase: "mvp", tier: "course", status: "planned",
+    sub: "Par, SI, yardage, slope, rating",
+    desc: "UK course database with par, stroke index, yardage per tee, slope rating, and course rating. Sourced via golfcourseapi.com bulk import. Required for all scoring and GPS features.",
+    deps: [],
+    data: ["courses", "holes"],
+    liveUrl: null, prdUrl: null, codeUrl: `${GITHUB}/packages/db/migrations`,
+    features: [
+      "Par and stroke index per hole",
+      "Multiple tee colours (yellow, white, red)",
+      "Slope and course rating per tee",
+      "Yardages per hole",
+      "UK-first coverage, global expansion",
+      "Manual override for club-specific data",
+    ],
+    tech: "Supabase PostgreSQL. Bulk import from golfcourseapi.com JSON export.",
+  },
+
+  whs: {
+    id: "whs", name: "WHS integration", phase: "later", tier: "course", status: "planned",
+    sub: "Live handicap lookup",
+    desc: "Live WHS handicap index lookup via England Golf / DotGolf API. Requires ISV licence. Qualifying round submission. Manual entry remains as permanent fallback.",
+    deps: ["handicap", "auth"],
+    data: ["users"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
+    features: [
+      "Handicap index lookup by CDH number",
+      "Auto-populate on player record",
+      "Submit qualifying round results",
+      "ISV licence required from England Golf",
+      "Manual entry fallback always available",
+    ],
+    tech: "DotGolf API. ISV licence required.",
+  },
+
+  // ── Platform infrastructure ─────────────────────────────────────────────────
+
+  auth: {
+    id: "auth", name: "Authentication", phase: "mvp", tier: "infra", status: "building",
+    sub: "Magic links + anonymous play",
+    desc: "Email magic link authentication. Anonymous play: score first, create account later. Row-level security on all tables.",
+    deps: [],
+    data: ["users"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
+    features: [
+      "Email magic link (no password)",
+      "Anonymous session — score first, account later",
+      "Google and Apple OAuth (P2)",
+      "Row-level security on all tables",
+    ],
+    tech: "Supabase Auth. Anonymous session with progressive account creation.",
+  },
+
+  realtime: {
+    id: "realtime", name: "Realtime layer", phase: "mvp", tier: "infra", status: "planned",
+    sub: "WebSocket subscriptions",
+    desc: "Live score updates pushed to leaderboard clients the moment a hole is saved. Presence shows which players are currently scoring.",
+    deps: ["auth"],
+    data: ["hole_scores", "scorecards"],
+    liveUrl: null, prdUrl: null, codeUrl: `${GITHUB}/packages/db/migrations/001_initial_schema.sql`,
+    features: [
+      "Supabase Realtime on hole_scores and scorecards",
+      "Client-side recalculation on each change",
+      "Presence: show which players are scoring",
+      "Reconnection with state reconciliation",
+    ],
+    tech: "Supabase Realtime (postgres_changes).",
+  },
+
+  brand: {
+    id: "brand", name: "Brand system", phase: "mvp", tier: "infra", status: "building",
+    sub: "Fairway Editorial design tokens",
+    desc: "Design token system covering colour, typography, spacing, and component variants. Shared across player PWA, organiser console, and club admin surfaces.",
+    deps: [],
+    data: [],
+    liveUrl: null, prdUrl: null, codeUrl: `${GITHUB}/packages/ui`,
+    features: [
+      "CSS custom properties for all colour tokens",
+      "Player surface: sage green theme",
+      "Organiser surface: clean white theme",
+      "Club surface: navy authority theme",
+      "Shared shadcn/ui component library",
+    ],
+    tech: "Tailwind CSS + shadcn/ui. packages/ui shared component library.",
+  },
+
+  pwa: {
+    id: "pwa", name: "PWA / offline mode", phase: "soon", tier: "infra", status: "planned",
+    sub: "Add to home screen, offline scoring",
+    desc: "Service worker caches the scoring PWA. Scores written to IndexedDB offline, synced on reconnect. Add-to-home-screen prompt on first event day visit.",
+    deps: ["score_entry", "auth"],
+    data: [],
+    liveUrl: null, prdUrl: null, codeUrl: null,
+    features: [
+      "Service worker for offline scorecard",
+      "IndexedDB buffering of scores",
+      "Background sync on reconnect",
+      "Add to home screen prompt",
+      "iOS Safari and Android Chrome",
+    ],
+    tech: "next-pwa. Workbox. IndexedDB via idb library.",
+  },
+
+  // ── Club management ─────────────────────────────────────────────────────────
+
+  club_erp: {
+    id: "club_erp", name: "Club ERP layer", phase: "later", tier: "club", status: "planned",
+    sub: "Unified club management — Cumberwell first",
+    desc: "Top-level orchestration layer for all club-facing modules. Designed to replace intelligentgolf + golfbook/255it as a unified platform. Pilot target: Cumberwell Park. Single login for staff and members; role-based access for committee, pro, secretary.",
+    deps: ["club_member_mgmt", "club_tee_sheet", "club_competitions", "club_admin_dash", "auth", "payments"],
+    data: ["clubs", "club_members", "events"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
+    features: [
+      "Unified club admin portal",
+      "Import from intelligentgolf CSV export",
+      "Replaces golfbook / 255it tee sheet",
+      "Single login for staff and members",
+      "Role-based access: committee, pro, secretary, member",
+      "Full audit trail on all changes",
+    ],
+    tech: "Extended Supabase schema. clubs, club_members, roles tables with RLS. intelligentgolf import format.",
+  },
+
+  club_member_mgmt: {
+    id: "club_member_mgmt", name: "Member management", phase: "later", tier: "club", status: "planned",
+    sub: "Roster, categories, CDH numbers",
+    desc: "Full member record management. Handles member categories (full, senior, 5-day, junior, social), handicap indexes, contact details, and subscription status. Entry point for the Cumberwell pilot.",
+    deps: ["auth", "whs"],
+    data: ["club_members", "users"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
+    features: [
+      "Import from intelligentgolf CSV",
+      "Member categories: full, senior, 5-day, junior, social",
+      "CDH number storage for WHS lookup",
+      "Contact directory",
+      "Lapsed / resigned / suspended states",
+      "Sanctions: block reservations for bad debt",
+      "Family unit grouping",
+      "Bulk email / SMS to member segments",
+    ],
+    tech: "club_members with category enum. Supabase RLS — club admins see all, members see own. CSV import via Papa Parse.",
+  },
+
+  club_tee_sheet: {
+    id: "club_tee_sheet", name: "Tee sheet", phase: "later", tier: "club", status: "planned",
+    sub: "Booking and slot management",
+    desc: "Full tee time booking system replacing golfbook and 255it. Members book online; staff manage slot configuration, pricing, and capacity. Designed around Cumberwell's 18-hole layout.",
+    deps: ["club_member_mgmt", "auth", "payments"],
+    data: ["tee_times", "bookings"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
+    features: [
+      "Daily grid — 10-minute intervals",
+      "Member online booking — 72hr advance window",
+      "Visitor booking with payment",
+      "Priority windows for full members",
+      "Block booking for society days",
+      "Waiting list for full slots",
+      "Check-in / no-show tracking",
+      "Dynamic pricing by time and day",
+    ],
+    tech: "tee_times and bookings tables. Stripe for visitor payments. Supabase Realtime for live slot availability.",
+  },
+
+  club_competitions: {
+    id: "club_competitions", name: "Competitions calendar", phase: "later", tier: "club", status: "planned",
+    sub: "Draw management, WHS submission",
+    desc: "Manage the club's annual competition calendar. Entry lists, draw management, starting sheet generation, WHS results submission, and historical archive. Bridges LX2 event scoring with formal club competitions.",
+    deps: ["club_member_mgmt", "event_create", "scoring_stableford", "scoring_stroke", "whs"],
+    data: ["events", "scorecards"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
+    features: [
+      "Annual competition calendar",
+      "Entry list and draw management",
+      "Starting sheet PDF generation",
+      "WHS qualifying round submission via DotGolf",
+      "Historical results archive",
+      "Club championship and knockout formats",
+    ],
+    tech: "Extends event and scoring modules. DotGolf API for WHS submission (ISV licence required).",
+  },
+
+  club_admin_dash: {
+    id: "club_admin_dash", name: "Club admin dashboard", phase: "later", tier: "club", status: "planned",
+    sub: "Committee reporting and financials",
+    desc: "Central dashboard for club secretary, treasurer, and captain. Membership numbers, revenue, rounds played, competition participation. Replaces manual committee reporting spreadsheets.",
+    deps: ["club_member_mgmt", "club_tee_sheet", "club_competitions", "payments"],
+    data: ["clubs", "club_members", "bookings", "events"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
+    features: [
+      "Live membership numbers by category",
+      "Monthly revenue from bookings and visitors",
+      "Rounds played by month and year",
+      "Competition entry rates",
+      "Overdue subscription report",
+      "Export to CSV for committee meetings",
+    ],
+    tech: "Supabase views and aggregation queries. Recharts. PDF export for committee packs.",
+  },
+
+  // ── Partner API & integrations ──────────────────────────────────────────────
+
+  partner_api: {
+    id: "partner_api", name: "Partner API", phase: "later", tier: "api", status: "planned",
+    sub: "Multi-tenant REST API with API keys",
+    desc: "Documented gap vs Golfmanager (competitor analysis, March 2026). Golfmanager's primary moat is its integrator-facing API: explicit multi-tenancy (tenant + key headers), consumer vs admin API surfaces, and webhooks. LX2 needs a comparable surface for club system integrations, OTA booking, and future partner channels. Design the data model now — build in P3.",
+    deps: ["auth", "club_erp", "club_tee_sheet"],
+    data: ["api_keys", "webhooks"],
+    liveUrl: null, prdUrl: null, codeUrl: null,
+    features: [
+      "API key per club (club = tenant)",
+      "Scoped keys: read-only / read-write / admin",
+      "Consumer API: booking surface for OTAs",
+      "Admin API: member and competition records",
+      "Webhooks: round completed, booking confirmed, member joined",
+      "Rate limiting per key",
+      "Key rotation and revocation",
+      "Usage dashboard",
+    ],
+    tech: "PostgREST (Supabase) + custom auth middleware. Webhooks via Edge Functions + pg_net. Mirrors Golfmanager V3 tenant+key model.",
+  },
+
+  api_docs: {
+    id: "api_docs", name: "Developer portal", phase: "later", tier: "api", status: "planned",
+    sub: "Public API documentation",
+    desc: "Public documentation for the LX2 partner API. OpenAPI 3.0 spec auto-generated from Supabase schema. Interactive explorer, webhook reference, and integration guides.",
+    deps: ["partner_api"],
+    data: [],
+    liveUrl: null, prdUrl: null, codeUrl: null,
+    features: [
+      "OpenAPI 3.0 spec (auto-generated)",
+      "Interactive API explorer",
+      "Authentication guide (API key model)",
+      "Webhook payload reference",
+      "Integration guides: tee sheet, WHS, accounting",
+      "Changelog",
+    ],
+    tech: "Mintlify or Scalar. OpenAPI from Supabase PostgREST introspection.",
+  },
+}
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface Module {
-  id: string; name: string; phase: Phase; tier: Tier; status: Status
-  surface: Surface; sub: string; desc: string; deps: string[]; data: string[]
+  id: string; name: string; phase: string; tier: string; status: string
+  sub: string; desc: string; deps: string[]; data: string[]
   liveUrl: string | null; prdUrl: string | null; codeUrl: string | null
   features: string[]; tech: string
 }
 
-const modules: Record<string, Module> = {
-  score_entry: {
-    id: 'score_entry', name: 'Score entry', phase: 'mvp', tier: 'player-pwa',
-    status: 'building', surface: 'player',
-    sub: 'Hole-by-hole, mobile-first',
-    desc: 'The core on-course interaction. One tap per hole. Stableford, Stroke Play, Match Play. Works offline. Designed for one hand, bright sunlight, wet fingers.',
-    deps: ['handicap', 'course_db', 'auth'],
-    data: ['hole_scores', 'scorecards'],
-    liveUrl: `${APP}/score`, prdUrl: `${GITHUB}/docs/prd/score-entry.md`,
-    codeUrl: `${GITHUB}/apps/web/src/app/score/ScoreEntry.tsx`,
-    features: ['One-tap score entry, large targets (48px)', 'Running Stableford points per hole', 'Match Play status display', 'NTP/LD capture on designated holes', 'Undo, pick-up/NR', 'Auto-advance to next player', 'Full scorecard view'],
-    tech: 'Next.js App Router, useReducer. Sage green player theme. Offline via IndexedDB (Phase 2).',
-  },
-  ntp_ld: {
-    id: 'ntp_ld', name: 'NTP / Longest Drive', phase: 'mvp', tier: 'player-pwa',
-    status: 'building', surface: 'player',
-    sub: 'Side contest tracking',
-    desc: 'Nearest the pin and longest drive result capture. Organiser designates holes at event creation. Players enter results after each relevant hole.',
-    deps: ['event_create', 'score_entry'],
-    data: ['contest_entries'],
-    liveUrl: `${APP}/score`, prdUrl: null, codeUrl: null,
-    features: ['NTP and LD holes designated at event creation', 'Overlay capture after each contest hole', 'Distance in yards', 'Winners shown on leaderboard and results'],
-    tech: 'Part of score entry UI. contest_entries table.',
-  },
-  leaderboard_live: {
-    id: 'leaderboard_live', name: 'Live leaderboard', phase: 'mvp', tier: 'player-pwa',
-    status: 'planned', surface: 'player',
-    sub: 'Real-time, shareable, TV mode',
-    desc: 'Auto-updating standings via WebSocket. Shareable URL — no account needed to view. TV/full-screen mode for clubhouse screens.',
-    deps: ['stableford', 'strokeplay', 'matchplay', 'realtime'],
-    data: ['scorecards', 'hole_scores', 'events', 'event_players'],
-    liveUrl: null, prdUrl: null, codeUrl: null,
-    features: ['Sub-second updates via Supabase Realtime', 'Format-aware: Stableford / Stroke / Match', '"Through X holes" per player', 'NTP/LD results panel', 'TV mode: full-screen, auto-scroll', 'Shareable URL with OG preview'],
-    tech: 'Supabase Realtime subscription. Client-side scoring recalculates on each change.',
-  },
-  event_landing: {
-    id: 'event_landing', name: 'Event landing page', phase: 'mvp', tier: 'player-pwa',
-    status: 'building', surface: 'player',
-    sub: 'Player entry point via invite link',
-    desc: 'The page players land on when they tap the WhatsApp invite link. Shows event details, confirmed players, and routes to scoring or leaderboard.',
-    deps: ['event_create', 'invite'],
-    data: ['events', 'event_players'],
-    liveUrl: `${APP}/events/[id]`, prdUrl: null,
-    codeUrl: `${GITHUB}/apps/web/src/app/events/[id]/page.tsx`,
-    features: ['Event name, date, course, format', 'Confirmed player list', 'Start scoring CTA', 'View leaderboard CTA', 'Share invite link button'],
-    tech: 'Next.js server component. Supabase join on events + event_players.',
-  },
-  player_home: {
-    id: 'player_home', name: 'Player home (/play)', phase: 'soon', tier: 'player-web',
-    status: 'planned', surface: 'player',
-    sub: 'Stats dashboard, golfer web entry point',
-    desc: 'The golfer web experience. Strava-style stats dashboard. Round history, handicap trend, performance analytics.',
-    deps: ['auth', 'results'],
-    data: ['users', 'scorecards', 'events'],
-    liveUrl: null, prdUrl: null, codeUrl: null,
-    features: ['Driving performance, GIR, putting avg', 'Handicap trend over time', 'Best/worst rounds', 'Course history', 'Goal tracking'],
-    tech: 'Next.js server component. Aggregation queries. Manrope display + Lexend body.',
-  },
-  player_profile: {
-    id: 'player_profile', name: 'Player profile', phase: 'soon', tier: 'player-web',
-    status: 'planned', surface: 'player',
-    sub: 'Public stats page',
-    desc: 'Shareable public profile showing round history, stats, and handicap trend.',
-    deps: ['auth', 'player_home'],
-    data: ['users', 'scorecards'],
-    liveUrl: null, prdUrl: null, codeUrl: null,
-    features: ['Win/loss record', 'Scoring average', 'Handicap trend', 'Events played'],
-    tech: 'Server-rendered. Materialised views for stats at scale.',
-  },
-  results: {
-    id: 'results', name: 'Results & history', phase: 'mvp', tier: 'player-web',
-    status: 'planned', surface: 'player',
-    sub: 'Permanent shareable results page',
-    desc: 'Final results at a permanent URL. Shared via WhatsApp after the round. Never expires.',
-    deps: ['stableford', 'strokeplay', 'event_create'],
-    data: ['events', 'scorecards', 'contest_entries'],
-    liveUrl: null, prdUrl: null, codeUrl: null,
-    features: ['Final standings, scores, handicaps', 'NTP/LD winners', 'Full per-player scorecard', 'Share button (WhatsApp, copy link)', 'Persistent URL'],
-    tech: 'Next.js ISR once event is finalised. Cached at edge.',
-  },
-  event_create: {
-    id: 'event_create', name: 'Event creation', phase: 'mvp', tier: 'organiser',
-    status: 'building', surface: 'organiser',
-    sub: 'Set up new event — 3-step form',
-    desc: 'Organiser creates an event in under 3 minutes. Selects course, format, fee, NTP/LD holes. Gets a shareable invite link.',
-    deps: ['course_db', 'auth', 'payments'],
-    data: ['events', 'courses'],
-    liveUrl: `${APP}/events/new`,
-    prdUrl: `${GITHUB}/docs/prd/event-creation.md`,
-    codeUrl: `${GITHUB}/apps/web/src/app/events/new/page.tsx`,
-    features: ['Step 1: name, date, course search, tee', 'Step 2: format, handicap allowance, group size', 'Step 3: NTP/LD holes, entry fee, visibility', 'Summary before creating', 'Generates shareable invite link', 'Cumberwell Park 5 loops supported'],
-    tech: 'Next.js client form + server action. Course typeahead from course_db.',
-  },
-  invite: {
-    id: 'invite', name: 'Invite & RSVP', phase: 'mvp', tier: 'organiser',
-    status: 'planned', surface: 'organiser',
-    sub: 'No account needed to join',
-    desc: 'Players tap the WhatsApp link, see event details, enter name and handicap, confirm. No account required.',
-    deps: ['event_create', 'auth'],
-    data: ['event_players', 'users'],
-    liveUrl: null, prdUrl: null, codeUrl: null,
-    features: ['Public URL — no login needed', 'Enter name, email, handicap index', 'RSVP: confirmed / declined / waitlisted', 'Organiser can manually add players', 'Email confirmation + calendar invite'],
-    tech: 'Public Next.js page. Supabase anonymous auth. Magic link on account creation.',
-  },
-  payments: {
-    id: 'payments', name: 'Payments', phase: 'mvp', tier: 'organiser',
-    status: 'planned', surface: 'organiser',
-    sub: 'Stripe Checkout, live tracker',
-    desc: 'Entry fee collection via Stripe. Organiser sees live payment status. Cash override available.',
-    deps: ['invite', 'event_create'],
-    data: ['event_players'],
-    liveUrl: null, prdUrl: null, codeUrl: null,
-    features: ['Stripe Checkout in RSVP flow', 'Live payment status on dashboard', 'Manual mark-as-paid for cash', 'Payment reminder emails'],
-    tech: 'Stripe Checkout via Next.js API route. Webhook updates Supabase.',
-  },
-  org_dashboard: {
-    id: 'org_dashboard', name: 'Organiser dashboard', phase: 'mvp', tier: 'organiser',
-    status: 'planned', surface: 'organiser',
-    sub: 'Flights, payments, proxy scoring',
-    desc: 'Command centre for the day. Player list, flight management, live round overview, proxy score entry.',
-    deps: ['event_create', 'invite', 'payments', 'score_entry'],
-    data: ['events', 'event_players', 'scorecards'],
-    liveUrl: null, prdUrl: null, codeUrl: null,
-    features: ['Player list with RSVP + payment status', 'Drag-and-drop flight management', 'Auto-generate balanced flights', 'Proxy score entry for any player', 'Print draw sheet', 'Finalise and publish results'],
-    tech: 'Desktop-optimised Next.js page. Supabase Realtime for live status.',
-  },
-  stableford: {
-    id: 'stableford', name: 'Stableford engine', phase: 'mvp', tier: 'scoring',
-    status: 'done', surface: 'shared',
-    sub: 'Points from net score vs par',
-    desc: 'Pure TypeScript. Input strokes, output points. No database dependency. Fully tested.',
-    deps: ['handicap'], data: [],
-    liveUrl: null, prdUrl: null,
-    codeUrl: `${GITHUB}/packages/scoring/src/stableford.ts`,
-    features: ['Net = gross minus handicap strokes', '0–5 points per hole', 'Countback tiebreaker', '95% allowance (configurable)', 'Pick-up handling'],
-    tech: '@lx2/scoring — pure TypeScript, Vitest tested.',
-  },
-  strokeplay: {
-    id: 'strokeplay', name: 'Stroke play engine', phase: 'mvp', tier: 'scoring',
-    status: 'done', surface: 'shared',
-    sub: 'Gross and net totals',
-    desc: 'Gross minus playing handicap = net. Lower is better. NR for incomplete rounds.',
-    deps: ['handicap'], data: [],
-    liveUrl: null, prdUrl: null,
-    codeUrl: `${GITHUB}/packages/scoring/src/strokeplay.ts`,
-    features: ['Gross total', 'Net total = gross minus HC', 'Relative to par display', 'NR handling'],
-    tech: '@lx2/scoring — shares handicap logic with Stableford.',
-  },
-  matchplay: {
-    id: 'matchplay', name: 'Match play engine', phase: 'mvp', tier: 'scoring',
-    status: 'done', surface: 'shared',
-    sub: 'Holes up/down, early close',
-    desc: 'Hole-by-hole contest. Early termination when result is certain. Dormie detection.',
-    deps: ['handicap'], data: [],
-    liveUrl: null, prdUrl: null,
-    codeUrl: `${GITHUB}/packages/scoring/src/matchplay.ts`,
-    features: ['Win/lose/halve per hole', 'HC = difference between players', '"4 and 3" early close', 'Dormie detection'],
-    tech: '@lx2/scoring — separate interface from Stableford/Stroke.',
-  },
-  handicap: {
-    id: 'handicap', name: 'Handicap engine', phase: 'mvp', tier: 'scoring',
-    status: 'done', surface: 'shared',
-    sub: 'Index → playing HC via slope',
-    desc: 'WHS formula. Distributes strokes by stroke index. Shared by all engines.',
-    deps: ['course_db'], data: [],
-    liveUrl: null, prdUrl: null,
-    codeUrl: `${GITHUB}/packages/scoring/src/handicap.ts`,
-    features: ['WHS: Index × Slope/113 + (Rating−Par) × allowance', 'Stroke distribution by SI', 'Plus handicap support'],
-    tech: '@lx2/scoring — fully tested, zero dependencies.',
-  },
-  skins: {
-    id: 'skins', name: 'Skins engine', phase: 'soon', tier: 'scoring',
-    status: 'planned', surface: 'shared',
-    sub: 'Carry-over pot per hole',
-    desc: 'Each hole worth a skin. Carry-over if tied. Runs alongside Stableford.',
-    deps: ['stableford', 'handicap'], data: [],
-    liveUrl: null, prdUrl: null, codeUrl: null,
-    features: ['Hole-by-hole skins with carry-over', 'Configurable skin value', 'Works alongside main format'],
-    tech: '@lx2/scoring extension.',
-  },
-  rvb: {
-    id: 'rvb', name: 'Reds vs Blues', phase: 'soon', tier: 'scoring',
-    status: 'planned', surface: 'shared',
-    sub: 'Ryder Cup team format',
-    desc: 'Two teams, multiple concurrent match play pairings. Aggregate team score.',
-    deps: ['matchplay', 'handicap'], data: ['events', 'event_players'],
-    liveUrl: null, prdUrl: null, codeUrl: null,
-    features: ['Two teams, configurable names/colours', 'Multiple concurrent pairings', 'Aggregate team score', 'Projected result'],
-    tech: 'Extends Match Play engine.',
-  },
-  course_db: {
-    id: 'course_db', name: 'Course database', phase: 'mvp', tier: 'course',
-    status: 'planned', surface: 'shared',
-    sub: 'Par, SI, yardage, slope, rating',
-    desc: '~30,000 UK courses from golfcourseapi.com. Cumberwell Park 5 loops manually seeded.',
-    deps: [], data: ['courses', 'course_holes', 'course_tees'],
-    liveUrl: null,
-    prdUrl: `${GITHUB}/docs/db/schema-notes.md`,
-    codeUrl: `${GITHUB}/packages/db/migrations/001_initial_schema.sql`,
-    features: ['30k courses from golfcourseapi.com (free)', 'Per hole: par, stroke index', 'Per tee: yardage, slope, course rating', 'Typeahead search', 'Cumberwell Park pre-verified'],
-    tech: 'Supabase: courses, course_holes, course_tees. Cumberwell seeded in lib/courses.ts.',
-  },
-  whs: {
-    id: 'whs', name: 'WHS integration', phase: 'later', tier: 'course',
-    status: 'planned', surface: 'shared',
-    sub: 'Live handicap lookup',
-    desc: 'WHS handicap via England Golf / DotGolf API. Requires ISV licence.',
-    deps: ['handicap', 'auth'], data: ['users'],
-    liveUrl: null, prdUrl: null, codeUrl: null,
-    features: ['Lookup by CDH number', 'Auto-populate handicap', 'Submit qualifying rounds', 'ISV licence from England Golf required'],
-    tech: 'DotGolf API. Manual entry as fallback throughout.',
-  },
-  auth: {
-    id: 'auth', name: 'Authentication', phase: 'mvp', tier: 'infra',
-    status: 'building', surface: 'shared',
-    sub: 'Magic links + anonymous play',
-    desc: 'Magic link email auth. Players score a full round before account creation is prompted.',
-    deps: [], data: ['users'],
-    liveUrl: `${APP}/auth/login`, prdUrl: null,
-    codeUrl: `${GITHUB}/apps/web/src/app/auth/login/page.tsx`,
-    features: ['Email magic link', 'Anonymous play first', 'Google/Apple OAuth (Phase 2)', 'Row-level security on all tables'],
-    tech: 'Supabase Auth. Progressive account creation.',
-  },
-  realtime: {
-    id: 'realtime', name: 'Realtime layer', phase: 'mvp', tier: 'infra',
-    status: 'planned', surface: 'shared',
-    sub: 'WebSocket subscriptions',
-    desc: 'Live score updates pushed to leaderboard clients the moment a hole is saved.',
-    deps: ['auth'], data: ['hole_scores', 'scorecards'],
-    liveUrl: null, prdUrl: null,
-    codeUrl: `${GITHUB}/packages/db/migrations/001_initial_schema.sql`,
-    features: ['Supabase Realtime on hole_scores + scorecards', 'Client-side recalculation per change', 'Reconnection with reconciliation'],
-    tech: 'Supabase Realtime (postgres_changes). Enabled in migration.',
-  },
-  brand_system: {
-    id: 'brand_system', name: 'Brand system', phase: 'mvp', tier: 'infra',
-    status: 'building', surface: 'shared',
-    sub: 'Fairway Editorial design tokens',
-    desc: 'Single source of truth for all brand values. Three surface themes. Club white-label support.',
-    deps: [], data: [],
-    liveUrl: null,
-    prdUrl: `${GITHUB}/docs/brand/style-guide.md`,
-    codeUrl: `${GITHUB}/packages/brand/src/tokens.ts`,
-    features: ['Player, organiser, club themes', 'getCSSVars() for CSS custom properties', 'applyClubTheme() for white-labelling', 'Tailwind config export', 'Manrope (display) + Lexend (body)'],
-    tech: '@lx2/brand package. TypeScript. No runtime dependencies.',
-  },
-  pwa: {
-    id: 'pwa', name: 'PWA / offline', phase: 'soon', tier: 'infra',
-    status: 'planned', surface: 'player',
-    sub: 'Add to home screen, offline scoring',
-    desc: 'Service worker caches scoring pages. Scores written to IndexedDB offline, synced on reconnect.',
-    deps: ['score_entry', 'auth'], data: [],
-    liveUrl: null, prdUrl: null, codeUrl: null,
-    features: ['Offline scorecard via IndexedDB', 'Background sync on reconnect', 'Add to home screen prompt', 'Works on iOS Safari + Android Chrome'],
-    tech: 'next-pwa. Workbox. idb library.',
-  },
-  club_erp: {
-    id: 'club_erp', name: 'Club ERP layer', phase: 'later', tier: 'club',
-    status: 'planned', surface: 'club',
-    sub: 'Cumberwell-first integration',
-    desc: 'Full club management: members, competitions, tee times. Pilot: Cumberwell Park.',
-    deps: ['event_create', 'auth', 'payments'], data: ['events', 'users'],
-    liveUrl: null, prdUrl: null, codeUrl: null,
-    features: ['Member management (intelligentgolf import)', 'Competition calendar', 'Tee time booking', 'Club admin dashboard', 'Reporting'],
-    tech: 'Extended Supabase schema. intelligentgolf export format.',
-  },
-}
-
-// ─── Journey data ─────────────────────────────────────────────────────────────
-
-type JourneyStep = {
-  id: string
-  label: string
-  sub: string
-  status: Status
-  moduleId?: string
-  x: number
-  y: number
-}
-
-type JourneyArrow = { x1: number; y1: number; x2: number; y2: number; dashed?: boolean }
-
-type Journey = {
-  id: string
-  label: string
-  steps: JourneyStep[]
-  arrows: JourneyArrow[]
-  height: number
-}
-
-const journeys: Journey[] = [
-  {
-    id: 'player',
-    label: 'Player — join a round',
-    height: 500,
-    steps: [
-      { id: 'home',     label: 'lx2.golf home',       sub: 'entry point',              status: 'done',                                 x: 240, y: 20  },
-      { id: 'landing',  label: 'Event landing page',   sub: 'via WhatsApp invite link', status: 'building', moduleId: 'event_landing',   x: 60,  y: 120 },
-      { id: 'auth',     label: 'Sign in',              sub: 'magic link (optional)',    status: 'building', moduleId: 'auth',             x: 420, y: 120 },
-      { id: 'score',    label: 'Score entry',          sub: 'hole-by-hole on PWA',      status: 'building', moduleId: 'score_entry',      x: 240, y: 230 },
-      { id: 'ntp',      label: 'NTP / Longest Drive',  sub: 'side contest entry',       status: 'building', moduleId: 'ntp_ld',           x: 60,  y: 340 },
-      { id: 'live',     label: 'Live leaderboard',     sub: 'real-time standings',      status: 'planned',  moduleId: 'leaderboard_live', x: 420, y: 340 },
-      { id: 'results',  label: 'Results',              sub: 'shareable scorecard',      status: 'planned',  moduleId: 'results',          x: 240, y: 440 },
-    ],
-    arrows: [
-      { x1: 300, y1: 70,  x2: 160, y2: 120 },
-      { x1: 380, y1: 70,  x2: 480, y2: 120 },
-      { x1: 160, y1: 170, x2: 300, y2: 230, dashed: true },
-      { x1: 520, y1: 170, x2: 380, y2: 230, dashed: true },
-      { x1: 280, y1: 280, x2: 160, y2: 340 },
-      { x1: 400, y1: 280, x2: 480, y2: 340 },
-      { x1: 160, y1: 390, x2: 300, y2: 440 },
-      { x1: 480, y1: 390, x2: 380, y2: 440 },
-    ],
-  },
-  {
-    id: 'organiser',
-    label: 'Organiser — run an event',
-    height: 560,
-    steps: [
-      { id: 'org_home',   label: '/organise page',      sub: 'organiser entry',        status: 'done',                                  x: 240, y: 20  },
-      { id: 'org_auth',   label: 'Sign in',             sub: 'magic link required',    status: 'building', moduleId: 'auth',             x: 240, y: 110 },
-      { id: 'org_create', label: 'Event creation',      sub: '3-step form',            status: 'building', moduleId: 'event_create',     x: 240, y: 200 },
-      { id: 'org_invite', label: 'Invite & RSVP',       sub: 'players join via link',  status: 'planned',  moduleId: 'invite',           x: 240, y: 300 },
-      { id: 'org_pay',    label: 'Payments',            sub: 'Stripe checkout',        status: 'planned',  moduleId: 'payments',         x: 60,  y: 400 },
-      { id: 'org_dash',   label: 'Organiser dashboard', sub: 'flights, proxy scoring', status: 'planned',  moduleId: 'org_dashboard',    x: 420, y: 400 },
-      { id: 'org_result', label: 'Results published',   sub: 'permanent & shareable',  status: 'planned',  moduleId: 'results',          x: 240, y: 500 },
-    ],
-    arrows: [
-      { x1: 340, y1: 70,  x2: 340, y2: 110 },
-      { x1: 340, y1: 160, x2: 340, y2: 200 },
-      { x1: 340, y1: 250, x2: 340, y2: 300 },
-      { x1: 300, y1: 350, x2: 160, y2: 400 },
-      { x1: 380, y1: 350, x2: 480, y2: 400 },
-      { x1: 160, y1: 450, x2: 300, y2: 500 },
-      { x1: 480, y1: 450, x2: 380, y2: 500 },
-    ],
-  },
-  {
-    id: 'solo',
-    label: 'Solo scorer',
-    height: 430,
-    steps: [
-      { id: 's_home',    label: '/play page',     sub: 'player entry',           status: 'done',                               x: 240, y: 20  },
-      { id: 's_auth',    label: 'Auth (optional)', sub: 'anonymous or signed-in', status: 'building', moduleId: 'auth',          x: 240, y: 110 },
-      { id: 's_course',  label: 'Choose course',  sub: 'course database search', status: 'planned',  moduleId: 'course_db',     x: 240, y: 200 },
-      { id: 's_score',   label: 'Score entry',    sub: 'hole-by-hole',           status: 'building', moduleId: 'score_entry',   x: 240, y: 295 },
-      { id: 's_profile', label: 'Player profile', sub: 'stats, handicap history',status: 'planned',  moduleId: 'player_profile',x: 240, y: 385 },
-    ],
-    arrows: [
-      { x1: 340, y1: 70,  x2: 340, y2: 110 },
-      { x1: 340, y1: 160, x2: 340, y2: 200 },
-      { x1: 340, y1: 250, x2: 340, y2: 295 },
-      { x1: 340, y1: 345, x2: 340, y2: 385 },
-    ],
-  },
-]
-
 // ─── Config ───────────────────────────────────────────────────────────────────
 
-const tierOrder: Tier[] = ['player-pwa', 'player-web', 'organiser', 'scoring', 'course', 'infra', 'club']
+const tierOrder = ["player_app", "player_web", "organiser", "scoring", "course", "infra", "club", "api"]
 
-const tierConfig: Record<Tier, { label: string; note?: string; surfaceTag: string; color: string }> = {
-  'player-pwa':  { label: 'Player — on-course PWA',   surfaceTag: 'Player app',  color: '#2E7D32', note: 'Mobile-first. Sage green player theme. Offline-capable.' },
-  'player-web':  { label: 'Player — web & stats',     surfaceTag: 'Player web',  color: '#1B5E20', note: 'Strava-style stats dashboard. Desktop + mobile. Fairway Editorial design.' },
-  'organiser':   { label: 'Organiser tools',          surfaceTag: 'Organiser',   color: '#0D631B', note: 'Desktop-first event management. Clean white organiser theme.' },
-  'scoring':     { label: 'Scoring engines',          surfaceTag: 'Shared',      color: '#4CAF50', note: 'Pure TypeScript in @lx2/scoring. Zero database dependency. Fully tested.' },
-  'course':      { label: 'Course & handicap data',   surfaceTag: 'Shared',      color: '#66BB6A' },
-  'infra':       { label: 'Platform infrastructure',  surfaceTag: 'Shared',      color: '#888888', note: 'Shared by all surfaces above.' },
-  'club':        { label: 'Club admin (phase 3–4)',    surfaceTag: 'Club',        color: '#923357' },
+const tierLabels: Record<string, string> = {
+  player_app:  "Player — on-course PWA",
+  player_web:  "Player — web & stats",
+  organiser:   "Organiser tools",
+  scoring:     "Scoring engines",
+  course:      "Course & handicap data",
+  infra:       "Platform infrastructure",
+  club:        "Club management (phase 3)",
+  api:         "Partner API & integrations (phase 3)",
 }
 
-const phaseConfig: Record<Phase, { label: string; color: string; bg: string }> = {
-  mvp:    { label: 'MVP', color: '#0D631B', bg: '#E8F5E9' },
-  soon:   { label: 'P2',  color: '#1565C0', bg: '#E3F2FD' },
-  later:  { label: 'P3',  color: '#E65100', bg: '#FFF3E0' },
-  future: { label: 'P4+', color: '#6B7280', bg: '#F3F4F6' },
+const tierNotes: Record<string, string> = {
+  player_app:  "Mobile-first. Sage green player theme. Offline-capable.",
+  player_web:  "Strava-style stats dashboard. Desktop + mobile. Fairway Editorial design.",
+  organiser:   "Desktop-first event management. Clean white organiser theme.",
+  scoring:     "Pure TypeScript in @lx2/scoring — zero database dependency. Fully tested.",
+  infra:       "Shared by all surfaces above.",
+  club:        "Cumberwell Park pilot target. Designed to replace intelligentgolf + golfbook/255it.",
+  api:         "Documented gap vs Golfmanager (March 2026). Design data model now; build in P3.",
 }
 
-const statusConfig: Record<Status, { label: string; color: string }> = {
-  done:     { label: 'Done',     color: '#0D631B' },
-  building: { label: 'Building', color: '#B8660B' },
-  planned:  { label: 'Planned',  color: '#9CA3AF' },
+const phaseColors: Record<string, { bg: string; text: string; label: string }> = {
+  mvp:    { bg: "#E8F5EE", text: "#1D9E75", label: "MVP" },
+  soon:   { bg: "#E6F1FB", text: "#185FA5", label: "P2"  },
+  later:  { bg: "#FAEEDA", text: "#854F0B", label: "P3"  },
+  future: { bg: "#F1EFE8", text: "#5F5E5A", label: "P4"  },
 }
 
-const surfaceConfig: Record<Surface, { label: string; color: string; bg: string }> = {
-  player:    { label: 'Player',    color: '#2E7D32', bg: '#E8F5E9' },
-  organiser: { label: 'Organiser', color: '#0D631B', bg: '#E8F5E9' },
-  club:      { label: 'Club',      color: '#923357', bg: '#FCE4EC' },
-  shared:    { label: 'Shared',    color: '#6B7280', bg: '#F3F4F6' },
-}
-
-const statusBorderColor: Record<Status, string> = {
-  done:     '#1D9E75',
-  building: '#EF9F27',
-  planned:  '#C8C6BE',
-}
-
-// ─── Journey SVG ─────────────────────────────────────────────────────────────
-
-function JourneyFlow({ journey, onSelectModule }: { journey: Journey; onSelectModule: (id: string) => void }) {
-  return (
-    <svg width="100%" viewBox={`0 0 680 ${journey.height}`} style={{ display: 'block' }}>
-      <defs>
-        <marker id="jarrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        </marker>
-      </defs>
-      {/* Arrows */}
-      {journey.arrows.map((a, i) => (
-        <line key={i} x1={a.x1} y1={a.y1} x2={a.x2} y2={a.y2}
-          stroke="#C8C6BE" strokeWidth="1"
-          strokeDasharray={a.dashed ? '4 3' : undefined}
-          markerEnd="url(#jarrow)" />
-      ))}
-      {/* Steps */}
-      {journey.steps.map(step => {
-        const borderColor = statusBorderColor[step.status]
-        const isLive = step.status === 'done'
-        return (
-          <g key={step.id}
-            style={{ cursor: step.moduleId ? 'pointer' : 'default' }}
-            onClick={() => step.moduleId && onSelectModule(step.moduleId)}>
-            <rect x={step.x} y={step.y} width={200} height={50} rx={10}
-              fill="#fff"
-              stroke={borderColor}
-              strokeWidth={isLive ? 1.5 : 1} />
-            <text x={step.x + 100} y={step.y + 17} textAnchor="middle"
-              style={{ fontSize: 13, fontWeight: 600, fill: '#1A2E1A', fontFamily: "'Manrope', sans-serif" }}>
-              {step.label}
-            </text>
-            <text x={step.x + 100} y={step.y + 34} textAnchor="middle"
-              style={{ fontSize: 11, fill: '#6B8C6B', fontFamily: "'Lexend', sans-serif" }}>
-              {step.sub}
-            </text>
-            {/* Status dot */}
-            <circle cx={step.x + 186} cy={step.y + 10} r={4} fill={borderColor} />
-          </g>
-        )
-      })}
-    </svg>
-  )
+const statusConfig: Record<string, { color: string; bg: string; label: string }> = {
+  done:     { color: "#1D9E75", bg: "#E8F5EE", label: "Done"     },
+  building: { color: "#B8660B", bg: "#FEF3E2", label: "Building" },
+  planned:  { color: "#9CA3AF", bg: "#F3F4F6", label: "Planned"  },
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function LX2Architecture() {
   const [selected, setSelected] = useState<string | null>(null)
-  const [view, setView] = useState<'modules' | 'surfaces' | 'deps' | 'journeys'>('modules')
-  const [activeJourney, setActiveJourney] = useState<string>('player')
+  const [view, setView] = useState<"modules" | "surfaces" | "deps">("modules")
+
   const mod = selected ? modules[selected] : null
 
-  const grouped = {} as Record<Tier, Module[]>
-  for (const m of Object.values(modules)) {
-    if (!grouped[m.tier]) grouped[m.tier] = []
-    grouped[m.tier]!.push(m)
+  const byTier = tierOrder.reduce<Record<string, Module[]>>((acc, t) => {
+    acc[t] = Object.values(modules).filter(m => m.tier === t)
+    return acc
+  }, {})
+
+  const allMods   = Object.values(modules)
+  const doneMods  = allMods.filter(m => m.status === "done").length
+  const buildMods = allMods.filter(m => m.status === "building").length
+  const mvpMods   = allMods.filter(m => m.phase === "mvp").length
+  const totalMods = allMods.length
+
+  const surfaces: Record<string, string[]> = {
+    "Player app (PWA)":    ["player_app"],
+    "Player web & stats":  ["player_web"],
+    "Organiser console":   ["organiser"],
+    "Club admin":          ["club"],
+    "Shared platform":     ["scoring", "course", "infra", "api"],
   }
 
-  const allMods    = Object.values(modules)
-  const mvpMods    = allMods.filter(m => m.phase === 'mvp')
-  const done       = allMods.filter(m => m.status === 'done').length
-  const building   = allMods.filter(m => m.status === 'building').length
-  const mvpDone    = mvpMods.filter(m => m.status === 'done').length
+  const surfaceColors: Record<string, string> = {
+    "Player app (PWA)":    "#1D9E75",
+    "Player web & stats":  "#185FA5",
+    "Organiser console":   "#854F0B",
+    "Club admin":          "#3B3577",
+    "Shared platform":     "#5F5E5A",
+  }
 
-  const currentJourney = journeys.find(j => j.id === activeJourney)!
-
-  const handleJourneyModuleClick = (moduleId: string) => {
-    setSelected(moduleId)
-    setView('modules')
+  function selectMod(id: string) {
+    setSelected(prev => prev === id ? null : id)
   }
 
   return (
-    <div style={{ fontFamily: "'Lexend', system-ui, sans-serif", padding: '1rem 0', color: '#1A1C1C', maxWidth: 780, margin: '0 auto' }}>
+    <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", maxWidth: 1100, margin: "0 auto", padding: "0 24px 80px" }}>
 
-      {/* Header with logo */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-        <Image src="/lx2-logo.svg" alt="LX2" width={144} height={57} style={{ display: 'block' }} />
-        <div>
-          <div style={{ fontSize: 13, color: '#6B7280', fontWeight: 400 }}>Platform architecture</div>
-          <div style={{ fontSize: 11, color: '#9CA3AF' }}>v0.3 · March 2026</div>
+      {/* ── Header ── */}
+      <div style={{ borderBottom: "1px solid #e5e7eb", paddingBottom: 20, marginBottom: 28, paddingTop: 32 }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 6 }}>
+          <span style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.5, color: "#111" }}>LX2</span>
+          <span style={{ fontSize: 13, color: "#9ca3af" }}>Platform architecture</span>
+          <span style={{ fontSize: 11, color: "#d1d5db", marginLeft: "auto" }}>v0.3 · March 2026</span>
         </div>
-      </div>
 
-      {/* Progress */}
-      <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 16, padding: '16px 20px', marginBottom: 20, boxShadow: '0 8px 24px rgba(26,28,28,0.06)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
-          <div style={{ fontSize: 12, fontWeight: 500, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>MVP progress</div>
-          <div style={{ fontSize: 12, color: '#9CA3AF' }}>{mvpDone} of {mvpMods.length} modules</div>
-        </div>
-        <div style={{ height: 6, borderRadius: 99, background: '#F3F4F6', overflow: 'hidden', marginBottom: 10 }}>
-          <div style={{ height: '100%', borderRadius: 99, background: 'linear-gradient(90deg, #0D631B, #2E7D32)', width: `${(mvpDone / mvpMods.length) * 100}%`, transition: 'width 0.4s' }} />
-        </div>
-        <div style={{ display: 'flex', gap: 16 }}>
-          {[{ l: 'Done', n: done, c: '#0D631B' }, { l: 'Building', n: building, c: '#B8660B' }, { l: 'Planned', n: allMods.length - done - building, c: '#9CA3AF' }].map(s => (
-            <div key={s.l} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: s.c }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: s.c }} />
-              {s.n} {s.l}
+        {/* Stats bar */}
+        <div style={{ display: "flex", gap: 24, marginBottom: 20, flexWrap: "wrap" }}>
+          {[
+            { label: "MVP progress", value: `${doneMods + buildMods} of ${mvpMods} modules` },
+            { label: "Done",         value: String(doneMods),     color: "#1D9E75" },
+            { label: "Building",     value: String(buildMods),    color: "#B8660B" },
+            { label: "Planned",      value: String(totalMods - doneMods - buildMods), color: "#9ca3af" },
+          ].map(s => (
+            <div key={s.label}>
+              <div style={{ fontSize: 11, color: "#9ca3af", marginBottom: 2 }}>{s.label}</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: s.color ?? "#111" }}>{s.value}</div>
             </div>
+          ))}
+        </div>
+
+        {/* View toggle */}
+        <div style={{ display: "flex", gap: 4 }}>
+          {(["modules", "surfaces", "deps"] as const).map(v => (
+            <button key={v} onClick={() => setView(v)} style={{
+              padding: "5px 14px", fontSize: 12, borderRadius: 6, border: "1px solid",
+              cursor: "pointer", fontWeight: view === v ? 600 : 400,
+              background: view === v ? "#111" : "transparent",
+              borderColor: view === v ? "#111" : "#e5e7eb",
+              color: view === v ? "#fff" : "#6b7280",
+            }}>
+              {v === "modules" ? "All modules" : v === "surfaces" ? "Surfaces" : "Dependencies"}
+            </button>
           ))}
         </div>
       </div>
 
-      {/* View tabs */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
-        {(['modules', 'surfaces', 'deps', 'journeys'] as const).map(v => (
-          <button key={v} onClick={() => setView(v)} style={{ fontSize: 12, padding: '6px 14px', borderRadius: 99, border: 'none', background: view === v ? '#1A2E1A' : '#F3F4F6', color: view === v ? '#fff' : '#6B7280', cursor: 'pointer', fontFamily: "'Lexend', sans-serif", fontWeight: view === v ? 500 : 400, transition: 'all 0.15s' }}>
-            {v === 'modules' ? 'All modules' : v === 'surfaces' ? 'Surfaces' : v === 'deps' ? 'Dependencies' : 'Journeys'}
-          </button>
-        ))}
-      </div>
-
-      {/* ── Journeys view ── */}
-      {view === 'journeys' && (
+      {/* ── Modules view ── */}
+      {view === "modules" && (
         <div>
-          {/* Journey tabs */}
-          <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
-            {journeys.map(j => (
-              <button key={j.id} onClick={() => setActiveJourney(j.id)} style={{ fontSize: 12, padding: '6px 16px', borderRadius: 99, border: `0.5px solid ${activeJourney === j.id ? '#2E7D32' : 'rgba(0,0,0,0.1)'}`, background: activeJourney === j.id ? '#E8F5E9' : '#fff', color: activeJourney === j.id ? '#0D631B' : '#6B7280', cursor: 'pointer', fontFamily: "'Lexend', sans-serif", fontWeight: activeJourney === j.id ? 500 : 400, transition: 'all 0.15s' }}>
-                {j.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Legend */}
-          <div style={{ display: 'flex', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
-            {([['done', 'Live today'], ['building', 'In progress'], ['planned', 'Planned']] as const).map(([s, label]) => (
-              <div key={s} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#6B7280' }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: statusBorderColor[s] }} />
-                {label}
-              </div>
-            ))}
-            <div style={{ fontSize: 11, color: '#9CA3AF', marginLeft: 4 }}>— tap any step to see its module detail</div>
-          </div>
-
-          {/* Flow diagram */}
-          <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 16, padding: '20px', boxShadow: '0 8px 24px rgba(26,28,28,0.04)', marginBottom: 16 }}>
-            <JourneyFlow journey={currentJourney} onSelectModule={handleJourneyModuleClick} />
-          </div>
-
-          {/* Step list below the diagram */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {currentJourney.steps.map((step, i) => (
-              <div key={step.id}
-                onClick={() => step.moduleId && handleJourneyModuleClick(step.moduleId)}
-                style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.06)', borderRadius: 10, cursor: step.moduleId ? 'pointer' : 'default', transition: 'border-color 0.15s' }}>
-                <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, color: '#6B7280', flexShrink: 0 }}>{i + 1}</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: '#1A2E1A', fontFamily: "'Manrope', sans-serif" }}>{step.label}</div>
-                  <div style={{ fontSize: 11, color: '#6B8C6B' }}>{step.sub}</div>
+          {tierOrder.map(tier => {
+            const mods = byTier[tier]
+            if (!mods?.length) return null
+            return (
+              <div key={tier} style={{ marginBottom: 36 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.8, color: "#6b7280" }}>
+                    {tierLabels[tier]}
+                  </span>
+                  <div style={{ flex: 1, height: 1, background: "#f3f4f6" }} />
+                  <span style={{ fontSize: 11, color: "#d1d5db",
+                    background: tier === "player_app" ? "#f0fdf4" :
+                                tier === "player_web" ? "#eff6ff" :
+                                tier === "organiser"  ? "#fefce8" :
+                                tier === "scoring"    ? "#f0fdf4" :
+                                tier === "club"       ? "#f5f3ff" :
+                                tier === "api"        ? "#fef3c7" : "#f9fafb",
+                    padding: "2px 8px", borderRadius: 10
+                  }}>
+                    {tier === "player_app" || tier === "player_web" || tier === "organiser" || tier === "infra" || tier === "scoring" || tier === "course" ? "Core" :
+                     tier === "club" || tier === "api" ? "Phase 3" : ""}
+                  </span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <div style={{ width: 5, height: 5, borderRadius: '50%', background: statusBorderColor[step.status] }} />
-                  <span style={{ fontSize: 10, color: statusConfig[step.status].color }}>{statusConfig[step.status].label}</span>
+
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 8 }}>
+                  {mods.map(m => {
+                    const ph = phaseColors[m.phase]
+                    const st = statusConfig[m.status]
+                    const isSelected = selected === m.id
+                    return (
+                      <button key={m.id} onClick={() => selectMod(m.id)} style={{
+                        textAlign: "left", padding: "12px 14px", borderRadius: 8, cursor: "pointer",
+                        border: isSelected ? "2px solid #111" : "1px solid #e5e7eb",
+                        background: isSelected ? "#fafafa" : "#fff",
+                        transition: "all 0.12s",
+                        boxShadow: isSelected ? "0 2px 8px rgba(0,0,0,0.08)" : "none",
+                      }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
+                          <span style={{
+                            fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 4,
+                            background: ph.bg, color: ph.text,
+                          }}>{ph.label}</span>
+                          <span style={{
+                            fontSize: 10, padding: "2px 6px", borderRadius: 4,
+                            background: st.bg, color: st.color, fontWeight: 500,
+                          }}>{st.label}</span>
+                        </div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: "#111", marginBottom: 2, lineHeight: 1.3 }}>{m.name}</div>
+                        <div style={{ fontSize: 11, color: "#9ca3af", lineHeight: 1.4 }}>{m.sub}</div>
+                      </button>
+                    )
+                  })}
                 </div>
-                {step.moduleId && <span style={{ fontSize: 11, color: '#9CA3AF' }}>→</span>}
+
+                {tierNotes[tier] && (
+                  <div style={{ marginTop: 8, fontSize: 11, color: "#9ca3af" }}>↑ {tierNotes[tier]}</div>
+                )}
               </div>
-            ))}
-          </div>
+            )
+          })}
         </div>
       )}
 
       {/* ── Surfaces view ── */}
-      {view === 'surfaces' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
-          {[
-            { key: 'player', label: 'Player app & web', color: '#2E7D32', bg: '#E8F5E9', desc: 'Two entry points, one user. The on-course PWA (sage green, mobile-first, offline-capable) and the stats web experience (Strava-style, desktop + mobile). Both use the player theme from @lx2/brand.', tiers: ['player-pwa', 'player-web'] },
-            { key: 'organiser', label: 'Organiser web', color: '#0D631B', bg: '#F1F8E9', desc: 'Desktop-first event management. Clean white organiser theme. Set up events, manage players, track payments, run the day, publish results.', tiers: ['organiser'] },
-            { key: 'club', label: 'Club admin (Phase 3)', color: '#923357', bg: '#FCE4EC', desc: 'White-label club management portal. Pilot: Cumberwell Park. Replaces intelligentgolf for event management. Custom branding per club via applyClubTheme().', tiers: ['club'] },
-            { key: 'shared', label: 'Shared infrastructure', color: '#6B7280', bg: '#F3F4F6', desc: 'Scoring engines (@lx2/scoring), course database, auth, realtime layer, and brand system. Used by all three surfaces. No framework dependency on the scoring engines.', tiers: ['scoring', 'course', 'infra'] },
-          ].map(s => (
-            <div key={s.key} style={{ background: '#fff', border: `0.5px solid ${s.color}30`, borderRadius: 16, padding: '16px 20px', boxShadow: '0 8px 24px rgba(26,28,28,0.06)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                <div style={{ width: 10, height: 10, borderRadius: '50%', background: s.color }} />
-                <div style={{ fontSize: 14, fontWeight: 600, color: '#1A1C1C', fontFamily: "'Manrope', sans-serif" }}>{s.label}</div>
-              </div>
-              <div style={{ fontSize: 13, color: '#44483E', lineHeight: 1.6, marginBottom: 10 }}>{s.desc}</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {Object.values(modules).filter(m => s.tiers.includes(m.tier)).map(m => (
-                  <button key={m.id} onClick={() => { setSelected(m.id); setView('modules') }} style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, border: `0.5px solid ${s.color}40`, background: s.bg, color: s.color, cursor: 'pointer', fontFamily: "'Lexend', sans-serif" }}>
-                    {m.name}
+      {view === "surfaces" && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
+          {Object.entries(surfaces).map(([surface, tiers]) => {
+            const mods = Object.values(modules).filter(m => tiers.includes(m.tier))
+            const color = surfaceColors[surface]
+            return (
+              <div key={surface} style={{ border: "1px solid #e5e7eb", borderRadius: 10, padding: 16, borderTop: `3px solid ${color}` }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#111", marginBottom: 2 }}>{surface}</div>
+                <div style={{ fontSize: 11, color: "#9ca3af", marginBottom: 12 }}>{mods.length} modules</div>
+                {mods.map(m => (
+                  <button key={m.id} onClick={() => { setSelected(m.id); setView("modules") }} style={{
+                    display: "flex", alignItems: "center", gap: 8, width: "100%",
+                    textAlign: "left", padding: "5px 0", background: "none", border: "none",
+                    cursor: "pointer", borderBottom: "1px solid #f9fafb",
+                  }}>
+                    <span style={{
+                      width: 6, height: 6, borderRadius: "50%", flexShrink: 0,
+                      background: statusConfig[m.status].color,
+                    }} />
+                    <span style={{ fontSize: 12, color: "#374151", flex: 1 }}>{m.name}</span>
+                    <span style={{
+                      fontSize: 10, padding: "1px 5px", borderRadius: 3,
+                      background: phaseColors[m.phase].bg, color: phaseColors[m.phase].text,
+                    }}>{phaseColors[m.phase].label}</span>
                   </button>
                 ))}
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 
       {/* ── Dependencies view ── */}
-      {view === 'deps' && (
-        <div style={{ marginBottom: 20 }}>
+      {view === "deps" && (
+        <div>
           {Object.values(modules).filter(m => m.deps.length > 0).map(m => (
-            <div key={m.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '10px 0', borderBottom: '0.5px solid rgba(0,0,0,0.06)', fontSize: 12 }}>
-              <div style={{ minWidth: 160, fontWeight: 500, color: phaseConfig[m.phase].color }}>{m.name}</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+            <div key={m.id} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 0", borderBottom: "1px solid #f3f4f6" }}>
+              <div style={{ minWidth: 180 }}>
+                <span style={{
+                  fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 4, marginRight: 6,
+                  background: phaseColors[m.phase].bg, color: phaseColors[m.phase].text,
+                }}>{phaseColors[m.phase].label}</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#111" }}>{m.name}</span>
+              </div>
+              <div style={{ fontSize: 11, color: "#6b7280", marginTop: 1 }}>depends on →</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                 {m.deps.map(dep => {
-                  const dm = modules[dep]
-                  return (
-                    <button key={dep} onClick={() => { setSelected(dep); setView('modules') }} style={{ padding: '2px 8px', borderRadius: 99, border: `0.5px solid ${dm ? phaseConfig[dm.phase].color + '40' : '#E5E7EB'}`, background: dm ? phaseConfig[dm.phase].bg : '#F9FAFB', color: dm ? phaseConfig[dm.phase].color : '#9CA3AF', cursor: 'pointer', fontSize: 11, fontFamily: "'Lexend', sans-serif" }}>
-                      → {dm ? dm.name : dep}
-                    </button>
+                  const d = modules[dep]
+                  return d ? (
+                    <button key={dep} onClick={() => selectMod(dep)} style={{
+                      fontSize: 11, padding: "2px 8px", borderRadius: 4, cursor: "pointer",
+                      background: phaseColors[d.phase].bg, color: phaseColors[d.phase].text,
+                      border: "none", fontWeight: 500,
+                    }}>{d.name}</button>
+                  ) : (
+                    <span key={dep} style={{ fontSize: 11, padding: "2px 8px", borderRadius: 4, background: "#f3f4f6", color: "#9ca3af" }}>{dep}</span>
                   )
                 })}
               </div>
@@ -626,93 +909,80 @@ export default function LX2Architecture() {
         </div>
       )}
 
-      {/* ── Modules view ── */}
-      {view === 'modules' && tierOrder.map(tier => {
-        const mods = grouped[tier] ?? []
-        if (!mods.length) return null
-        const tc = tierConfig[tier]!
-        return (
-          <div key={tier} style={{ marginBottom: 4 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '20px 0 8px' }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: tc.color, flexShrink: 0 }} />
-              <div style={{ fontSize: 11, fontWeight: 500, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{tc.label}</div>
-              <div style={{ fontSize: 10, padding: '1px 7px', borderRadius: 99, background: surfaceConfig[mods[0]!.surface]?.bg, color: surfaceConfig[mods[0]!.surface]?.color, fontWeight: 500 }}>{tc.surfaceTag}</div>
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {mods.map(m => {
-                const pc = phaseConfig[m.phase]!
-                const sc = statusConfig[m.status]!
-                const isSel = selected === m.id
-                return (
-                  <button key={m.id} onClick={() => setSelected(isSel ? null : m.id)} style={{ flex: '1 1 150px', minWidth: 140, maxWidth: 220, textAlign: 'left', padding: '12px 14px', borderRadius: 14, border: 'none', background: isSel ? '#F0F4EC' : '#fff', cursor: 'pointer', outline: isSel ? '2px solid #2E7D32' : '0.5px solid rgba(0,0,0,0.08)', boxShadow: '0 8px 24px rgba(26,28,28,0.04)', transition: 'all 0.15s', position: 'relative' }}>
-                    <div style={{ position: 'absolute', top: 8, right: 8 }}>
-                      <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 99, background: pc.bg, color: pc.color, fontWeight: 500 }}>{pc.label}</span>
-                    </div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: '#1A2E1A', marginBottom: 3, paddingRight: 28, fontFamily: "'Manrope', sans-serif" }}>{m.name}</div>
-                    <div style={{ fontSize: 11, color: '#6B8C6B', lineHeight: 1.35, marginBottom: 8 }}>{m.sub}</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <div style={{ width: 5, height: 5, borderRadius: '50%', background: sc.color }} />
-                      <span style={{ fontSize: 10, color: sc.color }}>{sc.label}</span>
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
-            {tc.note && <div style={{ fontSize: 11, color: '#9CA3AF', fontStyle: 'italic', marginTop: 4, marginLeft: 2 }}>↑ {tc.note}</div>}
-          </div>
-        )
-      })}
-
       {/* ── Detail panel ── */}
-      {mod && (
-        <div style={{ marginTop: 20, background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 16, padding: '20px', boxShadow: '0 8px 24px rgba(26,28,28,0.06)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: '#1A2E1A', fontFamily: "'Manrope', sans-serif" }}>{mod.name}</div>
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-              <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 99, background: surfaceConfig[mod.surface]!.bg, color: surfaceConfig[mod.surface]!.color, fontWeight: 500 }}>{surfaceConfig[mod.surface]!.label}</span>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: statusConfig[mod.status]!.color }} />
-              <span style={{ fontSize: 11, color: statusConfig[mod.status]!.color }}>{statusConfig[mod.status]!.label}</span>
-            </div>
-          </div>
-          <div style={{ fontSize: 13, color: '#44483E', lineHeight: 1.65, marginBottom: 14 }}>{mod.desc}</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
-            {mod.liveUrl && <a href={mod.liveUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, padding: '4px 12px', borderRadius: 99, background: '#E8F5E9', color: '#0D631B', textDecoration: 'none', border: '0.5px solid #0D631B30' }}>↗ Live</a>}
-            {mod.prdUrl  && <a href={mod.prdUrl}  target="_blank" rel="noreferrer" style={{ fontSize: 12, padding: '4px 12px', borderRadius: 99, background: '#E3F2FD', color: '#1565C0', textDecoration: 'none', border: '0.5px solid #1565C030' }}>↗ PRD</a>}
-            {mod.codeUrl && <a href={mod.codeUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, padding: '4px 12px', borderRadius: 99, background: '#F3F4F6', color: '#6B7280', textDecoration: 'none', border: '0.5px solid rgba(0,0,0,0.1)' }}>↗ Code</a>}
-          </div>
-          {mod.deps.length > 0 && (
-            <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Depends on</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {mod.deps.map(dep => {
-                  const dm = modules[dep]
-                  return <button key={dep} onClick={() => setSelected(dep)} style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, border: `0.5px solid ${dm ? phaseConfig[dm.phase].color + '40' : '#E5E7EB'}`, background: dm ? phaseConfig[dm.phase].bg : '#F9FAFB', color: dm ? phaseConfig[dm.phase].color : '#9CA3AF', cursor: 'pointer', fontFamily: "'Lexend', sans-serif" }}>{dm ? dm.name : dep}</button>
-                })}
+      {mod && view === "modules" && (
+        <div style={{
+          position: "sticky", bottom: 24, marginTop: 24,
+          background: "#fff", border: "1px solid #e5e7eb",
+          borderRadius: 12, padding: 20, boxShadow: "0 8px 32px rgba(0,0,0,0.10)",
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                <span style={{
+                  fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 4,
+                  background: phaseColors[mod.phase].bg, color: phaseColors[mod.phase].text,
+                }}>{phaseColors[mod.phase].label}</span>
+                <span style={{
+                  fontSize: 11, padding: "2px 8px", borderRadius: 4,
+                  background: statusConfig[mod.status].bg, color: statusConfig[mod.status].color,
+                }}>{statusConfig[mod.status].label}</span>
               </div>
+              <div style={{ fontSize: 17, fontWeight: 700, color: "#111" }}>{mod.name}</div>
+              <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>{mod.sub}</div>
             </div>
-          )}
-          {mod.data.length > 0 && (
-            <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>DB tables</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {mod.data.map(d => <code key={d} style={{ fontSize: 11, padding: '3px 10px', borderRadius: 8, background: '#F3F4F6', color: '#44483E', fontFamily: 'monospace' }}>{d}</code>)}
-              </div>
+            <button onClick={() => setSelected(null)} style={{
+              background: "none", border: "none", cursor: "pointer", fontSize: 18, color: "#9ca3af", padding: 4,
+            }}>✕</button>
+          </div>
+
+          <p style={{ fontSize: 13, color: "#374151", lineHeight: 1.6, marginBottom: 14 }}>{mod.desc}</p>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 14 }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>Key features</div>
+              <ul style={{ margin: 0, paddingLeft: 14, fontSize: 12, color: "#374151", lineHeight: 1.7 }}>
+                {mod.features.map(f => <li key={f}>{f}</li>)}
+              </ul>
             </div>
-          )}
-          <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Features</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {mod.features.map((f, i) => (
-                <div key={i} style={{ fontSize: 13, color: '#44483E', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                  <span style={{ color: '#0D631B', flexShrink: 0, marginTop: 1 }}>·</span>
-                  <span>{f}</span>
-                </div>
-              ))}
+            <div>
+              {mod.deps.length > 0 && (
+                <>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>Depends on</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 12 }}>
+                    {mod.deps.map(dep => {
+                      const d = modules[dep]
+                      return d ? (
+                        <button key={dep} onClick={() => setSelected(dep)} style={{
+                          fontSize: 11, padding: "3px 8px", borderRadius: 4, cursor: "pointer",
+                          background: phaseColors[d.phase].bg, color: phaseColors[d.phase].text,
+                          border: "none", fontWeight: 500,
+                        }}>{d.name}</button>
+                      ) : null
+                    })}
+                  </div>
+                </>
+              )}
+              {mod.data.length > 0 && (
+                <>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>Data tables</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 12 }}>
+                    {mod.data.map(t => (
+                      <span key={t} style={{ fontSize: 11, padding: "3px 8px", borderRadius: 4, background: "#f3f4f6", color: "#374151", fontFamily: "monospace" }}>{t}</span>
+                    ))}
+                  </div>
+                </>
+              )}
+              <div style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>Technical approach</div>
+              <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.6 }}>{mod.tech}</div>
             </div>
           </div>
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Technical approach</div>
-            <div style={{ fontSize: 13, color: '#44483E', lineHeight: 1.6, fontFamily: 'monospace', background: '#F9FAF7', padding: '10px 14px', borderRadius: 10 }}>{mod.tech}</div>
+
+          <div style={{ display: "flex", gap: 8, borderTop: "1px solid #f3f4f6", paddingTop: 12 }}>
+            {mod.liveUrl && <a href={mod.liveUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, padding: "6px 12px", borderRadius: 6, background: "#1D9E75", color: "#fff", textDecoration: "none", fontWeight: 500 }}>↗ Live</a>}
+            {mod.prdUrl  && <a href={mod.prdUrl}  target="_blank" rel="noreferrer" style={{ fontSize: 12, padding: "6px 12px", borderRadius: 6, background: "#f3f4f6", color: "#374151", textDecoration: "none" }}>PRD</a>}
+            {mod.codeUrl && <a href={mod.codeUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, padding: "6px 12px", borderRadius: 6, background: "#f3f4f6", color: "#374151", textDecoration: "none" }}>Code ↗</a>}
+            <button onClick={() => setSelected(null)} style={{ marginLeft: "auto", fontSize: 12, padding: "6px 12px", borderRadius: 6, background: "none", border: "1px solid #e5e7eb", color: "#6b7280", cursor: "pointer" }}>Close</button>
           </div>
         </div>
       )}
