@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import Image from 'next/image'
 
 const GITHUB = 'https://github.com/mattcublington/lx2/blob/main'
 const APP    = 'https://lx2.golf'
@@ -17,7 +18,6 @@ interface Module {
 }
 
 const modules: Record<string, Module> = {
-  // ── Player PWA (on-course mobile) ──────────────────────────────────────────
   score_entry: {
     id: 'score_entry', name: 'Score entry', phase: 'mvp', tier: 'player-pwa',
     status: 'building', surface: 'player',
@@ -64,18 +64,16 @@ const modules: Record<string, Module> = {
     features: ['Event name, date, course, format', 'Confirmed player list', 'Start scoring CTA', 'View leaderboard CTA', 'Share invite link button'],
     tech: 'Next.js server component. Supabase join on events + event_players.',
   },
-
-  // ── Player Web (stats & history, desktop + mobile) ─────────────────────────
   player_home: {
     id: 'player_home', name: 'Player home (/play)', phase: 'soon', tier: 'player-web',
     status: 'planned', surface: 'player',
     sub: 'Stats dashboard, golfer web entry point',
-    desc: 'The golfer web experience. Strava-style stats dashboard. Round history, handicap trend, performance analytics. Separate from the on-course PWA.',
+    desc: 'The golfer web experience. Strava-style stats dashboard. Round history, handicap trend, performance analytics.',
     deps: ['auth', 'results'],
     data: ['users', 'scorecards', 'events'],
     liveUrl: null, prdUrl: null, codeUrl: null,
-    features: ['Driving performance, GIR, putting avg', 'Handicap trend over time', 'Best/worst rounds', 'Course history', 'Goal tracking', 'Caddy insight (AI-generated, Phase 3)'],
-    tech: 'Next.js server component. Aggregation queries. Manrope display + Lexend body. Fairway Editorial design system.',
+    features: ['Driving performance, GIR, putting avg', 'Handicap trend over time', 'Best/worst rounds', 'Course history', 'Goal tracking'],
+    tech: 'Next.js server component. Aggregation queries. Manrope display + Lexend body.',
   },
   player_profile: {
     id: 'player_profile', name: 'Player profile', phase: 'soon', tier: 'player-web',
@@ -85,7 +83,7 @@ const modules: Record<string, Module> = {
     deps: ['auth', 'player_home'],
     data: ['users', 'scorecards'],
     liveUrl: null, prdUrl: null, codeUrl: null,
-    features: ['Win/loss record', 'Scoring average', 'Handicap trend', 'Events played', 'Head-to-head (Phase 3)'],
+    features: ['Win/loss record', 'Scoring average', 'Handicap trend', 'Events played'],
     tech: 'Server-rendered. Materialised views for stats at scale.',
   },
   results: {
@@ -99,8 +97,6 @@ const modules: Record<string, Module> = {
     features: ['Final standings, scores, handicaps', 'NTP/LD winners', 'Full per-player scorecard', 'Share button (WhatsApp, copy link)', 'Persistent URL'],
     tech: 'Next.js ISR once event is finalised. Cached at edge.',
   },
-
-  // ── Organiser ──────────────────────────────────────────────────────────────
   event_create: {
     id: 'event_create', name: 'Event creation', phase: 'mvp', tier: 'organiser',
     status: 'building', surface: 'organiser',
@@ -122,7 +118,7 @@ const modules: Record<string, Module> = {
     deps: ['event_create', 'auth'],
     data: ['event_players', 'users'],
     liveUrl: null, prdUrl: null, codeUrl: null,
-    features: ['Public URL — no login needed', 'Enter name, email, handicap index', 'RSVP: confirmed / declined / waitlisted', 'Organiser can manually add players', 'Email confirmation + calendar invite', 'Progressive account creation'],
+    features: ['Public URL — no login needed', 'Enter name, email, handicap index', 'RSVP: confirmed / declined / waitlisted', 'Organiser can manually add players', 'Email confirmation + calendar invite'],
     tech: 'Public Next.js page. Supabase anonymous auth. Magic link on account creation.',
   },
   payments: {
@@ -133,7 +129,7 @@ const modules: Record<string, Module> = {
     deps: ['invite', 'event_create'],
     data: ['event_players'],
     liveUrl: null, prdUrl: null, codeUrl: null,
-    features: ['Stripe Checkout in RSVP flow', 'Live payment status on dashboard', 'Manual mark-as-paid for cash', 'Payment reminder emails', 'Stripe Connect for club payouts (Phase 3)'],
+    features: ['Stripe Checkout in RSVP flow', 'Live payment status on dashboard', 'Manual mark-as-paid for cash', 'Payment reminder emails'],
     tech: 'Stripe Checkout via Next.js API route. Webhook updates Supabase.',
   },
   org_dashboard: {
@@ -147,8 +143,6 @@ const modules: Record<string, Module> = {
     features: ['Player list with RSVP + payment status', 'Drag-and-drop flight management', 'Auto-generate balanced flights', 'Proxy score entry for any player', 'Print draw sheet', 'Finalise and publish results'],
     tech: 'Desktop-optimised Next.js page. Supabase Realtime for live status.',
   },
-
-  // ── Scoring engines ────────────────────────────────────────────────────────
   stableford: {
     id: 'stableford', name: 'Stableford engine', phase: 'mvp', tier: 'scoring',
     status: 'done', surface: 'shared',
@@ -213,8 +207,6 @@ const modules: Record<string, Module> = {
     features: ['Two teams, configurable names/colours', 'Multiple concurrent pairings', 'Aggregate team score', 'Projected result'],
     tech: 'Extends Match Play engine.',
   },
-
-  // ── Course & data ──────────────────────────────────────────────────────────
   course_db: {
     id: 'course_db', name: 'Course database', phase: 'mvp', tier: 'course',
     status: 'planned', surface: 'shared',
@@ -237,16 +229,13 @@ const modules: Record<string, Module> = {
     features: ['Lookup by CDH number', 'Auto-populate handicap', 'Submit qualifying rounds', 'ISV licence from England Golf required'],
     tech: 'DotGolf API. Manual entry as fallback throughout.',
   },
-
-  // ── Infra ──────────────────────────────────────────────────────────────────
   auth: {
     id: 'auth', name: 'Authentication', phase: 'mvp', tier: 'infra',
     status: 'building', surface: 'shared',
     sub: 'Magic links + anonymous play',
     desc: 'Magic link email auth. Players score a full round before account creation is prompted.',
     deps: [], data: ['users'],
-    liveUrl: `${APP}/auth/login`,
-    prdUrl: null,
+    liveUrl: `${APP}/auth/login`, prdUrl: null,
     codeUrl: `${GITHUB}/apps/web/src/app/auth/login/page.tsx`,
     features: ['Email magic link', 'Anonymous play first', 'Google/Apple OAuth (Phase 2)', 'Row-level security on all tables'],
     tech: 'Supabase Auth. Progressive account creation.',
@@ -266,7 +255,7 @@ const modules: Record<string, Module> = {
     id: 'brand_system', name: 'Brand system', phase: 'mvp', tier: 'infra',
     status: 'building', surface: 'shared',
     sub: 'Fairway Editorial design tokens',
-    desc: 'Single source of truth for all brand values. Three surface themes. Club white-label support. Manrope + Lexend typography.',
+    desc: 'Single source of truth for all brand values. Three surface themes. Club white-label support.',
     deps: [], data: [],
     liveUrl: null,
     prdUrl: `${GITHUB}/docs/brand/style-guide.md`,
@@ -284,8 +273,6 @@ const modules: Record<string, Module> = {
     features: ['Offline scorecard via IndexedDB', 'Background sync on reconnect', 'Add to home screen prompt', 'Works on iOS Safari + Android Chrome'],
     tech: 'next-pwa. Workbox. idb library.',
   },
-
-  // ── Club ──────────────────────────────────────────────────────────────────
   club_erp: {
     id: 'club_erp', name: 'Club ERP layer', phase: 'later', tier: 'club',
     status: 'planned', surface: 'club',
@@ -298,25 +285,115 @@ const modules: Record<string, Module> = {
   },
 }
 
+// ─── Journey data ─────────────────────────────────────────────────────────────
+
+type JourneyStep = {
+  id: string
+  label: string
+  sub: string
+  status: Status
+  moduleId?: string
+  x: number
+  y: number
+}
+
+type JourneyArrow = { x1: number; y1: number; x2: number; y2: number; dashed?: boolean }
+
+type Journey = {
+  id: string
+  label: string
+  steps: JourneyStep[]
+  arrows: JourneyArrow[]
+  height: number
+}
+
+const journeys: Journey[] = [
+  {
+    id: 'player',
+    label: 'Player — join a round',
+    height: 500,
+    steps: [
+      { id: 'home',     label: 'lx2.golf home',       sub: 'entry point',              status: 'done',     moduleId: undefined,        x: 240, y: 20  },
+      { id: 'landing',  label: 'Event landing page',   sub: 'via WhatsApp invite link', status: 'building', moduleId: 'event_landing',   x: 60,  y: 120 },
+      { id: 'auth',     label: 'Sign in',              sub: 'magic link (optional)',    status: 'building', moduleId: 'auth',             x: 420, y: 120 },
+      { id: 'score',    label: 'Score entry',          sub: 'hole-by-hole on PWA',      status: 'building', moduleId: 'score_entry',      x: 240, y: 230 },
+      { id: 'ntp',      label: 'NTP / Longest Drive',  sub: 'side contest entry',       status: 'building', moduleId: 'ntp_ld',           x: 60,  y: 340 },
+      { id: 'live',     label: 'Live leaderboard',     sub: 'real-time standings',      status: 'planned',  moduleId: 'leaderboard_live', x: 420, y: 340 },
+      { id: 'results',  label: 'Results',              sub: 'shareable scorecard',      status: 'planned',  moduleId: 'results',          x: 240, y: 440 },
+    ],
+    arrows: [
+      { x1: 300, y1: 70,  x2: 160, y2: 120 },
+      { x1: 380, y1: 70,  x2: 480, y2: 120 },
+      { x1: 160, y1: 170, x2: 300, y2: 230, dashed: true },
+      { x1: 520, y1: 170, x2: 380, y2: 230, dashed: true },
+      { x1: 280, y1: 280, x2: 160, y2: 340 },
+      { x1: 400, y1: 280, x2: 480, y2: 340 },
+      { x1: 160, y1: 390, x2: 300, y2: 440 },
+      { x1: 480, y1: 390, x2: 380, y2: 440 },
+    ],
+  },
+  {
+    id: 'organiser',
+    label: 'Organiser — run an event',
+    height: 560,
+    steps: [
+      { id: 'org_home',   label: '/organise page',      sub: 'organiser entry',        status: 'done',     moduleId: undefined,         x: 240, y: 20  },
+      { id: 'org_auth',   label: 'Sign in',             sub: 'magic link required',    status: 'building', moduleId: 'auth',             x: 240, y: 110 },
+      { id: 'org_create', label: 'Event creation',      sub: '3-step form',            status: 'building', moduleId: 'event_create',     x: 240, y: 200 },
+      { id: 'org_invite', label: 'Invite & RSVP',       sub: 'players join via link',  status: 'planned',  moduleId: 'invite',           x: 240, y: 300 },
+      { id: 'org_pay',    label: 'Payments',            sub: 'Stripe checkout',        status: 'planned',  moduleId: 'payments',         x: 60,  y: 400 },
+      { id: 'org_dash',   label: 'Organiser dashboard', sub: 'flights, proxy scoring', status: 'planned',  moduleId: 'org_dashboard',    x: 420, y: 400 },
+      { id: 'org_result', label: 'Results published',   sub: 'permanent & shareable',  status: 'planned',  moduleId: 'results',          x: 240, y: 500 },
+    ],
+    arrows: [
+      { x1: 340, y1: 70,  x2: 340, y2: 110 },
+      { x1: 340, y1: 160, x2: 340, y2: 200 },
+      { x1: 340, y1: 250, x2: 340, y2: 300 },
+      { x1: 300, y1: 350, x2: 160, y2: 400 },
+      { x1: 380, y1: 350, x2: 480, y2: 400 },
+      { x1: 160, y1: 450, x2: 300, y2: 500 },
+      { x1: 480, y1: 450, x2: 380, y2: 500 },
+    ],
+  },
+  {
+    id: 'solo',
+    label: 'Solo scorer',
+    height: 430,
+    steps: [
+      { id: 's_home',    label: '/play page',     sub: 'player entry',           status: 'done',     moduleId: undefined,      x: 240, y: 20  },
+      { id: 's_auth',    label: 'Auth (optional)', sub: 'anonymous or signed-in', status: 'building', moduleId: 'auth',          x: 240, y: 110 },
+      { id: 's_course',  label: 'Choose course',  sub: 'course database search', status: 'planned',  moduleId: 'course_db',     x: 240, y: 200 },
+      { id: 's_score',   label: 'Score entry',    sub: 'hole-by-hole',           status: 'building', moduleId: 'score_entry',   x: 240, y: 295 },
+      { id: 's_profile', label: 'Player profile', sub: 'stats, handicap history',status: 'planned',  moduleId: 'player_profile',x: 240, y: 385 },
+    ],
+    arrows: [
+      { x1: 340, y1: 70,  x2: 340, y2: 110 },
+      { x1: 340, y1: 160, x2: 340, y2: 200 },
+      { x1: 340, y1: 250, x2: 340, y2: 295 },
+      { x1: 340, y1: 345, x2: 340, y2: 385 },
+    ],
+  },
+]
+
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 const tierOrder: Tier[] = ['player-pwa', 'player-web', 'organiser', 'scoring', 'course', 'infra', 'club']
 
 const tierConfig: Record<Tier, { label: string; note?: string; surfaceTag: string; color: string }> = {
-  'player-pwa':  { label: 'Player — on-course PWA',        surfaceTag: 'Player app',   color: '#2E7D32', note: 'Mobile-first. Sage green player theme. Offline-capable.' },
-  'player-web':  { label: 'Player — web & stats',          surfaceTag: 'Player web',   color: '#1B5E20', note: 'Strava-style stats dashboard. Desktop + mobile. Fairway Editorial design.' },
-  'organiser':   { label: 'Organiser tools',               surfaceTag: 'Organiser',    color: '#0D631B', note: 'Desktop-first event management. Clean white organiser theme.' },
-  'scoring':     { label: 'Scoring engines',               surfaceTag: 'Shared',       color: '#4CAF50', note: 'Pure TypeScript in @lx2/scoring. Zero database dependency. Fully tested.' },
-  'course':      { label: 'Course & handicap data',        surfaceTag: 'Shared',       color: '#66BB6A' },
-  'infra':       { label: 'Platform infrastructure',       surfaceTag: 'Shared',       color: '#888888', note: 'Shared by all surfaces above.' },
-  'club':        { label: 'Club admin (phase 3–4)',         surfaceTag: 'Club',         color: '#923357' },
+  'player-pwa':  { label: 'Player — on-course PWA',   surfaceTag: 'Player app',  color: '#2E7D32', note: 'Mobile-first. Sage green player theme. Offline-capable.' },
+  'player-web':  { label: 'Player — web & stats',     surfaceTag: 'Player web',  color: '#1B5E20', note: 'Strava-style stats dashboard. Desktop + mobile. Fairway Editorial design.' },
+  'organiser':   { label: 'Organiser tools',          surfaceTag: 'Organiser',   color: '#0D631B', note: 'Desktop-first event management. Clean white organiser theme.' },
+  'scoring':     { label: 'Scoring engines',          surfaceTag: 'Shared',      color: '#4CAF50', note: 'Pure TypeScript in @lx2/scoring. Zero database dependency. Fully tested.' },
+  'course':      { label: 'Course & handicap data',   surfaceTag: 'Shared',      color: '#66BB6A' },
+  'infra':       { label: 'Platform infrastructure',  surfaceTag: 'Shared',      color: '#888888', note: 'Shared by all surfaces above.' },
+  'club':        { label: 'Club admin (phase 3–4)',    surfaceTag: 'Club',        color: '#923357' },
 }
 
 const phaseConfig: Record<Phase, { label: string; color: string; bg: string }> = {
-  mvp:    { label: 'MVP',  color: '#0D631B', bg: '#E8F5E9' },
-  soon:   { label: 'P2',   color: '#1565C0', bg: '#E3F2FD' },
-  later:  { label: 'P3',   color: '#E65100', bg: '#FFF3E0' },
-  future: { label: 'P4+',  color: '#6B7280', bg: '#F3F4F6' },
+  mvp:    { label: 'MVP', color: '#0D631B', bg: '#E8F5E9' },
+  soon:   { label: 'P2',  color: '#1565C0', bg: '#E3F2FD' },
+  later:  { label: 'P3',  color: '#E65100', bg: '#FFF3E0' },
+  future: { label: 'P4+', color: '#6B7280', bg: '#F3F4F6' },
 }
 
 const statusConfig: Record<Status, { label: string; color: string }> = {
@@ -332,27 +409,96 @@ const surfaceConfig: Record<Surface, { label: string; color: string; bg: string 
   shared:    { label: 'Shared',    color: '#6B7280', bg: '#F3F4F6' },
 }
 
+const statusBorderColor: Record<Status, string> = {
+  done:     '#1D9E75',
+  building: '#EF9F27',
+  planned:  '#C8C6BE',
+}
+
+// ─── Journey SVG ─────────────────────────────────────────────────────────────
+
+function JourneyFlow({ journey, onSelectModule }: { journey: Journey; onSelectModule: (id: string) => void }) {
+  return (
+    <svg width="100%" viewBox={`0 0 680 ${journey.height}`} style={{ display: 'block' }}>
+      <defs>
+        <marker id="jarrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </marker>
+      </defs>
+      {/* Arrows */}
+      {journey.arrows.map((a, i) => (
+        <line key={i} x1={a.x1} y1={a.y1} x2={a.x2} y2={a.y2}
+          stroke="#C8C6BE" strokeWidth="1"
+          strokeDasharray={a.dashed ? '4 3' : undefined}
+          markerEnd="url(#jarrow)" />
+      ))}
+      {/* Steps */}
+      {journey.steps.map(step => {
+        const borderColor = statusBorderColor[step.status]
+        const isLive = step.status === 'done'
+        return (
+          <g key={step.id}
+            style={{ cursor: step.moduleId ? 'pointer' : 'default' }}
+            onClick={() => step.moduleId && onSelectModule(step.moduleId)}>
+            <rect x={step.x} y={step.y} width={200} height={50} rx={10}
+              fill="#fff"
+              stroke={borderColor}
+              strokeWidth={isLive ? 1.5 : 1} />
+            <text x={step.x + 100} y={step.y + 17} textAnchor="middle"
+              style={{ fontSize: 13, fontWeight: 600, fill: '#1A2E1A', fontFamily: "'Manrope', sans-serif" }}>
+              {step.label}
+            </text>
+            <text x={step.x + 100} y={step.y + 34} textAnchor="middle"
+              style={{ fontSize: 11, fill: '#6B8C6B', fontFamily: "'Lexend', sans-serif" }}>
+              {step.sub}
+            </text>
+            {/* Status dot */}
+            <circle cx={step.x + 186} cy={step.y + 10} r={4} fill={borderColor} />
+          </g>
+        )
+      })}
+    </svg>
+  )
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function LX2Architecture() {
   const [selected, setSelected] = useState<string | null>(null)
-  const [view, setView] = useState<'modules' | 'surfaces' | 'deps'>('modules')
+  const [view, setView] = useState<'modules' | 'surfaces' | 'deps' | 'journeys'>('modules')
+  const [activeJourney, setActiveJourney] = useState<string>('player')
   const mod = selected ? modules[selected] : null
 
-  const grouped = {} as Record<Tier, (Module)[]>
+  const grouped = {} as Record<Tier, Module[]>
   for (const m of Object.values(modules)) {
     if (!grouped[m.tier]) grouped[m.tier] = []
     grouped[m.tier]!.push(m)
   }
 
-  const allMods = Object.values(modules)
-  const mvpMods = allMods.filter(m => m.phase === 'mvp')
-  const done     = allMods.filter(m => m.status === 'done').length
-  const building = allMods.filter(m => m.status === 'building').length
-  const mvpDone  = mvpMods.filter(m => m.status === 'done').length
+  const allMods    = Object.values(modules)
+  const mvpMods    = allMods.filter(m => m.phase === 'mvp')
+  const done       = allMods.filter(m => m.status === 'done').length
+  const building   = allMods.filter(m => m.status === 'building').length
+  const mvpDone    = mvpMods.filter(m => m.status === 'done').length
+
+  const currentJourney = journeys.find(j => j.id === activeJourney)!
+
+  const handleJourneyModuleClick = (moduleId: string) => {
+    setSelected(moduleId)
+    setView('modules')
+  }
 
   return (
     <div style={{ fontFamily: "'Lexend', system-ui, sans-serif", padding: '1rem 0', color: '#1A1C1C', maxWidth: 780, margin: '0 auto' }}>
+
+      {/* Header with logo */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+        <Image src="/lx2-logo.svg" alt="LX2" width={144} height={57} style={{ display: 'block' }} />
+        <div>
+          <div style={{ fontSize: 13, color: '#6B7280', fontWeight: 400 }}>Platform architecture</div>
+          <div style={{ fontSize: 11, color: '#9CA3AF' }}>v0.3 · March 2026</div>
+        </div>
+      </div>
 
       {/* Progress */}
       <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 16, padding: '16px 20px', marginBottom: 20, boxShadow: '0 8px 24px rgba(26,28,28,0.06)' }}>
@@ -374,15 +520,65 @@ export default function LX2Architecture() {
       </div>
 
       {/* View tabs */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
-        {(['modules', 'surfaces', 'deps'] as const).map(v => (
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
+        {(['modules', 'surfaces', 'deps', 'journeys'] as const).map(v => (
           <button key={v} onClick={() => setView(v)} style={{ fontSize: 12, padding: '6px 14px', borderRadius: 99, border: 'none', background: view === v ? '#1A2E1A' : '#F3F4F6', color: view === v ? '#fff' : '#6B7280', cursor: 'pointer', fontFamily: "'Lexend', sans-serif", fontWeight: view === v ? 500 : 400, transition: 'all 0.15s' }}>
-            {v === 'modules' ? 'All modules' : v === 'surfaces' ? 'Surfaces' : 'Dependencies'}
+            {v === 'modules' ? 'All modules' : v === 'surfaces' ? 'Surfaces' : v === 'deps' ? 'Dependencies' : 'Journeys'}
           </button>
         ))}
       </div>
 
-      {/* Surfaces view */}
+      {/* ── Journeys view ── */}
+      {view === 'journeys' && (
+        <div>
+          {/* Journey tabs */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+            {journeys.map(j => (
+              <button key={j.id} onClick={() => setActiveJourney(j.id)} style={{ fontSize: 12, padding: '6px 16px', borderRadius: 99, border: `0.5px solid ${activeJourney === j.id ? '#2E7D32' : 'rgba(0,0,0,0.1)'}`, background: activeJourney === j.id ? '#E8F5E9' : '#fff', color: activeJourney === j.id ? '#0D631B' : '#6B7280', cursor: 'pointer', fontFamily: "'Lexend', sans-serif", fontWeight: activeJourney === j.id ? 500 : 400, transition: 'all 0.15s' }}>
+                {j.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Legend */}
+          <div style={{ display: 'flex', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
+            {([['done', 'Live today'], ['building', 'In progress'], ['planned', 'Planned']] as const).map(([s, label]) => (
+              <div key={s} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#6B7280' }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: statusBorderColor[s] }} />
+                {label}
+              </div>
+            ))}
+            <div style={{ fontSize: 11, color: '#9CA3AF', marginLeft: 4 }}>— tap any step to see its module detail</div>
+          </div>
+
+          {/* Flow diagram */}
+          <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 16, padding: '20px', boxShadow: '0 8px 24px rgba(26,28,28,0.04)', marginBottom: 16 }}>
+            <JourneyFlow journey={currentJourney} onSelectModule={handleJourneyModuleClick} />
+          </div>
+
+          {/* Step list below the diagram */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {currentJourney.steps.map((step, i) => (
+              <div key={step.id}
+                onClick={() => step.moduleId && handleJourneyModuleClick(step.moduleId)}
+                style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.06)', borderRadius: 10, cursor: step.moduleId ? 'pointer' : 'default', transition: 'border-color 0.15s' }}>
+                <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, color: '#6B7280', flexShrink: 0 }}>{i + 1}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: '#1A2E1A', fontFamily: "'Manrope', sans-serif" }}>{step.label}</div>
+                  <div style={{ fontSize: 11, color: '#6B8C6B' }}>{step.sub}</div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <div style={{ width: 5, height: 5, borderRadius: '50%', background: statusBorderColor[step.status] }} />
+                  <span style={{ fontSize: 10, color: statusConfig[step.status].color }}>{statusConfig[step.status].label}</span>
+                </div>
+                {step.moduleId && <span style={{ fontSize: 11, color: '#9CA3AF' }}>→</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Surfaces view ── */}
       {view === 'surfaces' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
           {[
@@ -409,7 +605,7 @@ export default function LX2Architecture() {
         </div>
       )}
 
-      {/* Dependencies view */}
+      {/* ── Dependencies view ── */}
       {view === 'deps' && (
         <div style={{ marginBottom: 20 }}>
           {Object.values(modules).filter(m => m.deps.length > 0).map(m => (
@@ -430,7 +626,7 @@ export default function LX2Architecture() {
         </div>
       )}
 
-      {/* Modules view */}
+      {/* ── Modules view ── */}
       {view === 'modules' && tierOrder.map(tier => {
         const mods = grouped[tier] ?? []
         if (!mods.length) return null
@@ -449,7 +645,7 @@ export default function LX2Architecture() {
                 const isSel = selected === m.id
                 return (
                   <button key={m.id} onClick={() => setSelected(isSel ? null : m.id)} style={{ flex: '1 1 150px', minWidth: 140, maxWidth: 220, textAlign: 'left', padding: '12px 14px', borderRadius: 14, border: 'none', background: isSel ? '#F0F4EC' : '#fff', cursor: 'pointer', outline: isSel ? '2px solid #2E7D32' : '0.5px solid rgba(0,0,0,0.08)', boxShadow: '0 8px 24px rgba(26,28,28,0.04)', transition: 'all 0.15s', position: 'relative' }}>
-                    <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 4 }}>
+                    <div style={{ position: 'absolute', top: 8, right: 8 }}>
                       <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 99, background: pc.bg, color: pc.color, fontWeight: 500 }}>{pc.label}</span>
                     </div>
                     <div style={{ fontSize: 13, fontWeight: 600, color: '#1A2E1A', marginBottom: 3, paddingRight: 28, fontFamily: "'Manrope', sans-serif" }}>{m.name}</div>
@@ -467,7 +663,7 @@ export default function LX2Architecture() {
         )
       })}
 
-      {/* Detail panel */}
+      {/* ── Detail panel ── */}
       {mod && (
         <div style={{ marginTop: 20, background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 16, padding: '20px', boxShadow: '0 8px 24px rgba(26,28,28,0.06)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
@@ -479,15 +675,11 @@ export default function LX2Architecture() {
             </div>
           </div>
           <div style={{ fontSize: 13, color: '#44483E', lineHeight: 1.65, marginBottom: 14 }}>{mod.desc}</div>
-
-          {/* Links */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
             {mod.liveUrl && <a href={mod.liveUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, padding: '4px 12px', borderRadius: 99, background: '#E8F5E9', color: '#0D631B', textDecoration: 'none', border: '0.5px solid #0D631B30' }}>↗ Live</a>}
             {mod.prdUrl  && <a href={mod.prdUrl}  target="_blank" rel="noreferrer" style={{ fontSize: 12, padding: '4px 12px', borderRadius: 99, background: '#E3F2FD', color: '#1565C0', textDecoration: 'none', border: '0.5px solid #1565C030' }}>↗ PRD</a>}
             {mod.codeUrl && <a href={mod.codeUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, padding: '4px 12px', borderRadius: 99, background: '#F3F4F6', color: '#6B7280', textDecoration: 'none', border: '0.5px solid rgba(0,0,0,0.1)' }}>↗ Code</a>}
           </div>
-
-          {/* Deps */}
           {mod.deps.length > 0 && (
             <div style={{ marginBottom: 12 }}>
               <div style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Depends on</div>
@@ -499,8 +691,6 @@ export default function LX2Architecture() {
               </div>
             </div>
           )}
-
-          {/* Data tables */}
           {mod.data.length > 0 && (
             <div style={{ marginBottom: 12 }}>
               <div style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>DB tables</div>
@@ -509,8 +699,6 @@ export default function LX2Architecture() {
               </div>
             </div>
           )}
-
-          {/* Features */}
           <div style={{ marginBottom: 12 }}>
             <div style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Features</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -522,8 +710,6 @@ export default function LX2Architecture() {
               ))}
             </div>
           </div>
-
-          {/* Tech */}
           <div>
             <div style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Technical approach</div>
             <div style={{ fontSize: 13, color: '#44483E', lineHeight: 1.6, fontFamily: 'monospace', background: '#F9FAF7', padding: '10px 14px', borderRadius: 10 }}>{mod.tech}</div>
