@@ -1,10 +1,22 @@
 /**
  * LX2 Design Token System — "The Fairway Editorial"
  * ─────────────────────────────────────────────────────────────────
- * Grounded in the Stitch design system output + scorecard screenshot.
+ * v2 — Updated with the following fixes:
+ *
+ * [1] Green palette shifted from Material UI territory to ownable
+ *     "Augusta + TrackMan" bottle-green. Richer, darker primary.
+ * [2] applyClubTheme no longer overwrites semantic success/danger tokens.
+ * [3] Responsive spacing: gutterMobile + gutterDesktop replace single
+ *     pageGutter. Safe for 393px iPhone and 1440px desktop alike.
+ * [4] bgDisabled token added for disabled button/input states.
+ * [5] Competition colour layer added (leaderboard, match play, NTP/LD).
+ * [6] Logo tokens expanded (icon, wordmark, inverse, subtle).
+ * [7] Motion tokens added (fast, standard, slow, spring).
+ * [8] tailwindThemeConfig wired to CSS variables (semantic-first).
+ * [9] Spacing scale added for vertical rhythm.
  *
  * Typography: Manrope (display) + Lexend (body)
- * Colours: Masters green palette + berry tertiary + warm surfaces
+ * Colours: Augusta bottle-green palette + berry tertiary + warm surfaces
  * Philosophy: Tonal layering over borders. Whitespace as tool.
  *             No pure black. No 1px dividers. No harsh edges.
  *
@@ -17,28 +29,36 @@
 // ─── Logo ─────────────────────────────────────────────────────────────────────
 
 export const LOGO = {
+  // [6] Expanded logo token set for nav, dark mode, disabled, white-label
+  icon:      '#2A7A3B',  // golfer icon — new signature green
+  wordmark:  '#44483E',  // "SeventyTwo" text — secondary on-surface
+  inverse:   '#FFFFFF',  // on dark backgrounds
+  subtle:    '#C4C7BB',  // disabled / watermark use
+  // Legacy aliases (kept for backwards compat)
   lxGrey:      '#666666',
-  golferGreen: '#2E7D32',  // aligned to primary_container
+  golferGreen: '#2A7A3B',
 } as const
 
-// ─── Core palette — Stitch design system ─────────────────────────────────────
+// ─── Core palette ─────────────────────────────────────────────────────────────
 
 export const PALETTE = {
 
-  // Primary greens — Masters heritage
+  // [1] Primary greens — "Augusta + TrackMan" — deeper, richer, ownable
+  // Shifted away from Google Material green into bottle-green territory.
   green: {
-    primary:          '#0D631B',  // primary — critical actions, brand moments
-    primaryContainer: '#2E7D32',  // primary_container — thematic blocks, active states
-    50:  '#E8F5E9',
-    100: '#C8E6C9',
-    200: '#A5D6A7',
-    300: '#81C784',
-    400: '#66BB6A',
-    500: '#4CAF50',
-    600: '#2E7D32',  // = primaryContainer
-    700: '#1B5E20',
-    800: '#0D631B',  // = primary
-    900: '#063D10',
+    primary:          '#0F5A2E',  // primary — deeper than before, more Augusta
+    primaryContainer: '#2A7A3B',  // primary_container — brighter signature accent
+    highlight:        '#3FAF5A',  // new: bright accent for scores, CTAs
+    50:  '#E8F5ED',
+    100: '#C3E6CE',
+    200: '#9DD6B0',
+    300: '#6DC08A',
+    400: '#3FAF5A',  // = highlight
+    500: '#2A7A3B',  // = primaryContainer
+    600: '#1F6030',
+    700: '#154D26',
+    800: '#0F5A2E',  // = primary
+    900: '#083D1C',
   },
 
   // Berry tertiary — muted, used sparingly for highlights / negative data
@@ -48,37 +68,52 @@ export const PALETTE = {
     dark:    '#6B1F3E',
   },
 
+  // [5] Competition colour layer — leaderboard, match play, NTP/LD
+  competition: {
+    leader:  '#D4AF37',  // gold — leader, best score
+    chasing: '#2A7A3B',  // green — in contention (mirrors new primary)
+    danger:  '#B43C3C',  // red — losing, over par (match play)
+    neutral: '#72786E',  // grey — all square, no data
+    eagle:   '#1A3E6E',  // deep blue — eagle or better
+    birdie:  '#2A7A3B',  // green — birdie (mirrors chasing)
+    par:     '#72786E',  // grey — par
+    bogey:   '#B85C2A',  // rust — bogey
+    double:  '#B43C3C',  // red — double bogey or worse
+  },
+
   // Surface hierarchy — warm off-whites for tonal layering
   surface: {
-    background:          '#F9FAF7',  // outermost page background
-    surface:             '#F4F6F1',  // main content surface
-    containerLow:        '#EDEFEA',  // subtle section backgrounds
-    container:           '#E8EAE4',  // cards, list items
-    containerHigh:       '#E2E4DE',  // elevated cards
-    containerHighest:    '#DCDEDA',  // highest elevation (modals, overlays)
-    containerLowest:     '#FFFFFF',  // primary interactive cards (lowest = whitest)
+    background:          '#F9FAF7',
+    surface:             '#F4F6F1',
+    containerLow:        '#EDEFEA',
+    container:           '#E8EAE4',
+    containerHigh:       '#E2E4DE',
+    containerHighest:    '#DCDEDA',
+    containerLowest:     '#FFFFFF',
+    // [4] Disabled surface — between containerLow and container
+    disabled:            '#EAECE7',
   },
 
   // On-surface text tokens — never pure black
   onSurface: {
-    primary:   '#1A1C1C',  // on_surface — all "black" text
-    secondary: '#44483E',  // secondary text
-    tertiary:  '#72786E',  // placeholder, hint text
-    disabled:  '#C4C7BB',  // disabled states
+    primary:   '#1A1C1C',
+    secondary: '#44483E',
+    tertiary:  '#72786E',
+    disabled:  '#C4C7BB',
   },
 
-  // Sage — scorecard background tones
+  // Sage — scorecard / player surface background tones
   sage: {
-    100: '#F0F4EC',  // scorecard page bg
-    200: '#E8F0E4',  // active hole bg, score box bg
+    100: '#F0F4EC',
+    200: '#E8F0E4',
     300: '#D8E4D0',
   },
 
-  // Forest — deep text tones from scorecard
+  // Forest — deep text tones for player surface
   forest: {
-    primary: '#1A2E1A',  // primary text in player surface
-    active:  '#2A5E30',  // active borders, scorecard button
-    accent:  '#3A7D44',  // interactive greens
+    primary: '#1A2E1A',
+    active:  '#2A5E30',
+    accent:  '#3A7D44',
   },
 
   white: '#FFFFFF',
@@ -94,48 +129,49 @@ export const PALETTE = {
 // ─── Typography — Manrope + Lexend ────────────────────────────────────────────
 
 export const TYPOGRAPHY = {
-  // Display & headlines — Manrope geometric, authoritative, modern
   fontDisplay: "'Manrope', system-ui, sans-serif",
-
-  // Body & labels — Lexend, reduces cognitive load, legible in sunlight
-  fontSans: "'Lexend', system-ui, sans-serif",
-
-  // Monospace — scores, data, event codes
-  fontMono: "'DM Mono', 'Courier New', monospace",
+  fontSans:    "'Lexend', system-ui, sans-serif",
+  fontMono:    "'DM Mono', 'Courier New', monospace",
 
   googleFontsUrl: "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Lexend:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap",
 
   scale: {
-    // Display — Manrope
-    displayLg:  { size: '3.5rem',   weight: 800, font: 'display' },
-    displayMd:  { size: '2.5rem',   weight: 700, font: 'display' },
-    headlineLg: { size: '2rem',     weight: 700, font: 'display' },
-    headlineMd: { size: '1.75rem',  weight: 600, font: 'display' },
-    headlineSm: { size: '1.25rem',  weight: 600, font: 'display' },
-    // Body — Lexend
-    titleLg:  { size: '1.125rem', weight: 500, font: 'sans' },
-    titleMd:  { size: '1rem',     weight: 500, font: 'sans' },
-    bodyLg:   { size: '1rem',     weight: 400, font: 'sans' },
-    bodyMd:   { size: '0.875rem', weight: 400, font: 'sans' },
-    labelLg:  { size: '0.875rem', weight: 500, font: 'sans' },
-    labelMd:  { size: '0.75rem',  weight: 500, font: 'sans' },
-    labelSm:  { size: '0.6875rem',weight: 500, font: 'sans' },
+    displayLg:  { size: '3.5rem',    weight: 800, font: 'display' },
+    displayMd:  { size: '2.5rem',    weight: 700, font: 'display' },
+    headlineLg: { size: '2rem',      weight: 700, font: 'display' },
+    headlineMd: { size: '1.75rem',   weight: 600, font: 'display' },
+    headlineSm: { size: '1.25rem',   weight: 600, font: 'display' },
+    titleLg:    { size: '1.125rem',  weight: 500, font: 'sans' },
+    titleMd:    { size: '1rem',      weight: 500, font: 'sans' },
+    bodyLg:     { size: '1rem',      weight: 400, font: 'sans' },
+    bodyMd:     { size: '0.875rem',  weight: 400, font: 'sans' },
+    labelLg:    { size: '0.875rem',  weight: 500, font: 'sans' },
+    labelMd:    { size: '0.75rem',   weight: 500, font: 'sans' },
+    labelSm:    { size: '0.6875rem', weight: 500, font: 'sans' },
   },
 } as const
 
 // ─── Spacing ──────────────────────────────────────────────────────────────────
 
 export const SPACING = {
-  pageGutter: '2.75rem',  // editorial feel — 44px
-  cardPad:    '1.25rem',  // 20px
-  gap:        '1.4rem',   // replaces divider lines
+  // [2] Responsive gutters — replaces single pageGutter
+  // Use gutterMobile on player PWA; gutterDesktop on organiser/club
+  gutterMobile:  '1rem',    // 16px — safe on 393px iPhone
+  gutterDesktop: '2.5rem',  // 40px — editorial feel on desktop
+  // [9] Vertical rhythm scale (px) — map to cards/sections/page blocks
+  scale: [4, 8, 12, 16, 24, 32, 48, 64] as const,
+  // Semantic aliases
+  cardPad:      '1.25rem',  // 20px — inside cards (all breakpoints)
+  gap:          '1.4rem',   // replaces divider lines
+  sectionGap:   '2rem',     // 32px — between sections
+  pageBlockGap: '3rem',     // 48px — between major page blocks
 } as const
 
 // ─── Shape ────────────────────────────────────────────────────────────────────
 
 export const SHAPE = {
   radius: {
-    sm:   '0.75rem',  // 12px — small interactive elements (chips, scoring holes)
+    sm:   '0.75rem',  // 12px — chips, scoring holes
     md:   '1rem',     // 16px — inputs, secondary buttons
     lg:   '1.5rem',   // 24px — main containers, primary buttons
     xl:   '2rem',     // 32px — cards, modals
@@ -143,12 +179,25 @@ export const SHAPE = {
   },
 } as const
 
-// ─── Elevation — tonal, not shadow-based ─────────────────────────────────────
+// ─── Motion ───────────────────────────────────────────────────────────────────
+
+// [7] Motion tokens — defines how the app feels, not just looks
+export const MOTION = {
+  fast:     '120ms ease-out',                    // score saves, button presses
+  standard: '200ms cubic-bezier(0.4, 0, 0.2, 1)', // most transitions
+  slow:     '320ms ease',                        // page transitions, modals
+  spring:   '400ms cubic-bezier(0.34, 1.56, 0.64, 1)', // leaderboard shifts, celebrations
+  // Usage guidance:
+  //   Score saved / input feedback  → fast
+  //   Leaderboard position change   → spring
+  //   Modal open / page slide       → slow
+  //   Button hover / chip select    → standard
+} as const
+
+// ─── Elevation ────────────────────────────────────────────────────────────────
 
 export const ELEVATION = {
-  // Ambient shadow for truly floating elements only
-  float: '0px 8px 24px rgba(26, 28, 28, 0.06)',
-  // Ghost border fallback for accessibility (inputs)
+  float:       '0px 8px 24px rgba(26, 28, 28, 0.06)',
   ghostBorder: 'rgba(26, 28, 28, 0.20)',
 } as const
 
@@ -157,13 +206,14 @@ export const ELEVATION = {
 export interface Theme {
   surface: 'player' | 'organiser' | 'club'
 
-  // Tonal surface stack (use these for layering, not borders)
-  bgBackground:       string  // outermost page
-  bgSurface:          string  // main content area
-  bgContainerLow:     string  // section backgrounds
-  bgContainer:        string  // cards
-  bgContainerHigh:    string  // elevated cards
-  bgContainerLowest:  string  // primary interactive (white)
+  // Tonal surface stack
+  bgBackground:       string
+  bgSurface:          string
+  bgContainerLow:     string
+  bgContainer:        string
+  bgContainerHigh:    string
+  bgContainerLowest:  string
+  bgDisabled:         string  // [4] disabled interactive elements
 
   // Text
   textPrimary:   string
@@ -173,92 +223,103 @@ export interface Theme {
   textInverse:   string
 
   // Actions
-  accentPrimary:      string  // primary CTA
-  accentPrimaryHover: string
-  accentPrimaryText:  string  // text ON primary
-  accentContainer:    string  // active states, selected
+  accentPrimary:       string
+  accentPrimaryHover:  string
+  accentPrimaryText:   string
+  accentContainer:     string
   accentContainerText: string
 
-  // Tertiary (berry) — use sparingly
-  tertiary:     string
-  tertiaryBg:   string
+  // Tertiary (berry)
+  tertiary:   string
+  tertiaryBg: string
 
-  // Borders — ghost only, never solid
-  borderGhost: string  // accessibility borders at 20% opacity
-  borderFocus: string  // focus ring
+  // Borders
+  borderGhost: string
+  borderFocus: string
 
-  // Semantic
+  // Semantic — never overwrite with brand colours
   success: string
   warning: string
   danger:  string
   info:    string
 
   // Logo
-  logoLX:     string
-  logoGolfer: string
+  logoIcon:     string
+  logoWordmark: string
+  logoInverse:  string
+  logoSubtle:   string
 
   // Fonts
   fontDisplay: string
   fontSans:    string
   fontMono:    string
+
+  // Spacing context — tells components which gutter to use
+  gutter: string
 }
 
-// ─── Player theme — sage backgrounds, on-course + stats web ──────────────────
+// ─── Player theme ─────────────────────────────────────────────────────────────
 
 export const playerTheme: Theme = {
   surface: 'player',
 
-  bgBackground:      PALETTE.sage[100],        // #F0F4EC
+  bgBackground:      PALETTE.sage[100],
   bgSurface:         PALETTE.sage[100],
-  bgContainerLow:    PALETTE.sage[200],        // #E8F0E4
-  bgContainer:       PALETTE.surface.containerLowest,  // white cards
+  bgContainerLow:    PALETTE.sage[200],
+  bgContainer:       PALETTE.surface.containerLowest,
   bgContainerHigh:   PALETTE.surface.containerLowest,
   bgContainerLowest: PALETTE.surface.containerLowest,
+  bgDisabled:        PALETTE.surface.disabled,  // [4]
 
-  textPrimary:   PALETTE.forest.primary,   // #1A2E1A
+  textPrimary:   PALETTE.forest.primary,
   textSecondary: '#6B8C6B',
   textTertiary:  '#8A9A8A',
   textDisabled:  PALETTE.onSurface.disabled,
   textInverse:   PALETTE.white,
 
-  accentPrimary:       PALETTE.green.primary,          // #0D631B
-  accentPrimaryHover:  PALETTE.green.primaryContainer,
+  accentPrimary:       PALETTE.green.primary,          // #0F5A2E
+  accentPrimaryHover:  PALETTE.green.primaryContainer,  // #2A7A3B
   accentPrimaryText:   PALETTE.white,
-  accentContainer:     PALETTE.green.primaryContainer,  // #2E7D32
+  accentContainer:     PALETTE.green.primaryContainer,
   accentContainerText: PALETTE.white,
 
   tertiary:   PALETTE.berry.primary,
   tertiaryBg: PALETTE.berry.light,
 
-  borderGhost: PALETTE.forest.primary + '33',  // 20% opacity
+  borderGhost: PALETTE.forest.primary + '33',
   borderFocus: PALETTE.green.primary,
 
-  success: PALETTE.green.primaryContainer,
+  success: PALETTE.green.primaryContainer,  // #2A7A3B
   warning: PALETTE.orange,
   danger:  '#B43C3C',
   info:    PALETTE.blue,
 
-  logoLX:     LOGO.lxGrey,
-  logoGolfer: PALETTE.green.primaryContainer,
+  logoIcon:     LOGO.icon,
+  logoWordmark: LOGO.wordmark,
+  logoInverse:  LOGO.inverse,
+  logoSubtle:   LOGO.subtle,
 
   fontDisplay: TYPOGRAPHY.fontDisplay,
   fontSans:    TYPOGRAPHY.fontSans,
   fontMono:    TYPOGRAPHY.fontMono,
+
+  gutter: SPACING.gutterMobile,  // player is always PWA
 }
 
-// ─── Organiser theme — clean white, desktop event management ─────────────────
+// ─── Organiser theme ──────────────────────────────────────────────────────────
 
 export const organiserTheme: Theme = {
   surface: 'organiser',
 
-  bgBackground:      PALETTE.surface.background,    // #F9FAF7
+  bgBackground:      PALETTE.surface.background,
   bgSurface:         PALETTE.surface.surface,
   bgContainerLow:    PALETTE.surface.containerLow,
   bgContainer:       PALETTE.surface.container,
   bgContainerHigh:   PALETTE.surface.containerHigh,
   bgContainerLowest: PALETTE.surface.containerLowest,
+  bgDisabled:        PALETTE.surface.disabled,  // [4]
 
-  textPrimary:   PALETTE.onSurface.primary,    // #1A1C1C
+  textPrimary:   PALETTE.onSurface.primary,
   textSecondary: PALETTE.onSurface.secondary,
   textTertiary:  PALETTE.onSurface.tertiary,
   textDisabled:  PALETTE.onSurface.disabled,
@@ -281,15 +342,19 @@ export const organiserTheme: Theme = {
   danger:  '#DC2626',
   info:    '#2563EB',
 
-  logoLX:     PALETTE.onSurface.secondary,
-  logoGolfer: PALETTE.green.primaryContainer,
+  logoIcon:     LOGO.icon,
+  logoWordmark: LOGO.wordmark,
+  logoInverse:  LOGO.inverse,
+  logoSubtle:   LOGO.subtle,
 
   fontDisplay: TYPOGRAPHY.fontDisplay,
   fontSans:    TYPOGRAPHY.fontSans,
   fontMono:    TYPOGRAPHY.fontMono,
+
+  gutter: SPACING.gutterDesktop,  // organiser is always desktop
 }
 
-// ─── Club theme — customisable ────────────────────────────────────────────────
+// ─── Club theme ───────────────────────────────────────────────────────────────
 
 export const clubTheme: Theme = {
   ...organiserTheme,
@@ -305,11 +370,13 @@ export const themes = {
 // ─── Club branding ────────────────────────────────────────────────────────────
 
 export interface ClubBrand {
-  name: string
+  name:          string
   primaryColour: string
-  logoUrl?: string
+  logoUrl?:      string
 }
 
+// [2] Fixed: semantic success/warning/danger/info tokens are NEVER overwritten.
+// Club brand colour only affects action/accent tokens, not UX state signals.
 export function applyClubTheme(base: Theme, club: ClubBrand): Theme {
   return {
     ...base,
@@ -317,7 +384,7 @@ export function applyClubTheme(base: Theme, club: ClubBrand): Theme {
     accentPrimaryHover:  club.primaryColour,
     accentContainer:     club.primaryColour,
     borderFocus:         club.primaryColour,
-    success:             club.primaryColour,
+    // success / warning / danger / info intentionally preserved from base
   }
 }
 
@@ -331,6 +398,7 @@ export function getCSSVars(theme: Theme): string {
     --bg-container:        ${theme.bgContainer};
     --bg-container-high:   ${theme.bgContainerHigh};
     --bg-container-lowest: ${theme.bgContainerLowest};
+    --bg-disabled:         ${theme.bgDisabled};
 
     --text-primary:   ${theme.textPrimary};
     --text-secondary: ${theme.textSecondary};
@@ -355,12 +423,16 @@ export function getCSSVars(theme: Theme): string {
     --danger:  ${theme.danger};
     --info:    ${theme.info};
 
-    --logo-lx:     ${theme.logoLX};
-    --logo-golfer: ${theme.logoGolfer};
+    --logo-icon:     ${theme.logoIcon};
+    --logo-wordmark: ${theme.logoWordmark};
+    --logo-inverse:  ${theme.logoInverse};
+    --logo-subtle:   ${theme.logoSubtle};
 
     --font-display: ${theme.fontDisplay};
     --font-sans:    ${theme.fontSans};
     --font-mono:    ${theme.fontMono};
+
+    --gutter: ${theme.gutter};
 
     --radius-sm: ${SHAPE.radius.sm};
     --radius-md: ${SHAPE.radius.md};
@@ -368,15 +440,114 @@ export function getCSSVars(theme: Theme): string {
     --radius-xl: ${SHAPE.radius.xl};
 
     --shadow-float: ${ELEVATION.float};
-    --page-gutter:  ${SPACING.pageGutter};
+
+    --motion-fast:     ${MOTION.fast};
+    --motion-standard: ${MOTION.standard};
+    --motion-slow:     ${MOTION.slow};
+    --motion-spring:   ${MOTION.spring};
+
+    --spacing-card:       ${SPACING.cardPad};
+    --spacing-gap:        ${SPACING.gap};
+    --spacing-section:    ${SPACING.sectionGap};
+    --spacing-page-block: ${SPACING.pageBlockGap};
+
+    --competition-leader:  ${PALETTE.competition.leader};
+    --competition-chasing: ${PALETTE.competition.chasing};
+    --competition-danger:  ${PALETTE.competition.danger};
+    --competition-neutral: ${PALETTE.competition.neutral};
+    --score-eagle:  ${PALETTE.competition.eagle};
+    --score-birdie: ${PALETTE.competition.birdie};
+    --score-par:    ${PALETTE.competition.par};
+    --score-bogey:  ${PALETTE.competition.bogey};
+    --score-double: ${PALETTE.competition.double};
   `.trim()
 }
 
-export const tailwindColors = {
-  brand: {
-    green:  PALETTE.green,
-    sage:   PALETTE.sage,
-    forest: PALETTE.forest,
-    berry:  PALETTE.berry,
+// ─── Tailwind config ──────────────────────────────────────────────────────────
+
+// [8] Semantic-first. Components use surface/text/accent/status classes.
+// Raw palette exposed under `brand.*` for one-off uses only.
+// Place the `colors` block in your tailwind.config.ts `theme.extend`.
+export const tailwindThemeConfig = {
+  colors: {
+    // Raw palette — escape hatch, avoid in shared components
+    brand: {
+      green:  PALETTE.green,
+      sage:   PALETTE.sage,
+      forest: PALETTE.forest,
+      berry:  PALETTE.berry,
+    },
+
+    // Semantic surfaces — these adapt across player/organiser/club themes
+    surface: {
+      background: 'var(--bg-background)',
+      DEFAULT:    'var(--bg-surface)',
+      low:        'var(--bg-container-low)',
+      container:  'var(--bg-container)',
+      high:       'var(--bg-container-high)',
+      lowest:     'var(--bg-container-lowest)',
+      disabled:   'var(--bg-disabled)',
+    },
+
+    text: {
+      primary:   'var(--text-primary)',
+      secondary: 'var(--text-secondary)',
+      tertiary:  'var(--text-tertiary)',
+      disabled:  'var(--text-disabled)',
+      inverse:   'var(--text-inverse)',
+    },
+
+    accent: {
+      DEFAULT: 'var(--accent-primary)',
+      hover:   'var(--accent-primary-hover)',
+      text:    'var(--accent-primary-text)',
+    },
+
+    status: {
+      success: 'var(--success)',
+      warning: 'var(--warning)',
+      danger:  'var(--danger)',
+      info:    'var(--info)',
+    },
+
+    // Competition layer — leaderboard, match play, score colours
+    competition: {
+      leader:  'var(--competition-leader)',
+      chasing: 'var(--competition-chasing)',
+      danger:  'var(--competition-danger)',
+      neutral: 'var(--competition-neutral)',
+    },
+    score: {
+      eagle:  'var(--score-eagle)',
+      birdie: 'var(--score-birdie)',
+      par:    'var(--score-par)',
+      bogey:  'var(--score-bogey)',
+      double: 'var(--score-double)',
+    },
+  },
+
+  // Motion
+  transitionDuration: {
+    fast:     '120',
+    standard: '200',
+    slow:     '320',
+    spring:   '400',
+  },
+
+  // Spacing scale
+  spacing: {
+    'card':       SPACING.cardPad,
+    'gap':        SPACING.gap,
+    'section':    SPACING.sectionGap,
+    'page-block': SPACING.pageBlockGap,
+    'gutter':     'var(--gutter)',  // resolves to mobile/desktop at runtime
+  },
+
+  borderRadius: {
+    sm:   SHAPE.radius.sm,
+    md:   SHAPE.radius.md,
+    lg:   SHAPE.radius.lg,
+    xl:   SHAPE.radius.xl,
+    full: SHAPE.radius.full,
   },
 } as const
