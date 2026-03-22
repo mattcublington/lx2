@@ -79,6 +79,21 @@ const modules: Record<string, Module> = {
     tech: 'Event brand_assets table. CSS custom property injection per event. Vercel edge for fast shareable URLs.',
   },
 
+  // ── Marketing & web home ────────────────────────────────────────────────────
+
+  marketing_home: {
+    id: 'marketing_home', name: 'Marketing homepage', phase: 'mvp', tier: 'player-web',
+    status: 'done', surface: 'shared',
+    sub: 'Organiser-first scrolling marketing page',
+    desc: 'Public homepage targeting organisers. Full-bleed hero photo with frosted glass UI. Scrolling sections: hero, how it works, features, sign-up CTA. Players can enter an event code directly from the hero. Primary CTA drives organiser sign-up.',
+    deps: ['auth'],
+    data: [],
+    liveUrl: APP, prdUrl: null,
+    codeUrl: `${GITHUB}/apps/web/src/app/page.tsx`,
+    features: ['Full-bleed hero photo + dark gradient overlay', 'Frosted glass action cards', 'Organiser headline + Get started free CTA', 'Event code entry for players joining an existing round', 'How it works (3-step)', 'Feature highlights grid', 'Bottom sign-up CTA section'],
+    tech: 'Next.js client component. CSS-in-JSX. hero.png served from public/. Manrope + Lexend fonts.',
+  },
+
   // ── Player — web & stats ────────────────────────────────────────────────────
 
   player_home: {
@@ -303,13 +318,13 @@ const modules: Record<string, Module> = {
   auth: {
     id: 'auth', name: 'Authentication', phase: 'mvp', tier: 'infra',
     status: 'building', surface: 'shared',
-    sub: 'Magic links + anonymous play',
-    desc: 'Magic link email auth. Players score a full round before account creation is prompted.',
+    sub: 'Google OAuth + email/password',
+    desc: 'Organisers sign up via Google OAuth or email/password. Players joining events need no account. Magic link available as fallback. Row-level security on all Supabase tables.',
     deps: [], data: ['users'],
     liveUrl: `${APP}/auth/login`, prdUrl: null,
     codeUrl: `${GITHUB}/apps/web/src/app/auth/login/page.tsx`,
-    features: ['Email magic link', 'Anonymous play first', 'Google/Apple OAuth (Phase 2)', 'Row-level security on all tables'],
-    tech: 'Supabase Auth. Progressive account creation.',
+    features: ['Google OAuth (primary — one tap)', 'Email + password sign up/in', 'Magic link as fallback', 'Anonymous play for event participants', 'Row-level security on all tables', 'Supabase session via SSR cookies'],
+    tech: 'Supabase Auth. @supabase/ssr for server-side session. Google Cloud OAuth 2.0 client.',
   },
   realtime: {
     id: 'realtime', name: 'Realtime layer', phase: 'mvp', tier: 'infra',
