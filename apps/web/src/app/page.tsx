@@ -304,7 +304,7 @@ export default function HomePage() {
         {/* Nav */}
         <nav className="nav">
           <Link href="/" className="logo">
-            <Image src="/lx2-logo.svg" alt="LX2" height={36} width={72} />
+            <Image src="/lx2-logo.svg" alt="LX2" height={72} width={144} />
           </Link>
           <div className="nav-links">
             <Link href="/play" className="nav-link">Play</Link>
