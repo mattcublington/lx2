@@ -144,7 +144,7 @@ export default function ScoreEntry() {
   const isPickup = s.players[cp.id]!.pickups[s.hole] ?? false;
   const currentScore = s.players[cp.id]!.scores[s.hole] ?? null;
 
-  useEffect(() => { setStepValue(currentScore); }, [s.hole, s.activePlayer]);
+  useEffect(() => { setStepValue(currentScore); }, [s.hole, s.activePlayer, currentScore]);
 
   function getTotal(pid: string) {
     let p = 0, h = 0;

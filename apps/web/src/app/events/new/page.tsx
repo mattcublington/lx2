@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { createEvent, type EventFormData } from './actions'
-import { searchCourses, getCourse, type Course } from '@/lib/courses'
+import { searchCourses, type Course } from '@/lib/courses'
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
 
@@ -132,8 +132,6 @@ export default function NewEventPage() {
   }
 
   const canNext1 = name.trim() && date && selectedCourse && tee
-  const canNext2 = true
-  const canSubmit = true
 
   const handleSubmit = async () => {
     if (!selectedCourse) return

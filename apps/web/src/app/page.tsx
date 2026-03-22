@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 
 export default function HomePage() {
@@ -20,10 +21,6 @@ export default function HomePage() {
 
   return (
     <>
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Lexend:wght@300;400;500&display=swap" rel="stylesheet" />
-
       <style>{`
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { height: 100%; }
@@ -307,11 +304,11 @@ export default function HomePage() {
         {/* Nav */}
         <nav className="nav">
           <Link href="/" className="logo">
-            <img src="/lx2-logo.svg" alt="LX2" height={36} />
+            <Image src="/lx2-logo.svg" alt="LX2" height={36} width={72} />
           </Link>
           <div className="nav-links">
-            <a href="/play" className="nav-link">Play</a>
-            <a href="/organise" className="nav-link">Organise</a>
+            <Link href="/play" className="nav-link">Play</Link>
+            <Link href="/organise" className="nav-link">Organise</Link>
             {userEmail ? (
               <a href="/auth/login" className="nav-cta">Account</a>
             ) : (
