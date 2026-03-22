@@ -23,67 +23,31 @@ export default function HomePage() {
     <>
       <style>{`
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { height: 100%; }
+        html { scroll-behavior: smooth; }
 
-        .home {
-          min-height: 100dvh;
+        body {
           font-family: 'Lexend', system-ui, sans-serif;
-          color: #fff;
-          display: flex;
-          flex-direction: column;
-          position: relative;
-          isolation: isolate;
-        }
-
-        /* ── Hero image & overlay ── */
-        .hero-bg {
-          position: fixed;
-          inset: 0;
-          z-index: -1;
-          background: url('/hero.png') center center / cover no-repeat;
-        }
-        .hero-bg::after {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(
-            to bottom,
-            rgba(0,0,0,0.28) 0%,
-            rgba(0,0,0,0.18) 40%,
-            rgba(0,0,0,0.48) 100%
-          );
+          color: #1A2E1A;
+          background: #fff;
         }
 
         /* ── Nav ── */
         .nav {
+          position: absolute;
+          top: 0; left: 0; right: 0;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 28px 44px;
-          position: relative;
-          z-index: 10;
+          padding: 28px 48px;
+          z-index: 20;
         }
 
-        .logo {
-          display: flex;
-          align-items: center;
-          text-decoration: none;
-        }
+        .logo { display: flex; align-items: center; text-decoration: none; }
+        .logo img { height: 48px; width: auto; filter: brightness(0) invert(1); }
 
-        .logo img {
-          height: 56px;
-          width: auto;
-          filter: brightness(0) invert(1);
-        }
-
-        .nav-links {
-          display: flex;
-          align-items: center;
-          gap: 28px;
-        }
+        .nav-links { display: flex; align-items: center; gap: 32px; }
 
         .nav-link {
-          font-family: 'Lexend', sans-serif;
           font-size: 0.8125rem;
           font-weight: 400;
           color: rgba(255,255,255,0.8);
@@ -91,11 +55,9 @@ export default function HomePage() {
           letter-spacing: 0.04em;
           transition: color 0.15s;
         }
-
         .nav-link:hover { color: #fff; }
 
-        .nav-cta {
-          font-family: 'Lexend', sans-serif;
+        .nav-signin {
           font-size: 0.8125rem;
           font-weight: 600;
           color: #fff;
@@ -106,30 +68,55 @@ export default function HomePage() {
           border-radius: 9999px;
           backdrop-filter: blur(8px);
           -webkit-backdrop-filter: blur(8px);
-          transition: background 0.15s, border-color 0.15s;
+          transition: background 0.15s;
         }
-
-        .nav-cta:hover { background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.6); }
+        .nav-signin:hover { background: rgba(255,255,255,0.25); }
 
         /* ── Hero ── */
         .hero {
+          position: relative;
+          min-height: 100dvh;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .hero-bg {
+          position: absolute;
+          inset: 0;
+          background: url('/hero.png') center center / cover no-repeat;
+          z-index: 0;
+        }
+        .hero-bg::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            160deg,
+            rgba(0,0,0,0.45) 0%,
+            rgba(0,0,0,0.2) 50%,
+            rgba(0,0,0,0.55) 100%
+          );
+        }
+
+        .hero-content {
+          position: relative;
+          z-index: 10;
           flex: 1;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          padding: 48px 44px 40px;
           text-align: center;
-          position: relative;
+          padding: 120px 48px 60px;
+          color: #fff;
         }
 
         .hero-label {
-          font-family: 'Lexend', sans-serif;
           font-size: 0.6875rem;
           font-weight: 500;
           letter-spacing: 0.18em;
           text-transform: uppercase;
-          color: rgba(255,255,255,0.75);
+          color: rgba(255,255,255,0.7);
           margin-bottom: 20px;
           opacity: 0;
           animation: rise 0.5s ease forwards 0.1s;
@@ -137,165 +124,343 @@ export default function HomePage() {
 
         .hero-title {
           font-family: 'Manrope', sans-serif;
-          font-size: clamp(3rem, 9vw, 5.5rem);
+          font-size: clamp(2.75rem, 8vw, 5.25rem);
           font-weight: 800;
           line-height: 1.0;
           letter-spacing: -0.025em;
           color: #fff;
-          margin-bottom: 20px;
+          margin-bottom: 24px;
+          max-width: 700px;
+          text-shadow: 0 2px 32px rgba(0,0,0,0.3);
           opacity: 0;
           animation: rise 0.6s ease forwards 0.2s;
-          text-shadow: 0 2px 24px rgba(0,0,0,0.3);
         }
 
         .hero-sub {
-          font-family: 'Lexend', sans-serif;
           font-size: 1.0625rem;
           font-weight: 300;
-          color: rgba(255,255,255,0.8);
-          letter-spacing: 0.01em;
-          line-height: 1.6;
-          max-width: 400px;
-          margin: 0 auto 52px;
+          color: rgba(255,255,255,0.82);
+          line-height: 1.65;
+          max-width: 460px;
+          margin-bottom: 44px;
+          text-shadow: 0 1px 8px rgba(0,0,0,0.25);
           opacity: 0;
           animation: rise 0.6s ease forwards 0.3s;
-          text-shadow: 0 1px 8px rgba(0,0,0,0.3);
         }
 
-        /* ── Actions ── */
-        .actions {
-          width: 100%;
-          max-width: 440px;
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          opacity: 0;
-          animation: rise 0.7s ease forwards 0.45s;
-        }
-
-        /* Primary — green gradient, main CTA */
-        .btn-primary {
+        .hero-ctas {
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          padding: 22px 26px;
-          background: linear-gradient(135deg, #0D631B 0%, #2E7D32 100%);
-          border-radius: 1.5rem;
-          text-decoration: none;
-          border: none;
-          cursor: pointer;
-          width: 100%;
-          box-shadow: 0px 8px 32px rgba(0,0,0,0.3);
-          transition: transform 0.15s, box-shadow 0.15s;
+          gap: 12px;
+          margin-bottom: 48px;
+          opacity: 0;
+          animation: rise 0.6s ease forwards 0.4s;
         }
 
-        .btn-primary:hover {
-          transform: translateY(-2px);
-          box-shadow: 0px 12px 40px rgba(0,0,0,0.35);
-        }
-
-        .btn-primary:active { transform: translateY(0); }
-
-        .btn-p-left { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
-        .btn-p-label { font-family: 'Manrope', sans-serif; font-size: 1.0625rem; font-weight: 700; color: #fff; letter-spacing: -0.01em; }
-        .btn-p-sub { font-family: 'Lexend', sans-serif; font-size: 0.8125rem; font-weight: 300; color: rgba(255,255,255,0.7); }
-        .btn-p-arrow { font-size: 1.25rem; color: rgba(255,255,255,0.7); }
-
-        /* Join row */
-        .join-row { display: flex; gap: 8px; }
-
-        .join-input {
-          flex: 1;
-          padding: 18px 20px;
-          background: rgba(255,255,255,0.15);
-          border: 1px solid rgba(255,255,255,0.3);
-          border-radius: 1.5rem;
-          font-family: 'Lexend', sans-serif;
+        .btn-getstarted {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 14px 28px;
+          background: #0D631B;
+          color: #fff;
+          font-family: 'Manrope', sans-serif;
           font-size: 0.9375rem;
+          font-weight: 700;
+          text-decoration: none;
+          border-radius: 9999px;
+          box-shadow: 0 8px 28px rgba(0,0,0,0.3);
+          transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+        }
+        .btn-getstarted:hover { background: #0a4f15; transform: translateY(-1px); box-shadow: 0 12px 32px rgba(0,0,0,0.35); }
+
+        .btn-signin-hero {
+          display: inline-flex;
+          align-items: center;
+          padding: 14px 24px;
+          background: rgba(255,255,255,0.12);
+          border: 1px solid rgba(255,255,255,0.3);
+          color: #fff;
+          font-size: 0.9375rem;
+          font-weight: 500;
+          text-decoration: none;
+          border-radius: 9999px;
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          transition: background 0.15s;
+        }
+        .btn-signin-hero:hover { background: rgba(255,255,255,0.22); }
+
+        /* Event code row */
+        .code-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          opacity: 0;
+          animation: rise 0.6s ease forwards 0.5s;
+        }
+
+        .code-label {
+          font-size: 0.8125rem;
+          color: rgba(255,255,255,0.6);
+          white-space: nowrap;
+        }
+
+        .code-input {
+          width: 140px;
+          padding: 10px 14px;
+          background: rgba(255,255,255,0.12);
+          border: 1px solid rgba(255,255,255,0.28);
+          border-radius: 9999px;
+          font-family: 'Lexend', sans-serif;
+          font-size: 0.875rem;
           color: #fff;
           outline: none;
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          transition: background 0.15s, border-color 0.15s;
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          text-align: center;
+          letter-spacing: 0.08em;
+          transition: background 0.15s, border-color 0.15s, width 0.2s;
         }
+        .code-input::placeholder { color: rgba(255,255,255,0.4); letter-spacing: 0.04em; }
+        .code-input:focus { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.5); width: 180px; }
 
-        .join-input::placeholder { color: rgba(255,255,255,0.5); }
-        .join-input:focus { background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.55); }
-
-        .join-btn {
-          padding: 18px 22px;
+        .code-btn {
+          padding: 10px 16px;
           background: rgba(255,255,255,0.15);
-          border: 1px solid rgba(255,255,255,0.3);
-          border-radius: 1.5rem;
+          border: 1px solid rgba(255,255,255,0.28);
+          border-radius: 9999px;
           color: #fff;
-          font-size: 1.1rem;
-          cursor: pointer;
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          transition: background 0.15s;
-          display: flex;
-          align-items: center;
+          font-size: 0.875rem;
           font-family: 'Manrope', sans-serif;
-          font-weight: 700;
+          font-weight: 600;
+          cursor: pointer;
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          transition: background 0.15s;
         }
+        .code-btn:hover { background: rgba(255,255,255,0.25); }
 
-        .join-btn:hover { background: rgba(255,255,255,0.25); }
-
-        /* Secondary action cards */
-        .actions-row { display: flex; gap: 10px; }
-
-        .btn-secondary {
-          flex: 1;
+        /* Scroll cue */
+        .scroll-cue {
+          position: absolute;
+          bottom: 32px;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 10;
           display: flex;
           flex-direction: column;
-          align-items: flex-start;
-          padding: 18px 20px;
-          background: rgba(255,255,255,0.12);
-          border: 1px solid rgba(255,255,255,0.22);
+          align-items: center;
+          gap: 6px;
+          opacity: 0;
+          animation: rise 0.6s ease forwards 0.9s;
+        }
+        .scroll-cue span {
+          font-size: 0.625rem;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: rgba(255,255,255,0.5);
+        }
+        .scroll-arrow {
+          width: 20px;
+          height: 20px;
+          border-right: 2px solid rgba(255,255,255,0.4);
+          border-bottom: 2px solid rgba(255,255,255,0.4);
+          transform: rotate(45deg);
+          animation: bounce 1.8s ease infinite 1.2s;
+        }
+
+        /* ── How it works ── */
+        .hiw {
+          background: #fff;
+          padding: 96px 48px;
+          text-align: center;
+        }
+
+        .section-label {
+          font-size: 0.6875rem;
+          font-weight: 500;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          color: #0D631B;
+          margin-bottom: 16px;
+        }
+
+        .section-title {
+          font-family: 'Manrope', sans-serif;
+          font-size: clamp(1.75rem, 4vw, 2.5rem);
+          font-weight: 800;
+          letter-spacing: -0.02em;
+          color: #1A2E1A;
+          margin-bottom: 16px;
+          line-height: 1.1;
+        }
+
+        .section-sub {
+          font-size: 1rem;
+          font-weight: 300;
+          color: #6B8C6B;
+          max-width: 440px;
+          margin: 0 auto 64px;
+          line-height: 1.65;
+        }
+
+        .steps {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 32px;
+          max-width: 860px;
+          margin: 0 auto;
+        }
+
+        .step {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 16px;
+          padding: 32px 24px;
+          background: #F6FAF6;
           border-radius: 1.5rem;
-          text-decoration: none;
-          cursor: pointer;
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          transition: transform 0.15s, background 0.15s;
+          border: 1px solid #E0EBE0;
+        }
+
+        .step-num {
+          width: 40px;
+          height: 40px;
+          background: #0D631B;
+          color: #fff;
+          font-family: 'Manrope', sans-serif;
+          font-size: 1rem;
+          font-weight: 800;
+          border-radius: 9999px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .step-title {
+          font-family: 'Manrope', sans-serif;
+          font-size: 1rem;
+          font-weight: 700;
+          color: #1A2E1A;
+        }
+
+        .step-desc {
+          font-size: 0.875rem;
+          font-weight: 300;
+          color: #6B8C6B;
+          line-height: 1.6;
+          text-align: center;
+        }
+
+        /* ── Features ── */
+        .features {
+          background: #F6FAF6;
+          padding: 96px 48px;
+        }
+
+        .features-inner {
+          max-width: 860px;
+          margin: 0 auto;
+          text-align: center;
+        }
+
+        .feature-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 20px;
+          margin-top: 56px;
           text-align: left;
         }
 
-        .btn-secondary:hover {
-          transform: translateY(-2px);
-          background: rgba(255,255,255,0.2);
+        .feature-card {
+          background: #fff;
+          border-radius: 1.25rem;
+          padding: 28px;
+          border: 1px solid #E0EBE0;
         }
 
-        .btn-s-icon { font-size: 1.25rem; margin-bottom: 10px; }
-        .btn-s-label { font-family: 'Manrope', sans-serif; font-size: 0.9375rem; font-weight: 600; color: #fff; margin-bottom: 3px; }
-        .btn-s-sub { font-family: 'Lexend', sans-serif; font-size: 0.75rem; font-weight: 300; color: rgba(255,255,255,0.65); line-height: 1.4; }
+        .feature-icon { font-size: 1.5rem; margin-bottom: 12px; }
+        .feature-title {
+          font-family: 'Manrope', sans-serif;
+          font-size: 1rem;
+          font-weight: 700;
+          color: #1A2E1A;
+          margin-bottom: 6px;
+        }
+        .feature-desc {
+          font-size: 0.875rem;
+          font-weight: 300;
+          color: #6B8C6B;
+          line-height: 1.6;
+        }
+
+        /* ── CTA section ── */
+        .cta-section {
+          background: #1A2E1A;
+          padding: 96px 48px;
+          text-align: center;
+          color: #fff;
+        }
+
+        .cta-title {
+          font-family: 'Manrope', sans-serif;
+          font-size: clamp(1.75rem, 4vw, 2.5rem);
+          font-weight: 800;
+          letter-spacing: -0.02em;
+          margin-bottom: 16px;
+          line-height: 1.1;
+        }
+
+        .cta-sub {
+          font-size: 1rem;
+          font-weight: 300;
+          color: rgba(255,255,255,0.7);
+          margin-bottom: 40px;
+          line-height: 1.65;
+        }
+
+        .btn-cta-primary {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 15px 32px;
+          background: #0D631B;
+          color: #fff;
+          font-family: 'Manrope', sans-serif;
+          font-size: 1rem;
+          font-weight: 700;
+          text-decoration: none;
+          border-radius: 9999px;
+          box-shadow: 0 8px 28px rgba(0,0,0,0.3);
+          transition: background 0.15s, transform 0.15s;
+        }
+        .btn-cta-primary:hover { background: #0a4f15; transform: translateY(-1px); }
 
         /* ── Footer ── */
-        .home-footer {
-          position: relative;
-          z-index: 10;
+        .footer {
+          background: #111D11;
+          padding: 32px 48px;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 20px 44px 28px;
         }
 
         .footer-links { display: flex; gap: 24px; }
         .footer-link {
-          font-family: 'Lexend', sans-serif;
           font-size: 0.6875rem;
           font-weight: 400;
-          color: rgba(255,255,255,0.45);
+          color: rgba(255,255,255,0.35);
           text-decoration: none;
           letter-spacing: 0.06em;
           text-transform: uppercase;
           transition: color 0.15s;
         }
-        .footer-link:hover { color: rgba(255,255,255,0.8); }
-        .footer-tagline {
-          font-family: 'Lexend', sans-serif;
+        .footer-link:hover { color: rgba(255,255,255,0.7); }
+
+        .footer-copy {
           font-size: 0.6875rem;
-          color: rgba(255,255,255,0.45);
+          color: rgba(255,255,255,0.3);
           letter-spacing: 0.04em;
         }
 
@@ -304,95 +469,146 @@ export default function HomePage() {
           to   { opacity: 1; transform: translateY(0); }
         }
 
-        @media (max-width: 600px) {
-          .nav { padding: 20px 20px; }
-          .hero { padding: 36px 20px 32px; }
-          .actions { max-width: 100%; }
-          .actions-row { flex-direction: column; }
-          .home-footer { padding: 16px 20px 24px; flex-direction: column; gap: 12px; }
-          .nav-links .nav-link:not(.nav-cta) { display: none; }
+        @keyframes bounce {
+          0%, 100% { transform: rotate(45deg) translateY(0); }
+          50% { transform: rotate(45deg) translateY(5px); }
+        }
+
+        @media (max-width: 768px) {
+          .nav { padding: 20px 24px; }
+          .nav-link { display: none; }
+          .hero-content { padding: 100px 24px 60px; }
+          .hiw, .features, .cta-section { padding: 72px 24px; }
+          .steps { grid-template-columns: 1fr; max-width: 360px; }
+          .feature-grid { grid-template-columns: 1fr; }
+          .footer { padding: 24px; flex-direction: column; gap: 16px; }
+          .hero-ctas { flex-direction: column; }
         }
       `}</style>
 
-      <div className="home">
+      {/* Nav */}
+      <nav className="nav">
+        <Link href="/" className="logo">
+          <Image src="/lx2-logo.svg" alt="LX2" height={96} width={192} />
+        </Link>
+        <div className="nav-links">
+          <a href="#how-it-works" className="nav-link">How it works</a>
+          {userEmail ? (
+            <a href="/events/new" className="nav-signin">Dashboard</a>
+          ) : (
+            <a href="/auth/login" className="nav-signin">Sign in</a>
+          )}
+        </div>
+      </nav>
+
+      {/* Hero */}
+      <section className="hero">
         <div className="hero-bg" />
-        {/* Nav */}
-        <nav className="nav">
-          <Link href="/" className="logo">
-            <Image src="/lx2-logo.svg" alt="LX2" height={108} width={216} />
-          </Link>
-          <div className="nav-links">
-            <Link href="/play" className="nav-link">Play</Link>
-            <Link href="/organise" className="nav-link">Organise</Link>
+        <div className="hero-content">
+          <div className="hero-label">Golf society management</div>
+          <h1 className="hero-title">Run your society day,<br/>the simple way.</h1>
+          <p className="hero-sub">
+            Live scoring, leaderboards and results — organised in minutes, played on any phone.
+          </p>
+          <div className="hero-ctas">
+            <a href="/auth/login?mode=signup" className="btn-getstarted">
+              Get started free →
+            </a>
             {userEmail ? (
-              <a href="/auth/login" className="nav-cta">Account</a>
+              <a href="/events/new" className="btn-signin-hero">Go to dashboard</a>
             ) : (
-              <a href="/auth/login" className="nav-cta">Sign in</a>
+              <a href="/auth/login" className="btn-signin-hero">Sign in</a>
             )}
           </div>
-        </nav>
+          <div className="code-row">
+            <span className="code-label">Got an event code?</span>
+            <input
+              className="code-input"
+              placeholder="e.g. GOLF24"
+              value={code}
+              onChange={e => setCode(e.target.value.toUpperCase())}
+              onKeyDown={e => e.key === 'Enter' && handleJoin()}
+            />
+            <button className="code-btn" onClick={handleJoin}>Join →</button>
+          </div>
+        </div>
+        <div className="scroll-cue">
+          <span>Scroll</span>
+          <div className="scroll-arrow" />
+        </div>
+      </section>
 
-        {/* Hero */}
-        <main className="hero">
-          <div className="hero-label">Golf society management</div>
-          <h1 className="hero-title">
-            Your round,<br/>
-            perfected.
-          </h1>
-          <p className="hero-sub">
-            Scoring, leaderboards and society management — built for the way your group actually plays.
-          </p>
+      {/* How it works */}
+      <section className="hiw" id="how-it-works">
+        <div className="section-label">How it works</div>
+        <h2 className="section-title">Up and running in minutes</h2>
+        <p className="section-sub">No training, no setup calls. If you can send a WhatsApp, you can run an event with LX2.</p>
+        <div className="steps">
+          <div className="step">
+            <div className="step-num">1</div>
+            <div className="step-title">Create your event</div>
+            <p className="step-desc">Set your format — Stableford, stroke play or match play. Add players and tee times in a 3-step form.</p>
+          </div>
+          <div className="step">
+            <div className="step-num">2</div>
+            <div className="step-title">Players join via link</div>
+            <p className="step-desc">Share one link over WhatsApp. Players tap it and score hole-by-hole — no app download, no account needed.</p>
+          </div>
+          <div className="step">
+            <div className="step-num">3</div>
+            <div className="step-title">Live scores, instant results</div>
+            <p className="step-desc">Watch the leaderboard update in real time. Results are calculated automatically when the last card comes in.</p>
+          </div>
+        </div>
+      </section>
 
-          <div className="actions">
-            {/* Primary CTA */}
-            <a href={userEmail ? "/play/round" : "/auth/login"} className="btn-primary">
-              <div className="btn-p-left">
-                <span className="btn-p-label">Start new round</span>
-                <span className="btn-p-sub">Score any course, track your handicap</span>
-              </div>
-              <span className="btn-p-arrow">→</span>
-            </a>
-
-            {/* Join via code */}
-            <div className="join-row">
-              <input
-                className="join-input"
-                placeholder="Have an event code? Enter it here"
-                value={code}
-                onChange={e => setCode(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleJoin()}
-              />
-              <button className="join-btn" onClick={handleJoin}>→</button>
+      {/* Features */}
+      <section className="features">
+        <div className="features-inner">
+          <div className="section-label">Everything you need</div>
+          <h2 className="section-title">Built for how societies actually play</h2>
+          <p className="section-sub">From casual Saturday medals to full society days with side competitions.</p>
+          <div className="feature-grid">
+            <div className="feature-card">
+              <div className="feature-icon">🏆</div>
+              <div className="feature-title">Multiple formats</div>
+              <p className="feature-desc">Stableford, stroke play and match play with handicap indexing. NTP and longest drive side contests.</p>
             </div>
-
-            {/* Secondary actions */}
-            <div className="actions-row">
-              <a href={userEmail ? "/organise" : "/auth/login"} className="btn-secondary">
-                <div className="btn-s-icon">📋</div>
-                <div className="btn-s-label">Set up event</div>
-                <div className="btn-s-sub">Society days, competitions, club events</div>
-              </a>
-
-              <a href="/leaderboard" className="btn-secondary">
-                <div className="btn-s-icon">📡</div>
-                <div className="btn-s-label">Live leaderboard</div>
-                <div className="btn-s-sub">Follow a round in real time</div>
-              </a>
+            <div className="feature-card">
+              <div className="feature-icon">📡</div>
+              <div className="feature-title">Live leaderboard</div>
+              <p className="feature-desc">Real-time standings as scores come in. Share a TV-mode link for the 19th hole screen.</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">📱</div>
+              <div className="feature-title">No app needed</div>
+              <p className="feature-desc">Players score on any phone via a web link. Nothing to download, nothing to sign up for.</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">📊</div>
+              <div className="feature-title">Handicap tracking</div>
+              <p className="feature-desc">Handicap indexes tracked across rounds. Player profiles with full scoring history.</p>
             </div>
           </div>
+        </div>
+      </section>
 
-        </main>
+      {/* Bottom CTA */}
+      <section className="cta-section">
+        <h2 className="cta-title">Ready to run your first event?</h2>
+        <p className="cta-sub">Free to get started. No credit card required.</p>
+        <a href="/auth/login?mode=signup" className="btn-cta-primary">Create your account →</a>
+      </section>
 
-        {/* Footer */}
-        <footer className="home-footer">
-          <div className="footer-links">
-            <a href="/play" className="footer-link">Play</a>
-            <a href="/organise" className="footer-link">Organise</a>
-            <a href="https://lx2-architecture.vercel.app" className="footer-link">Architecture</a>
-          </div>
-          <span className="footer-tagline">Play to par. · lx2.golf</span>
-        </footer>
-      </div>
+      {/* Footer */}
+      <footer className="footer">
+        <div className="footer-links">
+          <a href="#how-it-works" className="footer-link">How it works</a>
+          <a href="/auth/login" className="footer-link">Sign in</a>
+          <a href="https://lx2-architecture.vercel.app" className="footer-link">Architecture</a>
+        </div>
+        <span className="footer-copy">lx2.golf · Play to par.</span>
+      </footer>
     </>
   )
 }
