@@ -494,9 +494,9 @@ export default function HomePage() {
         <div className="nav-links">
           <a href="#how-it-works" className="nav-link">How it works</a>
           {userEmail ? (
-            <a href="/events/new" className="nav-signin">Dashboard</a>
+            <Link href="/events/new" className="nav-signin">Dashboard</Link>
           ) : (
-            <a href="/auth/login" className="nav-signin">Sign in</a>
+            <Link href="/auth/login" className="nav-signin">Sign in</Link>
           )}
         </div>
       </nav>
@@ -515,9 +515,9 @@ export default function HomePage() {
               Get started free →
             </a>
             {userEmail ? (
-              <a href="/events/new" className="btn-signin-hero">Go to dashboard</a>
+              <Link href="/events/new" className="btn-signin-hero">Go to dashboard</Link>
             ) : (
-              <a href="/auth/login" className="btn-signin-hero">Sign in</a>
+              <Link href="/auth/login" className="btn-signin-hero">Sign in</Link>
             )}
           </div>
           <div className="code-row">
