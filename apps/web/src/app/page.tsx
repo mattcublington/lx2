@@ -27,12 +27,31 @@ export default function HomePage() {
 
         .home {
           min-height: 100dvh;
-          background: #F0F4EC;
           font-family: 'Lexend', system-ui, sans-serif;
-          color: #1A2E1A;
+          color: #fff;
           display: flex;
           flex-direction: column;
           position: relative;
+          isolation: isolate;
+        }
+
+        /* ── Hero image & overlay ── */
+        .hero-bg {
+          position: fixed;
+          inset: 0;
+          z-index: -1;
+          background: url('/hero.png') center center / cover no-repeat;
+        }
+        .hero-bg::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            to bottom,
+            rgba(0,0,0,0.28) 0%,
+            rgba(0,0,0,0.18) 40%,
+            rgba(0,0,0,0.48) 100%
+          );
         }
 
         /* ── Nav ── */
@@ -54,6 +73,7 @@ export default function HomePage() {
         .logo img {
           height: 56px;
           width: auto;
+          filter: brightness(0) invert(1);
         }
 
         .nav-links {
@@ -66,27 +86,30 @@ export default function HomePage() {
           font-family: 'Lexend', sans-serif;
           font-size: 0.8125rem;
           font-weight: 400;
-          color: #6B8C6B;
+          color: rgba(255,255,255,0.8);
           text-decoration: none;
           letter-spacing: 0.04em;
           transition: color 0.15s;
         }
 
-        .nav-link:hover { color: #1A2E1A; }
+        .nav-link:hover { color: #fff; }
 
         .nav-cta {
           font-family: 'Lexend', sans-serif;
           font-size: 0.8125rem;
-          font-weight: 500;
-          color: #0D631B;
+          font-weight: 600;
+          color: #fff;
           text-decoration: none;
-          padding: 8px 18px;
-          border: 1px solid rgba(13,99,27,0.25);
+          padding: 8px 20px;
+          background: rgba(255,255,255,0.15);
+          border: 1px solid rgba(255,255,255,0.35);
           border-radius: 9999px;
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
           transition: background 0.15s, border-color 0.15s;
         }
 
-        .nav-cta:hover { background: rgba(13,99,27,0.06); border-color: rgba(13,99,27,0.5); }
+        .nav-cta:hover { background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.6); }
 
         /* ── Hero ── */
         .hero {
@@ -106,7 +129,7 @@ export default function HomePage() {
           font-weight: 500;
           letter-spacing: 0.18em;
           text-transform: uppercase;
-          color: #0D631B;
+          color: rgba(255,255,255,0.75);
           margin-bottom: 20px;
           opacity: 0;
           animation: rise 0.5s ease forwards 0.1s;
@@ -118,27 +141,25 @@ export default function HomePage() {
           font-weight: 800;
           line-height: 1.0;
           letter-spacing: -0.025em;
-          color: #1A2E1A;
+          color: #fff;
           margin-bottom: 20px;
           opacity: 0;
           animation: rise 0.6s ease forwards 0.2s;
-        }
-
-        .hero-title .accent {
-          color: #0D631B;
+          text-shadow: 0 2px 24px rgba(0,0,0,0.3);
         }
 
         .hero-sub {
           font-family: 'Lexend', sans-serif;
           font-size: 1.0625rem;
           font-weight: 300;
-          color: #6B8C6B;
+          color: rgba(255,255,255,0.8);
           letter-spacing: 0.01em;
           line-height: 1.6;
           max-width: 400px;
           margin: 0 auto 52px;
           opacity: 0;
           animation: rise 0.6s ease forwards 0.3s;
+          text-shadow: 0 1px 8px rgba(0,0,0,0.3);
         }
 
         /* ── Actions ── */
@@ -164,13 +185,13 @@ export default function HomePage() {
           border: none;
           cursor: pointer;
           width: 100%;
-          box-shadow: 0px 8px 24px rgba(13, 99, 27, 0.22);
+          box-shadow: 0px 8px 32px rgba(0,0,0,0.3);
           transition: transform 0.15s, box-shadow 0.15s;
         }
 
         .btn-primary:hover {
           transform: translateY(-2px);
-          box-shadow: 0px 12px 32px rgba(13, 99, 27, 0.28);
+          box-shadow: 0px 12px 40px rgba(0,0,0,0.35);
         }
 
         .btn-primary:active { transform: translateY(0); }
@@ -186,37 +207,39 @@ export default function HomePage() {
         .join-input {
           flex: 1;
           padding: 18px 20px;
-          background: #fff;
-          border: none;
+          background: rgba(255,255,255,0.15);
+          border: 1px solid rgba(255,255,255,0.3);
           border-radius: 1.5rem;
           font-family: 'Lexend', sans-serif;
           font-size: 0.9375rem;
-          color: #1A2E1A;
+          color: #fff;
           outline: none;
-          box-shadow: 0px 8px 24px rgba(26,28,28,0.06);
-          transition: box-shadow 0.15s;
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          transition: background 0.15s, border-color 0.15s;
         }
 
-        .join-input::placeholder { color: #A0B898; }
-        .join-input:focus { box-shadow: 0px 8px 24px rgba(13,99,27,0.12), 0 0 0 2px rgba(13,99,27,0.2); }
+        .join-input::placeholder { color: rgba(255,255,255,0.5); }
+        .join-input:focus { background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.55); }
 
         .join-btn {
           padding: 18px 22px;
-          background: #fff;
-          border: none;
+          background: rgba(255,255,255,0.15);
+          border: 1px solid rgba(255,255,255,0.3);
           border-radius: 1.5rem;
-          color: #0D631B;
+          color: #fff;
           font-size: 1.1rem;
           cursor: pointer;
-          box-shadow: 0px 8px 24px rgba(26,28,28,0.06);
-          transition: background 0.15s, box-shadow 0.15s;
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          transition: background 0.15s;
           display: flex;
           align-items: center;
           font-family: 'Manrope', sans-serif;
           font-weight: 700;
         }
 
-        .join-btn:hover { background: #E8F5E9; box-shadow: 0px 8px 24px rgba(13,99,27,0.1); }
+        .join-btn:hover { background: rgba(255,255,255,0.25); }
 
         /* Secondary action cards */
         .actions-row { display: flex; gap: 10px; }
@@ -227,34 +250,25 @@ export default function HomePage() {
           flex-direction: column;
           align-items: flex-start;
           padding: 18px 20px;
-          background: #fff;
-          border: none;
+          background: rgba(255,255,255,0.12);
+          border: 1px solid rgba(255,255,255,0.22);
           border-radius: 1.5rem;
           text-decoration: none;
           cursor: pointer;
-          box-shadow: 0px 8px 24px rgba(26,28,28,0.06);
-          transition: transform 0.15s, box-shadow 0.15s;
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          transition: transform 0.15s, background 0.15s;
           text-align: left;
         }
 
         .btn-secondary:hover {
           transform: translateY(-2px);
-          box-shadow: 0px 12px 28px rgba(26,28,28,0.1);
+          background: rgba(255,255,255,0.2);
         }
 
         .btn-s-icon { font-size: 1.25rem; margin-bottom: 10px; }
-        .btn-s-label { font-family: 'Manrope', sans-serif; font-size: 0.9375rem; font-weight: 600; color: #1A2E1A; margin-bottom: 3px; }
-        .btn-s-sub { font-family: 'Lexend', sans-serif; font-size: 0.75rem; font-weight: 300; color: #6B8C6B; line-height: 1.4; }
-
-        /* ── Decorative course illustration ── */
-        .deco {
-          position: absolute;
-          bottom: 0; left: 0; right: 0;
-          height: 140px;
-          overflow: hidden;
-          pointer-events: none;
-          opacity: 0.35;
-        }
+        .btn-s-label { font-family: 'Manrope', sans-serif; font-size: 0.9375rem; font-weight: 600; color: #fff; margin-bottom: 3px; }
+        .btn-s-sub { font-family: 'Lexend', sans-serif; font-size: 0.75rem; font-weight: 300; color: rgba(255,255,255,0.65); line-height: 1.4; }
 
         /* ── Footer ── */
         .home-footer {
@@ -271,17 +285,17 @@ export default function HomePage() {
           font-family: 'Lexend', sans-serif;
           font-size: 0.6875rem;
           font-weight: 400;
-          color: #A0B898;
+          color: rgba(255,255,255,0.45);
           text-decoration: none;
           letter-spacing: 0.06em;
           text-transform: uppercase;
           transition: color 0.15s;
         }
-        .footer-link:hover { color: #6B8C6B; }
+        .footer-link:hover { color: rgba(255,255,255,0.8); }
         .footer-tagline {
           font-family: 'Lexend', sans-serif;
           font-size: 0.6875rem;
-          color: #A0B898;
+          color: rgba(255,255,255,0.45);
           letter-spacing: 0.04em;
         }
 
@@ -301,6 +315,7 @@ export default function HomePage() {
       `}</style>
 
       <div className="home">
+        <div className="hero-bg" />
         {/* Nav */}
         <nav className="nav">
           <Link href="/" className="logo">
@@ -322,7 +337,7 @@ export default function HomePage() {
           <div className="hero-label">Golf society management</div>
           <h1 className="hero-title">
             Your round,<br/>
-            <span className="accent">perfected.</span>
+            perfected.
           </h1>
           <p className="hero-sub">
             Scoring, leaderboards and society management — built for the way your group actually plays.
@@ -366,13 +381,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Rolling hills decoration */}
-          <div className="deco">
-            <svg width="100%" height="140" viewBox="0 0 1440 140" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M0 80 Q180 20 360 60 Q540 100 720 50 Q900 0 1080 55 Q1260 110 1440 45 L1440 140 L0 140 Z" fill="#2E7D32" opacity="0.12"/>
-              <path d="M0 100 Q200 50 400 80 Q600 110 800 65 Q1000 20 1200 70 Q1350 100 1440 75 L1440 140 L0 140 Z" fill="#0D631B" opacity="0.08"/>
-            </svg>
-          </div>
         </main>
 
         {/* Footer */}
