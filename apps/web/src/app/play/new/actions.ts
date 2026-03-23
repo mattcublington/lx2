@@ -1,5 +1,6 @@
 'use server'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getCourse } from '@/lib/courses'
 
 interface StartRoundPlayer {
@@ -43,6 +44,9 @@ export async function startRound(data: StartRoundData): Promise<string> {
   if (!course) throw new Error(`Course not found: ${data.courseId}`)
 
   // 4. Find or create courses row in DB
+  // SELECT uses the user's session (courses are publicly readable).
+  // INSERT uses the admin client — course records come from verified static
+  // data in courses.ts, so service_role is appropriate here server-side.
   const { data: existingCourse } = await supabase
     .from('courses')
     .select('id')
@@ -54,7 +58,8 @@ export async function startRound(data: StartRoundData): Promise<string> {
   if (existingCourse) {
     courseDbId = existingCourse.id
   } else {
-    const { data: newCourse, error: courseErr } = await supabase
+    const admin = createAdminClient()
+    const { data: newCourse, error: courseErr } = await admin
       .from('courses')
       .insert({
         name: course.name,
@@ -165,12 +170,8 @@ export async function searchUsers(query: string): Promise<{ id: string; displayN
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return []
   const { data } = await supabase
-    .from('users')
-    .select('id, display_name, handicap_index')
-    .ilike('display_name', `%${query.trim()}%`)
-    .neq('id', user.id)
-    .limit(8)
-  return (data ?? []).map(u => ({
+    .rpc('search_user_profiles', { search_query: query.trim() })
+  return (data ?? []).map((u: { id: string; display_name: string | null; handicap_index: number | null }) => ({
     id: u.id,
     displayName: u.display_name ?? '',
     handicapIndex: u.handicap_index ?? null,
