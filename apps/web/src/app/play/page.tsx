@@ -56,7 +56,11 @@ export default async function PlayPage() {
 
   const rounds: RoundRow[] = (recentRounds ?? []) as unknown as RoundRow[]
 
-  const displayName = profile?.display_name ?? user.email?.split('@')[0] ?? 'Golfer'
+  const displayName =
+    profile?.display_name ??
+    (user.user_metadata?.full_name as string | undefined) ??
+    user.email?.split('@')[0] ??
+    'Golfer'
 
   return (
     <PlayDashboard
