@@ -1,7 +1,8 @@
 'use client'
 import { useState, useReducer, useEffect, useRef, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
-import type { ScoringHole } from './page'
+import type { ScoringHole, GroupPlayer } from './page'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -20,6 +21,7 @@ export interface Props {
   selectedTee: string
   eventName: string
   eventDate: string
+  groupPlayers: GroupPlayer[]
 }
 
 interface State {
@@ -165,8 +167,21 @@ export default function ScoreEntryLive(props: Props) {
   const {
     scorecardId, playerName, handicapIndex, format, allowancePct,
     holes, initialScores, initialPickups, ntpHoles, ldHoles,
-    selectedTee, eventName, eventDate,
+    selectedTee, eventName, eventDate, groupPlayers,
   } = props
+
+  const router = useRouter()
+
+  // Is the organiser scoring for a guest? (current scorecard doesn't belong to the current user)
+  const isMyScorecard = groupPlayers.find(p => p.scorecardId === scorecardId)?.isCurrentUser ?? true
+
+  // Live scores for all players in the group, keyed by scorecardId
+  // { [scorecardId]: { [holeNumber]: gross_strokes | null } }
+  const [liveScores, setLiveScores] = useState<Record<string, Record<number, number | null>>>(() => {
+    const init: Record<string, Record<number, number | null>> = {}
+    for (const p of groupPlayers) init[p.scorecardId] = { ...p.initialScores }
+    return init
+  })
 
   const maxIdx = holes.length - 1
 
@@ -208,6 +223,37 @@ export default function ScoreEntryLive(props: Props) {
     }
   }, [])
 
+  // Realtime: subscribe to hole_scores for all scorecards in the group
+  useEffect(() => {
+    if (groupPlayers.length === 0) return
+    const ids = groupPlayers.map(p => p.scorecardId).filter(Boolean)
+    if (ids.length === 0) return
+
+    const channel = sb
+      .channel('group-hole-scores')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'hole_scores' },
+        (payload) => {
+          const row = (payload.new ?? payload.old) as { scorecard_id: string; hole_number: number; gross_strokes: number | null } | undefined
+          if (!row || !ids.includes(row.scorecard_id)) return
+          setLiveScores(prev => {
+            const next = { ...(prev[row.scorecard_id] ?? {}) }
+            if (payload.eventType === 'DELETE') {
+              delete next[row.hole_number]
+            } else {
+              next[row.hole_number] = row.gross_strokes ?? null
+            }
+            return { ...prev, [row.scorecard_id]: next }
+          })
+        }
+      )
+      .subscribe()
+
+    return () => { sb.removeChannel(channel) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sb])
+
   // Drain offline queue when we come back online
   const drainQueue = useCallback(async () => {
     const queue = dequeue(scorecardId)
@@ -244,7 +290,7 @@ export default function ScoreEntryLive(props: Props) {
 
   useEffect(() => { setStepValue(currentScore) }, [s.hole, currentScore])
 
-  // Running totals
+  // Running totals for the current user (uses local reducer state — no realtime lag)
   function getRunningTotal() {
     let totalPts = 0
     let totalStrokes = 0
@@ -260,6 +306,27 @@ export default function ScoreEntryLive(props: Props) {
         } else {
           totalStrokes += sc
         }
+      }
+    }
+    return { totalPts, totalStrokes, holesPlayed }
+  }
+
+  // Running totals for any player (uses liveScores — null key = not scored, null value = pickup)
+  function getPlayerTotal(playerScores: Record<number, number | null>, hcIndex: number) {
+    const effHc = Math.round(hcIndex * allowancePct)
+    const spH = allocateStrokes(effHc, holes)
+    let totalPts = 0
+    let totalStrokes = 0
+    let holesPlayed = 0
+    for (const h of holes) {
+      if (!(h.holeInRound in playerScores)) continue // hole not yet scored
+      holesPlayed++
+      const sc = playerScores[h.holeInRound]
+      if (sc == null) continue // pickup/NR — counts as played, 0 pts
+      if (format === 'stableford') {
+        totalPts += pts(sc, h.par, spH[h.holeInRound] ?? 0)
+      } else {
+        totalStrokes += sc
       }
     }
     return { totalPts, totalStrokes, holesPlayed }
@@ -457,6 +524,13 @@ export default function ScoreEntryLive(props: Props) {
   return (
     <div style={{ maxWidth: 420, margin: '0 auto', minHeight: '100vh', background: '#FAFBF8', fontFamily: "'DM Sans', system-ui, sans-serif", color: '#1a2e1a', display: 'flex', flexDirection: 'column', position: 'relative' }}>
 
+      {/* "Scoring for guest" banner — shown when organiser is on someone else's scorecard */}
+      {!isMyScorecard && (
+        <div style={{ background: '#fff8e6', borderBottom: '1px solid #f0c040', padding: '6px 14px', fontSize: 12, color: '#7a5500', textAlign: 'center', fontWeight: 500 }}>
+          Scoring for {playerName}
+        </div>
+      )}
+
       {/* Offline banner */}
       {(!isOnline || syncError) && (
         <div style={{ background: syncError ? '#fff3e0' : '#f0f4ec', borderBottom: '1px solid ' + (syncError ? '#f0a040' : '#d0d8cc'), padding: '6px 14px', fontSize: 12, color: syncError ? '#8a4e00' : '#4a5e4a', textAlign: 'center', fontWeight: 500 }}>
@@ -633,26 +707,69 @@ export default function ScoreEntryLive(props: Props) {
         </button>
       </div>
 
-      {/* Player row (single player — shows name + running total) */}
-      <div style={{ padding: '0 8px 4px' }}>
-        <div style={{ display: 'flex', borderRadius: 10, border: '2px solid #3a7d44', background: '#3a7d4410', padding: '8px 12px', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#3a7d44', color: '#fff', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {playerName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
-            </div>
-            <span style={{ fontSize: 14, fontWeight: 600, color: '#3a7d44' }}>{playerName}</span>
-          </div>
-          <div style={{ fontSize: 12, color: '#6b7c6b', textAlign: 'right' }}>
-            {holesPlayed > 0 ? (
-              format === 'stableford'
-                ? <span style={{ fontWeight: 700, color: '#3a7d44', fontSize: 14 }}>{totalPts} pts</span>
-                : <span style={{ fontWeight: 700, color: '#3a7d44', fontSize: 14 }}>{totalStrokes}</span>
-            ) : (
-              <span>HC {effectiveHc}</span>
-            )}
-            {holesPlayed > 0 && <div style={{ fontSize: 10 }}>thru {holesPlayed}</div>}
-          </div>
-        </div>
+      {/* Group leaderboard — one row per player, sorted by score */}
+      <div style={{ padding: '0 8px 4px', display: 'flex', flexDirection: 'column', gap: 4 }}
+        data-player-count={groupPlayers.length}>
+        {(() => {
+          // Build sortable rows — current user uses local reducer state (no realtime lag)
+          // For current user: only include holes that are scored or pickup (not undone/empty)
+          const myScores: Record<number, number | null> = {}
+          for (const h of holes) {
+            if (s.pickups[h.holeInRound]) myScores[h.holeInRound] = null
+            else if (s.scores[h.holeInRound] != null) myScores[h.holeInRound] = s.scores[h.holeInRound]!
+          }
+
+          const rows = groupPlayers.map(p => {
+            const scores = p.isCurrentUser ? myScores : (liveScores[p.scorecardId] ?? {})
+            const { totalPts, totalStrokes, holesPlayed: hp } = getPlayerTotal(scores, p.handicapIndex)
+            return { ...p, totalPts, totalStrokes, holesPlayed: hp }
+          }).sort((a, b) =>
+            format === 'stableford'
+              ? (b.totalPts - a.totalPts) || (b.holesPlayed - a.holesPlayed)
+              : (a.totalStrokes - b.totalStrokes) || (b.holesPlayed - a.holesPlayed)
+          )
+
+          return rows.map(p => {
+            const initials = p.displayName.split(' ').filter(Boolean).map((w: string) => w[0]).join('').slice(0, 2).toUpperCase() || '?'
+            const effHc = Math.round(p.handicapIndex * allowancePct)
+            const isScoringThis = p.scorecardId === scorecardId
+            const canTap = !isScoringThis && p.scorecardId !== ''
+            return (
+              <div key={p.scorecardId || p.displayName}
+                onClick={canTap ? () => router.push(`/rounds/${p.scorecardId}/score`) : undefined}
+                style={{
+                  display: 'flex',
+                  borderRadius: 10,
+                  border: isScoringThis ? '2px solid #3a7d44' : '1px solid #e0e6dc',
+                  background: isScoringThis ? '#3a7d4410' : '#fff',
+                  padding: '7px 12px',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  cursor: canTap ? 'pointer' : 'default',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ width: 26, height: 26, borderRadius: '50%', background: isScoringThis ? '#3a7d44' : '#8a9a8a', color: '#fff', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {initials}
+                  </div>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: isScoringThis ? '#3a7d44' : '#1a2e1a' }}>
+                    {p.displayName.split(' ')[0] || p.displayName}
+                  </span>
+                  {canTap && <span style={{ fontSize: 10, color: '#3a7d44', opacity: 0.7 }}>tap to score →</span>}
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  {p.holesPlayed > 0 ? (
+                    format === 'stableford'
+                      ? <span style={{ fontWeight: 700, color: isScoringThis ? '#3a7d44' : '#1a2e1a', fontSize: 14 }}>{p.totalPts} pts</span>
+                      : <span style={{ fontWeight: 700, color: isScoringThis ? '#3a7d44' : '#1a2e1a', fontSize: 14 }}>{p.totalStrokes}</span>
+                  ) : (
+                    <span style={{ fontSize: 12, color: '#8a9a8a' }}>HC {effHc}</span>
+                  )}
+                  {p.holesPlayed > 0 && <div style={{ fontSize: 10, color: '#8a9a8a' }}>thru {p.holesPlayed}</div>}
+                </div>
+              </div>
+            )
+          })
+        })()}
       </div>
 
       {/* Scorecard button */}

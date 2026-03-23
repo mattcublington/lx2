@@ -11,6 +11,14 @@ export interface ScoringHole {
   yards: Record<string, number>  // { Yellow: 342, White: 399 }
 }
 
+export interface GroupPlayer {
+  scorecardId: string
+  displayName: string
+  handicapIndex: number
+  isCurrentUser: boolean
+  initialScores: Record<number, number | null>  // hole_number → gross_strokes (null = pickup)
+}
+
 interface PageProps {
   params: Promise<{ id: string }>
 }
@@ -69,7 +77,8 @@ export default async function ScorePage({ params }: PageProps) {
         round_type,
         loop_id,
         name,
-        date
+        date,
+        created_by
       )
     `)
     .eq('id', id)
@@ -98,10 +107,13 @@ export default async function ScorePage({ params }: PageProps) {
     loop_id: string | null
     name: string
     date: string
+    created_by: string
   }
 
   // ── 2. Ownership check ─────────────────────────────────────────────────────
-  if (ep.user_id !== user.id) {
+  // Allow access if: this is your scorecard OR you organised the event
+  // (organiser can score on behalf of guest players in their group)
+  if (ep.user_id !== user.id && event.created_by !== user.id) {
     return <ErrorCard title="Round not found" body="This scorecard doesn't exist or you don't have access to it." />
   }
 
@@ -239,6 +251,36 @@ export default async function ScorePage({ params }: PageProps) {
     initialPickups[row.hole_number] = row.gross_strokes === null
   }
 
+  // ── 5. All players in this event (for live leaderboard) ────────────────────
+  const { data: allEventPlayers } = await supabase
+    .from('event_players')
+    .select(`
+      id,
+      display_name,
+      handicap_index,
+      scorecards (
+        id,
+        hole_scores ( hole_number, gross_strokes )
+      )
+    `)
+    .eq('event_id', scorecard.event_id)
+
+  // Normalise into a flat shape ScoreEntryLive can consume
+  const groupPlayers: GroupPlayer[] = (allEventPlayers ?? []).map(p => {
+    const sc = (p.scorecards as unknown as { id: string; hole_scores: { hole_number: number; gross_strokes: number | null }[] }[])[0]
+    const scores: Record<number, number | null> = {}
+    for (const hs of sc?.hole_scores ?? []) {
+      scores[hs.hole_number] = hs.gross_strokes ?? null
+    }
+    return {
+      scorecardId: sc?.id ?? '',
+      displayName: p.display_name ?? '',
+      handicapIndex: Number(p.handicap_index),
+      isCurrentUser: sc?.id === id,
+      initialScores: scores,
+    }
+  })
+
   // ── 5. Determine the player's tee ──────────────────────────────────────────
   const firstHoleYards = holes[0]?.yards ?? {}
   const teePriority = ['Green', 'White', 'Yellow/Purple', 'Red/Black']
@@ -268,6 +310,7 @@ export default async function ScorePage({ params }: PageProps) {
       selectedTee={selectedTee}
       eventName={event.name}
       eventDate={event.date}
+      groupPlayers={groupPlayers}
     />
   )
 }
