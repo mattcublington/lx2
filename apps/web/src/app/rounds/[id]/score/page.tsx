@@ -23,6 +23,8 @@ interface PageProps {
   params: Promise<{ id: string }>
 }
 
+
+
 // ─── Error card ───────────────────────────────────────────────────────────────
 
 function ErrorCard({ title, body, retry }: { title: string; body: string; retry?: string }) {
@@ -256,6 +258,7 @@ export default async function ScorePage({ params }: PageProps) {
     .from('event_players')
     .select(`
       id,
+      user_id,
       display_name,
       handicap_index,
       scorecards (
@@ -265,9 +268,13 @@ export default async function ScorePage({ params }: PageProps) {
     `)
     .eq('event_id', scorecard.event_id)
 
-  // Normalise into a flat shape ScoreEntryLive can consume
+  // Normalise into a flat shape ScoreEntryLive can consume.
+  // isCurrentUser is based on the event_player's user_id matching the
+  // authenticated user — NOT on which scorecard URL we're currently on.
+  // This stays correct when the organiser navigates to another player's URL.
   const groupPlayers: GroupPlayer[] = (allEventPlayers ?? []).map(p => {
-    const sc = (p.scorecards as unknown as { id: string; hole_scores: { hole_number: number; gross_strokes: number | null }[] }[])[0]
+    const scorecards = p.scorecards as unknown as { id: string; hole_scores: { hole_number: number; gross_strokes: number | null }[] }[] | null
+    const sc = (scorecards ?? [])[0]
     const scores: Record<number, number | null> = {}
     for (const hs of sc?.hole_scores ?? []) {
       scores[hs.hole_number] = hs.gross_strokes ?? null
@@ -276,7 +283,7 @@ export default async function ScorePage({ params }: PageProps) {
       scorecardId: sc?.id ?? '',
       displayName: p.display_name ?? '',
       handicapIndex: Number(p.handicap_index),
-      isCurrentUser: sc?.id === id,
+      isCurrentUser: (p as unknown as { user_id: string | null }).user_id === user.id,
       initialScores: scores,
     }
   })
