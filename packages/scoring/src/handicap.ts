@@ -63,3 +63,43 @@ export function distributeStrokes(playingHandicap: number, holes: HoleData[]): n
 
   return result
 }
+
+/**
+ * Simplified playing handicap for quick round setup.
+ * For full handicap allocation (with stroke distribution), use calculateHandicap().
+ *
+ * WHS formula for 18-hole:
+ *   Playing HC = round(Handicap Index × (Slope / 113) + (Course Rating − Par)) × allowancePct
+ *
+ * For 9-hole: WHS allows 50% of full playing handicap (rounded).
+ * When slopeRating/courseRating/par are unknown, falls back to index × allowancePct.
+ */
+export function calculatePlayingHandicap(
+  handicapIndex: number,
+  roundType: '18' | '9',
+  opts: {
+    slopeRating?: number
+    courseRating?: number
+    par?: number
+    allowancePct?: number
+  } = {}
+): number {
+  const { slopeRating = 113, courseRating, par, allowancePct = 1.0 } = opts
+
+  let playingHc: number
+
+  if (courseRating !== undefined && par !== undefined) {
+    // Full WHS formula
+    const raw = handicapIndex * (slopeRating / 113) + (courseRating - par)
+    playingHc = Math.round(raw * allowancePct)
+  } else {
+    // Fallback: index only (used when course WHS data is not yet available)
+    playingHc = Math.round(handicapIndex * allowancePct)
+  }
+
+  if (roundType === '9') {
+    return Math.round(playingHc * 0.5)
+  }
+
+  return playingHc
+}

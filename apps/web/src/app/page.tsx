@@ -494,7 +494,7 @@ export default function HomePage() {
         <div className="nav-links">
           <a href="#how-it-works" className="nav-link">How it works</a>
           {userEmail ? (
-            <Link href="/events/new" className="nav-signin">Dashboard</Link>
+            <Link href="/play" className="nav-signin">Dashboard</Link>
           ) : (
             <Link href="/auth/login" className="nav-signin">Sign in</Link>
           )}
@@ -506,16 +506,16 @@ export default function HomePage() {
         <div className="hero-bg" />
         <div className="hero-content">
           <div className="hero-label">Golf society management</div>
-          <h1 className="hero-title">Run your society day,<br/>the simple way.</h1>
+          <h1 className="hero-title">Golf, all in one place.</h1>
           <p className="hero-sub">
-            Live scoring, leaderboards and results — organised in minutes, played on any phone.
+            Score your rounds, track your handicap, and run society days — all from your phone.
           </p>
           <div className="hero-ctas">
             <a href="/auth/login?mode=signup" className="btn-getstarted">
               Get started free →
             </a>
             {userEmail ? (
-              <Link href="/events/new" className="btn-signin-hero">Go to dashboard</Link>
+              <Link href="/play" className="btn-signin-hero">Go to dashboard</Link>
             ) : (
               <Link href="/auth/login" className="btn-signin-hero">Sign in</Link>
             )}

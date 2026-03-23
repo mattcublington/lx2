@@ -66,6 +66,9 @@ export interface Event {
   is_public: boolean
   finalised: boolean
   created_at: string
+  combination_id?: string | null
+  round_type?: RoundType
+  loop_id?: string | null
 }
 
 export interface EventPlayer {
@@ -86,6 +89,8 @@ export interface Scorecard {
   event_player_id: string
   created_at: string
   submitted_at: string | null
+  round_type?: RoundType
+  loop_id?: string | null
 }
 
 export interface HoleScore {
@@ -221,3 +226,54 @@ export interface ClubCompetition {
   status: 'scheduled' | 'entries_open' | 'closed' | 'in_progress' | 'completed' | 'cancelled'
   created_at: string
 }
+
+// ─── Loop-based course structure ─────────────────────────────────────────────
+
+export interface Loop {
+  id: string
+  course_id: string | null
+  name: string
+  holes: number
+  notes: string | null
+  created_at: string
+}
+
+export interface LoopHole {
+  id: string
+  loop_id: string
+  hole_number: number
+  par: number
+  si_m: number | null
+  si_w: number | null
+}
+
+export interface LoopHoleTee {
+  id: string
+  loop_hole_id: string
+  tee_colour: string
+  yards: number
+}
+
+export interface CourseCombination {
+  id: string
+  course_id: string | null
+  name: string
+  par: number
+  holes: number
+  loop_1_id: string
+  loop_2_id: string
+  notes: string | null
+  created_at: string
+}
+
+export interface CombinationTee {
+  id: string
+  combination_id: string
+  tee_colour: string
+  gender: 'm' | 'w'
+  slope_rating: number | null
+  course_rating: number | null
+}
+
+// Extended event type with combination support
+export type RoundType = '18' | '9'
