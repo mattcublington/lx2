@@ -364,22 +364,22 @@ export default function ScoreEntryLive(props: Props) {
     persistScore(hole.holeInRound, value)
 
     if (format === 'stableford') {
-      setFlash({ label: ptsLabel(p, value, hole.par, hcOnHole), color: p >= 3 ? '#3a7d44' : p === 0 ? '#b43c3c' : '#6b7c6b' })
+      // Flash stays until user navigates — no auto-dismiss timer
       if (flashTimer.current) clearTimeout(flashTimer.current)
-      flashTimer.current = setTimeout(() => setFlash(null), 800)
+      setFlash({ label: ptsLabel(p, value, hole.par, hcOnHole), color: p >= 3 ? '#3a7d44' : p === 0 ? '#b43c3c' : '#6b7c6b' })
     }
 
-    // After a short delay, auto-advance if all holes on this hole are done
-    setTimeout(() => {
-      const allDone = s.scores[hole.holeInRound] !== null || s.pickups[hole.holeInRound]
-      if (allDone || true) {
-        const isContest = ntpHoles.includes(hole.holeInRound) || ldHoles.includes(hole.holeInRound)
-        if (isContest) {
-          // showNTP overlay is triggered manually via NEXT
-        }
-        // We won't auto-advance in single-player mode — let user press Next
+    // Prefetch the next player's page immediately so navigation feels instant
+    if (groupPlayers.length > 1) {
+      const currentHoleNum = hole.holeInRound
+      const nextUnscored = groupPlayers.find(pl => {
+        if (!pl.scorecardId || pl.scorecardId === scorecardId) return false
+        return !(currentHoleNum in (liveScores[pl.scorecardId] ?? {}))
+      })
+      if (nextUnscored) {
+        router.prefetch(`/rounds/${nextUnscored.scorecardId}/score?hole=${currentHoleNum}`)
       }
-    }, 400)
+    }
   }
 
   function tapPickup() {
@@ -388,6 +388,7 @@ export default function ScoreEntryLive(props: Props) {
   }
 
   function handleNext() {
+    setFlash(null)
     const isContest = ntpHoles.includes(hole.holeInRound) || ldHoles.includes(hole.holeInRound)
     const hasScore = currentScore !== null || isPickup
     if (isContest && hasScore && !s.showNTP) {
@@ -584,7 +585,7 @@ export default function ScoreEntryLive(props: Props) {
       {/* Hole navigation strip */}
       <div style={{ display: 'flex', alignItems: 'center', padding: '6px 6px', gap: 4 }}>
         <button
-          onClick={() => d({ type: 'SET_HOLE', idx: Math.max(0, s.hole - 1) })}
+          onClick={() => { setFlash(null); d({ type: 'SET_HOLE', idx: Math.max(0, s.hole - 1) }) }}
           disabled={s.hole === 0}
           style={{ ...navBtn, color: s.hole === 0 ? '#d0d8cc' : '#4a5e4a', borderColor: s.hole === 0 ? '#eee' : '#d0d8cc', cursor: s.hole === 0 ? 'default' : 'pointer' }}>
           ‹
@@ -601,7 +602,7 @@ export default function ScoreEntryLive(props: Props) {
               const isContest = ntpHoles.includes(h.holeInRound) || ldHoles.includes(h.holeInRound)
               return (
                 <button key={h.holeInRound}
-                  onClick={() => d({ type: 'SET_HOLE', idx: i })}
+                  onClick={() => { setFlash(null); d({ type: 'SET_HOLE', idx: i }) }}
                   style={{ flex: 1, height: 46, maxWidth: 74, borderRadius: 10, border: cur ? '2.5px solid #3a7d44' : `1.5px solid ${hasSc ? 'rgba(58,125,68,0.4)' : '#d0d8cc'}`, background: cur ? '#e8f0e4' : hasSc ? 'rgba(58,125,68,0.05)' : '#fff', color: cur ? '#2a5e30' : hasSc ? '#3a7d44' : '#6b7c6b', fontSize: 16, fontWeight: 700, cursor: 'pointer', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                   <span>{h.holeInRound}</span>
                   {hasSc && !cur && <span style={{ fontSize: 9, opacity: 0.5, marginTop: -2 }}>✓</span>}
@@ -615,7 +616,7 @@ export default function ScoreEntryLive(props: Props) {
         </div>
 
         <button
-          onClick={() => d({ type: 'SET_HOLE', idx: Math.min(maxIdx, s.hole + 1) })}
+          onClick={() => { setFlash(null); d({ type: 'SET_HOLE', idx: Math.min(maxIdx, s.hole + 1) }) }}
           disabled={s.hole === maxIdx}
           style={{ ...navBtn, color: s.hole === maxIdx ? '#d0d8cc' : '#4a5e4a', borderColor: s.hole === maxIdx ? '#eee' : '#d0d8cc', cursor: s.hole === maxIdx ? 'default' : 'pointer' }}>
           ›
