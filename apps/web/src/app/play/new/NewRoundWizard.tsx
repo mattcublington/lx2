@@ -262,7 +262,7 @@ function VenueStep({ onSelect }: { onSelect: (club: string) => void }) {
 
         {filtered.length === 0 && (
           <div style={{ padding: '32px 20px', textAlign: 'center', color: '#9CA9A1', fontSize: '0.9375rem' }}>
-            No clubs found matching "{search}"
+            No clubs found matching &quot;{search}&quot;
           </div>
         )}
       </div>

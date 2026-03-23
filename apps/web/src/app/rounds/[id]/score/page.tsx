@@ -113,7 +113,7 @@ export default async function ScorePage({ params }: PageProps) {
   const combinationId = event.combination_id
   const loopId = scorecard.loop_id ?? event.loop_id
 
-  let holes: ScoringHole[] = []
+  const holes: ScoringHole[] = []
   let courseDataUnavailable = false
 
   if (combinationId) {
