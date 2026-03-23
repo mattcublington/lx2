@@ -42,3 +42,6 @@ coverage
 supabase/.branches
 supabase/.temp
 .superpowers/
+
+# Git worktrees
+.worktrees/
