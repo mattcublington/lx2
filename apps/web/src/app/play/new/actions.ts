@@ -25,7 +25,7 @@ export async function startRound(data: StartRoundData): Promise<string> {
 
   // 1. Auth check
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/auth/login')
+  if (!user) throw new Error('Not authenticated')
 
   // 2. Ensure public.users row exists
   await supabase
