@@ -59,6 +59,10 @@ begin
         add column club_id uuid references public.clubs(id) on delete set null;
     end if;
 
+    -- Indexes (inside the block so they only run when columns exist)
+    execute 'create index if not exists courses_club_id_idx on public.courses(club_id) where club_id is not null';
+    execute 'create index if not exists events_club_id_idx  on public.events(club_id)  where club_id is not null';
+
     -- Grant SELECT on clubs so golfer app can resolve club names
     grant select on public.clubs to authenticated, anon;
 
@@ -80,17 +84,10 @@ begin
         add column event_id uuid references public.events(id) on delete set null;
     end if;
 
+    execute 'create index if not exists club_competitions_event_id_idx on public.club_competitions(event_id) where event_id is not null';
+
   else
     raise notice '015: club_competitions table not found — skipping event_id FK. Re-run after applying club platform migrations.';
   end if;
 
 end $$;
-
--- Indexes — created outside the DO block so IF NOT EXISTS works cleanly
-create index if not exists courses_club_id_idx
-  on public.courses(club_id)
-  where club_id is not null;
-
-create index if not exists events_club_id_idx
-  on public.events(club_id)
-  where club_id is not null;
