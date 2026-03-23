@@ -4,6 +4,13 @@
 -- Adds the structural bridges between the club platform schema and the golfer
 -- app schema. All columns are NULLABLE so existing data is fully unaffected.
 --
+-- SAFE TO RUN in any order relative to the club platform migrations
+-- (001_clubs.sql – 009_club_competitions.sql). Each block checks whether the
+-- referenced table exists before attempting the ALTER — so this migration
+-- succeeds whether or not the club schema has been applied yet. When the club
+-- migrations are applied later, the FKs will be added at that point by running
+-- this migration again (or via 016_club_fk_backfill.sql if needed).
+--
 -- Without these, the two systems are completely orphaned:
 --   • A golfer course has no idea which club it belongs to
 --   • An event has no idea whether it was club-organised or player-created
@@ -19,47 +26,71 @@
 --
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- 1. courses.club_id
---    Ties a course record (golfer app) back to the club that owns the course.
---    Allows the club console to show "rounds played at your course", surface
---    leaderboards, and feed scoring data into club competitions.
---    NULL = course not yet linked to a club (e.g. public/visitor courses added
---    by players manually).
-alter table public.courses
-  add column if not exists club_id uuid references public.clubs(id) on delete set null;
+do $$
+begin
 
--- Back-fill Cumberwell Park courses → Cumberwell Park club
-update public.courses
-   set club_id = '00000000-0000-0000-0000-000000000001'
- where club_id is null
-   and club = 'Cumberwell Park';
+  -- ── 1. courses.club_id ──────────────────────────────────────────────────────
+  -- Ties a course record (golfer app) back to the club that owns the course.
+  -- NULL = not yet linked (e.g. public/visitor courses added by players).
+  if exists (select 1 from information_schema.tables
+             where table_schema = 'public' and table_name = 'clubs') then
 
--- Index for reverse lookup: "all golfer-app courses owned by club X"
-create index if not exists courses_club_id_idx on public.courses(club_id);
+    if not exists (select 1 from information_schema.columns
+                   where table_schema = 'public'
+                     and table_name   = 'courses'
+                     and column_name  = 'club_id') then
+      alter table public.courses
+        add column club_id uuid references public.clubs(id) on delete set null;
+    end if;
 
--- 2. events.club_id
---    Marks an event as club-organised (vs a casual player-created round).
---    NULL = informal round started by a player.
---    SET = official club competition visible to all linked club members.
---    RLS already allows anyone to SELECT events, so linked members will
---    automatically see club events in their golfer app feed once this is set.
-alter table public.events
-  add column if not exists club_id uuid references public.clubs(id) on delete set null;
+    -- Back-fill Cumberwell Park courses → Cumberwell Park club
+    update public.courses
+       set club_id = '00000000-0000-0000-0000-000000000001'
+     where club_id is null
+       and club = 'Cumberwell Park';
 
-create index if not exists events_club_id_idx on public.events(club_id);
+    -- ── 2. events.club_id ─────────────────────────────────────────────────────
+    -- Marks an event as club-organised (SET) vs a casual player round (NULL).
+    if not exists (select 1 from information_schema.columns
+                   where table_schema = 'public'
+                     and table_name   = 'events'
+                     and column_name  = 'club_id') then
+      alter table public.events
+        add column club_id uuid references public.clubs(id) on delete set null;
+    end if;
 
--- 3. club_competitions.event_id
---    When a club staff member publishes a competition, they (or the app)
---    creates a corresponding event row and sets this FK. Players then score
---    against that event via the normal scoring flow. Results feed back to the
---    club dashboard by querying scorecards JOIN events WHERE
---    club_competitions.event_id = events.id.
-alter table club_competitions
-  add column if not exists event_id uuid references public.events(id) on delete set null;
+    -- Grant SELECT on clubs so golfer app can resolve club names
+    grant select on public.clubs to authenticated, anon;
 
-create index if not exists club_competitions_event_id_idx on club_competitions(event_id);
+  else
+    raise notice '015: clubs table not found — skipping courses.club_id, events.club_id, and club grant. Re-run after applying club platform migrations.';
+  end if;
 
--- ─── Grants ───────────────────────────────────────────────────────────────────
--- authenticated users need to read clubs (for profile, course lookup etc.)
--- service_role already has ALL via 014.
-grant select on public.clubs to authenticated, anon;
+  -- ── 3. club_competitions.event_id ───────────────────────────────────────────
+  -- Links a club competition to its corresponding scoring event. Players score
+  -- against the event; results pull back to the club dashboard via this FK.
+  if exists (select 1 from information_schema.tables
+             where table_schema = 'public' and table_name = 'club_competitions') then
+
+    if not exists (select 1 from information_schema.columns
+                   where table_schema = 'public'
+                     and table_name   = 'club_competitions'
+                     and column_name  = 'event_id') then
+      alter table public.club_competitions
+        add column event_id uuid references public.events(id) on delete set null;
+    end if;
+
+  else
+    raise notice '015: club_competitions table not found — skipping event_id FK. Re-run after applying club platform migrations.';
+  end if;
+
+end $$;
+
+-- Indexes — created outside the DO block so IF NOT EXISTS works cleanly
+create index if not exists courses_club_id_idx
+  on public.courses(club_id)
+  where club_id is not null;
+
+create index if not exists events_club_id_idx
+  on public.events(club_id)
+  where club_id is not null;
