@@ -1,6 +1,5 @@
 'use server'
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import { getCourse } from '@/lib/courses'
 
 interface StartRoundPlayer {
@@ -21,7 +20,7 @@ interface StartRoundData {
   allowancePct: number       // e.g. 95 (percent)
 }
 
-export async function startRound(data: StartRoundData): Promise<never> {
+export async function startRound(data: StartRoundData): Promise<string> {
   const supabase = await createClient()
 
   // 1. Auth check
@@ -155,5 +154,5 @@ export async function startRound(data: StartRoundData): Promise<never> {
     throw new Error('Could not determine user scorecard ID')
   }
 
-  redirect(`/rounds/${userScorecardId}/score`)
+  return `/rounds/${userScorecardId}/score`
 }

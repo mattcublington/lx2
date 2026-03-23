@@ -1,5 +1,6 @@
 'use client'
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { COURSES, getCourse } from '@/lib/courses'
 import { startRound } from './actions'
@@ -721,6 +722,7 @@ function SettingsStep({
 // ── Main wizard ────────────────────────────────────────────────────────────────
 
 export default function NewRoundWizard({ displayName, handicapIndex, dbCombinations }: Props) {
+  const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
@@ -775,7 +777,7 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
             isUser: p.isUser,
           }))
 
-        await startRound({
+        const url = await startRound({
           courseId: state.courseId,
           dbCombinationId: state.dbCombinationId,
           players: activePlayers,
@@ -786,6 +788,7 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
           ldHoles: state.ldHoles,
           allowancePct: state.allowancePct,
         })
+        router.push(url)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
       }
