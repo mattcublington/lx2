@@ -3,7 +3,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { COURSES, getCourse } from '@/lib/courses'
-import { startRound } from './actions'
+import { startRound, searchUsers } from './actions'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -28,6 +28,8 @@ interface Player {
   name: string
   handicapIndex: string
   isUser: boolean
+  gender: 'm' | 'w'
+  teeOverride: string | null  // null = use game-level tee
 }
 
 interface WizardState {
@@ -421,11 +423,24 @@ function PlayersStep({
   onNext: () => void
 }) {
   const [revealed, setRevealed] = useState(1)
+  const [searchIdx, setSearchIdx] = useState<number | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<{ id: string; displayName: string; handicapIndex: number | null }[]>([])
+  const [searching, setSearching] = useState(false)
 
   const update = (index: number, field: keyof Player, value: string) => {
     const next = [...players]
     next[index] = { ...next[index]!, [field]: value }
     onChange(next)
+  }
+
+  const handleSearch = async (q: string) => {
+    setSearchQuery(q)
+    if (q.trim().length < 2) { setSearchResults([]); return }
+    setSearching(true)
+    const results = await searchUsers(q)
+    setSearchResults(results)
+    setSearching(false)
   }
 
   const canProceed = () => {
@@ -486,6 +501,65 @@ function PlayersStep({
                 placeholder="HCP" min={0} max={54} step={0.1}
                 style={{ ...inputStyle, width: 72, flex: 'none' }} />
             </div>
+            {/* Search existing users */}
+            {searchIdx === i ? (
+              <div style={{ marginTop: 8 }}>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={e => handleSearch(e.target.value)}
+                  placeholder="Search by name…"
+                  autoFocus
+                  style={{
+                    width: '100%', padding: '10px 12px',
+                    border: '1.5px solid #0D631B', borderRadius: '8px',
+                    fontSize: '0.875rem', fontFamily: "'DM Sans', sans-serif",
+                    color: '#1A2E1A', background: '#fff', outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                />
+                {searching && <div style={{ fontSize: '0.75rem', color: '#9aaa9a', padding: '6px 2px' }}>Searching…</div>}
+                {searchResults.length > 0 && (
+                  <div style={{ border: '1.5px solid #E4EDE4', borderRadius: '8px', marginTop: 4, overflow: 'hidden' }}>
+                    {searchResults.map(u => (
+                      <button key={u.id} onClick={() => {
+                        update(i, 'name', u.displayName)
+                        update(i, 'handicapIndex', u.handicapIndex?.toString() ?? '')
+                        setSearchIdx(null)
+                        setSearchQuery('')
+                        setSearchResults([])
+                      }} style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        width: '100%', padding: '10px 12px',
+                        background: '#fff', border: 'none', borderBottom: '1px solid #E4EDE4',
+                        cursor: 'pointer', textAlign: 'left',
+                        fontFamily: "'DM Sans', sans-serif",
+                      }}>
+                        <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#1A2E1A' }}>{u.displayName}</span>
+                        {u.handicapIndex !== null && (
+                          <span style={{ fontSize: '0.75rem', color: '#6B8C6B' }}>HCP {u.handicapIndex}</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {searchResults.length === 0 && searchQuery.trim().length >= 2 && !searching && (
+                  <div style={{ fontSize: '0.75rem', color: '#9aaa9a', padding: '6px 2px' }}>No players found</div>
+                )}
+                <button onClick={() => { setSearchIdx(null); setSearchQuery(''); setSearchResults([]) }}
+                  style={{ fontSize: '0.75rem', color: '#9aaa9a', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', marginTop: 2 }}>
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => { setSearchIdx(i); setSearchQuery('') }} style={{
+                marginTop: 6, fontSize: '0.75rem', color: '#0D631B', background: 'none',
+                border: 'none', cursor: 'pointer', padding: 0,
+                fontFamily: "'DM Sans', sans-serif", fontWeight: 600,
+              }}>
+                + Search existing players
+              </button>
+            )}
           </div>
         ))}
 
@@ -604,6 +678,8 @@ function SettingsStep({
 
   const hasCourseRating = course.courseRating > 0 && course.slopeRating > 0
 
+  const activePlayers = state.players.filter((p, i) => i === 0 || p.name.trim() !== '')
+
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
@@ -638,26 +714,40 @@ function SettingsStep({
       </div>
 
       {/* CR / Slope strip */}
-      {hasCourseRating && (
-        <div style={{
-          display: 'flex', gap: 16, marginBottom: 20,
-          padding: '10px 14px', borderRadius: '10px',
-          background: '#F2F8F3', border: '1px solid #D4EAD8',
-        }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#9aaa9a', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Course Rating</span>
-            <span style={{ fontSize: '1rem', fontWeight: 700, color: '#1A2E1A', fontFamily: "'DM Sans', sans-serif" }}>{course.courseRating.toFixed(1)}</span>
+      {hasCourseRating && (() => {
+        const isExactTee = state.tee === course.defaultRatingTee
+        const teeLabel = isExactTee
+          ? `${course.defaultRatingTee} · Men`
+          : `${course.defaultRatingTee} · Men`  // same label either way
+        return (
+          <div style={{
+            display: 'flex', gap: 16, marginBottom: 20,
+            padding: '10px 14px', borderRadius: '10px',
+            background: '#F2F8F3', border: '1px solid #D4EAD8',
+            flexDirection: 'column',
+          }}>
+            <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#9aaa9a', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Course Rating</span>
+                <span style={{ fontSize: '1rem', fontWeight: 700, color: '#1A2E1A', fontFamily: "'DM Sans', sans-serif" }}>{course.courseRating.toFixed(1)}</span>
+              </div>
+              <div style={{ width: 1, background: '#D4EAD8', alignSelf: 'stretch' }} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#9aaa9a', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Slope</span>
+                <span style={{ fontSize: '1rem', fontWeight: 700, color: '#1A2E1A', fontFamily: "'DM Sans', sans-serif" }}>{course.slopeRating}</span>
+              </div>
+              <div style={{ marginLeft: 'auto', fontSize: '0.6875rem', color: '#9aaa9a', alignSelf: 'center', textAlign: 'right' }}>
+                {teeLabel}
+              </div>
+            </div>
+            {!isExactTee && (
+              <div style={{ fontSize: '0.6875rem', color: '#b8a060', borderTop: '1px solid #D4EAD8', paddingTop: 8 }}>
+                WHS data for {state.tee} tees not yet available. Showing {course.defaultRatingTee} standard values.
+              </div>
+            )}
           </div>
-          <div style={{ width: 1, background: '#D4EAD8', alignSelf: 'stretch' }} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#9aaa9a', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Slope</span>
-            <span style={{ fontSize: '1rem', fontWeight: 700, color: '#1A2E1A', fontFamily: "'DM Sans', sans-serif" }}>{course.slopeRating}</span>
-          </div>
-          <div style={{ marginLeft: 'auto', fontSize: '0.6875rem', color: '#9aaa9a', alignSelf: 'center', textAlign: 'right' }}>
-            Standard<br/>tees
-          </div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* Round length */}
       <div style={{ marginBottom: 20 }}>
@@ -708,6 +798,79 @@ function SettingsStep({
               </div>
               <div style={{ fontSize: '0.75rem', color: '#9aaa9a', marginTop: 4 }}>
                 {state.allowancePct === 100 ? 'Full handicap (casual/society play)' : state.allowancePct === 95 ? 'WHS competition standard' : `${state.allowancePct}% of handicap index`}
+              </div>
+            </div>
+
+            {/* Per-player tees */}
+            <div>
+              <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: 12 }}>
+                Player tees &amp; gender
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {activePlayers.map((player, idx) => {
+                  const i = state.players.indexOf(player)
+                  return (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6B8C6B', minWidth: 64 }}>
+                        {player.isUser ? 'You' : `Player ${i + 1}`}
+                      </span>
+                      {/* Tee buttons — small */}
+                      <div style={{ display: 'flex', gap: 4, flex: 1, flexWrap: 'wrap' }}>
+                        {course.tees.map(tee => {
+                          const swatch = TEE_SWATCH[tee] ?? { bg: '#9CA3AF', text: '#fff' }
+                          const effectiveTee = player.teeOverride ?? state.tee
+                          const active = effectiveTee === tee
+                          const isInherited = player.teeOverride === null && tee === state.tee
+                          return (
+                            <button key={tee} onClick={() => {
+                              const next = [...state.players]
+                              next[i] = { ...next[i]!, teeOverride: tee === state.tee ? null : tee }
+                              onUpdate({ players: next })
+                            }} style={{
+                              display: 'flex', alignItems: 'center', gap: 4,
+                              padding: '6px 10px',
+                              border: active ? '2px solid #0D631B' : '1.5px solid #E4EDE4',
+                              borderRadius: '8px',
+                              background: active ? (isInherited ? '#F0FAF2' : '#E8F5EE') : '#fff',
+                              cursor: 'pointer',
+                              opacity: active ? 1 : 0.7,
+                            }}>
+                              <span style={{
+                                display: 'inline-block', width: 10, height: 10, borderRadius: '50%',
+                                background: swatch.bg,
+                                border: swatch.border ? `1px solid ${swatch.border}` : undefined,
+                                flexShrink: 0,
+                              }} />
+                              <span style={{ fontSize: '0.6875rem', fontWeight: active ? 700 : 400, color: active ? '#0D631B' : '#374151', whiteSpace: 'nowrap' }}>
+                                {tee}
+                              </span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                      {/* M / W toggle */}
+                      <div style={{ display: 'flex', gap: 3 }}>
+                        {(['m', 'w'] as const).map(g => (
+                          <button key={g} onClick={() => {
+                            const next = [...state.players]
+                            next[i] = { ...next[i]!, gender: g }
+                            onUpdate({ players: next })
+                          }} style={{
+                            padding: '5px 10px',
+                            border: player.gender === g ? '2px solid #0D631B' : '1.5px solid #E4EDE4',
+                            borderRadius: '7px',
+                            background: player.gender === g ? '#E8F5EE' : '#fff',
+                            fontSize: '0.75rem', fontWeight: player.gender === g ? 700 : 400,
+                            color: player.gender === g ? '#0D631B' : '#6B8C6B',
+                            cursor: 'pointer',
+                          }}>
+                            {g === 'm' ? 'M' : 'W'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             </div>
 
@@ -762,10 +925,10 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
     courseId: FIRST_COURSE,
     dbCombinationId: null,
     players: [
-      { name: displayName, handicapIndex: handicapIndex?.toString() ?? '', isUser: true },
-      { name: '', handicapIndex: '', isUser: false },
-      { name: '', handicapIndex: '', isUser: false },
-      { name: '', handicapIndex: '', isUser: false },
+      { name: displayName, handicapIndex: handicapIndex?.toString() ?? '', isUser: true, gender: 'm', teeOverride: null },
+      { name: '', handicapIndex: '', isUser: false, gender: 'm', teeOverride: null },
+      { name: '', handicapIndex: '', isUser: false, gender: 'm', teeOverride: null },
+      { name: '', handicapIndex: '', isUser: false, gender: 'm', teeOverride: null },
     ],
     format: 'stableford',
     tee: defaultTee(FIRST_COURSE),

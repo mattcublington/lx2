@@ -158,3 +158,21 @@ export async function startRound(data: StartRoundData): Promise<string> {
 
   return `/rounds/${userScorecardId}/score`
 }
+
+export async function searchUsers(query: string): Promise<{ id: string; displayName: string; handicapIndex: number | null }[]> {
+  if (!query || query.trim().length < 2) return []
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+  const { data } = await supabase
+    .from('users')
+    .select('id, display_name, handicap_index')
+    .ilike('display_name', `%${query.trim()}%`)
+    .neq('id', user.id)
+    .limit(8)
+  return (data ?? []).map(u => ({
+    id: u.id,
+    displayName: u.display_name ?? '',
+    handicapIndex: u.handicap_index ?? null,
+  }))
+}

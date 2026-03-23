@@ -27,6 +27,7 @@ export interface Course {
   courseRating: number
   par: number
   tees: string[]
+  defaultRatingTee: string  // which tee colour the slopeRating/courseRating apply to; '' if no WHS
 }
 
 export const COURSES: Course[] = [
@@ -38,6 +39,7 @@ export const COURSES: Course[] = [
     location: 'Bradford-on-Avon, Wiltshire',
     slopeRating: 126, courseRating: 71.0, par: 71,
     tees: ['Green', 'White', 'Yellow/Purple', 'Red/Black'],
+    defaultRatingTee: 'Yellow/Purple',
     holes: [
       { num: 1,  par: 4, si: 9,  yards: 380 },
       { num: 2,  par: 4, si: 5,  yards: 432 },
@@ -67,6 +69,7 @@ export const COURSES: Course[] = [
     location: 'Bradford-on-Avon, Wiltshire',
     slopeRating: 126, courseRating: 71.0, par: 71,
     tees: ['Green', 'White', 'Yellow/Purple', 'Red/Black'],
+    defaultRatingTee: 'Yellow/Purple',
     holes: [
       { num: 1,  par: 4, si: 18, yards: 285 },
       { num: 2,  par: 5, si: 10, yards: 478 },
@@ -96,6 +99,7 @@ export const COURSES: Course[] = [
     location: 'Bradford-on-Avon, Wiltshire',
     slopeRating: 125, courseRating: 71.5, par: 71,
     tees: ['Green', 'White', 'Yellow/Purple', 'Red/Black'],
+    defaultRatingTee: 'Yellow/Purple',
     holes: [
       { num: 1,  par: 5, si: 5,  yards: 526 },
       { num: 2,  par: 4, si: 1,  yards: 396 },
@@ -125,6 +129,7 @@ export const COURSES: Course[] = [
     location: 'Bradford-on-Avon, Wiltshire',
     slopeRating: 125, courseRating: 71.5, par: 71,
     tees: ['Green', 'White', 'Yellow/Purple', 'Red/Black'],
+    defaultRatingTee: 'Yellow/Purple',
     holes: [
       { num: 1,  par: 4, si: 18, yards: 285 },
       { num: 2,  par: 4, si: 10, yards: 380 },
@@ -154,6 +159,7 @@ export const COURSES: Course[] = [
     location: 'Bradford-on-Avon, Wiltshire',
     slopeRating: 126, courseRating: 72.5, par: 71,
     tees: ['Green', 'White', 'Yellow/Purple', 'Red/Black'],
+    defaultRatingTee: 'Yellow/Purple',
     holes: [
       { num: 1,  par: 4, si: 9,  yards: 380 },
       { num: 2,  par: 4, si: 5,  yards: 432 },
@@ -183,6 +189,7 @@ export const COURSES: Course[] = [
     location: 'Bradford-on-Avon, Wiltshire',
     slopeRating: 126, courseRating: 72.5, par: 71,
     tees: ['Green', 'White', 'Yellow/Purple', 'Red/Black'],
+    defaultRatingTee: 'Yellow/Purple',
     holes: [
       { num: 1,  par: 5, si: 5,  yards: 526 },
       { num: 2,  par: 4, si: 1,  yards: 396 },
@@ -212,6 +219,7 @@ export const COURSES: Course[] = [
     location: 'Bradford-on-Avon, Wiltshire',
     slopeRating: 129, courseRating: 71.5, par: 72,
     tees: ['Green', 'White', 'Yellow/Purple', 'Red/Black'],
+    defaultRatingTee: 'Yellow/Purple',
     holes: [
       { num: 1,  par: 5, si: 5,  yards: 526 },
       { num: 2,  par: 4, si: 1,  yards: 396 },
@@ -241,6 +249,7 @@ export const COURSES: Course[] = [
     location: 'Bradford-on-Avon, Wiltshire',
     slopeRating: 129, courseRating: 71.5, par: 72,
     tees: ['Green', 'White', 'Yellow/Purple', 'Red/Black'],
+    defaultRatingTee: 'Yellow/Purple',
     holes: [
       { num: 1,  par: 4, si: 18, yards: 285 },
       { num: 2,  par: 5, si: 10, yards: 478 },
@@ -270,6 +279,7 @@ export const COURSES: Course[] = [
     location: 'Bradford-on-Avon, Wiltshire',
     slopeRating: 125, courseRating: 70.0, par: 71,
     tees: ['Green', 'White', 'Yellow/Purple', 'Red/Black'],
+    defaultRatingTee: 'Yellow/Purple',
     holes: [
       { num: 1,  par: 4, si: 18, yards: 285 },
       { num: 2,  par: 4, si: 10, yards: 380 },
@@ -299,6 +309,7 @@ export const COURSES: Course[] = [
     location: 'Bradford-on-Avon, Wiltshire',
     slopeRating: 125, courseRating: 70.0, par: 71,
     tees: ['Green', 'White', 'Yellow/Purple', 'Red/Black'],
+    defaultRatingTee: 'Yellow/Purple',
     holes: [
       { num: 1,  par: 4, si: 18, yards: 285 },
       { num: 2,  par: 5, si: 10, yards: 478 },
@@ -328,6 +339,7 @@ export const COURSES: Course[] = [
     location: 'Bradford-on-Avon, Wiltshire',
     slopeRating: 122, courseRating: 71.0, par: 71,
     tees: ['Green', 'White', 'Yellow/Purple', 'Red/Black'],
+    defaultRatingTee: 'Yellow/Purple',
     holes: [
       { num: 1,  par: 4, si: 9,  yards: 380 },
       { num: 2,  par: 4, si: 5,  yards: 432 },
@@ -357,6 +369,7 @@ export const COURSES: Course[] = [
     location: 'Bradford-on-Avon, Wiltshire',
     slopeRating: 122, courseRating: 71.0, par: 71,
     tees: ['Green', 'White', 'Yellow/Purple', 'Red/Black'],
+    defaultRatingTee: 'Yellow/Purple',
     holes: [
       { num: 1,  par: 4, si: 18, yards: 285 },
       { num: 2,  par: 4, si: 10, yards: 380 },
@@ -388,6 +401,7 @@ export const COURSES: Course[] = [
     location: 'Bradford-on-Avon, Wiltshire',
     slopeRating: 111, courseRating: 68.2, par: 70,
     tees: ['Green', 'White', 'Yellow/Purple', 'Red/Black'],
+    defaultRatingTee: 'Green',
     holes: [
       { num: 1,  par: 4, si: 15, yards: 267 },
       { num: 2,  par: 5, si: 3,  yards: 477 },
@@ -419,6 +433,7 @@ export const COURSES: Course[] = [
     location: 'Bradford-on-Avon, Wiltshire',
     slopeRating: 0, courseRating: 0, par: 54,
     tees: ['Purple', 'Orange', 'Blue'],
+    defaultRatingTee: '',
     holes: [
       { num: 1,  par: 3, si: 1,  yards: 109 },
       { num: 2,  par: 3, si: 2,  yards: 165 },

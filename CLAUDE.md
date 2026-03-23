@@ -90,3 +90,11 @@ No gold, ivory, warm-cream, brass, or off-palette accent colours.
 - `apps/web/src/app/auth/callback/route.ts` — Google OAuth callback; upserts `users` table with `display_name` from `user.user_metadata.full_name`
 - `apps/architecture/src/app/LX2Architecture.tsx` — architecture control tower (~1,250 lines, single file)
 - `apps/architecture/HANDOFF.md` — how to replicate the control tower for a new project
+
+## Session Learnings — append after each significant session
+
+### [Date] — [brief topic]
+- What we tried:
+- What broke / didn't work:
+- What to do instead:
+- Any new patterns established:
