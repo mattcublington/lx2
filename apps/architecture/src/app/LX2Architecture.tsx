@@ -1154,59 +1154,104 @@ export default function LX2Architecture() {
         )
       })}
 
-      {/* ── Detail panel ── */}
-      {mod && (
-        <div style={{ marginTop: 20, background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 16, padding: '20px', boxShadow: '0 8px 24px rgba(26,28,28,0.06)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: '#1A2E1A', fontFamily: "'Manrope', sans-serif" }}>{mod.name}</div>
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-              <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 99, background: surfaceConfig[mod.surface]!.bg, color: surfaceConfig[mod.surface]!.color, fontWeight: 500 }}>{surfaceConfig[mod.surface]!.label}</span>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: statusConfig[mod.status]!.color }} />
-              <span style={{ fontSize: 11, color: statusConfig[mod.status]!.color }}>{statusConfig[mod.status]!.label}</span>
-            </div>
-          </div>
-          <div style={{ fontSize: 13, color: '#44483E', lineHeight: 1.65, marginBottom: 14 }}>{mod.desc}</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
-            {mod.liveUrl && <a href={mod.liveUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, padding: '4px 12px', borderRadius: 99, background: '#E8F5E9', color: '#0D631B', textDecoration: 'none', border: '0.5px solid #0D631B30' }}>↗ Live</a>}
-            {mod.prdUrl  && <a href={mod.prdUrl}  target="_blank" rel="noreferrer" style={{ fontSize: 12, padding: '4px 12px', borderRadius: 99, background: '#E3F2FD', color: '#1565C0', textDecoration: 'none', border: '0.5px solid #1565C030' }}>↗ PRD</a>}
-            {mod.codeUrl && <a href={mod.codeUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, padding: '4px 12px', borderRadius: 99, background: '#F3F4F6', color: '#6B7280', textDecoration: 'none', border: '0.5px solid rgba(0,0,0,0.1)' }}>↗ Code</a>}
-          </div>
-          {mod.deps.length > 0 && (
-            <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Depends on</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {mod.deps.map(dep => {
-                  const dm = modules[dep]
-                  return <button key={dep} onClick={() => setSelected(dep)} style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, border: `0.5px solid ${dm ? phaseConfig[dm.phase].color + '40' : '#E5E7EB'}`, background: dm ? phaseConfig[dm.phase].bg : '#F9FAFB', color: dm ? phaseConfig[dm.phase].color : '#9CA3AF', cursor: 'pointer', fontFamily: "'Lexend', sans-serif" }}>{dm ? dm.name : dep}</button>
-                })}
+      {/* ── Detail drawer (slides in from right) ── */}
+      {/* Backdrop */}
+      <div
+        onClick={() => setSelected(null)}
+        style={{
+          position: 'fixed', inset: 0, zIndex: 40,
+          background: 'rgba(10,20,10,0.35)',
+          backdropFilter: 'blur(2px)',
+          opacity: mod ? 1 : 0,
+          pointerEvents: mod ? 'auto' : 'none',
+          transition: 'opacity 0.25s ease',
+        }}
+      />
+      {/* Drawer panel */}
+      <div style={{
+        position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 50,
+        width: 'min(440px, 92vw)',
+        background: '#fff',
+        boxShadow: '-12px 0 48px rgba(0,0,0,0.14)',
+        overflowY: 'auto',
+        transform: mod ? 'translateX(0)' : 'translateX(100%)',
+        transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        display: 'flex', flexDirection: 'column',
+      }}>
+        {mod && (
+          <>
+            {/* Drawer header */}
+            <div style={{ padding: '18px 20px 14px', borderBottom: '0.5px solid rgba(0,0,0,0.07)', position: 'sticky', top: 0, background: '#fff', zIndex: 1 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: 6 }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: '#1A2E1A', fontFamily: "'Manrope', sans-serif", lineHeight: 1.3 }}>{mod.name}</div>
+                <button onClick={() => setSelected(null)} style={{ flexShrink: 0, width: 28, height: 28, borderRadius: '50%', border: 'none', background: '#F3F4F6', color: '#6B7280', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>✕</button>
               </div>
-            </div>
-          )}
-          {mod.data.length > 0 && (
-            <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>DB tables</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {mod.data.map(d => <code key={d} style={{ fontSize: 11, padding: '3px 10px', borderRadius: 8, background: '#F3F4F6', color: '#44483E', fontFamily: 'monospace' }}>{d}</code>)}
-              </div>
-            </div>
-          )}
-          <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Features</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {mod.features.map((f, i) => (
-                <div key={i} style={{ fontSize: 13, color: '#44483E', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                  <span style={{ color: '#0D631B', flexShrink: 0, marginTop: 1 }}>·</span>
-                  <span>{f}</span>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 99, background: surfaceConfig[mod.surface]!.bg, color: surfaceConfig[mod.surface]!.color, fontWeight: 500 }}>{surfaceConfig[mod.surface]!.label}</span>
+                <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 99, background: phaseConfig[mod.phase]!.bg, color: phaseConfig[mod.phase]!.color, fontWeight: 500 }}>{phaseConfig[mod.phase]!.label}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: statusConfig[mod.status]!.color }} />
+                  <span style={{ fontSize: 11, color: statusConfig[mod.status]!.color }}>{statusConfig[mod.status]!.label}</span>
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Technical approach</div>
-            <div style={{ fontSize: 13, color: '#44483E', lineHeight: 1.6, fontFamily: 'monospace', background: '#F9FAF7', padding: '10px 14px', borderRadius: 10 }}>{mod.tech}</div>
-          </div>
-        </div>
-      )}
+
+            {/* Drawer body */}
+            <div style={{ padding: '16px 20px', flex: 1 }}>
+              <div style={{ fontSize: 13, color: '#44483E', lineHeight: 1.65, marginBottom: 14 }}>{mod.desc}</div>
+
+              {/* Links */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+                {mod.liveUrl && <a href={mod.liveUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, padding: '4px 12px', borderRadius: 99, background: '#E8F5E9', color: '#0D631B', textDecoration: 'none', border: '0.5px solid #0D631B30' }}>↗ Live</a>}
+                {mod.prdUrl  && <a href={mod.prdUrl}  target="_blank" rel="noreferrer" style={{ fontSize: 12, padding: '4px 12px', borderRadius: 99, background: '#E3F2FD', color: '#1565C0', textDecoration: 'none', border: '0.5px solid #1565C030' }}>↗ PRD</a>}
+                {mod.codeUrl && <a href={mod.codeUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, padding: '4px 12px', borderRadius: 99, background: '#F3F4F6', color: '#6B7280', textDecoration: 'none', border: '0.5px solid rgba(0,0,0,0.1)' }}>↗ Code</a>}
+              </div>
+
+              {/* Depends on */}
+              {mod.deps.length > 0 && (
+                <div style={{ marginBottom: 14 }}>
+                  <div style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Depends on</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {mod.deps.map(dep => {
+                      const dm = modules[dep]
+                      return <button key={dep} onClick={() => setSelected(dep)} style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, border: `0.5px solid ${dm ? phaseConfig[dm.phase].color + '40' : '#E5E7EB'}`, background: dm ? phaseConfig[dm.phase].bg : '#F9FAFB', color: dm ? phaseConfig[dm.phase].color : '#9CA3AF', cursor: 'pointer', fontFamily: "'Lexend', sans-serif" }}>{dm ? dm.name : dep}</button>
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* DB tables */}
+              {mod.data.length > 0 && (
+                <div style={{ marginBottom: 14 }}>
+                  <div style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>DB tables</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {mod.data.map(d => <code key={d} style={{ fontSize: 11, padding: '3px 10px', borderRadius: 8, background: '#F3F4F6', color: '#44483E', fontFamily: 'monospace' }}>{d}</code>)}
+                  </div>
+                </div>
+              )}
+
+              {/* Features */}
+              <div style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Features</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  {mod.features.map((f, i) => (
+                    <div key={i} style={{ fontSize: 13, color: '#44483E', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                      <span style={{ color: '#0D631B', flexShrink: 0, marginTop: 1 }}>·</span>
+                      <span>{f}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tech */}
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Technical approach</div>
+                <div style={{ fontSize: 12, color: '#44483E', lineHeight: 1.6, fontFamily: 'monospace', background: '#F9FAF7', padding: '10px 14px', borderRadius: 10 }}>{mod.tech}</div>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   )
 }
