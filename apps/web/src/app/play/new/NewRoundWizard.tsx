@@ -841,7 +841,7 @@ function SettingsStep({
                 Player tees &amp; gender
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {activePlayers.map((player, idx) => {
+                {activePlayers.map((player) => {
                   const i = state.players.indexOf(player)
                   return (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
