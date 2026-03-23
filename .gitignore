@@ -45,3 +45,7 @@ supabase/.temp
 
 # Git worktrees
 .worktrees/
+
+# TypeScript incremental build artifacts
+*.tsbuildinfo
+next-env.d.ts
