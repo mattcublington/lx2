@@ -2,6 +2,7 @@
 import { useState, useReducer, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
+import { PLAYER_COLOURS } from '@/lib/player-colours'
 import type { ScoringHole, GroupPlayer } from './page'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -740,10 +741,16 @@ export default function ScoreEntryLive(props: Props) {
             else if (s.scores[h.holeInRound] != null) myScores[h.holeInRound] = s.scores[h.holeInRound]!
           }
 
-          const rows = groupPlayers.map(p => {
+          // Normalize: current user first so they always get colour index 0 (green)
+          const orderedPlayers = [
+            ...groupPlayers.filter(p => p.isCurrentUser),
+            ...groupPlayers.filter(p => !p.isCurrentUser),
+          ]
+
+          const rows = orderedPlayers.map((p, colorIdx) => {
             const scores = p.isCurrentUser ? myScores : (liveScores[p.scorecardId] ?? {})
             const { totalPts, totalStrokes, holesPlayed: hp } = getPlayerTotal(scores, p.handicapIndex)
-            return { ...p, totalPts, totalStrokes, holesPlayed: hp }
+            return { ...p, totalPts, totalStrokes, holesPlayed: hp, colorIdx }
           }).sort((a, b) =>
             format === 'stableford'
               ? (b.totalPts - a.totalPts) || (b.holesPlayed - a.holesPlayed)
@@ -755,33 +762,34 @@ export default function ScoreEntryLive(props: Props) {
             const effHc = Math.round(p.handicapIndex * allowancePct)
             const isScoringThis = p.scorecardId === scorecardId
             const canTap = !isScoringThis && p.scorecardId !== ''
+            const playerColor = PLAYER_COLOURS[Math.min(p.colorIdx, PLAYER_COLOURS.length - 1)]!
             return (
               <div key={p.scorecardId || p.displayName}
                 onClick={canTap ? () => router.push(`/rounds/${p.scorecardId}/score`) : undefined}
                 style={{
                   display: 'flex',
                   borderRadius: 10,
-                  border: isScoringThis ? '2px solid #3a7d44' : '1px solid #e0e6dc',
-                  background: isScoringThis ? '#3a7d4410' : '#fff',
+                  border: isScoringThis ? `2px solid ${playerColor}` : '1px solid #e0e6dc',
+                  background: isScoringThis ? `${playerColor}12` : '#fff',
                   padding: '7px 12px',
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   cursor: canTap ? 'pointer' : 'default',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ width: 26, height: 26, borderRadius: '50%', background: isScoringThis ? '#3a7d44' : '#8a9a8a', color: '#fff', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: 26, height: 26, borderRadius: '50%', background: playerColor, color: '#fff', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {initials}
                   </div>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: isScoringThis ? '#3a7d44' : '#1a2e1a' }}>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: isScoringThis ? playerColor : '#1a2e1a' }}>
                     {p.displayName.split(' ')[0] || p.displayName}
                   </span>
-                  {canTap && <span style={{ fontSize: 10, color: '#3a7d44', opacity: 0.7 }}>tap to score →</span>}
+                  {canTap && <span style={{ fontSize: 10, color: '#6B8C6B', opacity: 0.7 }}>tap to score →</span>}
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   {p.holesPlayed > 0 ? (
                     format === 'stableford'
-                      ? <span style={{ fontWeight: 700, color: isScoringThis ? '#3a7d44' : '#1a2e1a', fontSize: 14 }}>{p.totalPts} pts</span>
-                      : <span style={{ fontWeight: 700, color: isScoringThis ? '#3a7d44' : '#1a2e1a', fontSize: 14 }}>{p.totalStrokes}</span>
+                      ? <span style={{ fontWeight: 700, color: isScoringThis ? playerColor : '#1a2e1a', fontSize: 14 }}>{p.totalPts} pts</span>
+                      : <span style={{ fontWeight: 700, color: isScoringThis ? playerColor : '#1a2e1a', fontSize: 14 }}>{p.totalStrokes}</span>
                   ) : (
                     <span style={{ fontSize: 12, color: '#8a9a8a' }}>HC {effHc}</span>
                   )}

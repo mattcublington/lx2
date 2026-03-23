@@ -3,6 +3,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { COURSES, getCourse } from '@/lib/courses'
+import { PLAYER_COLOURS } from '@/lib/player-colours'
 import { startRound, searchUsers } from './actions'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -497,8 +498,9 @@ function PlayersStep({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {/* You */}
         <div style={{ background: '#E8F5EE', border: '1.5px solid rgba(13,99,27,0.2)', borderRadius: '14px', padding: '14px 16px' }}>
-          <div style={{ fontSize: '0.6875rem', fontWeight: 700, color: '#0D631B', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10 }}>
-            You
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+            <div style={{ width: 10, height: 10, borderRadius: '50%', background: PLAYER_COLOURS[0], flexShrink: 0 }} />
+            <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: '#0D631B', letterSpacing: '0.08em', textTransform: 'uppercase' }}>You</span>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <input type="text" value={players[0]?.name ?? ''} onChange={e => update(0, 'name', e.target.value)}
@@ -512,8 +514,9 @@ function PlayersStep({
         {/* Additional players */}
         {[1, 2, 3].slice(0, revealed).map(i => (
           <div key={i} style={{ background: '#fff', border: '1.5px solid #E4EDE4', borderRadius: '14px', padding: '14px 16px' }}>
-            <div style={{ fontSize: '0.6875rem', fontWeight: 700, color: '#9CA9A1', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10 }}>
-              Player {i + 1}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: PLAYER_COLOURS[i] ?? '#9CA9A1', flexShrink: 0 }} />
+              <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: '#9CA9A1', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Player {i + 1}</span>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <input type="text" value={players[i]?.name ?? ''} onChange={e => update(i, 'name', e.target.value)}
