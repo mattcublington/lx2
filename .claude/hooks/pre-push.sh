@@ -6,10 +6,11 @@
 
 echo "🔍 LX2 pre-push checks..."
 
-# 1. Type check
+# 1. Type check (via Turbo so it respects each app's tsconfig)
 echo "  → TypeScript..."
-npx tsc --noEmit 2>&1
-if [ $? -ne 0 ]; then
+npx turbo run type-check 2>&1
+TYPE_EXIT=$?
+if [ $TYPE_EXIT -ne 0 ]; then
   echo "❌ TypeScript errors found. Fix before pushing."
   exit 1
 fi
