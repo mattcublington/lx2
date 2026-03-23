@@ -27,14 +27,16 @@ export async function startRound(data: StartRoundData): Promise<string> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
 
-  // 2. Ensure public.users row exists
+  // 2. Ensure public.users row exists; persist handicap_index if provided
+  const userHandicap = data.players.find(p => p.isUser)?.handicapIndex ?? null
   await supabase
     .from('users')
     .upsert({
       id: user.id,
       email: user.email!,
       display_name: user.email!.split('@')[0],
-    }, { onConflict: 'id', ignoreDuplicates: true })
+      ...(userHandicap !== null ? { handicap_index: userHandicap } : {}),
+    }, { onConflict: 'id', ignoreDuplicates: false })
 
   // 3. Get course data from courses.ts
   const course = getCourse(data.courseId)

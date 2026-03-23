@@ -555,7 +555,7 @@ function SettingsStep({
   onSubmit: () => void
   submitting: boolean
 }) {
-  const [sideOpen, setSideOpen] = useState(false)
+  const [advOpen, setAdvOpen] = useState(false)
   const course = getCourse(state.courseId)
   if (!course) return <div>Course not found</div>
 
@@ -602,6 +602,8 @@ function SettingsStep({
     </button>
   )
 
+  const hasCourseRating = course.courseRating > 0 && course.slopeRating > 0
+
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
@@ -626,7 +628,7 @@ function SettingsStep({
       </div>
 
       {/* Tees */}
-      <div style={{ marginBottom: 20 }}>
+      <div style={{ marginBottom: hasCourseRating ? 10 : 20 }}>
         {fieldLabel('Tees')}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {course.tees.map(tee => (
@@ -634,6 +636,28 @@ function SettingsStep({
           ))}
         </div>
       </div>
+
+      {/* CR / Slope strip */}
+      {hasCourseRating && (
+        <div style={{
+          display: 'flex', gap: 16, marginBottom: 20,
+          padding: '10px 14px', borderRadius: '10px',
+          background: '#F2F8F3', border: '1px solid #D4EAD8',
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#9aaa9a', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Course Rating</span>
+            <span style={{ fontSize: '1rem', fontWeight: 700, color: '#1A2E1A', fontFamily: "'DM Sans', sans-serif" }}>{course.courseRating.toFixed(1)}</span>
+          </div>
+          <div style={{ width: 1, background: '#D4EAD8', alignSelf: 'stretch' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#9aaa9a', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Slope</span>
+            <span style={{ fontSize: '1rem', fontWeight: 700, color: '#1A2E1A', fontFamily: "'DM Sans', sans-serif" }}>{course.slopeRating}</span>
+          </div>
+          <div style={{ marginLeft: 'auto', fontSize: '0.6875rem', color: '#9aaa9a', alignSelf: 'center', textAlign: 'right' }}>
+            Standard<br/>tees
+          </div>
+        </div>
+      )}
 
       {/* Round length */}
       <div style={{ marginBottom: 20 }}>
@@ -647,44 +671,48 @@ function SettingsStep({
         </div>
       </div>
 
-      {/* Handicap allowance */}
-      <div style={{ marginBottom: 20 }}>
-        {fieldLabel('Handicap allowance')}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <input type="range" min={50} max={100} step={5}
-            value={state.allowancePct}
-            onChange={e => onUpdate({ allowancePct: Number(e.target.value) })}
-            style={{ flex: 1, accentColor: '#0D631B' }}
-          />
-          <div style={{ minWidth: 48, textAlign: 'center', fontWeight: 700, fontSize: '1rem', color: '#0D631B', fontFamily: "'DM Sans', sans-serif" }}>
-            {state.allowancePct}%
-          </div>
-        </div>
-        <div style={{ fontSize: '0.75rem', color: '#9aaa9a', marginTop: 4 }}>
-          {state.allowancePct === 95 ? 'WHS competition standard (95%)' : `${state.allowancePct}% of handicap index`}
-        </div>
-      </div>
-
-      {/* Side contests */}
+      {/* Advanced options (handicap allowance + side contests) */}
       <div style={{ marginBottom: 28 }}>
-        <button onClick={() => setSideOpen(o => !o)} style={{
+        <button onClick={() => setAdvOpen(o => !o)} style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           width: '100%', padding: '14px 16px',
           background: '#fff', border: '1.5px solid #E4EDE4',
-          borderRadius: sideOpen ? '12px 12px 0 0' : '12px',
+          borderRadius: advOpen ? '12px 12px 0 0' : '12px',
           cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
           fontWeight: 600, fontSize: '0.9375rem', color: '#1A2E1A',
         }}>
-          <span>Side contests</span>
-          <span style={{ fontSize: '0.875rem', color: '#9CA9A1', transform: sideOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>▾</span>
+          <span>Advanced options</span>
+          <span style={{ fontSize: '0.875rem', color: '#9CA9A1', transform: advOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>▾</span>
         </button>
 
-        {sideOpen && (
+        {advOpen && (
           <div style={{
             background: '#fff', border: '1.5px solid #E4EDE4',
             borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '16px',
+            display: 'flex', flexDirection: 'column', gap: 20,
           }}>
-            <div style={{ marginBottom: 16 }}>
+            {/* Handicap allowance */}
+            <div>
+              <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: 8 }}>
+                Handicap allowance
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <input type="range" min={50} max={100} step={5}
+                  value={state.allowancePct}
+                  onChange={e => onUpdate({ allowancePct: Number(e.target.value) })}
+                  style={{ flex: 1, accentColor: '#0D631B' }}
+                />
+                <div style={{ minWidth: 48, textAlign: 'center', fontWeight: 700, fontSize: '1rem', color: '#0D631B', fontFamily: "'DM Sans', sans-serif" }}>
+                  {state.allowancePct}%
+                </div>
+              </div>
+              <div style={{ fontSize: '0.75rem', color: '#9aaa9a', marginTop: 4 }}>
+                {state.allowancePct === 100 ? 'Full handicap (casual/society play)' : state.allowancePct === 95 ? 'WHS competition standard' : `${state.allowancePct}% of handicap index`}
+              </div>
+            </div>
+
+            {/* NTP */}
+            <div>
               <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: 10 }}>
                 Nearest the pin <span style={{ color: '#9aaa9a', fontWeight: 400 }}>(par 3s)</span>
               </div>
@@ -692,6 +720,8 @@ function SettingsStep({
                 {par3Holes.map(h => holeChip(h, state.ntpHoles.includes(h), () => onUpdate({ ntpHoles: toggle(state.ntpHoles, h) })))}
               </div>
             </div>
+
+            {/* Longest drive */}
             <div>
               <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: 10 }}>
                 Longest drive
@@ -742,7 +772,7 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
     roundType: '18',
     ntpHoles: defaultNtpHoles(FIRST_COURSE),
     ldHoles: defaultLdHoles(FIRST_COURSE),
-    allowancePct: 95,
+    allowancePct: 100,
   })
 
   const update = (partial: Partial<WizardState>) => setState(s => ({ ...s, ...partial }))
