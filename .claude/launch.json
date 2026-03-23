@@ -12,6 +12,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--workspace=apps/club"],
       "port": 3001
+    },
+    {
+      "name": "architecture",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--workspace=apps/architecture"],
+      "port": 3002
     }
   ]
 }

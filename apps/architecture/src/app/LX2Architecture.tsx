@@ -927,8 +927,73 @@ export default function LX2Architecture() {
         <Image src="/lx2-logo.svg" alt="LX2" width={144} height={57} style={{ display: 'block' }} />
         <div>
           <div style={{ fontSize: 13, color: '#6B7280', fontWeight: 400 }}>Platform architecture</div>
-          <div style={{ fontSize: 11, color: '#9CA3AF' }}>v0.4 · March 2026</div>
+          <div style={{ fontSize: 11, color: '#9CA3AF' }}>v0.5 · March 2026 · two-app platform</div>
         </div>
+      </div>
+
+      {/* Vision banner */}
+      <div style={{ background: 'linear-gradient(135deg, #0D2B12 0%, #1A3E1A 100%)', borderRadius: 16, padding: '20px 24px', marginBottom: 16, boxShadow: '0 8px 24px rgba(13,43,18,0.18)' }}>
+        <div style={{ fontSize: 20, fontWeight: 700, color: '#fff', fontFamily: "'Manrope', sans-serif", marginBottom: 4 }}>⛳ Golf, all in one place.</div>
+        <div style={{ fontSize: 13, color: '#86EFAC', lineHeight: 1.5 }}>One platform. Two apps. A golfer scores any round, enters competitions, and books tee times on <strong style={{ color: '#fff' }}>lx2.golf</strong>. Their club admin manages the tee sheet, runs draws, and views financials on <strong style={{ color: '#fff' }}>club.lx2.golf</strong>. Same data. Two views. One identity.</div>
+      </div>
+
+      {/* Two-app overview */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+        {/* Golfer app */}
+        <div style={{ background: '#fff', border: '1.5px solid #22C55E40', borderRadius: 14, padding: '14px 16px', boxShadow: '0 4px 16px rgba(34,197,94,0.08)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#16A34A', flexShrink: 0 }} />
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#15803D', fontFamily: "'Manrope', sans-serif" }}>lx2.golf</div>
+            <div style={{ fontSize: 10, padding: '1px 6px', borderRadius: 99, background: '#DCFCE7', color: '#166534', fontWeight: 500, marginLeft: 'auto' }}>golfer app</div>
+          </div>
+          <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 8 }}>Score · Compete · Book · Track</div>
+          {[
+            ['Phase 1', 'Score entry, live leaderboard, events, invite & RSVP, results, payments', '#16A34A', '#DCFCE7'],
+            ['Phase 2', 'Tee booking, club competition entry, player profile, my club dashboard', '#2563EB', '#DBEAFE'],
+            ['Phase 3', 'Multi-club booking, extended formats', '#7C3AED', '#EDE9FE'],
+            ['Phase 4', 'GPS on-course, WHS integration', '#B45309', '#FEF3C7'],
+          ].map(([phase, desc, color, bg]) => (
+            <div key={phase} style={{ display: 'flex', gap: 6, alignItems: 'flex-start', marginBottom: 4 }}>
+              <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 99, background: bg as string, color: color as string, fontWeight: 600, flexShrink: 0, marginTop: 1 }}>{phase}</span>
+              <span style={{ fontSize: 11, color: '#44483E', lineHeight: 1.4 }}>{desc}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Club console */}
+        <div style={{ background: '#fff', border: '1.5px solid #3B82F640', borderRadius: 14, padding: '14px 16px', boxShadow: '0 4px 16px rgba(59,130,246,0.08)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#2563EB', flexShrink: 0 }} />
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#1D4ED8', fontFamily: "'Manrope', sans-serif" }}>club.lx2.golf</div>
+            <div style={{ fontSize: 10, padding: '1px 6px', borderRadius: 99, background: '#DBEAFE', color: '#1E40AF', fontWeight: 500, marginLeft: 'auto' }}>club console</div>
+          </div>
+          <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 8 }}>Manage · Operate · Report</div>
+          {[
+            ['Phase 1', 'Club auth, member roster, tee sheet config & view, booking, competition calendar, admin dashboard', '#16A34A', '#DCFCE7'],
+            ['Phase 2', 'Membership billing, pricing rules, communications, vouchers, reporting, EPOS', '#2563EB', '#DBEAFE'],
+            ['Phase 3', 'Lesson/simulator/range booking, society packages, function rooms', '#7C3AED', '#EDE9FE'],
+            ['Phase 4', 'F&B management, stock management, multi-club resort', '#B45309', '#FEF3C7'],
+          ].map(([phase, desc, color, bg]) => (
+            <div key={phase} style={{ display: 'flex', gap: 6, alignItems: 'flex-start', marginBottom: 4 }}>
+              <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 99, background: bg as string, color: color as string, fontWeight: 600, flexShrink: 0, marginTop: 1 }}>{phase}</span>
+              <span style={{ fontSize: 11, color: '#44483E', lineHeight: 1.4 }}>{desc}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Legend */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20, padding: '10px 14px', background: '#F9FAF7', borderRadius: 10, border: '0.5px solid rgba(0,0,0,0.06)' }}>
+        <span style={{ fontSize: 11, color: '#6B7280', fontWeight: 500, marginRight: 4 }}>Legend:</span>
+        {[
+          ['✓ existing', '#374151', '#F3F4F6'],
+          ['golfer app', '#15803D', '#DCFCE7'],
+          ['club console', '#1D4ED8', '#DBEAFE'],
+          ['shared / both', '#6B7280', '#F3F4F6'],
+        ].map(([label, color, bg]) => (
+          <span key={label} style={{ fontSize: 10, padding: '2px 8px', borderRadius: 99, background: bg, color: color, fontWeight: 500, border: `0.5px solid ${color}30` }}>{label}</span>
+        ))}
+        <span style={{ fontSize: 11, color: '#9CA3AF', marginLeft: 4 }}>· Pilot: Cumberwell Park (Bradford-on-Avon)</span>
       </div>
 
       {/* Progress */}
