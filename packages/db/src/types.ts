@@ -105,3 +105,119 @@ export interface ContestEntry {
   distance_cm: number | null
   created_at: string
 }
+
+// ─── Club Platform Types ──────────────────────────────────────────────────────
+
+export type ClubRole = 'admin' | 'secretary' | 'bar_staff' | 'pro_shop'
+export type MembershipType = 'full' | 'junior' | 'senior' | 'associate' | 'visitor' | 'five_day'
+export type MemberStatus = 'active' | 'suspended' | 'lapsed'
+export type SlotType = 'member' | 'visitor' | 'society' | 'blocked'
+export type BookingStatus = 'confirmed' | 'cancelled' | 'no_show'
+
+export interface Club {
+  id: string
+  name: string
+  slug: string
+  address: string | null
+  logo_url: string | null
+  created_at: string
+}
+
+export interface CourseLoop {
+  id: string
+  club_id: string
+  name: string
+  holes: number
+  par: number | null
+  colour_hex: string | null
+  sort_order: number
+  created_at: string
+}
+
+export interface ClubUserRole {
+  id: string
+  club_id: string
+  user_id: string
+  role: ClubRole
+  created_at: string
+}
+
+export interface ClubMember {
+  id: string
+  club_id: string
+  user_id: string | null
+  email: string
+  display_name: string
+  membership_type: MembershipType
+  handicap_index: number | null
+  status: MemberStatus
+  cdh_number: string | null
+  imported_at: string | null
+  linked_at: string | null
+  created_at: string
+}
+
+export interface TeeSheetRule {
+  id: string
+  club_id: string
+  loop_id: string
+  slot_interval_minutes: number
+  capacity_per_slot: number
+  open_time: string       // "HH:MM"
+  close_time: string      // "HH:MM"
+  member_only_until: string | null
+  applies_weekdays: boolean
+  applies_weekends: boolean
+  valid_from: string      // ISO date
+  valid_to: string | null
+  created_at: string
+}
+
+export interface TeeSlot {
+  id: string
+  club_id: string
+  loop_id: string
+  slot_date: string       // ISO date
+  slot_time: string       // "HH:MM"
+  capacity: number
+  booked_count: number
+  slot_type: SlotType
+  price_pence: number
+  created_at: string
+}
+
+export interface TeeSlotWithLoop extends TeeSlot {
+  course_loops: Pick<CourseLoop, 'name' | 'colour_hex'>
+}
+
+export interface Booking {
+  id: string
+  tee_slot_id: string
+  user_id: string
+  guests: number
+  status: BookingStatus
+  payment_id: string | null
+  notes: string | null
+  created_at: string
+  cancelled_at: string | null
+}
+
+export interface BookingWithSlot extends Booking {
+  tee_slots: Pick<TeeSlot, 'slot_date' | 'slot_time' | 'loop_id'>
+  users?: Pick<User, 'display_name' | 'email'>
+}
+
+export interface ClubCompetition {
+  id: string
+  club_id: string
+  name: string
+  competition_date: string  // ISO date
+  format: 'stableford' | 'strokeplay' | 'matchplay' | 'texas_scramble' | 'pairs_betterball'
+  loop_ids: string[]
+  entry_fee_pence: number
+  max_entries: number | null
+  entries_count: number
+  notes: string | null
+  status: 'scheduled' | 'entries_open' | 'closed' | 'in_progress' | 'completed' | 'cancelled'
+  created_at: string
+}
