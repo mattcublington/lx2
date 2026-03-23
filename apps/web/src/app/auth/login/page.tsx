@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 
 function AuthForm() {
   const searchParams = useSearchParams()
-  const redirect = searchParams.get('redirect') ?? '/events/new'
+  const redirect = searchParams.get('redirect') ?? '/play'
   const initialMode = searchParams.get('mode') === 'signup' ? 'signup' : 'signin'
 
   const [mode, setMode] = useState<'signin' | 'signup'>(initialMode)
