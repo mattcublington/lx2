@@ -99,14 +99,14 @@ const modules: Record<string, Module> = {
   player_home: {
     id: 'player_home', name: 'Player home (/play)', phase: 'mvp', tier: 'player-web',
     status: 'done', surface: 'player',
-    sub: 'Round history, start new round — golfer entry point',
-    desc: 'The authenticated golfer home. Phase 1: dark premium header, recent rounds list with format colour accents, "Start a new round" CTA. Phase 2: Strava-style stats dashboard with handicap trend, performance analytics. Live at lx2.golf/play.',
+    sub: 'Golfer entry point — handicap, rounds, start/join',
+    desc: 'The authenticated golfer home. Mobile-first (min-width: 768px only). Dark hero-photo header with gradient overlay, LX2 logo, time-of-day greeting, DM Serif Display name, handicap index pill and total rounds count. Single full-width "Start a new round" CTA (or "Join ongoing round" if activeRoundId set) with LX2 mark icon. Recent rounds list: event name primary, format accent tag, course + tee combo secondary. Fixed bottom nav on mobile. Phase 2: Strava-style handicap trend and stats. Live at lx2.golf/play.',
     deps: ['auth', 'event_create'],
     data: ['users', 'scorecards', 'events'],
     liveUrl: `${APP}/play`, prdUrl: null,
     codeUrl: `${GITHUB}/apps/web/src/app/play/PlayDashboard.tsx`,
-    features: ['Dark premium header (#0a1f0a) with radial gradient + dot texture', 'LX2 logo + user initials avatar', 'Time-of-day greeting, DM Serif Display name', '"Start a new round" CTA card overlapping header', 'Recent rounds list — format colour accent bar (green/blue/amber)', 'Round links to /rounds/[id]/score', 'Sign out'],
-    tech: 'Next.js server component (page.tsx) + client PlayDashboard. DM Serif Display + DM Sans. Supabase join: rounds → events → courses.',
+    features: ['Dark hero-photo header (hero.png) with gradient overlay', 'LX2 logo + time-of-day greeting, DM Serif Display name', 'Handicap index pill + total rounds count in header stats strip', '"Start a new round" / "Join ongoing round" — single full-width CTA with LX2 mark icon', 'Bottom nav: Home / Play (LX2 mark) / Stats / Profile — mobile only', 'Recent rounds: event name primary, format accent tag (green/blue/amber), course + combo secondary', 'Mobile-first CSS — base styles at 375px, enhancements at min-width: 768px only', 'Round rows link to /rounds/[id]/score; sign out on desktop'],
+    tech: 'Next.js server component (page.tsx fetches handicap_index + roundsCount) + client PlayDashboard. DM Serif Display + DM Sans. Supabase join: scorecards → events → courses + course_combinations. lx2-mark.png extracted from lx2-logo.svg.',
   },
   player_profile: {
     id: 'player_profile', name: 'Player profile', phase: 'soon', tier: 'player-web',

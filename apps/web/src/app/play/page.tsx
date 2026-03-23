@@ -8,10 +8,10 @@ export default async function PlayPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  // Fetch user profile
+  // Fetch user profile (including handicap index)
   const { data: profile } = await supabase
     .from('users')
-    .select('display_name, email')
+    .select('display_name, email, handicap_index')
     .eq('id', user.id)
     .single()
 
@@ -41,6 +41,12 @@ export default async function PlayPage() {
     .order('created_at', { ascending: false })
     .limit(5)
 
+  // Total rounds played by this user
+  const { count: roundsCount } = await supabase
+    .from('scorecards')
+    .select('id, event_players!inner(user_id)', { count: 'exact', head: true })
+    .eq('event_players.user_id', user.id)
+
   type RoundRow = {
     id: string
     created_at: string
@@ -67,6 +73,8 @@ export default async function PlayPage() {
       userId={user.id}
       displayName={displayName}
       rounds={rounds}
+      handicapIndex={profile?.handicap_index ?? null}
+      roundsCount={roundsCount ?? 0}
     />
   )
 }
