@@ -67,8 +67,6 @@ export default function PlayDashboard({ displayName, rounds }: Props) {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap');
-
         .play-dash { min-height: 100dvh; background: #F2F5F0; font-family: 'DM Sans', system-ui, sans-serif; color: #1A2E1A; }
 
         /* ── Header ── */
