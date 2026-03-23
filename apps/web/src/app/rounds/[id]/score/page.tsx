@@ -21,6 +21,7 @@ export interface GroupPlayer {
 
 interface PageProps {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ hole?: string }>
 }
 
 
@@ -46,8 +47,10 @@ function ErrorCard({ title, body, retry }: { title: string; body: string; retry?
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default async function ScorePage({ params }: PageProps) {
+export default async function ScorePage({ params, searchParams }: PageProps) {
   const { id } = await params
+  const { hole: holeParam } = await searchParams
+  const initialHole = holeParam ? Math.max(0, parseInt(holeParam, 10) - 1) : 0
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -318,6 +321,7 @@ export default async function ScorePage({ params }: PageProps) {
       eventName={event.name}
       eventDate={event.date}
       groupPlayers={groupPlayers}
+      initialHole={initialHole}
     />
   )
 }

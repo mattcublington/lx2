@@ -21,12 +21,24 @@ export default async function NewRoundPage() {
     .select('id, name, par, holes, course_id, courses(name, club)')
     .order('name')
 
+  const { data: comboTees } = await supabase
+    .from('combination_tees')
+    .select('combination_id, tee_colour, gender, slope_rating, course_rating')
+
   type DbCombo = {
     id: string
     name: string
     par: number
     holes: number
     course_id: string
+  }
+
+  type CombinationTee = {
+    combination_id: string
+    tee_colour: string
+    gender: string
+    slope_rating: number
+    course_rating: number
   }
 
   const combinations: DbCombo[] = (dbCombos ?? []) as unknown as DbCombo[]
@@ -37,6 +49,7 @@ export default async function NewRoundPage() {
       displayName={profile?.display_name ?? user.email?.split('@')[0] ?? 'Golfer'}
       handicapIndex={profile?.handicap_index ?? null}
       dbCombinations={combinations}
+      combinationTees={(comboTees ?? []) as CombinationTee[]}
     />
   )
 }

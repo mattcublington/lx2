@@ -22,6 +22,7 @@ export interface Props {
   eventName: string
   eventDate: string
   groupPlayers: GroupPlayer[]
+  initialHole?: number
 }
 
 interface State {
@@ -71,13 +72,18 @@ function pts(gross: number, par: number, hcShots: number): number {
   return d >= 2 ? 0 : d === 1 ? 1 : d === 0 ? 2 : d === -1 ? 3 : d === -2 ? 4 : 5
 }
 
-function ptsLabel(p: number): string {
-  return p === 0 ? '0pts · blob'
-    : p === 1 ? '1pt · bogey'
-    : p === 2 ? '2pts · par'
-    : p === 3 ? '3pts · birdie'
-    : p === 4 ? '4pts · eagle'
-    : '5pts!'
+function ptsLabel(p: number, gross: number, par: number, hcShots: number): string {
+  const net = gross - hcShots
+  const diff = net - par
+  const term = diff <= -3 ? 'albatross'
+    : diff === -2 ? 'eagle'
+    : diff === -1 ? 'birdie'
+    : diff === 0 ? 'par'
+    : diff === 1 ? 'bogey'
+    : diff === 2 ? 'double'
+    : 'triple+'
+  if (p === 0) return `blob · net ${net}`
+  return `${p === 1 ? '1pt' : p + 'pts'} · net ${term}`
 }
 
 // ─── Reducer ─────────────────────────────────────────────────────────────────
@@ -168,6 +174,7 @@ export default function ScoreEntryLive(props: Props) {
     scorecardId, playerName, handicapIndex, format, allowancePct,
     holes, initialScores, initialPickups, ntpHoles, ldHoles,
     selectedTee, eventName, eventDate, groupPlayers,
+    initialHole = 0,
   } = props
 
   const router = useRouter()
@@ -186,7 +193,7 @@ export default function ScoreEntryLive(props: Props) {
   const maxIdx = holes.length - 1
 
   const [s, d] = useReducer(reducer, {
-    hole: 0,
+    hole: initialHole,
     scores: initialScores,
     pickups: initialPickups,
     showNTP: false,
@@ -357,7 +364,7 @@ export default function ScoreEntryLive(props: Props) {
     persistScore(hole.holeInRound, value)
 
     if (format === 'stableford') {
-      setFlash({ label: ptsLabel(p), color: p >= 3 ? '#3a7d44' : p === 0 ? '#b43c3c' : '#6b7c6b' })
+      setFlash({ label: ptsLabel(p, value, hole.par, hcOnHole), color: p >= 3 ? '#3a7d44' : p === 0 ? '#b43c3c' : '#6b7c6b' })
       if (flashTimer.current) clearTimeout(flashTimer.current)
       flashTimer.current = setTimeout(() => setFlash(null), 800)
     }
@@ -390,6 +397,19 @@ export default function ScoreEntryLive(props: Props) {
       // Use a local flag approach: trigger contest overlay inline
       setShowContestOverlay(true)
       return
+    }
+    // Marker mode: if multiple players and someone on this hole hasn't been scored yet,
+    // navigate to them before advancing. liveScores keyed by scorecardId + holeInRound.
+    if (groupPlayers.length > 1) {
+      const currentHoleNum = hole.holeInRound
+      const nextUnscored = groupPlayers.find(p => {
+        if (!p.scorecardId || p.scorecardId === scorecardId) return false
+        return !(currentHoleNum in (liveScores[p.scorecardId] ?? {}))
+      })
+      if (nextUnscored) {
+        router.push(`/rounds/${nextUnscored.scorecardId}/score?hole=${currentHoleNum}`)
+        return
+      }
     }
     d({ type: 'NEXT', maxIdx })
   }

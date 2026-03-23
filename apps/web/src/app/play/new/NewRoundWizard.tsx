@@ -15,11 +15,20 @@ interface DbCombo {
   course_id: string
 }
 
+interface CombinationTee {
+  combination_id: string
+  tee_colour: string
+  gender: string
+  slope_rating: number
+  course_rating: number
+}
+
 interface Props {
   userId: string
   displayName: string
   handicapIndex: number | null
   dbCombinations: DbCombo[] | null
+  combinationTees: CombinationTee[]
 }
 
 type Step = 'venue' | 'combination' | 'players' | 'settings'
@@ -59,6 +68,18 @@ const TEE_SWATCH: Record<string, { bg: string; border?: string; text: string }> 
   'Blue':          { bg: '#2563eb', text: '#fff' },
   'Orange':        { bg: '#ea580c', text: '#fff' },
   'Gold':          { bg: '#b45309', text: '#fff' },
+}
+
+// Maps wizard tee display names → combination_tees.tee_colour values
+const TEE_TO_DB_COLOUR: Record<string, string> = {
+  'Green':         'Green',
+  'White':         'White',
+  'Yellow/Purple': 'Purple',
+  'Red/Black':     'Black',
+  'Yellow':        'Yellow',
+  'Purple':        'Purple',
+  'Black':         'Black',
+  'Red':           'Red',
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -623,11 +644,13 @@ function SettingsStep({
   onUpdate,
   onSubmit,
   submitting,
+  combinationTees,
 }: {
   state: WizardState
   onUpdate: (partial: Partial<WizardState>) => void
   onSubmit: () => void
   submitting: boolean
+  combinationTees: CombinationTee[]
 }) {
   const [advOpen, setAdvOpen] = useState(false)
   const course = getCourse(state.courseId)
@@ -715,10 +738,21 @@ function SettingsStep({
 
       {/* CR / Slope strip */}
       {hasCourseRating && (() => {
-        const isExactTee = state.tee === course.defaultRatingTee
-        const teeLabel = isExactTee
-          ? `${course.defaultRatingTee} · Men`
-          : `${course.defaultRatingTee} · Men`  // same label either way
+        // Look up per-tee CR/slope from combination_tees if available
+        const dbColour = TEE_TO_DB_COLOUR[state.tee] ?? state.tee
+        const teeCrSlope = state.dbCombinationId
+          ? combinationTees.find(t =>
+              t.combination_id === state.dbCombinationId &&
+              t.tee_colour === dbColour &&
+              t.gender === 'm'
+            )
+          : undefined
+        const displayCR = teeCrSlope ? teeCrSlope.course_rating : course.courseRating
+        const displaySlope = teeCrSlope ? teeCrSlope.slope_rating : course.slopeRating
+        const teeLabel = teeCrSlope
+          ? `${state.tee} · Men`
+          : `${course.defaultRatingTee} · Men`
+        const isExactTee = teeCrSlope != null
         return (
           <div style={{
             display: 'flex', gap: 16, marginBottom: 20,
@@ -729,12 +763,12 @@ function SettingsStep({
             <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#9aaa9a', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Course Rating</span>
-                <span style={{ fontSize: '1rem', fontWeight: 700, color: '#1A2E1A', fontFamily: "'DM Sans', sans-serif" }}>{course.courseRating.toFixed(1)}</span>
+                <span style={{ fontSize: '1rem', fontWeight: 700, color: '#1A2E1A', fontFamily: "'DM Sans', sans-serif" }}>{typeof displayCR === 'number' ? displayCR.toFixed(1) : displayCR}</span>
               </div>
               <div style={{ width: 1, background: '#D4EAD8', alignSelf: 'stretch' }} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#9aaa9a', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Slope</span>
-                <span style={{ fontSize: '1rem', fontWeight: 700, color: '#1A2E1A', fontFamily: "'DM Sans', sans-serif" }}>{course.slopeRating}</span>
+                <span style={{ fontSize: '1rem', fontWeight: 700, color: '#1A2E1A', fontFamily: "'DM Sans', sans-serif" }}>{displaySlope}</span>
               </div>
               <div style={{ marginLeft: 'auto', fontSize: '0.6875rem', color: '#9aaa9a', alignSelf: 'center', textAlign: 'right' }}>
                 {teeLabel}
@@ -914,7 +948,7 @@ function SettingsStep({
 
 // ── Main wizard ────────────────────────────────────────────────────────────────
 
-export default function NewRoundWizard({ displayName, handicapIndex, dbCombinations }: Props) {
+export default function NewRoundWizard({ displayName, handicapIndex, dbCombinations, combinationTees }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -1076,6 +1110,7 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
                 onUpdate={update}
                 onSubmit={handleSubmit}
                 submitting={isPending}
+                combinationTees={combinationTees}
               />
             )}
           </div>
