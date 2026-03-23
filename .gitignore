@@ -41,3 +41,4 @@ coverage
 # Supabase local
 supabase/.branches
 supabase/.temp
+.superpowers/
