@@ -325,6 +325,18 @@ export default async function EventPage({ params }: PageProps) {
                 </Link>
               </div>
             )}
+
+            {/* Leaderboard link — Stableford and Stroke Play only */}
+            {event.format !== 'matchplay' && (
+              <div style={{ marginTop: isOrganiser ? 8 : 16, textAlign: 'center' }}>
+                <Link
+                  href={`/events/${id}/leaderboard`}
+                  style={{ fontSize: '0.875rem', color: '#0D631B', fontWeight: 500, fontFamily: 'var(--font-dm-sans), sans-serif', textDecoration: 'none' }}
+                >
+                  📊 Live Leaderboard →
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* ── Players card ── */}
