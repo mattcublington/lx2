@@ -1,10 +1,14 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // seed-cumberwell.ts
 //
-// Reads Cumberwell Park scorecard data from the source JSON and upserts
-// all loops, holes, tees, and combinations into Supabase.
+// Idempotent seed script for Cumberwell Park Golf Club.
 //
-// The script is fully idempotent — safe to re-run at any time.
+// Data sources:
+//   • apps/web/src/lib/courses.ts (hole par, SI, Yellow/Purple yardages)
+//   • USGA NCRDB CourseIDs 22312–22317 (WHS slope/course ratings)
+//
+// The JSON file (cumberwell_scorecards_v3.json) referenced in earlier comments
+// is no longer required — all data is embedded here and in courses.ts.
 //
 // Run with:
 //   npx tsx packages/db/scripts/seed-cumberwell.ts
@@ -19,7 +23,6 @@ import { createClient } from "@supabase/supabase-js";
 
 // ─── 1. Load environment variables ───────────────────────────────────────────
 
-// Resolve from the repo root regardless of where the script is invoked
 const repoRoot = path.resolve(__dirname, "../../..");
 const envPath = path.join(repoRoot, "apps/web/.env.local");
 
@@ -33,25 +36,9 @@ dotenv.config({ path: envPath });
 const SUPABASE_URL = process.env["NEXT_PUBLIC_SUPABASE_URL"];
 const SERVICE_ROLE_KEY = process.env["SUPABASE_SERVICE_ROLE_KEY"];
 
-if (!SUPABASE_URL) {
+if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
   console.error(
-    "❌  NEXT_PUBLIC_SUPABASE_URL is missing from apps/web/.env.local"
-  );
-  process.exit(1);
-}
-
-if (!SERVICE_ROLE_KEY) {
-  console.error(
-    [
-      "❌  SUPABASE_SERVICE_ROLE_KEY is missing from apps/web/.env.local",
-      "",
-      "  This key is required to bypass Row Level Security during seeding.",
-      "  Find it in your Supabase dashboard:",
-      "    Project Settings → API → Project API keys → service_role",
-      "",
-      "  Add it to apps/web/.env.local as:",
-      "    SUPABASE_SERVICE_ROLE_KEY=eyJ...",
-    ].join("\n")
+    "❌  NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY missing from apps/web/.env.local"
   );
   process.exit(1);
 }
@@ -59,233 +46,294 @@ if (!SERVICE_ROLE_KEY) {
 // ─── 2. Supabase client (service role — bypasses RLS) ────────────────────────
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
-  auth: {
-    persistSession: false,
-    autoRefreshToken: false,
-    detectSessionInUrl: false,
-  },
+  auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
 });
 
-// ─── 3. Types matching the JSON structure ────────────────────────────────────
+// ─── 3. Fixed loop UUIDs (stable across all environments) ────────────────────
+//
+// Declared as constants so they can be referenced in DO $$ blocks via SQL
+// migrations (packages/db/migrations/golfer/003_golfer_seed_cumberwell_loops.sql).
+// Never change these — any event with combination_id relies on them.
 
-interface HoleDataRYBO {
+const LOOP_ID = {
+  Red:    "10000000-0000-0000-0000-000000000001",
+  Yellow: "10000000-0000-0000-0000-000000000002",
+  Blue:   "10000000-0000-0000-0000-000000000003",
+  Orange: "10000000-0000-0000-0000-000000000004",
+  White:  "10000000-0000-0000-0000-000000000005",
+  Par3:   "10000000-0000-0000-0000-000000000006",
+} as const;
+
+// ─── 4. Loop definitions ──────────────────────────────────────────────────────
+
+const LOOPS: Array<{ id: string; name: string; notes: string }> = [
+  { id: LOOP_ID.Red,    name: "Red",    notes: "Cumberwell Park — Red loop"    },
+  { id: LOOP_ID.Yellow, name: "Yellow", notes: "Cumberwell Park — Yellow loop" },
+  { id: LOOP_ID.Blue,   name: "Blue",   notes: "Cumberwell Park — Blue loop"   },
+  { id: LOOP_ID.Orange, name: "Orange", notes: "Cumberwell Park — Orange loop" },
+  { id: LOOP_ID.White,  name: "White",  notes: "Cumberwell Park — White loop"  },
+  { id: LOOP_ID.Par3,   name: "Par 3",  notes: "Cumberwell Park — Par 3 loop"  },
+];
+
+// ─── 5. Loop hole data (par + si_m + Yellow/Purple yards) ─────────────────────
+//
+// Source: apps/web/src/lib/courses.ts
+// SI values are the within-combination stroke indices from the scorecard.
+// Yellow/Purple yards are the only tee recorded here; other tee colours
+// require the source JSON which is not currently available.
+
+interface LoopHoleDef {
+  loopId: string;
   hole: number;
   par: number;
-  si_m: number;
-  si_w: number;
-  green: number;
-  white: number;
-  yellow: number;
-  red: number;
+  siM: number | null;  // null = no WHS index (Par 3 loop)
+  yards: number;        // Yellow/Purple tee
 }
 
-interface HoleDataWhite {
-  hole: number;
+const LOOP_HOLES: LoopHoleDef[] = [
+  // ── Red loop ──────────────────────────────────────────────────────────────
+  { loopId: LOOP_ID.Red, hole: 1, par: 4, siM:  9, yards: 380 },
+  { loopId: LOOP_ID.Red, hole: 2, par: 4, siM:  5, yards: 432 },
+  { loopId: LOOP_ID.Red, hole: 3, par: 3, siM: 17, yards: 142 },
+  { loopId: LOOP_ID.Red, hole: 4, par: 4, siM: 11, yards: 376 },
+  { loopId: LOOP_ID.Red, hole: 5, par: 4, siM: 13, yards: 318 },
+  { loopId: LOOP_ID.Red, hole: 6, par: 4, siM:  3, yards: 390 },
+  { loopId: LOOP_ID.Red, hole: 7, par: 3, siM: 15, yards: 132 },
+  { loopId: LOOP_ID.Red, hole: 8, par: 4, siM:  1, yards: 397 },
+  { loopId: LOOP_ID.Red, hole: 9, par: 5, siM:  7, yards: 561 },
+  // ── Yellow loop ───────────────────────────────────────────────────────────
+  { loopId: LOOP_ID.Yellow, hole: 1, par: 4, siM: 18, yards: 285 },
+  { loopId: LOOP_ID.Yellow, hole: 2, par: 5, siM: 10, yards: 478 },
+  { loopId: LOOP_ID.Yellow, hole: 3, par: 5, siM:  6, yards: 492 },
+  { loopId: LOOP_ID.Yellow, hole: 4, par: 3, siM: 16, yards: 164 },
+  { loopId: LOOP_ID.Yellow, hole: 5, par: 4, siM:  4, yards: 356 },
+  { loopId: LOOP_ID.Yellow, hole: 6, par: 4, siM:  2, yards: 450 },
+  { loopId: LOOP_ID.Yellow, hole: 7, par: 3, siM: 12, yards: 144 },
+  { loopId: LOOP_ID.Yellow, hole: 8, par: 4, siM: 14, yards: 283 },
+  { loopId: LOOP_ID.Yellow, hole: 9, par: 4, siM:  8, yards: 343 },
+  // ── Blue loop ─────────────────────────────────────────────────────────────
+  { loopId: LOOP_ID.Blue, hole: 1, par: 5, siM:  5, yards: 526 },
+  { loopId: LOOP_ID.Blue, hole: 2, par: 4, siM:  1, yards: 396 },
+  { loopId: LOOP_ID.Blue, hole: 3, par: 4, siM: 15, yards: 331 },
+  { loopId: LOOP_ID.Blue, hole: 4, par: 4, siM: 13, yards: 306 },
+  { loopId: LOOP_ID.Blue, hole: 5, par: 4, siM:  3, yards: 383 },
+  { loopId: LOOP_ID.Blue, hole: 6, par: 3, siM: 17, yards: 135 },
+  { loopId: LOOP_ID.Blue, hole: 7, par: 4, siM:  7, yards: 391 },
+  { loopId: LOOP_ID.Blue, hole: 8, par: 3, siM:  9, yards: 172 },
+  { loopId: LOOP_ID.Blue, hole: 9, par: 5, siM: 11, yards: 440 },
+  // ── Orange loop ───────────────────────────────────────────────────────────
+  { loopId: LOOP_ID.Orange, hole: 1, par: 4, siM: 18, yards: 285 },
+  { loopId: LOOP_ID.Orange, hole: 2, par: 4, siM: 10, yards: 380 },
+  { loopId: LOOP_ID.Orange, hole: 3, par: 4, siM:  6, yards: 432 },
+  { loopId: LOOP_ID.Orange, hole: 4, par: 3, siM: 16, yards: 142 },
+  { loopId: LOOP_ID.Orange, hole: 5, par: 4, siM: 12, yards: 376 },
+  { loopId: LOOP_ID.Orange, hole: 6, par: 4, siM: 14, yards: 318 },
+  { loopId: LOOP_ID.Orange, hole: 7, par: 4, siM:  4, yards: 390 },
+  { loopId: LOOP_ID.Orange, hole: 8, par: 3, siM:  8, yards: 132 },
+  { loopId: LOOP_ID.Orange, hole: 9, par: 5, siM:  2, yards: 397 },
+  // ── White loop ────────────────────────────────────────────────────────────
+  // SI from White/White scorecard; Green tees used as Yellow tee equivalent.
+  { loopId: LOOP_ID.White, hole: 1, par: 4, siM: 15, yards: 267 },
+  { loopId: LOOP_ID.White, hole: 2, par: 5, siM:  3, yards: 477 },
+  { loopId: LOOP_ID.White, hole: 3, par: 4, siM:  7, yards: 380 },
+  { loopId: LOOP_ID.White, hole: 4, par: 3, siM: 11, yards: 179 },
+  { loopId: LOOP_ID.White, hole: 5, par: 4, siM:  9, yards: 347 },
+  { loopId: LOOP_ID.White, hole: 6, par: 4, siM:  1, yards: 465 },
+  { loopId: LOOP_ID.White, hole: 7, par: 4, siM: 13, yards: 306 },
+  { loopId: LOOP_ID.White, hole: 8, par: 4, siM:  5, yards: 355 },
+  { loopId: LOOP_ID.White, hole: 9, par: 3, siM: 17, yards: 159 },
+  // ── Par 3 loop ────────────────────────────────────────────────────────────
+  // No WHS stroke index — hole number used as SI.
+  { loopId: LOOP_ID.Par3, hole: 1, par: 3, siM: null, yards: 109 },
+  { loopId: LOOP_ID.Par3, hole: 2, par: 3, siM: null, yards: 165 },
+  { loopId: LOOP_ID.Par3, hole: 3, par: 3, siM: null, yards: 141 },
+  { loopId: LOOP_ID.Par3, hole: 4, par: 3, siM: null, yards: 186 },
+  { loopId: LOOP_ID.Par3, hole: 5, par: 3, siM: null, yards: 180 },
+  { loopId: LOOP_ID.Par3, hole: 6, par: 3, siM: null, yards: 164 },
+  { loopId: LOOP_ID.Par3, hole: 7, par: 3, siM: null, yards: 172 },
+  { loopId: LOOP_ID.Par3, hole: 8, par: 3, siM: null, yards: 144 },
+  { loopId: LOOP_ID.Par3, hole: 9, par: 3, siM: null, yards: 150 },
+];
+
+// ─── 6. Course combinations (16 total) ───────────────────────────────────────
+
+interface ComboDef {
+  name: string;          // matches public.courses.name exactly
   par: number;
-  si: number;
-  green: number;
-  white: number;
-  purple: number;
-  black: number;
+  loop1Id: string;
+  loop2Id: string;
 }
 
-interface HoleDataPar3 {
-  hole: number;
-  par: number;
-  purple: number;
-  orange: number;
-  blue: number;
-}
+const COMBINATIONS: ComboDef[] = [
+  { name: "Cumberwell Park — Red/Yellow",    par: 71, loop1Id: LOOP_ID.Red,    loop2Id: LOOP_ID.Yellow },
+  { name: "Cumberwell Park — Yellow/Red",    par: 71, loop1Id: LOOP_ID.Yellow, loop2Id: LOOP_ID.Red    },
+  { name: "Cumberwell Park — Blue/Orange",   par: 71, loop1Id: LOOP_ID.Blue,   loop2Id: LOOP_ID.Orange },
+  { name: "Cumberwell Park — Orange/Blue",   par: 71, loop1Id: LOOP_ID.Orange, loop2Id: LOOP_ID.Blue   },
+  { name: "Cumberwell Park — Red/Blue",      par: 71, loop1Id: LOOP_ID.Red,    loop2Id: LOOP_ID.Blue   },
+  { name: "Cumberwell Park — Blue/Red",      par: 71, loop1Id: LOOP_ID.Blue,   loop2Id: LOOP_ID.Red    },
+  { name: "Cumberwell Park — Blue/Yellow",   par: 72, loop1Id: LOOP_ID.Blue,   loop2Id: LOOP_ID.Yellow },
+  { name: "Cumberwell Park — Yellow/Blue",   par: 72, loop1Id: LOOP_ID.Yellow, loop2Id: LOOP_ID.Blue   },
+  { name: "Cumberwell Park — Orange/Yellow", par: 71, loop1Id: LOOP_ID.Orange, loop2Id: LOOP_ID.Yellow },
+  { name: "Cumberwell Park — Yellow/Orange", par: 71, loop1Id: LOOP_ID.Yellow, loop2Id: LOOP_ID.Orange },
+  { name: "Cumberwell Park — Red/Orange",    par: 71, loop1Id: LOOP_ID.Red,    loop2Id: LOOP_ID.Orange },
+  { name: "Cumberwell Park — Orange/Red",    par: 71, loop1Id: LOOP_ID.Orange, loop2Id: LOOP_ID.Red    },
+  { name: "Cumberwell Park — White/White",   par: 70, loop1Id: LOOP_ID.White,  loop2Id: LOOP_ID.White  },
+  { name: "Cumberwell Park — Par 3/Par 3",   par: 54, loop1Id: LOOP_ID.Par3,   loop2Id: LOOP_ID.Par3   },
+  { name: "Cumberwell Park — White/Par 3",   par: 62, loop1Id: LOOP_ID.White,  loop2Id: LOOP_ID.Par3   },
+  { name: "Cumberwell Park — Par 3/White",   par: 62, loop1Id: LOOP_ID.Par3,   loop2Id: LOOP_ID.White  },
+];
 
-interface LoopBase {
-  holes: number;
-  notes: string;
-}
-
-interface LoopRYBO extends LoopBase {
-  holes_data: HoleDataRYBO[];
-}
-
-interface LoopWhite extends LoopBase {
-  course_ratings: Record<string, { cr: number; slope: number }>;
-  holes_data: HoleDataWhite[];
-}
-
-interface LoopPar3 extends LoopBase {
-  holes_data: HoleDataPar3[];
-}
-
-interface CombinationData {
-  par: number;
-  holes: number;
-  loops: [string, string];
-  loop_order: string;
-  notes?: string;
-}
-
-interface ScorecardJson {
-  club: string;
-  address: string;
-  source: string;
-  loops: {
-    Red: LoopRYBO;
-    Yellow: LoopRYBO;
-    Blue: LoopRYBO;
-    Orange: LoopRYBO;
-    White: LoopWhite;
-    "Par 3": LoopPar3;
-  };
-  combinations: Record<string, CombinationData>;
-}
-
-// ─── 4. Load source JSON ─────────────────────────────────────────────────────
-
-const jsonPath = path.join(
-  process.env["HOME"] ?? "",
-  "Downloads/cumberwell_scorecards_v3.json"
-);
-
-if (!fs.existsSync(jsonPath)) {
-  console.error(`❌  Cannot find scorecard JSON at: ${jsonPath}`);
-  process.exit(1);
-}
-
-const raw = fs.readFileSync(jsonPath, "utf-8");
-const data = JSON.parse(raw) as ScorecardJson;
-
-// ─── 5. WHS combination_tees data (hardcoded from known ratings) ─────────────
+// ─── 7. WHS combination_tees (slope + course rating per tee + gender) ────────
+//
+// Source: USGA National Course Rating Database (ncrdb.usga.org)
+//   Red & Yellow    → CourseID 22312
+//   Yellow & Blue   → CourseID 22313
+//   Blue & Red      → CourseID 22314
+//   Red & Orange    → CourseID 22315
+//   Orange & Yellow → CourseID 22316
+//   Blue & Orange   → CourseID 22317
+//   White & White   → verified separately
+//
+// Both orderings (e.g. Red-Yellow AND Yellow-Red) share the same rating.
+//
+// Tee colour mapping at Cumberwell:
+//   Green  = Medal / Competition (longest)
+//   White  = Club standard
+//   Yellow/Purple = Mid / accessible
+//   Red/Black     = Forward
 
 interface WHS {
-  tee_colour: string;
+  teeColour: string;
   gender: "m" | "w";
-  slope_rating: number;
-  course_rating: number;
+  slopeRating: number;
+  courseRating: number;
 }
 
-/**
- * WHS slope/course-rating data per combination name.
- * Source: USGA National Course Rating Database (ncrdb.usga.org)
- *   Red & Yellow    → CourseID 22312
- *   Yellow & Blue   → CourseID 22313
- *   Blue & Red      → CourseID 22314
- *   Red & Orange    → CourseID 22315
- *   Orange & Yellow → CourseID 22316
- *   Blue & Orange   → CourseID 22317
- *   White & White   → CourseID (verified separately, Bradford-on-Avon)
- *
- * Both loop orderings (e.g. Red-Yellow AND Yellow-Red) share the same rating —
- * the 18 holes are identical, only the sequence differs.
- *
- * Tee colour mapping at Cumberwell:
- *   Green  = Medal / Competition (longest)
- *   White  = Club standard
- *   Purple = Yellow equivalent (mid)
- *   Black  = Forward / accessible
- */
-const whsByCombination: Record<string, WHS[]> = {
+const WHS_BY_COMBO_NAME: Record<string, WHS[]> = {
   // ── Red & Yellow (USGA 22312) ─────────────────────────────────────────────
-  "Red-Yellow": [
-    { tee_colour: "Green",         gender: "m", slope_rating: 130, course_rating: 72.5 },
-    { tee_colour: "White",         gender: "m", slope_rating: 126, course_rating: 71.0 },
-    { tee_colour: "Yellow/Purple", gender: "m", slope_rating: 123, course_rating: 69.5 },
-    { tee_colour: "Red/Black",     gender: "m", slope_rating: 112, course_rating: 66.7 },
-    { tee_colour: "Red/Black",     gender: "w", slope_rating: 133, course_rating: 71.8 },
+  "Cumberwell Park — Red/Yellow": [
+    { teeColour: "Green",         gender: "m", slopeRating: 130, courseRating: 72.5 },
+    { teeColour: "White",         gender: "m", slopeRating: 126, courseRating: 71.0 },
+    { teeColour: "Yellow/Purple", gender: "m", slopeRating: 123, courseRating: 69.5 },
+    { teeColour: "Red/Black",     gender: "m", slopeRating: 112, courseRating: 66.7 },
+    { teeColour: "Red/Black",     gender: "w", slopeRating: 133, courseRating: 71.8 },
   ],
-  "Yellow-Red": [
-    { tee_colour: "Green",         gender: "m", slope_rating: 130, course_rating: 72.5 },
-    { tee_colour: "White",         gender: "m", slope_rating: 126, course_rating: 71.0 },
-    { tee_colour: "Yellow/Purple", gender: "m", slope_rating: 123, course_rating: 69.5 },
-    { tee_colour: "Red/Black",     gender: "m", slope_rating: 112, course_rating: 66.7 },
-    { tee_colour: "Red/Black",     gender: "w", slope_rating: 133, course_rating: 71.8 },
+  "Cumberwell Park — Yellow/Red": [
+    { teeColour: "Green",         gender: "m", slopeRating: 130, courseRating: 72.5 },
+    { teeColour: "White",         gender: "m", slopeRating: 126, courseRating: 71.0 },
+    { teeColour: "Yellow/Purple", gender: "m", slopeRating: 123, courseRating: 69.5 },
+    { teeColour: "Red/Black",     gender: "m", slopeRating: 112, courseRating: 66.7 },
+    { teeColour: "Red/Black",     gender: "w", slopeRating: 133, courseRating: 71.8 },
   ],
   // ── Yellow & Blue (USGA 22313) ────────────────────────────────────────────
-  "Yellow-Blue": [
-    { tee_colour: "Green",         gender: "m", slope_rating: 132, course_rating: 73.3 },
-    { tee_colour: "White",         gender: "m", slope_rating: 129, course_rating: 71.5 },
-    { tee_colour: "Yellow/Purple", gender: "m", slope_rating: 125, course_rating: 69.7 },
-    { tee_colour: "Red/Black",     gender: "m", slope_rating: 114, course_rating: 67.1 },
-    { tee_colour: "Red/Black",     gender: "w", slope_rating: 134, course_rating: 72.3 },
+  "Cumberwell Park — Yellow/Blue": [
+    { teeColour: "Green",         gender: "m", slopeRating: 132, courseRating: 73.3 },
+    { teeColour: "White",         gender: "m", slopeRating: 129, courseRating: 71.5 },
+    { teeColour: "Yellow/Purple", gender: "m", slopeRating: 125, courseRating: 69.7 },
+    { teeColour: "Red/Black",     gender: "m", slopeRating: 114, courseRating: 67.1 },
+    { teeColour: "Red/Black",     gender: "w", slopeRating: 134, courseRating: 72.3 },
   ],
-  "Blue-Yellow": [
-    { tee_colour: "Green",         gender: "m", slope_rating: 132, course_rating: 73.3 },
-    { tee_colour: "White",         gender: "m", slope_rating: 129, course_rating: 71.5 },
-    { tee_colour: "Yellow/Purple", gender: "m", slope_rating: 125, course_rating: 69.7 },
-    { tee_colour: "Red/Black",     gender: "m", slope_rating: 114, course_rating: 67.1 },
-    { tee_colour: "Red/Black",     gender: "w", slope_rating: 134, course_rating: 72.3 },
+  "Cumberwell Park — Blue/Yellow": [
+    { teeColour: "Green",         gender: "m", slopeRating: 132, courseRating: 73.3 },
+    { teeColour: "White",         gender: "m", slopeRating: 129, courseRating: 71.5 },
+    { teeColour: "Yellow/Purple", gender: "m", slopeRating: 125, courseRating: 69.7 },
+    { teeColour: "Red/Black",     gender: "m", slopeRating: 114, courseRating: 67.1 },
+    { teeColour: "Red/Black",     gender: "w", slopeRating: 134, courseRating: 72.3 },
   ],
   // ── Blue & Red (USGA 22314) ───────────────────────────────────────────────
-  "Blue-Red": [
-    { tee_colour: "Green",         gender: "m", slope_rating: 131, course_rating: 74.4 },
-    { tee_colour: "White",         gender: "m", slope_rating: 126, course_rating: 72.5 },
-    { tee_colour: "Yellow/Purple", gender: "m", slope_rating: 124, course_rating: 70.4 },
-    { tee_colour: "Red/Black",     gender: "m", slope_rating: 117, course_rating: 67.0 },
-    { tee_colour: "Red/Black",     gender: "w", slope_rating: 134, course_rating: 72.7 },
+  "Cumberwell Park — Blue/Red": [
+    { teeColour: "Green",         gender: "m", slopeRating: 131, courseRating: 74.4 },
+    { teeColour: "White",         gender: "m", slopeRating: 126, courseRating: 72.5 },
+    { teeColour: "Yellow/Purple", gender: "m", slopeRating: 124, courseRating: 70.4 },
+    { teeColour: "Red/Black",     gender: "m", slopeRating: 117, courseRating: 67.0 },
+    { teeColour: "Red/Black",     gender: "w", slopeRating: 134, courseRating: 72.7 },
   ],
-  "Red-Blue": [
-    { tee_colour: "Green",         gender: "m", slope_rating: 131, course_rating: 74.4 },
-    { tee_colour: "White",         gender: "m", slope_rating: 126, course_rating: 72.5 },
-    { tee_colour: "Yellow/Purple", gender: "m", slope_rating: 124, course_rating: 70.4 },
-    { tee_colour: "Red/Black",     gender: "m", slope_rating: 117, course_rating: 67.0 },
-    { tee_colour: "Red/Black",     gender: "w", slope_rating: 134, course_rating: 72.7 },
+  "Cumberwell Park — Red/Blue": [
+    { teeColour: "Green",         gender: "m", slopeRating: 131, courseRating: 74.4 },
+    { teeColour: "White",         gender: "m", slopeRating: 126, courseRating: 72.5 },
+    { teeColour: "Yellow/Purple", gender: "m", slopeRating: 124, courseRating: 70.4 },
+    { teeColour: "Red/Black",     gender: "m", slopeRating: 117, courseRating: 67.0 },
+    { teeColour: "Red/Black",     gender: "w", slopeRating: 134, courseRating: 72.7 },
   ],
   // ── Red & Orange (USGA 22315) ─────────────────────────────────────────────
-  "Red-Orange": [
-    { tee_colour: "Green",         gender: "m", slope_rating: 125, course_rating: 73.1 },
-    { tee_colour: "White",         gender: "m", slope_rating: 122, course_rating: 71.0 },
-    { tee_colour: "Yellow/Purple", gender: "m", slope_rating: 119, course_rating: 69.1 },
-    { tee_colour: "Red/Black",     gender: "m", slope_rating: 113, course_rating: 65.5 },
-    { tee_colour: "Red/Black",     gender: "w", slope_rating: 127, course_rating: 70.9 },
+  "Cumberwell Park — Red/Orange": [
+    { teeColour: "Green",         gender: "m", slopeRating: 125, courseRating: 73.1 },
+    { teeColour: "White",         gender: "m", slopeRating: 122, courseRating: 71.0 },
+    { teeColour: "Yellow/Purple", gender: "m", slopeRating: 119, courseRating: 69.1 },
+    { teeColour: "Red/Black",     gender: "m", slopeRating: 113, courseRating: 65.5 },
+    { teeColour: "Red/Black",     gender: "w", slopeRating: 127, courseRating: 70.9 },
   ],
-  "Orange-Red": [
-    { tee_colour: "Green",         gender: "m", slope_rating: 125, course_rating: 73.1 },
-    { tee_colour: "White",         gender: "m", slope_rating: 122, course_rating: 71.0 },
-    { tee_colour: "Yellow/Purple", gender: "m", slope_rating: 119, course_rating: 69.1 },
-    { tee_colour: "Red/Black",     gender: "m", slope_rating: 113, course_rating: 65.5 },
-    { tee_colour: "Red/Black",     gender: "w", slope_rating: 127, course_rating: 70.9 },
+  "Cumberwell Park — Orange/Red": [
+    { teeColour: "Green",         gender: "m", slopeRating: 125, courseRating: 73.1 },
+    { teeColour: "White",         gender: "m", slopeRating: 122, courseRating: 71.0 },
+    { teeColour: "Yellow/Purple", gender: "m", slopeRating: 119, courseRating: 69.1 },
+    { teeColour: "Red/Black",     gender: "m", slopeRating: 113, courseRating: 65.5 },
+    { teeColour: "Red/Black",     gender: "w", slopeRating: 127, courseRating: 70.9 },
   ],
   // ── Orange & Yellow (USGA 22316) ──────────────────────────────────────────
-  "Orange-Yellow": [
-    { tee_colour: "Green",         gender: "m", slope_rating: 126, course_rating: 72.0 },
-    { tee_colour: "White",         gender: "m", slope_rating: 125, course_rating: 70.0 },
-    { tee_colour: "Yellow/Purple", gender: "m", slope_rating: 120, course_rating: 68.4 },
-    { tee_colour: "Red/Black",     gender: "m", slope_rating: 110, course_rating: 65.6 },
-    { tee_colour: "Red/Black",     gender: "w", slope_rating: 127, course_rating: 70.5 },
+  "Cumberwell Park — Orange/Yellow": [
+    { teeColour: "Green",         gender: "m", slopeRating: 126, courseRating: 72.0 },
+    { teeColour: "White",         gender: "m", slopeRating: 125, courseRating: 70.0 },
+    { teeColour: "Yellow/Purple", gender: "m", slopeRating: 120, courseRating: 68.4 },
+    { teeColour: "Red/Black",     gender: "m", slopeRating: 110, courseRating: 65.6 },
+    { teeColour: "Red/Black",     gender: "w", slopeRating: 127, courseRating: 70.5 },
   ],
-  "Yellow-Orange": [
-    { tee_colour: "Green",         gender: "m", slope_rating: 126, course_rating: 72.0 },
-    { tee_colour: "White",         gender: "m", slope_rating: 125, course_rating: 70.0 },
-    { tee_colour: "Yellow/Purple", gender: "m", slope_rating: 120, course_rating: 68.4 },
-    { tee_colour: "Red/Black",     gender: "m", slope_rating: 110, course_rating: 65.6 },
-    { tee_colour: "Red/Black",     gender: "w", slope_rating: 127, course_rating: 70.5 },
+  "Cumberwell Park — Yellow/Orange": [
+    { teeColour: "Green",         gender: "m", slopeRating: 126, courseRating: 72.0 },
+    { teeColour: "White",         gender: "m", slopeRating: 125, courseRating: 70.0 },
+    { teeColour: "Yellow/Purple", gender: "m", slopeRating: 120, courseRating: 68.4 },
+    { teeColour: "Red/Black",     gender: "m", slopeRating: 110, courseRating: 65.6 },
+    { teeColour: "Red/Black",     gender: "w", slopeRating: 127, courseRating: 70.5 },
   ],
   // ── Blue & Orange (USGA 22317) ────────────────────────────────────────────
-  "Blue-Orange": [
-    { tee_colour: "Green",         gender: "m", slope_rating: 127, course_rating: 73.9 },
-    { tee_colour: "White",         gender: "m", slope_rating: 125, course_rating: 71.5 },
-    { tee_colour: "Yellow/Purple", gender: "m", slope_rating: 121, course_rating: 69.3 },
-    { tee_colour: "Red/Black",     gender: "m", slope_rating: 115, course_rating: 65.9 },
-    { tee_colour: "Red/Black",     gender: "w", slope_rating: 128, course_rating: 71.4 },
+  "Cumberwell Park — Blue/Orange": [
+    { teeColour: "Green",         gender: "m", slopeRating: 127, courseRating: 73.9 },
+    { teeColour: "White",         gender: "m", slopeRating: 125, courseRating: 71.5 },
+    { teeColour: "Yellow/Purple", gender: "m", slopeRating: 121, courseRating: 69.3 },
+    { teeColour: "Red/Black",     gender: "m", slopeRating: 115, courseRating: 65.9 },
+    { teeColour: "Red/Black",     gender: "w", slopeRating: 128, courseRating: 71.4 },
   ],
-  "Orange-Blue": [
-    { tee_colour: "Green",         gender: "m", slope_rating: 127, course_rating: 73.9 },
-    { tee_colour: "White",         gender: "m", slope_rating: 125, course_rating: 71.5 },
-    { tee_colour: "Yellow/Purple", gender: "m", slope_rating: 121, course_rating: 69.3 },
-    { tee_colour: "Red/Black",     gender: "m", slope_rating: 115, course_rating: 65.9 },
-    { tee_colour: "Red/Black",     gender: "w", slope_rating: 128, course_rating: 71.4 },
+  "Cumberwell Park — Orange/Blue": [
+    { teeColour: "Green",         gender: "m", slopeRating: 127, courseRating: 73.9 },
+    { teeColour: "White",         gender: "m", slopeRating: 125, courseRating: 71.5 },
+    { teeColour: "Yellow/Purple", gender: "m", slopeRating: 121, courseRating: 69.3 },
+    { teeColour: "Red/Black",     gender: "m", slopeRating: 115, courseRating: 65.9 },
+    { teeColour: "Red/Black",     gender: "w", slopeRating: 128, courseRating: 71.4 },
   ],
-  // ── White & White (USGA verified) ─────────────────────────────────────────
-  "White-White": [
-    { tee_colour: "Green",         gender: "m", slope_rating: 111, course_rating: 68.2 },
-    { tee_colour: "White",         gender: "m", slope_rating: 100, course_rating: 61.0 },
-    { tee_colour: "Yellow/Purple", gender: "m", slope_rating:  98, course_rating: 59.5 },
-    { tee_colour: "Yellow/Purple", gender: "w", slope_rating: 103, course_rating: 61.8 },
-    { tee_colour: "Red/Black",     gender: "m", slope_rating:  92, course_rating: 58.4 },
-    { tee_colour: "Red/Black",     gender: "w", slope_rating:  99, course_rating: 60.0 },
+  // ── White & White (USGA verified — CR 68.2, Slope 111 on Green/M) ─────────
+  "Cumberwell Park — White/White": [
+    { teeColour: "Green",         gender: "m", slopeRating: 111, courseRating: 68.2 },
+    { teeColour: "White",         gender: "m", slopeRating: 100, courseRating: 61.0 },
+    { teeColour: "Yellow/Purple", gender: "m", slopeRating:  98, courseRating: 59.5 },
+    { teeColour: "Yellow/Purple", gender: "w", slopeRating: 103, courseRating: 61.8 },
+    { teeColour: "Red/Black",     gender: "m", slopeRating:  92, courseRating: 58.4 },
+    { teeColour: "Red/Black",     gender: "w", slopeRating:  99, courseRating: 60.0 },
   ],
-  // Par 3-Par 3: no WHS rating (not a qualifying competition course)
+  // Par 3/Par 3, White/Par 3, Par 3/White: no WHS rating
 };
 
-// ─── 6. Counters for summary output ──────────────────────────────────────────
+// ─── 8. Courses table rows (16 total, matching public.courses) ────────────────
+
+const COURSES = [
+  { name: "Cumberwell Park — Red/Yellow",    slopeRating: 126, courseRating: 71.0, par: 71 },
+  { name: "Cumberwell Park — Yellow/Red",    slopeRating: 126, courseRating: 71.0, par: 71 },
+  { name: "Cumberwell Park — Blue/Orange",   slopeRating: 125, courseRating: 71.5, par: 71 },
+  { name: "Cumberwell Park — Orange/Blue",   slopeRating: 125, courseRating: 71.5, par: 71 },
+  { name: "Cumberwell Park — Red/Blue",      slopeRating: 126, courseRating: 72.5, par: 71 },
+  { name: "Cumberwell Park — Blue/Red",      slopeRating: 126, courseRating: 72.5, par: 71 },
+  { name: "Cumberwell Park — Blue/Yellow",   slopeRating: 129, courseRating: 71.5, par: 72 },
+  { name: "Cumberwell Park — Yellow/Blue",   slopeRating: 129, courseRating: 71.5, par: 72 },
+  { name: "Cumberwell Park — Orange/Yellow", slopeRating: 125, courseRating: 70.0, par: 71 },
+  { name: "Cumberwell Park — Yellow/Orange", slopeRating: 125, courseRating: 70.0, par: 71 },
+  { name: "Cumberwell Park — Red/Orange",    slopeRating: 122, courseRating: 71.0, par: 71 },
+  { name: "Cumberwell Park — Orange/Red",    slopeRating: 122, courseRating: 71.0, par: 71 },
+  { name: "Cumberwell Park — White/White",   slopeRating: 111, courseRating: 68.2, par: 70 },
+  { name: "Cumberwell Park — Par 3/Par 3",   slopeRating:   0, courseRating:  0.0, par: 54 },
+  { name: "Cumberwell Park — White/Par 3",   slopeRating:   0, courseRating:  0.0, par: 62 },
+  { name: "Cumberwell Park — Par 3/White",   slopeRating:   0, courseRating:  0.0, par: 62 },
+];
+
+// ─── 9. Counters ──────────────────────────────────────────────────────────────
 
 const counts = {
   courses: 0,
@@ -296,7 +344,7 @@ const counts = {
   combination_tees: 0,
 };
 
-// ─── 7. Helper: upsert with error logging (non-fatal) ────────────────────────
+// ─── 10. Helper: upsert with error logging ────────────────────────────────────
 
 async function upsert<T extends object>(
   table: string,
@@ -304,402 +352,146 @@ async function upsert<T extends object>(
   onConflict: string
 ): Promise<T[]> {
   if (rows.length === 0) return [];
-
   const { data: inserted, error } = await supabase
     .from(table)
     .upsert(rows, { onConflict })
     .select();
-
   if (error) {
     console.error(`  ⚠️  Error upserting into ${table}:`, error.message);
     return [];
   }
-
   return (inserted ?? []) as T[];
 }
 
-/**
- * Get-or-create a course row by name.
- *
- * public.courses has no unique constraint on `name`, so we cannot use
- * ON CONFLICT. Instead: select first, insert only if not found.
- * This is idempotent as long as we never insert duplicates.
- */
-async function getOrCreateCourse(courseData: {
-  name: string;
-  club: string;
-  location: string;
-  holes_count: number;
-  source: string;
-  verified: boolean;
-}): Promise<{ id: string; created: boolean }> {
-  // Check for an existing row
-  const { data: existing, error: selectError } = await supabase
-    .from("courses")
-    .select("id")
-    .eq("name", courseData.name)
-    .maybeSingle();
-
-  if (selectError) {
-    // Code 42501 = PostgreSQL permission denied; PGRST205 = table not in schema cache.
-    // Both indicate the required migrations have not been applied to this Supabase project.
-    if (
-      selectError.code === "42501" ||
-      selectError.code === "PGRST205" ||
-      selectError.message.includes("permission denied") ||
-      selectError.message.includes("schema cache")
-    ) {
-      throw new Error(
-        [
-          `Database not ready: ${selectError.message}`,
-          "",
-          "  This usually means one or more migrations have not been applied.",
-          "  Please run the following migrations in the Supabase SQL editor:",
-          "    • packages/db/migrations/001_initial_schema.sql",
-          "    • packages/db/migrations/010_course_loops_scoring.sql",
-          "",
-          "  Then re-run this script.",
-        ].join("\n")
-      );
-    }
-    throw new Error(`Failed to query courses: ${selectError.message}`);
-  }
-
-  if (existing) {
-    return { id: (existing as { id: string }).id, created: false };
-  }
-
-  // Not found — insert
-  const { data: inserted, error: insertError } = await supabase
-    .from("courses")
-    .insert(courseData)
-    .select("id")
-    .single();
-
-  if (insertError || !inserted) {
-    throw new Error(
-      `Failed to insert course: ${insertError?.message ?? "no data returned"}`
-    );
-  }
-
-  return { id: (inserted as { id: string }).id, created: true };
-}
-
-// ─── 8. Main seed function ────────────────────────────────────────────────────
+// ─── 11. Main ─────────────────────────────────────────────────────────────────
 
 async function main() {
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log("  Cumberwell Park Golf Club — seed script");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-  // ── Pre-flight: verify required migrations have been applied ────────────
-
-  console.log("Checking database readiness...");
-
-  const { error: preflightError } = await supabase
-    .from("loops")
-    .select("id")
-    .limit(1);
-
+  // Pre-flight: verify schema is ready
+  const { error: preflightError } = await supabase.from("loops").select("id").limit(1);
   if (preflightError) {
-    const isNotReady =
-      preflightError.code === "42501" ||
-      preflightError.code === "PGRST205" ||
-      preflightError.message.includes("permission denied") ||
-      preflightError.message.includes("schema cache") ||
-      preflightError.message.includes("does not exist");
-
-    if (isNotReady) {
-      console.error(
-        [
-          "\n❌  Required migrations have not been applied to this Supabase project.",
-          "",
-          "  Please run the following SQL files in the Supabase dashboard",
-          "  (Project → SQL Editor → New query):",
-          "",
-          "    1. packages/db/migrations/001_initial_schema.sql",
-          "    2. packages/db/migrations/010_course_loops_scoring.sql",
-          "",
-          "  Then re-run this script:",
-          "    npx tsx packages/db/scripts/seed-cumberwell.ts",
-          "",
-          `  Supabase error: ${preflightError.message} (${preflightError.code})`,
-        ].join("\n")
-      );
-      process.exit(1);
-    }
-
-    // Non-fatal: loops table exists but is empty — that's fine
+    console.error("❌  Database schema not ready:", preflightError.message);
+    console.error("   Run migrations/golfer/*.sql in the Supabase SQL editor first.");
+    process.exit(1);
   }
-
   console.log("  ✓ Database schema OK\n");
 
-  // ── Step A: Get or create the course row ─────────────────────────────────
-
-  console.log("Seeding course...");
-
-  const { id: courseId, created: courseCreated } = await getOrCreateCourse({
-    name: data.club,
-    club: data.club,
+  // ── A. Courses ──────────────────────────────────────────────────────────────
+  console.log("Seeding courses...");
+  const courseRows = COURSES.map(c => ({
+    name: c.name,
+    club: "Cumberwell Park",
     location: "Bradford-on-Avon, Wiltshire",
-    holes_count: 45, // 5 full loops × 9 holes + Par 3 × 9
-    source: data.source,
-    verified: false,
-  });
+    holes_count: 18,
+    slope_rating: c.slopeRating,
+    course_rating: c.courseRating,
+    par: c.par,
+    source: "manual",
+    verified: true,
+  }));
+  const upsertedCourses = await upsert("courses", courseRows, "name");
+  counts.courses = upsertedCourses.length;
+  console.log(`  ✓ ${upsertedCourses.length} courses upserted\n`);
 
-  counts.courses = courseCreated ? 1 : 0;
-  console.log(
-    `  ✓ Course ID: ${courseId} (${courseCreated ? "inserted" : "already exists"})\n`
-  );
+  // Build name → id lookup
+  const { data: allCourses } = await supabase
+    .from("courses")
+    .select("id, name")
+    .eq("club", "Cumberwell Park");
+  const courseIdByName: Record<string, string> = {};
+  for (const c of allCourses ?? []) {
+    courseIdByName[(c as { id: string; name: string }).name] =
+      (c as { id: string; name: string }).id;
+  }
 
-  // ── Step B: Upsert all 6 loops ───────────────────────────────────────────
-
+  // ── B. Loops (with fixed UUIDs) ─────────────────────────────────────────────
   console.log("Seeding loops...");
+  const loopRows = LOOPS.map(l => ({
+    id: l.id,
+    course_id: null as string | null,
+    name: l.name,
+    holes: 9,
+    notes: l.notes,
+  }));
+  const upsertedLoops = await upsert("loops", loopRows, "id");
+  counts.loops = upsertedLoops.length;
+  console.log(`  ✓ ${upsertedLoops.length} loops upserted\n`);
 
-  const loopNames = ["Red", "Yellow", "Blue", "Orange", "White", "Par 3"] as const;
-
-  const loopInsertRows = loopNames.map((name) => {
-    const loop = data.loops[name];
-    return {
-      course_id: courseId,
-      name,
-      holes: loop.holes,
-      notes: loop.notes,
-    };
-  });
-
-  const loopRows = await upsert("loops", loopInsertRows, "course_id,name");
-  counts.loops += loopRows.length;
-
-  // Build a name→id lookup
-  const loopIdByName: Record<string, string> = {};
-  for (const row of loopRows as Array<{ id: string; name: string }>) {
-    loopIdByName[row.name] = row.id;
-  }
-
-  console.log(`  ✓ ${loopRows.length} loops upserted\n`);
-
-  // ── Step C: Upsert all loop_holes ───────────────────────────────────────
-
+  // ── C. Loop holes ────────────────────────────────────────────────────────────
   console.log("Seeding loop holes...");
+  const holeRows = LOOP_HOLES.map(h => ({
+    loop_id: h.loopId,
+    hole_number: h.hole,
+    par: h.par,
+    si_m: h.siM,
+    si_w: h.siM,  // use same SI for both genders (no separate women's SI data)
+  }));
+  const upsertedHoles = await upsert("loop_holes", holeRows, "loop_id,hole_number");
+  counts.loop_holes = upsertedHoles.length;
 
-  const allHoleRows: Array<{
-    loop_id: string;
-    hole_number: number;
-    par: number;
-    si_m: number | null;
-    si_w: number | null;
-  }> = [];
-
-  // Red, Yellow, Blue, Orange — have si_m and si_w
-  for (const name of ["Red", "Yellow", "Blue", "Orange"] as const) {
-    const loopId = loopIdByName[name];
-    if (!loopId) {
-      console.error(`  ⚠️  No loop ID found for "${name}", skipping holes.`);
-      continue;
-    }
-    for (const h of data.loops[name].holes_data) {
-      allHoleRows.push({
-        loop_id: loopId,
-        hole_number: h.hole,
-        par: h.par,
-        si_m: h.si_m,
-        si_w: h.si_w,
-      });
-    }
-  }
-
-  // White — has a single si; use for both si_m and si_w
-  {
-    const loopId = loopIdByName["White"];
-    if (!loopId) {
-      console.error('  ⚠️  No loop ID found for "White", skipping holes.');
-    } else {
-      for (const h of data.loops["White"].holes_data) {
-        allHoleRows.push({
-          loop_id: loopId,
-          hole_number: h.hole,
-          par: h.par,
-          si_m: h.si,
-          si_w: h.si,
-        });
-      }
-    }
-  }
-
-  // Par 3 — no stroke index
-  {
-    const loopId = loopIdByName["Par 3"];
-    if (!loopId) {
-      console.error('  ⚠️  No loop ID found for "Par 3", skipping holes.');
-    } else {
-      for (const h of data.loops["Par 3"].holes_data) {
-        allHoleRows.push({
-          loop_id: loopId,
-          hole_number: h.hole,
-          par: h.par,
-          si_m: null,
-          si_w: null,
-        });
-      }
-    }
-  }
-
-  const holeRows = await upsert("loop_holes", allHoleRows, "loop_id,hole_number");
-  counts.loop_holes += holeRows.length;
-
-  // Build a lookup: `${loop_id}:${hole_number}` → hole row id
+  // Build loopId:holeNumber → loop_hole.id lookup
+  const { data: allHoles } = await supabase
+    .from("loop_holes")
+    .select("id, loop_id, hole_number");
   const holeIdByKey: Record<string, string> = {};
-  for (const row of holeRows as Array<{
-    id: string;
-    loop_id: string;
-    hole_number: number;
-  }>) {
+  for (const h of allHoles ?? []) {
+    const row = h as { id: string; loop_id: string; hole_number: number };
     holeIdByKey[`${row.loop_id}:${row.hole_number}`] = row.id;
   }
 
-  console.log(`  ✓ ${holeRows.length} loop holes upserted\n`);
+  console.log(`  ✓ ${upsertedHoles.length} loop holes upserted\n`);
 
-  // ── Step D: Upsert all loop_hole_tees ───────────────────────────────────
+  // ── D. Loop hole tees (Yellow/Purple) ───────────────────────────────────────
+  console.log("Seeding loop hole tees (Yellow/Purple)...");
+  const teeRows = LOOP_HOLES.map(h => ({
+    loop_hole_id: holeIdByKey[`${h.loopId}:${h.hole}`] ?? "",
+    tee_colour: "Yellow/Purple",
+    yards: h.yards,
+  })).filter(r => r.loop_hole_id !== "");
 
-  console.log("Seeding loop hole tees...");
+  const upsertedTees = await upsert("loop_hole_tees", teeRows, "loop_hole_id,tee_colour");
+  counts.loop_hole_tees = upsertedTees.length;
+  console.log(`  ✓ ${upsertedTees.length} loop hole tees upserted\n`);
 
-  const allTeeRows: Array<{
-    loop_hole_id: string;
-    tee_colour: string;
-    yards: number;
-  }> = [];
-
-  // Helper: push tee rows for a set of colours
-  function pushTeeRows(
-    loopId: string,
-    holeNumber: number,
-    tees: Record<string, number>
-  ) {
-    const holeId = holeIdByKey[`${loopId}:${holeNumber}`];
-    if (!holeId) {
-      console.error(
-        `  ⚠️  No hole ID for loop=${loopId} hole=${holeNumber}, skipping tees.`
-      );
-      return;
-    }
-    for (const [colour, yards] of Object.entries(tees)) {
-      allTeeRows.push({
-        loop_hole_id: holeId,
-        tee_colour: colour.charAt(0).toUpperCase() + colour.slice(1), // capitalise
-        yards,
-      });
-    }
-  }
-
-  // Red, Yellow, Blue, Orange: green / white / yellow / red tees
-  for (const name of ["Red", "Yellow", "Blue", "Orange"] as const) {
-    const loopId = loopIdByName[name];
-    if (!loopId) continue;
-    for (const h of data.loops[name].holes_data) {
-      pushTeeRows(loopId, h.hole, {
-        green: h.green,
-        white: h.white,
-        yellow: h.yellow,
-        red: h.red,
-      });
-    }
-  }
-
-  // White: green / white / purple / black tees
-  {
-    const loopId = loopIdByName["White"];
-    if (loopId) {
-      for (const h of data.loops["White"].holes_data) {
-        pushTeeRows(loopId, h.hole, {
-          green: h.green,
-          white: h.white,
-          purple: h.purple,
-          black: h.black,
-        });
-      }
-    }
-  }
-
-  // Par 3: purple / orange / blue tees
-  {
-    const loopId = loopIdByName["Par 3"];
-    if (loopId) {
-      for (const h of data.loops["Par 3"].holes_data) {
-        pushTeeRows(loopId, h.hole, {
-          purple: h.purple,
-          orange: h.orange,
-          blue: h.blue,
-        });
-      }
-    }
-  }
-
-  const teeRows = await upsert(
-    "loop_hole_tees",
-    allTeeRows,
-    "loop_hole_id,tee_colour"
-  );
-  counts.loop_hole_tees += teeRows.length;
-  console.log(`  ✓ ${teeRows.length} loop hole tees upserted\n`);
-
-  // ── Step E: Upsert all 14 course_combinations ────────────────────────────
-
+  // ── E. Course combinations ──────────────────────────────────────────────────
   console.log("Seeding course combinations...");
-
-  const combinationInsertRows: Array<{
-    course_id: string;
-    name: string;
-    par: number;
-    holes: number;
-    loop_1_id: string;
-    loop_2_id: string;
-    notes: string | null;
-  }> = [];
-
-  for (const [name, combo] of Object.entries(data.combinations)) {
-    const [loop1Name, loop2Name] = combo.loops;
-
-    const loop1Id = loopIdByName[loop1Name];
-    const loop2Id = loopIdByName[loop2Name];
-
-    if (!loop1Id || !loop2Id) {
-      console.error(
-        `  ⚠️  Missing loop ID for combination "${name}" (${loop1Name}, ${loop2Name}) — skipping.`
-      );
-      continue;
+  const comboRows = COMBINATIONS.map(c => {
+    const courseId = courseIdByName[c.name];
+    if (!courseId) {
+      console.error(`  ⚠️  No course ID found for "${c.name}" — skipping combination.`);
+      return null;
     }
-
-    combinationInsertRows.push({
+    return {
       course_id: courseId,
-      name,
-      par: combo.par,
-      holes: combo.holes,
-      loop_1_id: loop1Id,
-      loop_2_id: loop2Id,
-      notes: combo.notes ?? null,
-    });
+      name: c.name,
+      par: c.par,
+      holes: 18,
+      loop_1_id: c.loop1Id,
+      loop_2_id: c.loop2Id,
+      notes: null as string | null,
+    };
+  }).filter((r): r is NonNullable<typeof r> => r !== null);
+
+  const upsertedCombos = await upsert("course_combinations", comboRows, "course_id,name");
+  counts.course_combinations = upsertedCombos.length;
+
+  // Build name → combination id lookup
+  const { data: allCombos } = await supabase
+    .from("course_combinations")
+    .select("id, name");
+  const comboIdByName: Record<string, string> = {};
+  for (const c of allCombos ?? []) {
+    const row = c as { id: string; name: string };
+    comboIdByName[row.name] = row.id;
   }
 
-  const combinationRows = await upsert(
-    "course_combinations",
-    combinationInsertRows,
-    "course_id,name"
-  );
-  counts.course_combinations += combinationRows.length;
+  console.log(`  ✓ ${upsertedCombos.length} combinations upserted\n`);
 
-  // Build name→id lookup for combinations
-  const combinationIdByName: Record<string, string> = {};
-  for (const row of combinationRows as Array<{ id: string; name: string }>) {
-    combinationIdByName[row.name] = row.id;
-  }
-
-  console.log(`  ✓ ${combinationRows.length} combinations upserted\n`);
-
-  // ── Step F: Upsert combination_tees (WHS data where known) ───────────────
-
+  // ── F. Combination tees (WHS ratings) ───────────────────────────────────────
   console.log("Seeding combination tees (WHS ratings)...");
-
   const combTeeRows: Array<{
     combination_id: string;
     tee_colour: string;
@@ -708,35 +500,32 @@ async function main() {
     course_rating: number;
   }> = [];
 
-  for (const [combName, whsEntries] of Object.entries(whsByCombination)) {
-    const combinationId = combinationIdByName[combName];
+  for (const [comboName, entries] of Object.entries(WHS_BY_COMBO_NAME)) {
+    const combinationId = comboIdByName[comboName];
     if (!combinationId) {
-      console.error(
-        `  ⚠️  No combination ID found for "${combName}" — skipping WHS tees.`
-      );
+      console.error(`  ⚠️  No combination ID for "${comboName}" — skipping WHS tees.`);
       continue;
     }
-    for (const whs of whsEntries) {
+    for (const w of entries) {
       combTeeRows.push({
         combination_id: combinationId,
-        tee_colour: whs.tee_colour,
-        gender: whs.gender,
-        slope_rating: whs.slope_rating,
-        course_rating: whs.course_rating,
+        tee_colour: w.teeColour,
+        gender: w.gender,
+        slope_rating: w.slopeRating,
+        course_rating: w.courseRating,
       });
     }
   }
 
-  const combTeeInserted = await upsert(
+  const upsertedCombTees = await upsert(
     "combination_tees",
     combTeeRows,
     "combination_id,tee_colour,gender"
   );
-  counts.combination_tees += combTeeInserted.length;
-  console.log(`  ✓ ${combTeeInserted.length} combination tees upserted\n`);
+  counts.combination_tees = upsertedCombTees.length;
+  console.log(`  ✓ ${upsertedCombTees.length} combination tees upserted\n`);
 
-  // ── Summary ───────────────────────────────────────────────────────────────
-
+  // ── Summary ─────────────────────────────────────────────────────────────────
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log("  Seed complete — rows upserted:");
   console.log(`    courses              : ${counts.courses}`);
