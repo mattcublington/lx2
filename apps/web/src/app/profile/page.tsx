@@ -9,7 +9,7 @@ export default async function ProfilePage() {
 
   const { data: profile } = await supabase
     .from('users')
-    .select('display_name, handicap_index')
+    .select('display_name, handicap_index, created_at')
     .eq('id', user.id)
     .single()
 
@@ -19,6 +19,7 @@ export default async function ProfilePage() {
       email={user.email ?? ''}
       displayName={profile?.display_name ?? user.email?.split('@')[0] ?? ''}
       handicapIndex={profile?.handicap_index ?? null}
+      memberSince={profile?.created_at ?? user.created_at ?? null}
     />
   )
 }

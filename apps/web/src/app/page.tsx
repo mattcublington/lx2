@@ -111,17 +111,6 @@ export default function HomePage() {
           color: #fff;
         }
 
-        .hero-label {
-          font-size: 0.6875rem;
-          font-weight: 500;
-          letter-spacing: 0.18em;
-          text-transform: uppercase;
-          color: rgba(255,255,255,0.7);
-          margin-bottom: 20px;
-          opacity: 0;
-          animation: rise 0.5s ease forwards 0.1s;
-        }
-
         .hero-title {
           font-family: 'Manrope', sans-serif;
           font-size: clamp(2.75rem, 8vw, 5.25rem);
@@ -130,7 +119,7 @@ export default function HomePage() {
           letter-spacing: -0.025em;
           color: #fff;
           margin-bottom: 24px;
-          max-width: 700px;
+          max-width: 820px;
           text-shadow: 0 2px 32px rgba(0,0,0,0.3);
           opacity: 0;
           animation: rise 0.6s ease forwards 0.2s;
@@ -505,10 +494,9 @@ export default function HomePage() {
       <section className="hero">
         <div className="hero-bg" />
         <div className="hero-content">
-          <div className="hero-label">LX2 — SEVENTY TWO</div>
-          <h1 className="hero-title">Golf, connected</h1>
+          <h1 className="hero-title">Every round. Every competition. Every member. Finally in one place.</h1>
           <p className="hero-sub">
-            One platform for golfers, societies, and clubs. Bringing scoring, competition, and management into a single, seamless experience.
+            One platform for golfers, societies, and clubs.
           </p>
           <div className="hero-ctas">
             <a href="/auth/login?mode=signup" className="btn-getstarted">

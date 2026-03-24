@@ -194,6 +194,7 @@ export default function PlayDashboard({ displayName, rounds, handicapIndex, roun
           display: flex; flex-direction: column;
           gap: 16px;
           margin-top: -24px;
+          position: relative; z-index: 1;
         }
 
         /* ── Play action button ──────────────────────────── */
@@ -405,10 +406,10 @@ export default function PlayDashboard({ displayName, rounds, handicapIndex, roun
                 style={{ filter: 'brightness(0) invert(1)', opacity: 0.88 }}
               />
               <div className="pd-nav-r">
-                <div className="pd-pill">
+                <Link href="/profile" className="pd-pill">
                   <div className="pd-av">{initials || '?'}</div>
                   {firstName}
-                </div>
+                </Link>
                 <button className="pd-so" onClick={handleSignOut}>Sign out</button>
               </div>
             </nav>
@@ -554,13 +555,14 @@ export default function PlayDashboard({ displayName, rounds, handicapIndex, roun
             Stats
           </button>
 
-          {/* Sign out */}
-          <button className="pd-bnav-item" onClick={handleSignOut} aria-label="Sign out">
+          {/* Profile */}
+          <Link href="/profile" className="pd-bnav-item" aria-label="Profile">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+              <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.75"/>
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
             </svg>
-            Sign out
-          </button>
+            Profile
+          </Link>
         </nav>
 
       </div>
