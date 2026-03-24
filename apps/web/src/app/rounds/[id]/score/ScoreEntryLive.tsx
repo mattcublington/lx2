@@ -4,6 +4,10 @@ import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import { PLAYER_COLOURS } from '@/lib/player-colours'
 import type { ScoringHole, GroupPlayer } from './page'
+import { enqueueScore, getQueuedScores, deleteQueuedScore, migrateFromLocalStorage } from '@/lib/offline-queue'
+
+// Prevents concurrent drain runs if the user toggles offline→online rapidly.
+let draining = false
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -120,37 +124,6 @@ function reducer(s: State, a: Action): State {
   }
 }
 
-// ─── Offline queue ────────────────────────────────────────────────────────────
-
-// hole_scores has no 'pickup' column — null gross_strokes is the NR/pickup signal
-interface QueueEntry { holeInRound: number; value: number | null }
-
-function queueKey(scorecardId: string) { return `lx2_offline_queue_${scorecardId}` }
-
-function enqueue(scorecardId: string, entry: QueueEntry) {
-  try {
-    const raw = localStorage.getItem(queueKey(scorecardId))
-    const q: QueueEntry[] = raw ? JSON.parse(raw) : []
-    // Upsert by holeInRound
-    const idx = q.findIndex(e => e.holeInRound === entry.holeInRound)
-    if (idx >= 0) q[idx] = entry
-    else q.push(entry)
-    localStorage.setItem(queueKey(scorecardId), JSON.stringify(q))
-  } catch { /* storage unavailable */ }
-}
-
-function dequeue(scorecardId: string): QueueEntry[] {
-  try {
-    const raw = localStorage.getItem(queueKey(scorecardId))
-    if (!raw) return []
-    return JSON.parse(raw) as QueueEntry[]
-  } catch { return [] }
-}
-
-function clearQueue(scorecardId: string) {
-  try { localStorage.removeItem(queueKey(scorecardId)) } catch { /* ignore */ }
-}
-
 // ─── Shared styles ────────────────────────────────────────────────────────────
 
 const navBtn: React.CSSProperties = {
@@ -206,8 +179,6 @@ export default function ScoreEntryLive(props: Props) {
   const [flash, setFlash] = useState<{ label: string; color: string } | null>(null)
   const [cDist, setCDist] = useState('')
   const [stepValue, setStepValue] = useState<number | null>(null)
-  const [isOnline, setIsOnline] = useState(true)
-  const [syncError, setSyncError] = useState(false)
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Supabase browser client (stable reference)
@@ -218,18 +189,10 @@ export default function ScoreEntryLive(props: Props) {
     )
   ).current
 
-  // Online/offline detection
+  // One-time migration from legacy localStorage queue
   useEffect(() => {
-    const onOnline = () => setIsOnline(true)
-    const onOffline = () => setIsOnline(false)
-    setIsOnline(navigator.onLine)
-    window.addEventListener('online', onOnline)
-    window.addEventListener('offline', onOffline)
-    return () => {
-      window.removeEventListener('online', onOnline)
-      window.removeEventListener('offline', onOffline)
-    }
-  }, [])
+    migrateFromLocalStorage(scorecardId)
+  }, [scorecardId])
 
   // Realtime: subscribe to hole_scores for all scorecards in the group
   useEffect(() => {
@@ -264,24 +227,33 @@ export default function ScoreEntryLive(props: Props) {
 
   // Drain offline queue when we come back online
   const drainQueue = useCallback(async () => {
-    const queue = dequeue(scorecardId)
-    if (queue.length === 0) return
-    let allOk = true
-    for (const entry of queue) {
-      const { error } = await sb.from('hole_scores').upsert({
-        scorecard_id: scorecardId,
-        hole_number: entry.holeInRound,
-        gross_strokes: entry.value,
-      }, { onConflict: 'scorecard_id,hole_number' })
-      if (error) { allOk = false; break }
+    if (draining) return
+    draining = true
+    window.dispatchEvent(new CustomEvent('lx2:sync-start'))
+    try {
+      const queue = await getQueuedScores(scorecardId)
+      for (const entry of queue) {
+        const { error } = await sb.from('hole_scores').upsert({
+          scorecard_id: scorecardId,
+          hole_number: entry.hole_number,
+          gross_strokes: entry.gross_strokes,
+        }, { onConflict: 'scorecard_id,hole_number' })
+        if (!error) {
+          await deleteQueuedScore(scorecardId, entry.hole_number)
+        }
+        // On error: leave in IndexedDB, retry on next online event
+      }
+    } finally {
+      draining = false
+      window.dispatchEvent(new CustomEvent('lx2:sync-complete'))
     }
-    if (allOk) clearQueue(scorecardId)
-    setSyncError(!allOk)
   }, [sb, scorecardId])
 
+  // Trigger drain directly from the online event
   useEffect(() => {
-    if (isOnline) drainQueue()
-  }, [isOnline, drainQueue])
+    window.addEventListener('online', drainQueue)
+    return () => window.removeEventListener('online', drainQueue)
+  }, [drainQueue])
 
   // Derived values
   const hole = holes[s.hole]!
@@ -340,12 +312,11 @@ export default function ScoreEntryLive(props: Props) {
     return { totalPts, totalStrokes, holesPlayed }
   }
 
-  // Persist a score to Supabase, queue if offline
   // Persist to hole_scores. gross_strokes=null means NR/pickup (no separate column).
   async function persistScore(holeInRound: number, value: number | null) {
-    const entry: QueueEntry = { holeInRound, value }
+    const entry = { scorecard_id: scorecardId, hole_number: holeInRound, gross_strokes: value, queued_at: Date.now() }
     if (!navigator.onLine) {
-      enqueue(scorecardId, entry)
+      await enqueueScore(entry)
       return
     }
     const { error } = await sb.from('hole_scores').upsert({
@@ -354,8 +325,7 @@ export default function ScoreEntryLive(props: Props) {
       gross_strokes: value,
     }, { onConflict: 'scorecard_id,hole_number' })
     if (error) {
-      enqueue(scorecardId, entry)
-      setSyncError(true)
+      await enqueueScore(entry)
     }
   }
 
@@ -550,13 +520,6 @@ export default function ScoreEntryLive(props: Props) {
       {!isMyScorecard && (
         <div style={{ background: '#fff8e6', borderBottom: '1px solid #f0c040', padding: '6px 14px', fontSize: 12, color: '#7a5500', textAlign: 'center', fontWeight: 500 }}>
           Scoring for {playerName}
-        </div>
-      )}
-
-      {/* Offline banner */}
-      {(!isOnline || syncError) && (
-        <div style={{ background: syncError ? '#fff3e0' : '#f0f4ec', borderBottom: '1px solid ' + (syncError ? '#f0a040' : '#d0d8cc'), padding: '6px 14px', fontSize: 12, color: syncError ? '#8a4e00' : '#4a5e4a', textAlign: 'center', fontWeight: 500 }}>
-          {syncError ? 'Sync error — scores saved locally, will retry' : 'Offline — scores saved locally'}
         </div>
       )}
 
