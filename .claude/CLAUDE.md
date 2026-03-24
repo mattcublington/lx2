@@ -98,3 +98,9 @@ No gold, ivory, warm-cream, brass, or off-palette accent colours.
 - What broke / didn't work:
 - What to do instead:
 - Any new patterns established:
+
+### 2026-03-24 — Stale .next artifacts causing MODULE_NOT_FOUND on all event pages
+- What we tried: Static analysis of all event-related server components (new wizard, manage, leaderboard, score, [id]) — no code-level bug found
+- What broke / didn't work: `MODULE_NOT_FOUND: Cannot find module './116.js'` — webpack-runtime.js referenced `./116.js` relative to `.next/server/` but only `.next/server/chunks/116.js` existed. All event page bundles affected. Streaming SSR caused partial render: share card flushed before failure, so "header renders fine but below crashes"
+- What to do instead: Delete `apps/web/.next` and restart the dev server. Stop the server first (can't delete .next while running). Root cause: mixed build artifacts from different webpack chunk layouts
+- Any new patterns established: When server components crash mid-stream (partial HTML visible), check `preview_logs` for MODULE_NOT_FOUND before doing static analysis. Stale `.next` = first thing to clear when unexplained crashes appear after switching branches or builds
