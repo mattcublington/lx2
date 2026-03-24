@@ -1,8 +1,9 @@
 'use client'
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { updateProfile } from './actions'
+import Image from 'next/image'
+import { updateProfile, updateAvatarUrl } from './actions'
 import { createClient } from '@/lib/supabase/client'
 
 interface Props {
@@ -11,6 +12,7 @@ interface Props {
   displayName: string
   handicapIndex: number | null
   memberSince: string | null
+  avatarUrl: string | null
 }
 
 function getInitials(name: string): string {
@@ -25,14 +27,18 @@ function formatMemberSince(dateStr: string | null): string {
   return d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
 }
 
-export default function ProfileClient({ email, displayName, handicapIndex, memberSince }: Props) {
+export default function ProfileClient({ userId, email, displayName, handicapIndex, memberSince, avatarUrl: initialAvatarUrl }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [name, setName] = useState(displayName)
   const [hcp, setHcp] = useState<string>(handicapIndex !== null ? String(handicapIndex) : '')
   const [saved, setSaved] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(initialAvatarUrl)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [avatarError, setAvatarError] = useState<string | null>(null)
 
   const isDirty = name !== displayName || hcp !== (handicapIndex !== null ? String(handicapIndex) : '')
 
@@ -55,6 +61,31 @@ export default function ProfileClient({ email, displayName, handicapIndex, membe
     const supabase = createClient()
     await supabase.auth.signOut()
     router.push('/auth/login')
+  }
+
+  const handleAvatarClick = () => fileInputRef.current?.click()
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setAvatarError(null)
+    setUploadingAvatar(true)
+    try {
+      const supabase = createClient()
+      const ext = file.name.split('.').pop() ?? 'jpg'
+      const path = `${userId}/${Date.now()}.${ext}`
+      const { data, error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
+      if (error) throw new Error(error.message)
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(data.path)
+      setAvatarUrl(publicUrl)
+      await updateAvatarUrl(publicUrl)
+    } catch (err) {
+      setAvatarError(err instanceof Error ? err.message : 'Upload failed')
+    } finally {
+      setUploadingAvatar(false)
+      // Reset so the same file can be re-selected if needed
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
   }
 
   const initials = getInitials(name || email)
@@ -98,7 +129,7 @@ export default function ProfileClient({ email, displayName, handicapIndex, membe
           align-items: center;
           gap: 6px;
           color: rgba(255,255,255,0.7);
-          font-size: 0.875rem;
+          font-size: 0.9375rem;
           font-weight: 500;
           text-decoration: none;
           transition: color 0.15s;
@@ -153,6 +184,15 @@ export default function ProfileClient({ email, displayName, handicapIndex, membe
           text-align: center;
         }
 
+        /* Avatar ring with photo upload */
+        .avatar-wrap {
+          position: relative;
+          width: 80px;
+          height: 80px;
+          margin-bottom: 16px;
+          flex-shrink: 0;
+        }
+
         .avatar-ring {
           width: 80px;
           height: 80px;
@@ -161,8 +201,18 @@ export default function ProfileClient({ email, displayName, handicapIndex, membe
           display: flex;
           align-items: center;
           justify-content: center;
-          margin-bottom: 16px;
           box-shadow: 0 4px 20px rgba(13,99,27,0.25);
+          overflow: hidden;
+          cursor: pointer;
+          transition: box-shadow 0.15s;
+        }
+        .avatar-ring:hover { box-shadow: 0 6px 24px rgba(13,99,27,0.35); }
+
+        .avatar-photo {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          border-radius: 9999px;
         }
 
         .avatar-initials {
@@ -171,6 +221,74 @@ export default function ProfileClient({ email, displayName, handicapIndex, membe
           font-weight: 700;
           color: #fff;
           letter-spacing: -0.02em;
+          user-select: none;
+        }
+
+        .avatar-overlay {
+          position: absolute;
+          inset: 0;
+          border-radius: 9999px;
+          background: rgba(10,31,10,0.45);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          transition: opacity 0.15s;
+          cursor: pointer;
+          pointer-events: none;
+        }
+        .avatar-wrap:hover .avatar-overlay { opacity: 1; }
+        .avatar-overlay svg { color: #fff; }
+
+        .avatar-camera-badge {
+          position: absolute;
+          bottom: 0;
+          right: 0;
+          width: 26px;
+          height: 26px;
+          border-radius: 9999px;
+          background: #0D631B;
+          border: 2.5px solid #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          pointer-events: none;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+        }
+        .avatar-camera-badge svg { color: #fff; display: block; }
+
+        .avatar-uploading {
+          position: absolute;
+          inset: 0;
+          border-radius: 9999px;
+          background: rgba(10,31,10,0.6);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .avatar-spinner {
+          width: 22px;
+          height: 22px;
+          border: 2.5px solid rgba(255,255,255,0.3);
+          border-top-color: #fff;
+          border-radius: 50%;
+          animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .avatar-upload-hint {
+          font-size: 0.8125rem;
+          color: #6B8C6B;
+          margin-top: 8px;
+          margin-bottom: 12px;
+        }
+
+        .avatar-error {
+          font-size: 0.8125rem;
+          color: #dc2626;
+          margin-bottom: 12px;
+          text-align: center;
         }
 
         .identity-name {
@@ -184,7 +302,7 @@ export default function ProfileClient({ email, displayName, handicapIndex, membe
         }
 
         .identity-email {
-          font-size: 0.8125rem;
+          font-size: 0.875rem;
           color: #6B8C6B;
           word-break: break-all;
           margin: 0 0 20px;
@@ -212,13 +330,13 @@ export default function ProfileClient({ email, displayName, handicapIndex, membe
         }
 
         .stat-label {
-          font-size: 0.8125rem;
+          font-size: 0.875rem;
           color: #6B8C6B;
           font-weight: 400;
         }
 
         .stat-value {
-          font-size: 0.9375rem;
+          font-size: 1rem;
           color: #1A2E1A;
           font-weight: 600;
           letter-spacing: -0.01em;
@@ -232,7 +350,7 @@ export default function ProfileClient({ email, displayName, handicapIndex, membe
           border: 1.5px solid #E0EBE0;
           border-radius: 8px;
           padding: 3px 10px;
-          font-size: 0.9375rem;
+          font-size: 1rem;
           font-weight: 700;
           color: #0D631B;
           letter-spacing: -0.01em;
@@ -279,7 +397,7 @@ export default function ProfileClient({ email, displayName, handicapIndex, membe
         .field-label {
           font-size: 0.8125rem;
           font-weight: 600;
-          color: #374151;
+          color: #1A2E1A;
           letter-spacing: 0.01em;
         }
 
@@ -320,15 +438,9 @@ export default function ProfileClient({ email, displayName, handicapIndex, membe
           gap: 16px;
         }
 
-        /* ── Actions ── */
-        .actions-bar {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
+        /* ── Save button ── */
         .btn-save {
-          flex: 1;
+          width: 100%;
           background: #0D631B;
           color: #fff;
           border: none;
@@ -347,14 +459,16 @@ export default function ProfileClient({ email, displayName, handicapIndex, membe
           box-shadow: 0 6px 20px rgba(13,99,27,0.25);
         }
         .btn-save:disabled { background: #5a9e66; cursor: not-allowed; }
+        .btn-save.saved { background: #0D631B; }
 
         .save-feedback {
-          font-size: 0.875rem;
-          font-weight: 600;
+          font-size: 0.8125rem;
+          font-weight: 500;
           color: #0D631B;
+          text-align: center;
+          height: 20px;
           opacity: 0;
           transition: opacity 0.3s;
-          white-space: nowrap;
         }
         .save-feedback.visible { opacity: 1; }
 
@@ -403,9 +517,11 @@ export default function ProfileClient({ email, displayName, handicapIndex, membe
           .profile-header-inner { padding: 0 20px; }
           .profile-body { padding: 24px 16px 60px; }
           .profile-layout { grid-template-columns: 1fr; }
-          .identity-card { flex-direction: row; text-align: left; gap: 16px; padding: 20px; border-radius: 14px; flex-wrap: wrap; }
-          .avatar-ring { width: 56px; height: 56px; flex-shrink: 0; margin-bottom: 0; }
+          .identity-card { flex-direction: row; text-align: left; gap: 16px; padding: 20px; border-radius: 14px; flex-wrap: wrap; align-items: flex-start; }
+          .avatar-wrap { width: 56px; height: 56px; margin-bottom: 0; }
+          .avatar-ring { width: 56px; height: 56px; }
           .avatar-initials { font-size: 1.125rem; }
+          .avatar-upload-hint { display: none; }
           .identity-info { flex: 1; min-width: 0; }
           .identity-name { font-size: 1.0625rem; }
           .identity-divider { display: none; }
@@ -413,6 +529,15 @@ export default function ProfileClient({ email, displayName, handicapIndex, membe
           .field-row-2 { grid-template-columns: 1fr; }
         }
       `}</style>
+
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        style={{ display: 'none' }}
+        onChange={handleFileChange}
+      />
 
       <div className="profile-wrap">
         {/* ── Header ── */}
@@ -432,9 +557,54 @@ export default function ProfileClient({ email, displayName, handicapIndex, membe
 
             {/* Left — identity card */}
             <aside className="identity-card">
-              <div className="avatar-ring">
-                <span className="avatar-initials">{initials}</span>
+              {/* Clickable avatar */}
+              <div className="avatar-wrap" onClick={handleAvatarClick} title="Change photo">
+                <div className="avatar-ring">
+                  {avatarUrl ? (
+                    <Image
+                      src={avatarUrl}
+                      alt={name || 'Profile photo'}
+                      width={80}
+                      height={80}
+                      className="avatar-photo"
+                      unoptimized
+                    />
+                  ) : (
+                    <span className="avatar-initials">{initials}</span>
+                  )}
+                </div>
+
+                {/* Hover overlay with camera icon */}
+                {!uploadingAvatar && (
+                  <div className="avatar-overlay">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                      <circle cx="12" cy="13" r="4"/>
+                    </svg>
+                  </div>
+                )}
+
+                {/* Always-visible camera badge */}
+                {!uploadingAvatar && (
+                  <div className="avatar-camera-badge">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                      <circle cx="12" cy="13" r="4"/>
+                    </svg>
+                  </div>
+                )}
+
+                {/* Upload spinner */}
+                {uploadingAvatar && (
+                  <div className="avatar-uploading">
+                    <div className="avatar-spinner" />
+                  </div>
+                )}
               </div>
+
+              <p className="avatar-upload-hint">Click to change photo</p>
+              {avatarError && <p className="avatar-error">{avatarError}</p>}
+
               <div className="identity-info">
                 <p className="identity-name">{name || '—'}</p>
                 <p className="identity-email">{email}</p>
@@ -506,19 +676,15 @@ export default function ProfileClient({ email, displayName, handicapIndex, membe
               </div>
 
               {/* Save */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <div className="actions-bar">
-                  <button
-                    onClick={handleSave}
-                    disabled={isPending || !isDirty}
-                    className="btn-save"
-                  >
-                    {isPending ? 'Saving…' : 'Save changes'}
-                  </button>
-                  <span className={`save-feedback${saved ? ' visible' : ''}`}>
-                    ✓ Saved
-                  </span>
-                </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <button
+                  onClick={handleSave}
+                  disabled={isPending || !isDirty}
+                  className={`btn-save${saved ? ' saved' : ''}`}
+                >
+                  {isPending ? 'Saving…' : 'Save changes'}
+                </button>
+                <div className={`save-feedback${saved ? ' visible' : ''}`}>✓ Saved</div>
                 {errorMsg && <p className="error-msg">{errorMsg}</p>}
               </div>
 
