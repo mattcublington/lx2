@@ -6,8 +6,9 @@ import { PLAYER_COLOURS } from '@/lib/player-colours'
 import type { ScoringHole, GroupPlayer } from './page'
 import { enqueueScore, getQueuedScores, deleteQueuedScore, migrateFromLocalStorage } from '@/lib/offline-queue'
 
-// Prevents concurrent drain runs if the user toggles offline→online rapidly.
-let draining = false
+// Prevents concurrent drain runs per scorecard if the user toggles offline→online rapidly.
+// Keyed by scorecardId so multiple mounted instances don't block each other.
+const draining = new Set<string>()
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -227,8 +228,8 @@ export default function ScoreEntryLive(props: Props) {
 
   // Drain offline queue when we come back online
   const drainQueue = useCallback(async () => {
-    if (draining) return
-    draining = true
+    if (draining.has(scorecardId)) return
+    draining.add(scorecardId)
     window.dispatchEvent(new CustomEvent('lx2:sync-start'))
     try {
       const queue = await getQueuedScores(scorecardId)
@@ -244,7 +245,7 @@ export default function ScoreEntryLive(props: Props) {
         // On error: leave in IndexedDB, retry on next online event
       }
     } finally {
-      draining = false
+      draining.delete(scorecardId)
       window.dispatchEvent(new CustomEvent('lx2:sync-complete'))
     }
   }, [sb, scorecardId])

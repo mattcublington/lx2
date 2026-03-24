@@ -37,8 +37,8 @@ export default function OfflineBanner() {
       hideTimer = setTimeout(() => setState('hidden'), 2000)
     }
 
-    // Reflect current connectivity on mount
-    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    // Reflect current connectivity on mount (useEffect is browser-only — navigator always defined)
+    if (!navigator.onLine) {
       setState('offline')
     }
 
