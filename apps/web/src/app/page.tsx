@@ -113,7 +113,7 @@ export default function HomePage() {
 
         .hero-title {
           font-family: 'Manrope', sans-serif;
-          font-size: clamp(1.75rem, 4.5vw, 3rem);
+          font-size: clamp(2rem, 5.5vw, 3.5rem);
           font-weight: 800;
           line-height: 1.15;
           letter-spacing: -0.025em;
