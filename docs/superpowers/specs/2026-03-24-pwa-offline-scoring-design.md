@@ -51,7 +51,7 @@ Rejected alternatives:
 | `apps/web/public/icons/icon-192.png` | Android install icon |
 | `apps/web/public/icons/icon-512.png` | Android splash / maskable icon |
 | `apps/web/public/icons/apple-touch.png` | iOS home screen icon (180×180) |
-| `apps/web/src/components/pwa/ServiceWorkerRegistration.tsx` | Client component — registers SW on mount |
+| `apps/web/src/components/pwa/ServiceWorkerRegistration.tsx` | Client component — registers SW on mount. Registration is idempotent; no guard needed. In React Strict Mode it fires twice in development — this is benign. |
 | `apps/web/src/components/pwa/OfflineBanner.tsx` | Client component — fixed offline indicator |
 
 ### Files Modified
@@ -89,7 +89,7 @@ const CACHE_VERSION = 'v1';
 const CACHE_NAME = `lx2-${CACHE_VERSION}`;
 ```
 
-On `activate`, the SW deletes all caches whose name does not match the current version. To invalidate cached pages on deploy, bump `CACHE_VERSION`. A comment in `sw.js` reminds developers to do this.
+On `activate`, the SW deletes all caches whose name does not match the current version. To invalidate cached pages on deploy, bump `CACHE_VERSION` — this is required on any deploy that changes server-rendered HTML or removes previously-cached JS chunk filenames (stale HTML pointing at non-existent chunks will break offline users). A comment in `sw.js` marks the constant as "bump on deploy".
 
 ---
 
@@ -97,9 +97,11 @@ On `activate`, the SW deletes all caches whose name does not match the current v
 
 Replaces the existing `localStorage`-based offline queue in `ScoreEntryLive.tsx`.
 
-**Database:** `lx2`
+**Database:** `lx2`  **Version:** `1`
 **Object store:** `offline_scores`
-**Key path:** `[scorecard_id, hole_number]` (compound — natural upsert semantics)
+**Key path:** `['scorecard_id', 'hole_number']` (compound — natural upsert semantics)
+
+Database initialisation uses `onupgradeneeded`: `if (!db.objectStoreNames.contains('offline_scores')) { db.createObjectStore('offline_scores', { keyPath: ['scorecard_id', 'hole_number'] }) }`. This guard ensures safe re-entry if the upgrade callback fires more than once.
 
 ### Record shape
 
@@ -114,9 +116,9 @@ Replaces the existing `localStorage`-based offline queue in `ScoreEntryLive.tsx`
 
 ### Queue lifecycle
 
-1. **Enqueue** — called instead of Supabase upsert when offline. Writes record to IndexedDB (overwrites existing entry for same hole).
-2. **Drain** — called when the `online` event fires. Reads all records for current `scorecard_id`, upserts each to Supabase in order, deletes records on success. Fires `syncEvents` custom event to notify `OfflineBanner`.
-3. **Migration** — on component mount, checks for legacy `lx2_offline_queue_${scorecardId}` in localStorage. If found, writes entries to IndexedDB, removes localStorage key. One-time, silent migration — no data loss for golfers mid-round.
+1. **Enqueue** — called instead of Supabase upsert when offline. Uses `put()` (not `add()`) to write the record — overwrites any existing entry for the same compound key.
+2. **Drain** — called when the `online` event fires. A module-level `let draining = false` flag prevents concurrent drain runs (rapid offline→online→offline cycling). If `draining` is `true`, the new `online` event is ignored. Flag is reset in a `finally` block. Reads all records for current `scorecard_id`, upserts each to Supabase in order, deletes each on success. On upsert failure, leaves the record in IndexedDB and re-attempts on the next `online` event — no error is surfaced to the user unless the record is >24 hours old. Fires `lx2:sync-start` at start and `lx2:sync-complete` at end.
+3. **Migration** — on component mount, checks for legacy `lx2_offline_queue_${scorecardId}` in localStorage. If found, writes entries to IndexedDB using `put()` (safe if migration runs twice under React Strict Mode — compound key provides natural upsert), then removes the localStorage key. One-time, silent migration.
 
 No third-party IndexedDB library. Raw `indexedDB` API (~40 lines).
 
@@ -132,7 +134,7 @@ A fixed, full-width banner at the top of the viewport. Slides in when offline, s
 |-------|------|---------|
 | Offline | `● Offline — scores saved locally, will sync when connected` | `offline` event |
 | Syncing | `↻ Syncing scores...` | `lx2:sync-start` custom event |
-| Hidden | — | 2s after `lx2:sync-complete` custom event |
+| Hidden | — | 2s after `lx2:sync-complete` custom event, OR 2s after `online` event if no `lx2:sync-complete` fires within 3s (e.g. user is offline on a non-scoring page) |
 
 ### Visual spec
 
@@ -170,8 +172,9 @@ No blocking modal. No user action required.
   "background_color": "#0a1f0a",
   "theme_color": "#0D631B",
   "icons": [
-    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
 ```
@@ -193,9 +196,10 @@ No blocking modal. No user action required.
 
 ### Icons
 
-Generated from `lx2-logo.svg` using Sharp (available in the monorepo). Three outputs:
-- `icon-192.png` — 192×192 (Android minimum for installability)
-- `icon-512.png` — 512×512 (Android splash / maskable)
+Generated from `lx2-logo.svg` using Sharp (available in the monorepo). Four outputs:
+- `icon-192.png` — 192×192, `purpose: any` (Android install icon)
+- `icon-512.png` — 512×512, `purpose: any` (Android splash)
+- `icon-512-maskable.png` — 512×512, `purpose: maskable` (Android adaptive icon). The logo must be scaled to fit within the central 80% safe zone (≈410×410px of canvas) with `#0a1f0a` bleed background filling the outer 10% on each edge — otherwise Android will clip it to a circle/squircle.
 - `apple-touch.png` — 180×180 (iOS home screen)
 
 ---
