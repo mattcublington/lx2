@@ -505,10 +505,10 @@ export default function HomePage() {
       <section className="hero">
         <div className="hero-bg" />
         <div className="hero-content">
-          <div className="hero-label">Golf society management</div>
-          <h1 className="hero-title">Golf, all in one place.</h1>
+          <div className="hero-label">LX2 — SEVENTY TWO</div>
+          <h1 className="hero-title">The modern game, connected</h1>
           <p className="hero-sub">
-            Score your rounds, track your handicap, and run society days — all from your phone.
+            One platform for golfers, societies, and clubs. Bringing scoring, competition, and management into a single, seamless experience.
           </p>
           <div className="hero-ctas">
             <a href="/auth/login?mode=signup" className="btn-getstarted">
