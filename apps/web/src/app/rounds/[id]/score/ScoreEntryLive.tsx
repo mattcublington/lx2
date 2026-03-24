@@ -180,6 +180,7 @@ export default function ScoreEntryLive(props: Props) {
   const [flash, setFlash] = useState<{ label: string; color: string } | null>(null)
   const [cDist, setCDist] = useState('')
   const [stepValue, setStepValue] = useState<number | null>(null)
+  const [viewingId, setViewingId] = useState<string>(scorecardId)
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Supabase browser client (stable reference)
@@ -413,25 +414,38 @@ export default function ScoreEntryLive(props: Props) {
     const outPar = holes.slice(0, 9).reduce((sum, h) => sum + h.par, 0)
     const inPar = holes.slice(9).reduce((sum, h) => sum + h.par, 0)
 
+    // Resolve which player we're viewing on the scorecard
+    const viewingPlayer = groupPlayers.find(p => p.scorecardId === viewingId) ?? groupPlayers[0]
+    const isViewingOwn = viewingId === scorecardId
+    // For own scorecard, use reducer state (has pickup tracking); for others, use liveScores
+    const viewingScores: Record<number, number | null | undefined> = isViewingOwn
+      ? s.scores
+      : (liveScores[viewingId] ?? viewingPlayer?.initialScores ?? {})
+    const viewingPickups: Record<number, boolean> = isViewingOwn ? s.pickups : {}
+    const viewingHc = Math.round((viewingPlayer?.handicapIndex ?? handicapIndex) * allowancePct)
+    const viewingStrokes = allocateStrokes(viewingHc, holes)
+
     function holeTotal(from: number, to: number) {
       if (format === 'stableford') {
         let p = 0
         for (let i = from; i < to; i++) {
           const h = holes[i]!
-          const sc = s.scores[h.holeInRound]
-          if (sc != null && !s.pickups[h.holeInRound]) p += pts(sc, h.par, strokesPerHole[h.holeInRound] ?? 0)
+          const sc = viewingScores[h.holeInRound]
+          if (sc != null && !viewingPickups[h.holeInRound]) p += pts(sc, h.par, viewingStrokes[h.holeInRound] ?? 0)
         }
         return p > 0 ? String(p) : '–'
       } else {
         let st = 0; let any = false
         for (let i = from; i < to; i++) {
           const h = holes[i]!
-          const sc = s.scores[h.holeInRound]
-          if (sc != null && !s.pickups[h.holeInRound]) { st += sc; any = true }
+          const sc = viewingScores[h.holeInRound]
+          if (sc != null && !viewingPickups[h.holeInRound]) { st += sc; any = true }
         }
         return any ? String(st) : '–'
       }
     }
+
+    const hasMultiplePlayers = groupPlayers.filter(p => p.scorecardId).length > 1
 
     return (
       <div style={{ maxWidth: 480, margin: '0 auto', background: '#FAFBF8', fontFamily: "'DM Sans', system-ui, sans-serif", color: '#1a2e1a', minHeight: '100vh' }}>
@@ -440,8 +454,39 @@ export default function ScoreEntryLive(props: Props) {
           <div style={{ fontSize: 14, fontWeight: 600 }}>Scorecard</div>
           <div style={{ width: 60 }} />
         </div>
-        <div style={{ padding: '8px 12px 4px', fontSize: 12, color: '#6b7c6b' }}>
-          {eventName} · {eventDate} · HC {effectiveHc}
+
+        {/* Player selector pills — only shown when there are multiple players */}
+        {hasMultiplePlayers && (
+          <div style={{ display: 'flex', gap: 6, padding: '8px 12px', overflowX: 'auto', WebkitOverflowScrolling: 'touch' as const }}>
+            {groupPlayers.filter(p => p.scorecardId).map(p => {
+              const active = p.scorecardId === viewingId
+              const firstName = p.displayName.split(' ')[0]
+              return (
+                <button
+                  key={p.scorecardId}
+                  onClick={() => setViewingId(p.scorecardId)}
+                  style={{
+                    flexShrink: 0,
+                    padding: '5px 12px',
+                    borderRadius: 9999,
+                    border: active ? '1.5px solid #3a7d44' : '1.5px solid #d0d8cc',
+                    background: active ? '#3a7d44' : '#fff',
+                    color: active ? '#fff' : '#4a5e4a',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap' as const,
+                  }}
+                >
+                  {firstName}{p.isCurrentUser ? ' (you)' : ''}
+                </button>
+              )
+            })}
+          </div>
+        )}
+
+        <div style={{ padding: hasMultiplePlayers ? '2px 12px 4px' : '8px 12px 4px', fontSize: 12, color: '#6b7c6b' }}>
+          {eventName} · {eventDate} · HC {viewingHc}
         </div>
         <div style={{ overflowX: 'auto', padding: '4px', WebkitOverflowScrolling: 'touch' as const }}>
           <table style={{ borderCollapse: 'collapse', fontSize: 11, minWidth: 320, width: '100%' }}>
@@ -451,20 +496,23 @@ export default function ScoreEntryLive(props: Props) {
                 <th style={thS}>Par</th>
                 <th style={thS}>SI</th>
                 <th style={thS}>Yds</th>
-                <th style={{ ...thS, color: '#3a7d44' }}>{playerName.split(' ')[0]}</th>
+                <th style={{ ...thS, color: '#3a7d44' }}>{(viewingPlayer?.displayName ?? playerName).split(' ')[0]}</th>
                 {format === 'stableford' && <th style={{ ...thS, color: '#3a7d44' }}>Pts</th>}
               </tr>
             </thead>
             <tbody>
               {holes.map((h, i) => {
-                const sc = s.scores[h.holeInRound]
-                const pu = s.pickups[h.holeInRound]
-                const p = sc != null ? pts(sc, h.par, strokesPerHole[h.holeInRound] ?? 0) : null
-                const cur = i === s.hole
+                const sc = viewingScores[h.holeInRound]
+                // For own scorecard use pickup map; for others treat null-valued entry as NR
+                const pu = isViewingOwn
+                  ? (viewingPickups[h.holeInRound] ?? false)
+                  : (h.holeInRound in (liveScores[viewingId] ?? {}) && sc === null)
+                const p = sc != null ? pts(sc, h.par, viewingStrokes[h.holeInRound] ?? 0) : null
+                const cur = i === s.hole && isViewingOwn
                 return (
                   <tr key={h.holeInRound}
-                    style={{ borderBottom: '1px solid #f0f4ec', background: cur ? '#f5f9f2' : 'transparent', cursor: 'pointer' }}
-                    onClick={() => { d({ type: 'SET_HOLE', idx: i }); d({ type: 'TOGGLE_CARD' }) }}>
+                    style={{ borderBottom: '1px solid #f0f4ec', background: cur ? '#f5f9f2' : 'transparent', cursor: isViewingOwn ? 'pointer' : 'default' }}
+                    onClick={() => { if (isViewingOwn) { d({ type: 'SET_HOLE', idx: i }); d({ type: 'TOGGLE_CARD' }) } }}>
                     <td style={{ ...tdS, fontWeight: 600 }}>{h.holeInRound}</td>
                     <td style={tdS}>{h.par}</td>
                     <td style={{ ...tdS, color: '#8a9a8a' }}>{h.siM ?? '–'}</td>

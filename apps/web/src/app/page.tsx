@@ -113,9 +113,9 @@ export default function HomePage() {
 
         .hero-title {
           font-family: 'Manrope', sans-serif;
-          font-size: clamp(2.4rem, 6.5vw, 4.5rem);
+          font-size: clamp(1.75rem, 4.5vw, 3rem);
           font-weight: 800;
-          line-height: 1.0;
+          line-height: 1.15;
           letter-spacing: -0.025em;
           color: #fff;
           margin-bottom: 24px;
@@ -123,6 +123,14 @@ export default function HomePage() {
           text-shadow: 0 2px 32px rgba(0,0,0,0.3);
           opacity: 0;
           animation: rise 0.6s ease forwards 0.2s;
+        }
+
+        .hero-title-sub {
+          display: block;
+          margin-top: 0.5em;
+          font-size: clamp(1.25rem, 3vw, 2rem);
+          font-weight: 700;
+          opacity: 0.9;
         }
 
         .hero-sub {
@@ -494,7 +502,12 @@ export default function HomePage() {
       <section className="hero">
         <div className="hero-bg" />
         <div className="hero-content">
-          <h1 className="hero-title">Every round. Every competition. Every member.<br /><span style={{display:'block', marginTop:'0.7em'}}>Finally in one place.</span></h1>
+          <h1 className="hero-title">
+            Every round.<br />
+            Every competition.<br />
+            Every member.<br />
+            <span className="hero-title-sub">Finally in one place.</span>
+          </h1>
           <p className="hero-sub">
             One platform for golfers, societies, and clubs.
           </p>
