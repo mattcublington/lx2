@@ -43,7 +43,7 @@ export default function HomePage() {
         }
 
         .logo { display: flex; align-items: center; text-decoration: none; }
-        .logo img { height: 48px; width: auto; filter: brightness(0) invert(1); }
+        .logo img { filter: brightness(0) invert(1); }
 
         .nav-links { display: flex; align-items: center; gap: 32px; }
 
@@ -113,7 +113,7 @@ export default function HomePage() {
 
         .hero-title {
           font-family: 'Manrope', sans-serif;
-          font-size: clamp(2.75rem, 8vw, 5.25rem);
+          font-size: clamp(2.4rem, 6.5vw, 4.5rem);
           font-weight: 800;
           line-height: 1.0;
           letter-spacing: -0.025em;
@@ -234,8 +234,8 @@ export default function HomePage() {
         .scroll-cue {
           position: absolute;
           bottom: 32px;
-          left: 50%;
-          transform: translateX(-50%);
+          left: 0;
+          right: 0;
           z-index: 10;
           display: flex;
           flex-direction: column;
@@ -478,7 +478,7 @@ export default function HomePage() {
       {/* Nav */}
       <nav className="nav">
         <Link href="/" className="logo">
-          <Image src="/lx2-logo.svg" alt="LX2" height={96} width={192} />
+          <Image src="/lx2-logo.svg" alt="LX2" height={96} width={192} style={{ height: '48px', width: 'auto' }} />
         </Link>
         <div className="nav-links">
           <a href="#how-it-works" className="nav-link">How it works</a>
@@ -494,7 +494,7 @@ export default function HomePage() {
       <section className="hero">
         <div className="hero-bg" />
         <div className="hero-content">
-          <h1 className="hero-title">Every round. Every competition. Every member. Finally in one place.</h1>
+          <h1 className="hero-title">Every round. Every competition. Every member.<br /><span style={{display:'block', marginTop:'0.7em'}}>Finally in one place.</span></h1>
           <p className="hero-sub">
             One platform for golfers, societies, and clubs.
           </p>

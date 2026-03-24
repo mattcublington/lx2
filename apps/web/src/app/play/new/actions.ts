@@ -28,9 +28,12 @@ export async function startRound(data: StartRoundData): Promise<string> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
 
-  // 2. Ensure public.users row exists; persist handicap_index if provided
+  // 2. Ensure public.users row exists; persist handicap_index if provided.
+  // Uses service_role: public.users has no INSERT policy (writes are
+  // restricted to server-side admin actions per 001_rls_policies.sql).
   const userHandicap = data.players.find(p => p.isUser)?.handicapIndex ?? null
-  await supabase
+  const admin = createAdminClient()
+  await admin
     .from('users')
     .upsert({
       id: user.id,
@@ -58,7 +61,6 @@ export async function startRound(data: StartRoundData): Promise<string> {
   if (existingCourse) {
     courseDbId = existingCourse.id
   } else {
-    const admin = createAdminClient()
     const { data: newCourse, error: courseErr } = await admin
       .from('courses')
       .insert({
