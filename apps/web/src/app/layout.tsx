@@ -7,6 +7,8 @@ import {
   Cormorant_Garamond,
 } from 'next/font/google'
 import './globals.css'
+import ServiceWorkerRegistration from '@/components/pwa/ServiceWorkerRegistration'
+import OfflineBanner from '@/components/pwa/OfflineBanner'
 
 const dmSans = DM_Sans({
   subsets: ['latin'],
@@ -52,6 +54,15 @@ export const metadata: Metadata = {
     description: 'Golf scoring, stats and society management',
     type: 'website',
   },
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'LX2',
+  },
+  other: {
+    'theme-color': '#0D631B',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -66,7 +77,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         cormorant.variable,
       ].join(' ')}
     >
-      <body>{children}</body>
+      <head>
+        <link rel="apple-touch-icon" href="/icons/apple-touch.png" />
+      </head>
+      <body>
+        <ServiceWorkerRegistration />
+        <OfflineBanner />
+        {children}
+      </body>
     </html>
   )
 }
