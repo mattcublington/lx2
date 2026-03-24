@@ -1,31 +1,43 @@
 'use client'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { joinEvent } from './actions'
+import { joinEvent, joinEventAnon } from './actions'
 
 interface Props {
-  eventId: string
-  defaultName: string
+  eventId:        string
+  /** null = unauthenticated visitor (anonymous join path) */
+  userId:         string | null
+  defaultName:    string
   defaultHandicap: number | null
 }
 
-export default function JoinForm({ eventId, defaultName, defaultHandicap }: Props) {
+export default function JoinForm({ eventId, userId, defaultName, defaultHandicap }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const [open, setOpen] = useState(false)
-  const [name, setName] = useState(defaultName)
+  const [open,     setOpen]     = useState(false)
+  const [name,     setName]     = useState(defaultName)
   const [handicap, setHandicap] = useState(defaultHandicap !== null ? String(defaultHandicap) : '')
-  const [error, setError] = useState('')
+  const [error,    setError]    = useState('')
 
   const handleJoin = () => {
     if (!name.trim()) { setError('Please enter your name'); return }
     const hcp = parseFloat(handicap)
-    if (isNaN(hcp) || hcp < 0 || hcp > 54) { setError('Enter a valid handicap index (0–54)'); return }
+    if (isNaN(hcp) || hcp < 0 || hcp > 54) {
+      setError('Enter a valid handicap index (0–54)')
+      return
+    }
     setError('')
+
     startTransition(async () => {
       try {
-        await joinEvent(eventId, name.trim(), hcp)
-        // Refresh the page so the server component re-renders with "Go to scorecard"
+        if (userId) {
+          // Authenticated path — user_id is stored on the event_player row
+          await joinEvent(eventId, name.trim(), hcp)
+        } else {
+          // Anonymous path — join_token cookie is set by the server action
+          await joinEventAnon(eventId, name.trim(), hcp)
+        }
+        // Re-render the server component so the CTA switches to "Go to scorecard"
         router.refresh()
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Failed to join'
@@ -58,12 +70,19 @@ export default function JoinForm({ eventId, defaultName, defaultHandicap }: Prop
 
   return (
     <div style={{ background: '#F2F5F0', borderRadius: 12, padding: '20px', border: '1px solid #E0EBE0' }}>
-      <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: '#1A2E1A', marginBottom: 16, fontFamily: 'var(--font-dm-sans), sans-serif' }}>
+      <div style={{
+        fontSize: '0.9375rem', fontWeight: 600, color: '#1A2E1A', marginBottom: 16,
+        fontFamily: 'var(--font-dm-sans), sans-serif',
+      }}>
         Confirm your details
       </div>
 
+      {/* Name */}
       <div style={{ marginBottom: 14 }}>
-        <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#374151', marginBottom: 6, fontFamily: 'var(--font-dm-sans), sans-serif' }}>
+        <label style={{
+          display: 'block', fontSize: '0.8125rem', fontWeight: 500,
+          color: '#374151', marginBottom: 6, fontFamily: 'var(--font-dm-sans), sans-serif',
+        }}>
           Your name
         </label>
         <input
@@ -75,13 +94,17 @@ export default function JoinForm({ eventId, defaultName, defaultHandicap }: Prop
             borderRadius: 10, fontSize: '0.9375rem', fontFamily: 'var(--font-dm-sans), sans-serif',
             color: '#1A2E1A', outline: 'none', boxSizing: 'border-box',
           }}
-          onFocus={e => (e.currentTarget.style.borderColor = '#0D631B')}
-          onBlur={e => (e.currentTarget.style.borderColor = '#d1d5db')}
+          onFocus={e  => (e.currentTarget.style.borderColor = '#0D631B')}
+          onBlur={e   => (e.currentTarget.style.borderColor = '#d1d5db')}
         />
       </div>
 
+      {/* Handicap */}
       <div style={{ marginBottom: 20 }}>
-        <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#374151', marginBottom: 6, fontFamily: 'var(--font-dm-sans), sans-serif' }}>
+        <label style={{
+          display: 'block', fontSize: '0.8125rem', fontWeight: 500,
+          color: '#374151', marginBottom: 6, fontFamily: 'var(--font-dm-sans), sans-serif',
+        }}>
           Handicap index
         </label>
         <input
@@ -95,24 +118,32 @@ export default function JoinForm({ eventId, defaultName, defaultHandicap }: Prop
             borderRadius: 10, fontSize: '0.9375rem', fontFamily: 'var(--font-dm-sans), sans-serif',
             color: '#1A2E1A', outline: 'none', boxSizing: 'border-box',
           }}
-          onFocus={e => (e.currentTarget.style.borderColor = '#0D631B')}
-          onBlur={e => (e.currentTarget.style.borderColor = '#d1d5db')}
+          onFocus={e  => (e.currentTarget.style.borderColor = '#0D631B')}
+          onBlur={e   => (e.currentTarget.style.borderColor = '#d1d5db')}
         />
       </div>
 
+      {/* Error */}
       {error && (
-        <div style={{ marginBottom: 14, padding: '10px 14px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, fontSize: '0.875rem', color: '#dc2626', fontFamily: 'var(--font-dm-sans), sans-serif' }}>
+        <div style={{
+          marginBottom: 14, padding: '10px 14px',
+          background: '#fef2f2', border: '1px solid #fecaca',
+          borderRadius: 8, fontSize: '0.875rem', color: '#dc2626',
+          fontFamily: 'var(--font-dm-sans), sans-serif',
+        }}>
           {error}
         </div>
       )}
 
+      {/* Buttons */}
       <div style={{ display: 'flex', gap: 10 }}>
         <button
           onClick={() => { setOpen(false); setError('') }}
           style={{
-            flex: 1, padding: '12px 0', border: '1.5px solid #E0EBE0', borderRadius: 12,
-            background: '#fff', fontSize: '0.9375rem', fontWeight: 500,
-            fontFamily: 'var(--font-dm-sans), sans-serif', color: '#1A2E1A', cursor: 'pointer',
+            flex: 1, padding: '12px 0', border: '1.5px solid #E0EBE0',
+            borderRadius: 12, background: '#fff', fontSize: '0.9375rem',
+            fontWeight: 500, fontFamily: 'var(--font-dm-sans), sans-serif',
+            color: '#1A2E1A', cursor: 'pointer',
           }}
         >
           Cancel
@@ -121,10 +152,12 @@ export default function JoinForm({ eventId, defaultName, defaultHandicap }: Prop
           onClick={handleJoin}
           disabled={isPending}
           style={{
-            flex: 2, padding: '12px 0', background: isPending ? '#9ca3af' : '#0D631B',
-            border: 'none', borderRadius: 12, fontSize: '0.9375rem', fontWeight: 600,
-            fontFamily: 'var(--font-dm-sans), sans-serif', color: '#fff',
-            cursor: isPending ? 'default' : 'pointer', transition: 'background 0.15s',
+            flex: 2, padding: '12px 0',
+            background: isPending ? '#9ca3af' : '#0D631B',
+            border: 'none', borderRadius: 12, fontSize: '0.9375rem',
+            fontWeight: 600, fontFamily: 'var(--font-dm-sans), sans-serif',
+            color: '#fff', cursor: isPending ? 'default' : 'pointer',
+            transition: 'background 0.15s',
           }}
         >
           {isPending ? 'Joining…' : 'Confirm & join'}

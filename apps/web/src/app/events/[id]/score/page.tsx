@@ -1,43 +1,67 @@
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 interface PageProps {
   params: Promise<{ id: string }>
 }
 
 /**
- * Resolves the current user's scorecard for this event and redirects to
- * /rounds/[scorecardId]/score. If the user hasn't joined yet, redirects
- * back to the event landing page.
+ * Resolves the current user's (or anonymous player's) scorecard for this event
+ * and redirects to /rounds/[scorecardId]/score.
+ *
+ * Authenticated path:  match event_player by user_id
+ * Anonymous path:      match event_player by join_token cookie (set by joinEventAnon)
+ *
+ * If neither is found the visitor is redirected to the event landing page to join.
  */
 export default async function EventScorePage({ params }: PageProps) {
   const { id } = await params
+  const admin = createAdminClient()
+
+  // ── Try authenticated path ────────────────────────────────────────────────
   const supabase = await createClient()
-
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect(`/auth/login?redirect=/events/${id}/score`)
 
-  // Find this user's event_player + scorecard in the event.
-  // event_players_select RLS: once joined, user can see their own row.
-  const { data: player } = await supabase
+  if (user) {
+    const { data: player } = await admin
+      .from('event_players')
+      .select('id, scorecards(id)')
+      .eq('event_id', id)
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (!player) redirect(`/events/${id}`)
+
+    const scorecards  = player.scorecards as unknown as { id: string }[] | null
+    const scorecardId = (scorecards ?? [])[0]?.id
+    if (!scorecardId) redirect(`/events/${id}`)
+
+    redirect(`/rounds/${scorecardId}/score`)
+  }
+
+  // ── Anonymous path — check join_token cookie ──────────────────────────────
+  const cookieStore = await cookies()
+  const joinToken   = cookieStore.get(`ep_token_${id}`)?.value
+
+  if (!joinToken) {
+    // No session and no token — send to login with a return URL
+    redirect(`/auth/login?redirect=/events/${id}/score`)
+  }
+
+  const { data: anonPlayer } = await admin
     .from('event_players')
     .select('id, scorecards(id)')
     .eq('event_id', id)
-    .eq('user_id', user.id)
+    .eq('join_token', joinToken)
     .maybeSingle()
 
-  if (!player) {
-    // Not joined — send them to the landing page to join first
-    redirect(`/events/${id}`)
-  }
+  if (!anonPlayer) redirect(`/events/${id}`)
 
-  const scorecards = player.scorecards as unknown as { id: string }[] | null
+  const scorecards  = anonPlayer.scorecards as unknown as { id: string }[] | null
   const scorecardId = (scorecards ?? [])[0]?.id
-
-  if (!scorecardId) {
-    // Joined but scorecard missing — edge case, send them back to join
-    redirect(`/events/${id}`)
-  }
+  if (!scorecardId) redirect(`/events/${id}`)
 
   redirect(`/rounds/${scorecardId}/score`)
 }

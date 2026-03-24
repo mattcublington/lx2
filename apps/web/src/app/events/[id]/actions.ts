@@ -1,6 +1,13 @@
 'use server'
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+
+// ── Cookie name helper ───────────────────────────────────────────────────────
+// Stored as HttpOnly so the score page can redirect anon players to their card.
+function epTokenCookieName(eventId: string) {
+  return `ep_token_${eventId}`
+}
 
 /**
  * Join an event as a player. Idempotent — safe to call if already joined.
@@ -96,4 +103,84 @@ export async function joinEvent(
   if (scErr || !sc) throw new Error(`Failed to create scorecard: ${scErr?.message ?? 'unknown'}`)
 
   return { scorecardId: sc.id }
+}
+
+/**
+ * Join a public event as an anonymous (unauthenticated) player.
+ * Creates an event_player with null user_id and stores the join_token
+ * in an HttpOnly cookie so the player can access their scorecard later.
+ * Safe to call multiple times — idempotent if the cookie is present.
+ */
+export async function joinEventAnon(
+  eventId: string,
+  displayName: string,
+  handicapIndex: number,
+): Promise<void> {
+  const admin      = createAdminClient()
+  const cookieStore = await cookies()
+
+  // Idempotent: if this browser already has a valid join_token for this
+  // event, return without creating a duplicate row.
+  const existing = cookieStore.get(epTokenCookieName(eventId))?.value
+  if (existing) {
+    const { data: ep } = await admin
+      .from('event_players')
+      .select('id')
+      .eq('event_id', eventId)
+      .eq('join_token', existing)
+      .maybeSingle()
+    if (ep) return // Already joined — cookie is still valid
+  }
+
+  // Validate event exists and is public
+  const { data: event } = await admin
+    .from('events')
+    .select('max_players, is_public')
+    .eq('id', eventId)
+    .single()
+
+  if (!event)           throw new Error('Event not found')
+  if (!event.is_public) throw new Error('Event is not public')
+
+  // Enforce max_players cap
+  if (event.max_players) {
+    const { count } = await admin
+      .from('event_players')
+      .select('id', { count: 'exact', head: true })
+      .eq('event_id', eventId)
+      .eq('rsvp_status', 'confirmed')
+    if ((count ?? 0) >= event.max_players) throw new Error('MAX_PLAYERS_REACHED')
+  }
+
+  // Create event_player with null user_id (anonymous)
+  const { data: ep, error: epErr } = await admin
+    .from('event_players')
+    .insert({
+      event_id:       eventId,
+      user_id:        null,
+      display_name:   displayName,
+      handicap_index: handicapIndex,
+      rsvp_status:    'confirmed',
+    })
+    .select('id, join_token')
+    .single()
+
+  if (epErr || !ep) throw new Error(`Failed to join: ${epErr?.message ?? 'unknown'}`)
+
+  // Create scorecard
+  const { error: scErr } = await admin
+    .from('scorecards')
+    .insert({ event_id: eventId, event_player_id: ep.id, round_type: '18' })
+
+  if (scErr) throw new Error(`Failed to create scorecard: ${scErr.message}`)
+
+  // Persist the join_token as an HttpOnly cookie (7 days).
+  // The score redirect page reads this to find the scorecard for anon players.
+  cookieStore.set(epTokenCookieName(eventId), ep.join_token as string, {
+    httpOnly: true,
+    secure:   process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge:   7 * 24 * 60 * 60, // 7 days
+    path:     '/',
+  })
 }
