@@ -506,7 +506,7 @@ export default function HomePage() {
         <div className="hero-bg" />
         <div className="hero-content">
           <div className="hero-label">LX2 — SEVENTY TWO</div>
-          <h1 className="hero-title">The modern game, connected</h1>
+          <h1 className="hero-title">Golf, connected</h1>
           <p className="hero-sub">
             One platform for golfers, societies, and clubs. Bringing scoring, competition, and management into a single, seamless experience.
           </p>
