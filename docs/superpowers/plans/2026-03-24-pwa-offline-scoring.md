@@ -586,7 +586,7 @@ git commit -m "chore: declare lx2 custom window events in TypeScript"
 
 ---
 
-## Task 7: ServiceWorkerRegistration Component
+## Task 6: ServiceWorkerRegistration Component
 
 **Files:**
 - Create: `apps/web/src/components/pwa/ServiceWorkerRegistration.tsx`
