@@ -52,8 +52,6 @@ export default async function LeaderboardPage({ params }: PageProps) {
     )
   }
 
-  const isOrganiser = user?.id === event.createdBy
-
   return (
     <>
       <style>{`
