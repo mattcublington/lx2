@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 
 export default function HomePage() {
   const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [userInitial, setUserInitial] = useState<string | null>(null)
   const [showCode, setShowCode] = useState(false)
   const [code, setCode] = useState('')
   const codeRef = useRef<HTMLInputElement>(null)
@@ -14,6 +15,8 @@ export default function HomePage() {
     const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUserEmail(user?.email ?? null)
+      const name = user?.user_metadata?.full_name ?? user?.email ?? null
+      setUserInitial(name ? name[0].toUpperCase() : null)
     })
   }, [])
 
@@ -58,6 +61,31 @@ export default function HomePage() {
           transition: color 0.15s;
         }
         .hp-nav-link:hover { color: #fff; }
+        .hp-nav-profile {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+          border-radius: 9999px;
+          background: rgba(10, 20, 10, 0.72);
+          border: 1.5px solid rgba(255,255,255,0.18);
+          color: #fff;
+          font-family: var(--font-manrope), 'Manrope', sans-serif;
+          font-weight: 700;
+          font-size: 15px;
+          text-decoration: none;
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          transition: background 0.15s, border-color 0.15s, transform 0.15s;
+          letter-spacing: 0;
+          flex-shrink: 0;
+        }
+        .hp-nav-profile:hover {
+          background: rgba(10, 20, 10, 0.88);
+          border-color: rgba(255,255,255,0.3);
+          transform: translateY(-1px);
+        }
 
         /* ── Hero ── */
         .hp-hero {
@@ -367,6 +395,11 @@ export default function HomePage() {
         </Link>
         <div className="hp-nav-links">
           <a href="#features" className="hp-nav-link">Features</a>
+          {userInitial && (
+            <Link href="/play" className="hp-nav-profile" aria-label="My profile">
+              {userInitial}
+            </Link>
+          )}
         </div>
       </nav>
 
@@ -385,12 +418,8 @@ export default function HomePage() {
           <h1>One place for<br />every golfer,<br />every society,<br />every club.</h1>
           <p>Track your rounds. Play with friends. Compete in events. Run your club. All in one beautiful app.</p>
           <div className="hp-hero-ctas">
-            <a href="/auth/login?mode=signup" className="hp-btn-primary">Create account</a>
-            {userEmail ? (
-              <Link href="/play" className="hp-btn-secondary">Dashboard</Link>
-            ) : (
-              <Link href="/auth/login" className="hp-btn-secondary">Sign in</Link>
-            )}
+            <Link href="/auth/signup" className="hp-btn-primary">Create account</Link>
+            <Link href="/auth/login" className="hp-btn-secondary">Sign in</Link>
             <button className="hp-btn-link" onClick={handleJoinEvent}>Join event →</button>
           </div>
           {showCode && (
