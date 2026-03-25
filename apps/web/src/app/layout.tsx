@@ -4,7 +4,6 @@ import {
   DM_Serif_Display,
   Manrope,
   Lexend,
-  Cormorant_Garamond,
 } from 'next/font/google'
 import './globals.css'
 import ServiceWorkerRegistration from '@/components/pwa/ServiceWorkerRegistration'
@@ -38,14 +37,6 @@ const lexend = Lexend({
   display: 'swap',
 })
 
-const cormorant = Cormorant_Garamond({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  style: ['normal', 'italic'],
-  variable: '--font-cormorant',
-  display: 'swap',
-})
-
 export const metadata: Metadata = {
   title: 'LX2',
   description: 'Golf scoring, stats and society management',
@@ -74,7 +65,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         dmSerifDisplay.variable,
         manrope.variable,
         lexend.variable,
-        cormorant.variable,
       ].join(' ')}
     >
       <head>
