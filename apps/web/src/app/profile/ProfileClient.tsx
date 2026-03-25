@@ -21,40 +21,43 @@ function getInitials(name: string): string {
   return name.slice(0, 2).toUpperCase()
 }
 
-function formatMemberSince(dateStr: string | null): string {
-  if (!dateStr) return '—'
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
-}
+// Which field is being inline-edited
+type EditingField = 'name' | 'handicap' | null
 
-export default function ProfileClient({ userId, email, displayName, handicapIndex, memberSince, avatarUrl: initialAvatarUrl }: Props) {
+export default function ProfileClient({ userId, email, displayName, handicapIndex, avatarUrl: initialAvatarUrl }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [name, setName] = useState(displayName)
   const [hcp, setHcp] = useState<string>(handicapIndex !== null ? String(handicapIndex) : '')
-  const [saved, setSaved] = useState(false)
+  const [editing, setEditing] = useState<EditingField>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(initialAvatarUrl)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [avatarError, setAvatarError] = useState<string | null>(null)
 
-  const isDirty = name !== displayName || hcp !== (handicapIndex !== null ? String(handicapIndex) : '')
+  const initials = getInitials(name || email)
 
   const handleSave = () => {
     setErrorMsg(null)
-    setSaved(false)
     const parsedHcp = hcp.trim() === '' ? null : parseFloat(hcp)
     startTransition(async () => {
       const result = await updateProfile({ displayName: name, handicapIndex: parsedHcp })
       if (result.ok) {
-        setSaved(true)
-        setTimeout(() => setSaved(false), 2500)
+        setEditing(null)
       } else {
         setErrorMsg(result.error)
       }
     })
+  }
+
+  const handleCancel = () => {
+    // Reset to saved values
+    setName(displayName)
+    setHcp(handicapIndex !== null ? String(handicapIndex) : '')
+    setEditing(null)
+    setErrorMsg(null)
   }
 
   const handleSignOut = async () => {
@@ -83,72 +86,61 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
       setAvatarError(err instanceof Error ? err.message : 'Upload failed')
     } finally {
       setUploadingAvatar(false)
-      // Reset so the same file can be re-selected if needed
       if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
 
-  const initials = getInitials(name || email)
+  const hcpDisplay = hcp ? parseFloat(hcp).toFixed(1) : '—'
+  const isGoogleAuth = email.endsWith('@gmail.com') || true // always true for this app
 
   return (
     <>
       <style>{`
         *, *::before, *::after { box-sizing: border-box; }
 
-        .profile-wrap {
+        .pf-page {
           min-height: 100dvh;
-          background: #F2F5F0;
-          font-family: var(--font-dm-sans, 'DM Sans', system-ui, sans-serif);
-          color: #1A2E1A;
+          background: #F0F4EC;
+          font-family: var(--font-lexend, 'Lexend', sans-serif);
+          padding-bottom: 80px;
         }
 
-        /* ── App header ── */
-        .profile-header {
-          background: #0a1f0a;
-          background-image:
-            radial-gradient(ellipse 60% 80% at 20% 50%, rgba(13,99,27,0.35) 0%, transparent 70%),
-            radial-gradient(ellipse 40% 60% at 80% 30%, rgba(13,99,27,0.2) 0%, transparent 60%);
-          border-bottom: 1px solid rgba(255,255,255,0.06);
-          position: sticky;
-          top: 0;
-          z-index: 50;
-        }
-
-        .profile-header-inner {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 0 32px;
-          height: 60px;
+        /* ── Header ── */
+        .pf-header {
+          background: #F0F4EC;
+          padding: 1rem 1.25rem;
           display: flex;
           align-items: center;
           justify-content: space-between;
+          position: sticky;
+          top: 0;
+          z-index: 100;
         }
 
-        .back-link {
+        .pf-back-btn {
+          width: 40px;
+          height: 40px;
+          background: none;
+          border: none;
+          cursor: pointer;
           display: flex;
           align-items: center;
-          gap: 6px;
-          color: rgba(255,255,255,0.7);
-          font-size: 0.9375rem;
-          font-weight: 500;
-          text-decoration: none;
-          transition: color 0.15s;
-        }
-        .back-link:hover { color: #fff; }
-        .back-arrow {
-          width: 18px;
-          height: 18px;
-          border-left: 2px solid currentColor;
-          border-bottom: 2px solid currentColor;
-          transform: rotate(45deg);
+          justify-content: center;
+          color: #1A2E1A;
+          font-size: 20px;
+          border-radius: 12px;
+          transition: all 0.2s ease-in-out;
           flex-shrink: 0;
         }
+        .pf-back-btn:hover {
+          transform: translateX(-2px);
+        }
 
-        .header-title {
-          font-family: var(--font-dm-serif, 'DM Serif Display', Georgia, serif);
-          font-size: 1.125rem;
-          font-weight: 400;
-          color: #fff;
+        .pf-header-title {
+          font-family: var(--font-manrope, 'Manrope', sans-serif);
+          font-weight: 700;
+          font-size: 18px;
+          color: #1A2E1A;
           letter-spacing: -0.01em;
           margin: 0;
           position: absolute;
@@ -156,378 +148,362 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
           transform: translateX(-50%);
         }
 
-        /* ── Page body ── */
-        .profile-body {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 40px 32px 80px;
-        }
-
-        /* Two-col layout: avatar card left, form right */
-        .profile-layout {
-          display: grid;
-          grid-template-columns: 260px 1fr;
-          gap: 24px;
-          align-items: start;
-        }
-
-        /* ── Avatar / identity card ── */
-        .identity-card {
-          background: #fff;
-          border: 1.5px solid #E0EBE0;
-          border-radius: 18px;
-          padding: 28px 24px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 0;
-          text-align: center;
-        }
-
-        /* Avatar ring with photo upload */
-        .avatar-wrap {
-          position: relative;
-          width: 80px;
-          height: 80px;
-          margin-bottom: 16px;
-          flex-shrink: 0;
-        }
-
-        .avatar-ring {
-          width: 80px;
-          height: 80px;
-          border-radius: 9999px;
-          background: linear-gradient(135deg, #0D631B 0%, #1a7a2e 100%);
+        .pf-settings-btn {
+          width: 40px;
+          height: 40px;
+          background: none;
+          border: none;
+          cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 4px 20px rgba(13,99,27,0.25);
+          color: #44483E;
+          border-radius: 12px;
+          transition: all 0.2s ease-in-out;
+          flex-shrink: 0;
+        }
+        .pf-settings-btn:hover {
+          background: rgba(26, 28, 28, 0.05);
+          color: #1A2E1A;
+        }
+
+        /* ── Main content ── */
+        .pf-main {
+          padding: 1.5rem 1.25rem;
+          max-width: 430px;
+          margin: 0 auto;
+        }
+
+        /* ── Hero section ── */
+        .pf-hero {
+          background: #FFFFFF;
+          border-radius: 16px;
+          padding: 2rem 1.5rem;
+          box-shadow: 0 4px 12px rgba(26, 28, 28, 0.04);
+          text-align: center;
+          margin-bottom: 2rem;
+        }
+
+        .pf-avatar-wrap {
+          position: relative;
+          width: 80px;
+          height: 80px;
+          margin: 0 auto 1rem;
+        }
+
+        .pf-avatar-ring {
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #2D5016 0%, #3D6B1A 100%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
           overflow: hidden;
           cursor: pointer;
-          transition: box-shadow 0.15s;
-        }
-        .avatar-ring:hover { box-shadow: 0 6px 24px rgba(13,99,27,0.35); }
-
-        .avatar-photo {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          border-radius: 9999px;
         }
 
-        .avatar-initials {
-          font-family: var(--font-dm-sans, 'DM Sans', system-ui, sans-serif);
-          font-size: 1.625rem;
+        .pf-avatar-initials {
+          font-family: var(--font-manrope, 'Manrope', sans-serif);
+          font-size: 1.5rem;
           font-weight: 700;
           color: #fff;
           letter-spacing: -0.02em;
           user-select: none;
         }
 
-        .avatar-overlay {
+        .pf-avatar-photo {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          border-radius: 50%;
+        }
+
+        .pf-avatar-uploading {
           position: absolute;
           inset: 0;
-          border-radius: 9999px;
-          background: rgba(10,31,10,0.45);
+          border-radius: 50%;
+          background: rgba(10, 31, 10, 0.55);
           display: flex;
           align-items: center;
           justify-content: center;
-          opacity: 0;
-          transition: opacity 0.15s;
-          cursor: pointer;
-          pointer-events: none;
         }
-        .avatar-wrap:hover .avatar-overlay { opacity: 1; }
-        .avatar-overlay svg { color: #fff; }
 
-        .avatar-camera-badge {
+        .pf-spinner {
+          width: 20px;
+          height: 20px;
+          border: 2px solid rgba(255,255,255,0.3);
+          border-top-color: #fff;
+          border-radius: 50%;
+          animation: pf-spin 0.7s linear infinite;
+        }
+        @keyframes pf-spin { to { transform: rotate(360deg); } }
+
+        .pf-edit-photo {
           position: absolute;
           bottom: 0;
           right: 0;
-          width: 26px;
-          height: 26px;
-          border-radius: 9999px;
-          background: #0D631B;
-          border: 2.5px solid #fff;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          pointer-events: none;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.18);
-        }
-        .avatar-camera-badge svg { color: #fff; display: block; }
-
-        .avatar-uploading {
-          position: absolute;
-          inset: 0;
-          border-radius: 9999px;
-          background: rgba(10,31,10,0.6);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .avatar-spinner {
-          width: 22px;
-          height: 22px;
-          border: 2.5px solid rgba(255,255,255,0.3);
-          border-top-color: #fff;
+          width: 28px;
+          height: 28px;
+          background: linear-gradient(135deg, #2D5016 0%, #3D6B1A 100%);
           border-radius: 50%;
-          animation: spin 0.7s linear infinite;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          box-shadow: 0 2px 8px rgba(45, 80, 22, 0.2);
+          transition: all 0.2s ease-in-out;
+          border: none;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .avatar-upload-hint {
-          font-size: 0.8125rem;
-          color: #6B8C6B;
-          margin-top: 8px;
-          margin-bottom: 12px;
+        .pf-edit-photo:hover {
+          transform: scale(1.1);
+          box-shadow: 0 4px 12px rgba(45, 80, 22, 0.3);
         }
 
-        .avatar-error {
+        .pf-user-name {
+          font-family: var(--font-manrope, 'Manrope', sans-serif);
+          font-weight: 700;
+          font-size: 24px;
+          color: #1A2E1A;
+          margin: 0 0 0.5rem;
+        }
+
+        .pf-user-email {
+          font-family: var(--font-lexend, 'Lexend', sans-serif);
+          font-weight: 400;
+          font-size: 14px;
+          color: #72786E;
+          margin: 0 0 1rem;
+        }
+
+        .pf-edit-link {
+          font-family: var(--font-lexend, 'Lexend', sans-serif);
+          font-weight: 500;
+          font-size: 14px;
+          color: #923357;
+          text-decoration: none;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 0;
+          transition: opacity 0.2s ease-in-out;
+        }
+        .pf-edit-link:hover { opacity: 0.8; }
+
+        .pf-avatar-error {
           font-size: 0.8125rem;
           color: #dc2626;
-          margin-bottom: 12px;
-          text-align: center;
+          margin-top: 0.5rem;
         }
 
-        .identity-name {
-          font-family: var(--font-dm-serif, 'DM Serif Display', Georgia, serif);
-          font-size: 1.25rem;
-          font-weight: 400;
+        /* ── Section header ── */
+        .pf-section-hd {
+          font-family: var(--font-manrope, 'Manrope', sans-serif);
+          font-weight: 700;
+          font-size: 18px;
           color: #1A2E1A;
-          margin: 0 0 4px;
           letter-spacing: -0.01em;
-          word-break: break-word;
+          margin: 0 0 1rem;
         }
 
-        .identity-email {
-          font-size: 0.875rem;
-          color: #6B8C6B;
-          word-break: break-all;
-          margin: 0 0 20px;
-        }
-
-        .identity-divider {
-          width: 100%;
-          border: none;
-          border-top: 1.5px solid #E0EBE0;
-          margin: 0 0 20px;
-        }
-
-        .stat-row {
-          width: 100%;
+        /* ── Field cards ── */
+        .pf-field {
+          background: #FFFFFF;
+          border-radius: 12px;
+          padding: 1rem 1.25rem;
+          box-shadow: 0 4px 12px rgba(26, 28, 28, 0.04);
+          margin-bottom: 0.75rem;
+          cursor: pointer;
+          transition: all 0.2s ease-in-out;
           display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-
-        .stat-item {
-          display: flex;
+          align-items: flex-start;
           justify-content: space-between;
-          align-items: center;
-          gap: 8px;
+          border: none;
+          width: 100%;
+          text-align: left;
+        }
+        .pf-field:hover {
+          background: rgba(240, 244, 236, 0.5);
+          transform: translateY(-1px);
+        }
+        .pf-field.editing {
+          background: #FFFFFF;
+          transform: none;
+          cursor: default;
         }
 
-        .stat-label {
-          font-size: 0.875rem;
-          color: #6B8C6B;
-          font-weight: 400;
-        }
+        .pf-field-content { flex: 1; }
 
-        .stat-value {
-          font-size: 1rem;
+        .pf-field-label {
+          font-family: var(--font-lexend, 'Lexend', sans-serif);
+          font-weight: 500;
+          font-size: 14px;
           color: #1A2E1A;
-          font-weight: 600;
-          letter-spacing: -0.01em;
+          margin-bottom: 0.25rem;
+          display: block;
         }
 
-        .hcp-badge {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          background: #F2F5F0;
+        .pf-field-value {
+          font-family: var(--font-lexend, 'Lexend', sans-serif);
+          font-weight: 400;
+          font-size: 16px;
+          color: #44483E;
+          margin-bottom: 0.25rem;
+        }
+
+        .pf-field-note {
+          font-family: var(--font-lexend, 'Lexend', sans-serif);
+          font-weight: 400;
+          font-size: 13px;
+          color: #72786E;
+          line-height: 1.4;
+        }
+
+        .pf-chevron {
+          color: #72786E;
+          flex-shrink: 0;
+          margin-left: 1rem;
+          margin-top: 4px;
+          transition: transform 0.2s ease-in-out;
+        }
+
+        /* ── Inline edit ── */
+        .pf-field-input {
+          width: 100%;
           border: 1.5px solid #E0EBE0;
           border-radius: 8px;
-          padding: 3px 10px;
-          font-size: 1rem;
-          font-weight: 700;
-          color: #0D631B;
-          letter-spacing: -0.01em;
-        }
-
-        /* ── Form panel ── */
-        .form-panel {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-
-        .form-section-title {
-          font-family: var(--font-dm-serif, 'DM Serif Display', Georgia, serif);
-          font-size: 1.375rem;
-          font-weight: 400;
-          color: #1A2E1A;
-          letter-spacing: -0.02em;
-          margin: 0 0 4px;
-        }
-
-        .form-section-sub {
-          font-size: 0.875rem;
-          color: #6B8C6B;
-          margin: 0 0 8px;
-        }
-
-        .form-card {
-          background: #fff;
-          border: 1.5px solid #E0EBE0;
-          border-radius: 16px;
-          padding: 24px;
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
-        }
-
-        .field-group {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
-
-        .field-label {
-          font-size: 0.8125rem;
-          font-weight: 600;
-          color: #1A2E1A;
-          letter-spacing: 0.01em;
-        }
-
-        .field-input {
-          width: 100%;
-          border: 1.5px solid #E0EBE0;
-          border-radius: 10px;
-          padding: 12px 14px;
-          font-family: var(--font-dm-sans, 'DM Sans', system-ui, sans-serif);
-          font-size: 0.9375rem;
+          padding: 8px 10px;
+          font-family: var(--font-lexend, 'Lexend', sans-serif);
+          font-size: 15px;
           color: #1A2E1A;
           background: #fff;
           outline: none;
           transition: border-color 0.15s, box-shadow 0.15s;
-          appearance: none;
+          margin-top: 6px;
         }
-        .field-input:focus {
-          border-color: #0D631B;
-          box-shadow: 0 0 0 3px rgba(13,99,27,0.1);
-        }
-        .field-input::placeholder { color: #9aaa9a; }
-
-        .field-input-readonly {
-          background: #fafafa;
-          color: #9aaa9a;
-          cursor: default;
+        .pf-field-input:focus {
+          border-color: #2D5016;
+          box-shadow: 0 0 0 3px rgba(45, 80, 22, 0.1);
         }
 
-        .field-hint {
-          font-size: 0.75rem;
-          color: #9aaa9a;
-          line-height: 1.5;
+        .pf-edit-actions {
+          display: flex;
+          gap: 8px;
+          margin-top: 10px;
         }
 
-        .field-row-2 {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 16px;
-        }
-
-        /* ── Save button ── */
-        .btn-save {
-          width: 100%;
-          background: #0D631B;
+        .pf-btn-save {
+          flex: 1;
+          background: #2D5016;
           color: #fff;
           border: none;
-          border-radius: 12px;
-          padding: 14px 24px;
-          font-family: var(--font-dm-sans, 'DM Sans', system-ui, sans-serif);
-          font-size: 0.9375rem;
-          font-weight: 600;
-          cursor: pointer;
-          letter-spacing: -0.01em;
-          transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
-        }
-        .btn-save:hover:not(:disabled) {
-          background: #0a4f15;
-          transform: translateY(-1px);
-          box-shadow: 0 6px 20px rgba(13,99,27,0.25);
-        }
-        .btn-save:disabled { background: #5a9e66; cursor: not-allowed; }
-        .btn-save.saved { background: #0D631B; }
-
-        .save-feedback {
-          font-size: 0.8125rem;
+          border-radius: 8px;
+          padding: 9px 16px;
+          font-family: var(--font-lexend, 'Lexend', sans-serif);
+          font-size: 13px;
           font-weight: 500;
-          color: #0D631B;
-          text-align: center;
-          height: 20px;
-          opacity: 0;
-          transition: opacity 0.3s;
-        }
-        .save-feedback.visible { opacity: 1; }
-
-        .error-msg {
-          color: #dc2626;
-          font-size: 0.875rem;
-          margin: 0;
-        }
-
-        /* ── Danger zone ── */
-        .danger-card {
-          background: #fff;
-          border: 1.5px solid #E0EBE0;
-          border-radius: 16px;
-          padding: 24px;
-        }
-
-        .danger-label {
-          font-size: 0.6875rem;
-          font-weight: 700;
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
-          color: #9aaa9a;
-          margin: 0 0 14px;
-        }
-
-        .btn-signout {
-          background: #fff;
-          color: #1A2E1A;
-          border: 1.5px solid #E0EBE0;
-          border-radius: 12px;
-          padding: 13px 24px;
-          font-family: var(--font-dm-sans, 'DM Sans', system-ui, sans-serif);
-          font-size: 0.9375rem;
-          font-weight: 600;
           cursor: pointer;
-          letter-spacing: -0.01em;
-          transition: border-color 0.15s, color 0.15s;
-          width: 100%;
-          text-align: center;
+          transition: background 0.15s, transform 0.15s;
         }
-        .btn-signout:hover { border-color: #dc2626; color: #dc2626; }
+        .pf-btn-save:hover:not(:disabled) {
+          background: #1A3A0A;
+          transform: translateY(-1px);
+        }
+        .pf-btn-save:disabled { background: #7aaa7a; cursor: not-allowed; }
 
-        /* ── Responsive ── */
-        @media (max-width: 768px) {
-          .profile-header-inner { padding: 0 20px; }
-          .profile-body { padding: 24px 16px 60px; }
-          .profile-layout { grid-template-columns: 1fr; }
-          .identity-card { flex-direction: row; text-align: left; gap: 16px; padding: 20px; border-radius: 14px; flex-wrap: wrap; align-items: flex-start; }
-          .avatar-wrap { width: 56px; height: 56px; margin-bottom: 0; }
-          .avatar-ring { width: 56px; height: 56px; }
-          .avatar-initials { font-size: 1.125rem; }
-          .avatar-upload-hint { display: none; }
-          .identity-info { flex: 1; min-width: 0; }
-          .identity-name { font-size: 1.0625rem; }
-          .identity-divider { display: none; }
-          .stat-row { display: none; }
-          .field-row-2 { grid-template-columns: 1fr; }
+        .pf-btn-cancel {
+          background: none;
+          border: 1.5px solid #E0EBE0;
+          border-radius: 8px;
+          padding: 9px 16px;
+          font-family: var(--font-lexend, 'Lexend', sans-serif);
+          font-size: 13px;
+          font-weight: 500;
+          color: #72786E;
+          cursor: pointer;
+          transition: border-color 0.15s, color 0.15s;
         }
+        .pf-btn-cancel:hover { border-color: #aaa; color: #44483E; }
+
+        .pf-field-error {
+          font-size: 0.8125rem;
+          color: #dc2626;
+          margin-top: 6px;
+        }
+
+        /* ── Bottom section ── */
+        .pf-bottom {
+          margin-top: 2rem;
+          padding-top: 1.5rem;
+          border-top: 1px solid rgba(26, 28, 28, 0.06);
+        }
+
+        .pf-acct-link {
+          font-family: var(--font-lexend, 'Lexend', sans-serif);
+          font-weight: 500;
+          font-size: 14px;
+          color: #2D5016;
+          text-decoration: none;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-bottom: 1rem;
+          transition: opacity 0.2s ease-in-out;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 0;
+        }
+        .pf-acct-link:hover { opacity: 0.8; }
+
+        .pf-signout-btn {
+          font-family: var(--font-lexend, 'Lexend', sans-serif);
+          font-weight: 500;
+          font-size: 14px;
+          color: #923357;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 0;
+          transition: opacity 0.2s ease-in-out;
+        }
+        .pf-signout-btn:hover { opacity: 0.8; }
+
+        /* ── Bottom nav ── */
+        .pf-bnav {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          background: #FFFFFF;
+          display: grid;
+          grid-template-columns: repeat(5, 1fr);
+          box-shadow: 0 -2px 8px rgba(26, 28, 28, 0.06);
+          z-index: 100;
+          padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .pf-bnav-item {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 0.75rem 0;
+          gap: 0.25rem;
+          text-decoration: none;
+          color: #72786E;
+          font-family: var(--font-lexend, 'Lexend', sans-serif);
+          font-size: 0.6875rem;
+          font-weight: 500;
+          background: none;
+          border: none;
+          cursor: pointer;
+          transition: color 0.2s ease-in-out;
+        }
+        .pf-bnav-item svg { transition: transform 0.2s ease-in-out; }
+        .pf-bnav-item.active { color: #2D5016; }
+        .pf-bnav-item:hover { color: #2D5016; }
+        .pf-bnav-item:hover svg { transform: translateY(-2px); }
       `}</style>
 
       {/* Hidden file input */}
@@ -539,167 +515,281 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
         onChange={handleFileChange}
       />
 
-      <div className="profile-wrap">
+      <div className="pf-page">
+
         {/* ── Header ── */}
-        <header className="profile-header">
-          <div className="profile-header-inner" style={{ position: 'relative' }}>
-            <Link href="/play" className="back-link">
-              <span className="back-arrow" />
-              Dashboard
-            </Link>
-            <h1 className="header-title">My Profile</h1>
-          </div>
+        <header className="pf-header">
+          <button
+            className="pf-back-btn"
+            aria-label="Go back"
+            onClick={() => router.back()}
+          >
+            <BackArrowIcon />
+          </button>
+          <h1 className="pf-header-title">My Profile</h1>
+          <button className="pf-settings-btn" aria-label="Settings">
+            <SettingsIcon />
+          </button>
         </header>
 
-        {/* ── Body ── */}
-        <main className="profile-body">
-          <div className="profile-layout">
+        {/* ── Main ── */}
+        <main className="pf-main">
 
-            {/* Left — identity card */}
-            <aside className="identity-card">
-              {/* Clickable avatar */}
-              <div className="avatar-wrap" onClick={handleAvatarClick} title="Change photo">
-                <div className="avatar-ring">
-                  {avatarUrl ? (
-                    <Image
-                      src={avatarUrl}
-                      alt={name || 'Profile photo'}
-                      width={80}
-                      height={80}
-                      className="avatar-photo"
-                      unoptimized
-                    />
-                  ) : (
-                    <span className="avatar-initials">{initials}</span>
-                  )}
-                </div>
-
-                {/* Hover overlay with camera icon */}
-                {!uploadingAvatar && (
-                  <div className="avatar-overlay">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                      <circle cx="12" cy="13" r="4"/>
-                    </svg>
-                  </div>
-                )}
-
-                {/* Always-visible camera badge */}
-                {!uploadingAvatar && (
-                  <div className="avatar-camera-badge">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                      <circle cx="12" cy="13" r="4"/>
-                    </svg>
-                  </div>
-                )}
-
-                {/* Upload spinner */}
-                {uploadingAvatar && (
-                  <div className="avatar-uploading">
-                    <div className="avatar-spinner" />
-                  </div>
+          {/* Hero */}
+          <div className="pf-hero">
+            <div className="pf-avatar-wrap">
+              <div className="pf-avatar-ring" onClick={handleAvatarClick} role="button" tabIndex={0} aria-label="Change profile photo" onKeyDown={e => e.key === 'Enter' && handleAvatarClick()}>
+                {avatarUrl ? (
+                  <Image
+                    src={avatarUrl}
+                    alt={name || 'Profile photo'}
+                    width={80}
+                    height={80}
+                    className="pf-avatar-photo"
+                    unoptimized
+                  />
+                ) : (
+                  <span className="pf-avatar-initials">{initials}</span>
                 )}
               </div>
 
-              <p className="avatar-upload-hint">Click to change photo</p>
-              {avatarError && <p className="avatar-error">{avatarError}</p>}
+              {!uploadingAvatar && (
+                <button
+                  className="pf-edit-photo"
+                  onClick={handleAvatarClick}
+                  aria-label="Change photo"
+                >
+                  <CameraIcon />
+                </button>
+              )}
 
-              <div className="identity-info">
-                <p className="identity-name">{name || '—'}</p>
-                <p className="identity-email">{email}</p>
-              </div>
-              <hr className="identity-divider" />
-              <div className="stat-row">
-                <div className="stat-item">
-                  <span className="stat-label">Handicap</span>
-                  {hcp ? (
-                    <span className="hcp-badge">{parseFloat(hcp).toFixed(1)}</span>
-                  ) : (
-                    <span className="stat-value" style={{ color: '#9aaa9a' }}>Not set</span>
-                  )}
+              {uploadingAvatar && (
+                <div className="pf-avatar-uploading">
+                  <div className="pf-spinner" />
                 </div>
-                <div className="stat-item">
-                  <span className="stat-label">Member since</span>
-                  <span className="stat-value">{formatMemberSince(memberSince)}</span>
-                </div>
-              </div>
-            </aside>
+              )}
+            </div>
 
-            {/* Right — form panel */}
-            <div className="form-panel">
-              <div>
-                <h2 className="form-section-title">Profile details</h2>
-                <p className="form-section-sub">Update your name and playing details</p>
-              </div>
+            {avatarError && <p className="pf-avatar-error">{avatarError}</p>}
 
-              <div className="form-card">
-                {/* Display name */}
-                <div className="field-group">
-                  <label htmlFor="display-name" className="field-label">Display name</label>
+            <p className="pf-user-name">{name || '—'}</p>
+            <p className="pf-user-email">{email}</p>
+            <button
+              className="pf-edit-link"
+              onClick={() => setEditing('name')}
+            >
+              Edit profile
+            </button>
+          </div>
+
+          {/* Profile details */}
+          <p className="pf-section-hd">Profile details</p>
+
+          {/* Display name field */}
+          <div className={`pf-field${editing === 'name' ? ' editing' : ''}`} onClick={() => editing === null && setEditing('name')} role="button" tabIndex={0} aria-label="Edit display name" onKeyDown={e => e.key === 'Enter' && editing === null && setEditing('name')}>
+            <div className="pf-field-content">
+              <span className="pf-field-label">Display name</span>
+              {editing === 'name' ? (
+                <>
                   <input
-                    id="display-name"
+                    autoFocus
                     type="text"
                     value={name}
                     onChange={e => setName(e.target.value)}
+                    className="pf-field-input"
                     placeholder="Your name"
-                    className="field-input"
                     autoComplete="name"
+                    onClick={e => e.stopPropagation()}
                   />
-                  <span className="field-hint">How you appear in rounds and on leaderboards</span>
-                </div>
-
-                {/* Handicap + Email side by side */}
-                <div className="field-row-2">
-                  <div className="field-group">
-                    <label htmlFor="handicap-index" className="field-label">Handicap Index</label>
-                    <input
-                      id="handicap-index"
-                      type="number"
-                      step={0.1}
-                      min={0}
-                      max={54}
-                      value={hcp}
-                      onChange={e => setHcp(e.target.value)}
-                      placeholder="e.g. 14.2"
-                      className="field-input"
-                    />
-                    <span className="field-hint">Your WHS handicap index (0–54)</span>
+                  {errorMsg && <p className="pf-field-error">{errorMsg}</p>}
+                  <div className="pf-edit-actions" onClick={e => e.stopPropagation()}>
+                    <button className="pf-btn-save" disabled={isPending} onClick={handleSave}>
+                      {isPending ? 'Saving…' : 'Save'}
+                    </button>
+                    <button className="pf-btn-cancel" onClick={handleCancel}>Cancel</button>
                   </div>
-
-                  <div className="field-group">
-                    <span className="field-label">Email address</span>
-                    <div className="field-input field-input-readonly">{email}</div>
-                    <span className="field-hint">Managed via your Google account</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Save */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <button
-                  onClick={handleSave}
-                  disabled={isPending || !isDirty}
-                  className={`btn-save${saved ? ' saved' : ''}`}
-                >
-                  {isPending ? 'Saving…' : 'Save changes'}
-                </button>
-                <div className={`save-feedback${saved ? ' visible' : ''}`}>✓ Saved</div>
-                {errorMsg && <p className="error-msg">{errorMsg}</p>}
-              </div>
-
-              {/* Account */}
-              <div className="danger-card">
-                <p className="danger-label">Account</p>
-                <button onClick={handleSignOut} className="btn-signout">
-                  Sign out
-                </button>
-              </div>
+                </>
+              ) : (
+                <p className="pf-field-value">{name || '—'}</p>
+              )}
             </div>
-
+            {editing !== 'name' && <ChevronIcon />}
           </div>
+
+          {/* Handicap Index field */}
+          <div className={`pf-field${editing === 'handicap' ? ' editing' : ''}`} onClick={() => editing === null && setEditing('handicap')} role="button" tabIndex={0} aria-label="Edit handicap index" onKeyDown={e => e.key === 'Enter' && editing === null && setEditing('handicap')}>
+            <div className="pf-field-content">
+              <span className="pf-field-label">Handicap Index</span>
+              {editing === 'handicap' ? (
+                <>
+                  <input
+                    autoFocus
+                    type="number"
+                    step={0.1}
+                    min={0}
+                    max={54}
+                    value={hcp}
+                    onChange={e => setHcp(e.target.value)}
+                    className="pf-field-input"
+                    placeholder="e.g. 14.2"
+                    onClick={e => e.stopPropagation()}
+                  />
+                  {errorMsg && <p className="pf-field-error">{errorMsg}</p>}
+                  <div className="pf-edit-actions" onClick={e => e.stopPropagation()}>
+                    <button className="pf-btn-save" disabled={isPending} onClick={handleSave}>
+                      {isPending ? 'Saving…' : 'Save'}
+                    </button>
+                    <button className="pf-btn-cancel" onClick={handleCancel}>Cancel</button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="pf-field-value">{hcpDisplay}</p>
+                  {hcp && <p className="pf-field-note">(Valid handicap under R1-54)</p>}
+                </>
+              )}
+            </div>
+            {editing !== 'handicap' && <ChevronIcon />}
+          </div>
+
+          {/* Email field (read-only) */}
+          <div className="pf-field" style={{ cursor: 'default' }} aria-label="Email address">
+            <div className="pf-field-content">
+              <span className="pf-field-label">Email address</span>
+              <p className="pf-field-value">{email}</p>
+              {isGoogleAuth && <p className="pf-field-note">Managed via your Google account</p>}
+            </div>
+            <ChevronIcon />
+          </div>
+
+          {/* Bottom links */}
+          <div className="pf-bottom">
+            <Link href="/play" className="pf-acct-link">
+              Account settings
+              <ArrowRightIcon />
+            </Link>
+            <button className="pf-signout-btn" onClick={handleSignOut}>
+              Sign out
+            </button>
+          </div>
+
         </main>
+
+        {/* ── Bottom nav ── */}
+        <nav className="pf-bnav">
+          <Link href="/play" className="pf-bnav-item" aria-label="Home">
+            <HomeIcon />
+            <span>Home</span>
+          </Link>
+          <button className="pf-bnav-item" aria-label="Rounds">
+            <ClipboardIcon />
+            <span>Rounds</span>
+          </button>
+          <button className="pf-bnav-item" aria-label="Events">
+            <TrophyIcon />
+            <span>Events</span>
+          </button>
+          <button className="pf-bnav-item" aria-label="Society">
+            <UsersIcon />
+            <span>Society</span>
+          </button>
+          <button className="pf-bnav-item active" aria-label="Profile">
+            <UserIcon />
+            <span>Profile</span>
+          </button>
+        </nav>
+
       </div>
     </>
+  )
+}
+
+/* ── Inline SVG icons ── */
+
+function BackArrowIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
+function SettingsIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" stroke="currentColor" strokeWidth="1.75"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="currentColor" strokeWidth="1.75"/>
+    </svg>
+  )
+}
+
+function CameraIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="12" cy="13" r="4" stroke="white" strokeWidth="2"/>
+    </svg>
+  )
+}
+
+function ChevronIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="pf-chevron" aria-hidden="true">
+      <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
+function ArrowRightIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
+function HomeIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+      <polyline points="9 22 9 12 15 12 15 22" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
+function ClipboardIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.75"/>
+      <path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z" stroke="currentColor" strokeWidth="1.75"/>
+    </svg>
+  )
+}
+
+function TrophyIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M8 21h8M12 17v4M17 3H7l1 9a4 4 0 0 0 8 0l1-9z" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M7 3H4a1 1 0 0 0-1 1v2a4 4 0 0 0 4 4M17 3h3a1 1 0 0 1 1 1v2a4 4 0 0 1-4 4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
+function UsersIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="1.75"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
+function UserIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="1.75"/>
+    </svg>
   )
 }
