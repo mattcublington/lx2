@@ -9,7 +9,7 @@
 
 ## Problem
 
-Golfers in a society round need to record scores hole-by-hole during play. Existing solutions (paper cards, generic apps) are slow, error-prone, and don't calculate Stableford points in real time. On-course conditions — wet hands, bright sunlight, time pressure — make complex UIs fail.
+Golfers need to record scores hole-by-hole during play. Existing solutions (paper cards, generic apps) are slow, error-prone, and don't calculate Stableford points in real time. On-course conditions — wet hands, bright sunlight, time pressure — make complex UIs fail.
 
 ## Goal
 
@@ -19,7 +19,7 @@ A mobile-first score entry screen that feels faster than writing on a card. One 
 
 - **Primary:** The golfer entering their own score during a round
 - **Secondary:** A playing partner entering scores on behalf of the group (proxy scoring)
-- **Tertiary:** The organiser monitoring progress from the clubhouse
+- **Tertiary:** The organiser monitoring progress from the clubhouse or friends and family monitoring progress from home
 
 ## Core requirements
 
