@@ -114,14 +114,14 @@ const modules: Record<string, Module> = {
   player_home: {
     id: 'player_home', name: 'Player home (/play)', phase: 'mvp', tier: 'player-web',
     status: 'done', surface: 'player',
-    sub: 'Golfer entry point — handicap, rounds, start/join',
-    desc: 'The authenticated golfer home. Mobile-first (min-width: 768px only). Dark hero-photo header with gradient overlay, LX2 logo, time-of-day greeting, DM Serif Display name, handicap index pill and total rounds count. Single full-width "Start a new round" CTA (or "Join ongoing round" if activeRoundId set) with LX2 mark icon. Recent rounds list: event name primary, format accent tag, course + tee combo secondary. Fixed bottom nav on mobile. Phase 2: Strava-style handicap trend and stats. Live at lx2.golf/play.',
+    sub: 'Golfer entry point — Fairway Editorial dashboard',
+    desc: 'The authenticated golfer home. Fairway Editorial design system: sage #F0F4EC background, white sticky header with LX2 wordmark + search/bell icons. Hero section: Manrope 800 display name + green handicap badge. Dynamic 3-column quick-stats grid (rounds, avg score, best — renders when data available). Forest-green gradient "Start a new round" CTA (or "Join ongoing round" variant). Editorial recent-rounds list in white container. Optional upcoming-event card with berry #923357 accent. Fixed 5-item bottom nav (Home, Rounds, Events, Society, Profile). Phase 2: wire roundsThisMonth, avgScore, bestScore, upcomingEvent props from page.tsx.',
     deps: ['auth', 'event_create'],
     data: ['users', 'scorecards', 'events'],
     liveUrl: `${APP}/play`, prdUrl: `${GITHUB}/docs/prd/player-home.md`,
     codeUrl: `${GITHUB}/apps/web/src/app/play/PlayDashboard.tsx`,
-    features: ['Dark hero-photo header (hero.png) with gradient overlay', 'LX2 logo + time-of-day greeting, DM Serif Display name', 'Handicap index pill + total rounds count in header stats strip', '"Start a new round" / "Join ongoing round" — single full-width CTA with LX2 mark icon', 'Bottom nav: Home / Play (LX2 mark) / Stats / Profile — mobile only', 'Recent rounds: event name primary, format accent tag (green/blue/amber), course + combo secondary', 'Mobile-first CSS — base styles at 375px, enhancements at min-width: 768px only', 'Round rows link to /rounds/[id]/score; sign out on desktop'],
-    tech: 'Next.js server component (page.tsx fetches handicap_index + roundsCount) + client PlayDashboard. DM Serif Display + DM Sans. Supabase join: scorecards → events → courses + course_combinations. lx2-mark.png extracted from lx2-logo.svg.',
+    features: ['Fairway Editorial layout: sage bg, white sticky header, Manrope/Lexend fonts', 'Hero: Manrope 800 display name + green handicap badge (inline-flex, tonal gradient)', 'Dynamic quick-stats grid: rounds, avg score, best — hidden when no data', 'Forest-green gradient CTA: "Start a new round" / "Join ongoing round" (white outline variant)', 'Editorial rounds list: white rounded container, course name + date, hover tint, tap-to-navigate', 'Optional upcoming event card: berry date badge, event name, course + player count', 'Bottom nav 5 items: Home (active) / Rounds / Events / Society / Profile — mobile only', 'Desktop: bottom nav hidden, sign-out link in sticky header', 'Optional props: roundsThisMonth, avgScore, bestScore, upcomingEvent — fully backward-compatible'],
+    tech: 'Next.js server component (page.tsx fetches handicap_index + roundsCount) + client PlayDashboard. Manrope + Lexend (Fairway Editorial fonts via CSS vars). Supabase join: scorecards → events → courses + course_combinations. Inline SVG icons — no external icon lib.',
   },
   player_profile: {
     id: 'player_profile', name: 'Player profile', phase: 'soon', tier: 'player-web',
