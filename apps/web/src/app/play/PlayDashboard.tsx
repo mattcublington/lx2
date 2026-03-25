@@ -1,5 +1,6 @@
 'use client'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
@@ -129,14 +130,6 @@ export default function PlayDashboard({
           position: sticky;
           top: 0;
           z-index: 50;
-        }
-        .fe-logo {
-          font-family: var(--font-manrope), sans-serif;
-          font-weight: 800;
-          font-size: 1.5rem;
-          color: #1A2E1A;
-          letter-spacing: -0.02em;
-          text-decoration: none;
         }
         .fe-hd-r {
           display: flex;
@@ -495,7 +488,7 @@ export default function PlayDashboard({
 
         {/* ── Header ── */}
         <header className="fe-hd">
-          <span className="fe-logo">LX2</span>
+          <Image src="/lx2-logo.svg" alt="LX2" width={56} height={28} priority />
           <div className="fe-hd-r">
             <button className="fe-icon-btn" aria-label="Search">
               <SearchIcon />
