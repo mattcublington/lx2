@@ -1,7 +1,6 @@
 'use client'
 import { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
-import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
@@ -55,219 +54,341 @@ function AuthForm() {
   }
 
   return (
-    <div style={{
-      minHeight: '100dvh',
-      background: '#F6FAF6',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '24px',
-      fontFamily: "'Lexend', system-ui, sans-serif",
-    }}>
-      <div style={{ width: '100%', maxWidth: 400 }}>
+    <>
+      <style>{`
+        .auth-page {
+          min-height: 100dvh;
+          background: #F0F4EC;
+          display: flex;
+          flex-direction: column;
+          font-family: var(--font-lexend, 'Lexend', sans-serif);
+          color: #1A1C1C;
+        }
 
-        {/* Logo */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 40 }}>
-          <Link href="/">
-            <Image src="/lx2-logo.svg" alt="LX2" height={40} width={80}
-              style={{ filter: 'brightness(0) saturate(100%) invert(19%) sepia(44%) saturate(500%) hue-rotate(80deg) brightness(90%)' }}
-            />
-          </Link>
-        </div>
+        .auth-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 1.5rem 2.75rem;
+        }
 
-        {/* Card */}
-        <div style={{
-          background: '#fff',
-          borderRadius: '1.5rem',
-          padding: '36px 32px',
-          boxShadow: '0 4px 32px rgba(0,0,0,0.07)',
-          border: '1px solid #E0EBE0',
-        }}>
-          {/* Mode toggle */}
-          <div style={{
-            display: 'flex',
-            background: '#F6FAF6',
-            borderRadius: '9999px',
-            padding: '4px',
-            marginBottom: '28px',
-            border: '1px solid #E0EBE0',
-          }}>
-            {(['signin', 'signup'] as const).map(m => (
-              <button
-                key={m}
-                onClick={() => { setMode(m); setError(''); setSuccess('') }}
-                style={{
-                  flex: 1,
-                  padding: '9px 0',
-                  border: 'none',
-                  borderRadius: '9999px',
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  fontFamily: "'Lexend', sans-serif",
-                  cursor: 'pointer',
-                  transition: 'all 0.15s',
-                  background: mode === m ? '#fff' : 'transparent',
-                  color: mode === m ? '#1A2E1A' : '#6B8C6B',
-                  boxShadow: mode === m ? '0 1px 6px rgba(0,0,0,0.08)' : 'none',
-                }}
-              >
-                {m === 'signin' ? 'Sign in' : 'Create account'}
-              </button>
-            ))}
-          </div>
+        .auth-back-btn {
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: none;
+          border: none;
+          cursor: pointer;
+          transition: transform 0.2s ease-in-out;
+          text-decoration: none;
+          color: #1A1C1C;
+        }
+        .auth-back-btn:hover { transform: translateX(-2px); }
 
-          {/* Google */}
-          <button
-            onClick={handleGoogle}
-            disabled={googleLoading}
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '10px',
-              padding: '12px 0',
-              background: '#fff',
-              border: '1.5px solid #d1d5db',
-              borderRadius: '0.75rem',
-              fontSize: '0.9375rem',
-              fontWeight: 500,
-              fontFamily: "'Lexend', sans-serif",
-              color: '#374151',
-              cursor: googleLoading ? 'default' : 'pointer',
-              opacity: googleLoading ? 0.6 : 1,
-              transition: 'border-color 0.15s, box-shadow 0.15s',
-              marginBottom: '20px',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.borderColor = '#9ca3af')}
-            onMouseLeave={e => (e.currentTarget.style.borderColor = '#d1d5db')}
-          >
-            {/* Google SVG */}
-            <svg width="18" height="18" viewBox="0 0 18 18">
-              <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
-              <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
-              <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
-              <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/>
+        .auth-logo {
+          font-family: var(--font-manrope, 'Manrope', sans-serif);
+          font-weight: 800;
+          font-size: 24px;
+          color: #2D5016;
+          letter-spacing: -0.02em;
+          text-decoration: none;
+        }
+
+        .auth-main {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 2rem 2.75rem;
+        }
+
+        .auth-container {
+          width: 100%;
+          max-width: 400px;
+        }
+
+        .auth-card {
+          background: #ffffff;
+          border-radius: 16px;
+          padding: 2.5rem 2rem;
+          box-shadow: 0px 8px 24px rgba(26, 28, 28, 0.06);
+        }
+
+        .auth-title {
+          font-family: var(--font-manrope, 'Manrope', sans-serif);
+          font-weight: 700;
+          font-size: 32px;
+          color: #1A1C1C;
+          margin: 0 0 2rem 0;
+          letter-spacing: -0.02em;
+        }
+
+        .form-group { margin-bottom: 1.5rem; }
+
+        .form-label {
+          font-family: var(--font-lexend, 'Lexend', sans-serif);
+          font-weight: 500;
+          font-size: 14px;
+          color: #1A1C1C;
+          display: block;
+          margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+          width: 100%;
+          font-family: var(--font-lexend, 'Lexend', sans-serif);
+          font-weight: 400;
+          font-size: 16px;
+          padding: 0.875rem 1rem;
+          border: 1px solid rgba(26, 28, 28, 0.12);
+          border-radius: 12px;
+          background: #ffffff;
+          color: #1A1C1C;
+          outline: none;
+          box-sizing: border-box;
+          transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .form-input::placeholder { color: #72786E; }
+        .form-input:focus {
+          border-color: #2D5016;
+          box-shadow: 0 0 0 3px rgba(45, 80, 22, 0.08);
+        }
+
+        .hint-text {
+          font-size: 12px;
+          color: #72786E;
+          margin-top: 4px;
+        }
+
+        .forgot-password {
+          text-align: right;
+          margin-top: 0.75rem;
+          margin-bottom: 2rem;
+        }
+        .forgot-password a {
+          font-family: var(--font-lexend, 'Lexend', sans-serif);
+          font-weight: 400;
+          font-size: 14px;
+          color: #923357;
+          text-decoration: none;
+          transition: opacity 0.2s ease-in-out;
+        }
+        .forgot-password a:hover { opacity: 0.8; }
+
+        .btn {
+          width: 100%;
+          font-family: var(--font-lexend, 'Lexend', sans-serif);
+          font-weight: 500;
+          font-size: 16px;
+          padding: 1rem;
+          border: none;
+          border-radius: 12px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, background-color 0.2s ease-in-out;
+        }
+        .btn:hover:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .btn:active:not(:disabled) { transform: translateY(0); }
+
+        .btn-primary {
+          background: #2D5016;
+          color: #ffffff;
+          margin-bottom: 1.5rem;
+        }
+        .btn-primary:hover:not(:disabled) { background: #3D6B1A; }
+        .btn-primary:disabled { background: #9ca3af; cursor: default; }
+
+        .btn-google {
+          background: #1A1C1C;
+          color: #ffffff;
+        }
+        .btn-google:hover:not(:disabled) { background: #2D2F2F; }
+        .btn-google:disabled { opacity: 0.6; cursor: default; }
+
+        .divider {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          margin: 1.5rem 0;
+        }
+        .divider-line {
+          flex: 1;
+          height: 1px;
+          background: rgba(26, 28, 28, 0.08);
+        }
+        .divider-text {
+          font-family: var(--font-lexend, 'Lexend', sans-serif);
+          font-weight: 400;
+          font-size: 14px;
+          color: #72786E;
+        }
+
+        .success-box {
+          padding: 16px 20px;
+          background: #E8F5EE;
+          border-radius: 12px;
+          border: 1px solid rgba(45, 80, 22, 0.2);
+          font-size: 14px;
+          color: #1A2E1A;
+          line-height: 1.5;
+        }
+
+        .error-text {
+          font-size: 13px;
+          color: #dc2626;
+          margin-bottom: 14px;
+          line-height: 1.4;
+        }
+
+        .create-account {
+          text-align: center;
+          margin-top: 1.5rem;
+        }
+        .create-account-btn {
+          font-family: var(--font-lexend, 'Lexend', sans-serif);
+          font-weight: 500;
+          font-size: 16px;
+          color: #2D5016;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 0;
+          transition: opacity 0.2s ease-in-out;
+        }
+        .create-account-btn:hover { opacity: 0.8; }
+
+        @media (max-width: 768px) {
+          .auth-header { padding: 1.25rem 1.5rem; }
+          .auth-main { padding: 1.5rem 1.5rem; }
+          .auth-card { padding: 2rem 1.5rem; }
+          .auth-title { font-size: 28px; }
+        }
+      `}</style>
+
+      <div className="auth-page">
+        {/* Header */}
+        <header className="auth-header">
+          <Link href="/" className="auth-back-btn" aria-label="Go back">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
-            {googleLoading ? 'Redirecting…' : 'Continue with Google'}
-          </button>
-
-          {/* Divider */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-            <div style={{ flex: 1, height: '1px', background: '#E0EBE0' }} />
-            <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>or</span>
-            <div style={{ flex: 1, height: '1px', background: '#E0EBE0' }} />
-          </div>
-
-          {/* Email/password form */}
-          {success ? (
-            <div style={{
-              padding: '16px 20px',
-              background: '#E8F5EE',
-              borderRadius: '0.75rem',
-              border: '1px solid rgba(13,99,27,0.2)',
-              fontSize: '0.875rem',
-              color: '#1A2E1A',
-              lineHeight: 1.5,
-            }}>
-              {success}
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit}>
-              <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#374151', marginBottom: '6px' }}>
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  required
-                  autoFocus
-                  style={{
-                    width: '100%',
-                    padding: '11px 14px',
-                    border: '1.5px solid #d1d5db',
-                    borderRadius: '0.625rem',
-                    fontSize: '0.9375rem',
-                    fontFamily: "'Lexend', sans-serif",
-                    color: '#1A2E1A',
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                    transition: 'border-color 0.15s',
-                  }}
-                  onFocus={e => (e.currentTarget.style.borderColor = '#0D631B')}
-                  onBlur={e => (e.currentTarget.style.borderColor = '#d1d5db')}
-                />
-              </div>
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#374151', marginBottom: '6px' }}>
-                  Password
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder={mode === 'signup' ? 'Choose a password' : 'Your password'}
-                  required
-                  minLength={mode === 'signup' ? 8 : undefined}
-                  style={{
-                    width: '100%',
-                    padding: '11px 14px',
-                    border: '1.5px solid #d1d5db',
-                    borderRadius: '0.625rem',
-                    fontSize: '0.9375rem',
-                    fontFamily: "'Lexend', sans-serif",
-                    color: '#1A2E1A',
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                    transition: 'border-color 0.15s',
-                  }}
-                  onFocus={e => (e.currentTarget.style.borderColor = '#0D631B')}
-                  onBlur={e => (e.currentTarget.style.borderColor = '#d1d5db')}
-                />
-                {mode === 'signup' && (
-                  <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '4px' }}>Minimum 8 characters</div>
-                )}
-              </div>
-
-              {error && (
-                <div style={{ fontSize: '0.8125rem', color: '#dc2626', marginBottom: '14px', lineHeight: 1.4 }}>{error}</div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading || !email || !password}
-                style={{
-                  width: '100%',
-                  padding: '13px 0',
-                  background: loading || !email || !password ? '#9ca3af' : '#0D631B',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '0.75rem',
-                  fontSize: '0.9375rem',
-                  fontWeight: 600,
-                  fontFamily: "'Manrope', sans-serif",
-                  cursor: loading || !email || !password ? 'default' : 'pointer',
-                  transition: 'background 0.15s',
-                }}
-              >
-                {loading ? '…' : mode === 'signup' ? 'Create account' : 'Sign in'}
-              </button>
-            </form>
-          )}
-        </div>
-
-        {/* Back link */}
-        <div style={{ textAlign: 'center', marginTop: '24px' }}>
-          <Link href="/" style={{ fontSize: '0.8125rem', color: '#6B8C6B', textDecoration: 'none' }}>
-            ← Back to lx2.golf
           </Link>
-        </div>
+          <Link href="/" className="auth-logo">LX2</Link>
+          <div style={{ width: 40 }} />
+        </header>
+
+        {/* Main */}
+        <main className="auth-main">
+          <div className="auth-container">
+            <div className="auth-card">
+              <h1 className="auth-title">
+                {mode === 'signin' ? 'Sign in' : 'Create account'}
+              </h1>
+
+              {success ? (
+                <div className="success-box">{success}</div>
+              ) : (
+                <form onSubmit={handleSubmit}>
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="email">Email</label>
+                    <input
+                      id="email"
+                      type="email"
+                      className="form-input"
+                      placeholder="your@email.com"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      required
+                      autoFocus
+                    />
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label" htmlFor="password">Password</label>
+                    <input
+                      id="password"
+                      type="password"
+                      className="form-input"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      required
+                      minLength={mode === 'signup' ? 8 : undefined}
+                    />
+                    {mode === 'signup' && (
+                      <div className="hint-text">Minimum 8 characters</div>
+                    )}
+                  </div>
+
+                  {mode === 'signin' && (
+                    <div className="forgot-password">
+                      <a href="#">Forgot password?</a>
+                    </div>
+                  )}
+
+                  {mode === 'signup' && <div style={{ marginBottom: '2rem' }} />}
+
+                  {error && <div className="error-text">{error}</div>}
+
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={loading || !email || !password}
+                  >
+                    {loading ? '…' : mode === 'signin' ? 'Sign in' : 'Create account'}
+                  </button>
+
+                  <div className="divider">
+                    <div className="divider-line" />
+                    <span className="divider-text">or</span>
+                    <div className="divider-line" />
+                  </div>
+
+                  <button
+                    type="button"
+                    className="btn btn-google"
+                    onClick={handleGoogle}
+                    disabled={googleLoading}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 18 18">
+                      <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
+                      <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+                      <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
+                      <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/>
+                    </svg>
+                    {googleLoading ? 'Redirecting…' : 'Continue with Google'}
+                  </button>
+                </form>
+              )}
+            </div>
+
+            {/* Toggle mode */}
+            <div className="create-account">
+              {mode === 'signin' ? (
+                <Link href="/auth/signup" className="create-account-btn" style={{ textDecoration: 'none' }}>
+                  Create account
+                </Link>
+              ) : (
+                <button
+                  className="create-account-btn"
+                  onClick={() => { setMode('signin'); setError(''); setSuccess('') }}
+                >
+                  Already have an account? Sign in
+                </button>
+              )}
+            </div>
+          </div>
+        </main>
       </div>
-    </div>
+    </>
   )
 }
 

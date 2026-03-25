@@ -1,19 +1,27 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 
 export default function HomePage() {
-  const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [userInitial, setUserInitial] = useState<string | null>(null)
+  const [showCode, setShowCode] = useState(false)
   const [code, setCode] = useState('')
+  const codeRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
-      setUserEmail(user?.email ?? null)
+      const name = user?.user_metadata?.full_name ?? user?.email ?? null
+      setUserInitial(name ? name[0].toUpperCase() : null)
     })
   }, [])
+
+  const handleJoinEvent = () => {
+    setShowCode(true)
+    setTimeout(() => codeRef.current?.focus(), 50)
+  }
 
   const handleJoin = () => {
     if (code.trim()) window.location.href = `/events/${code.trim()}`
@@ -24,427 +32,309 @@ export default function HomePage() {
       <style>{`
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
-
         body {
-          font-family: 'Lexend', system-ui, sans-serif;
+          font-family: var(--font-lexend), 'Lexend', system-ui, sans-serif;
+          background: #F0F4EC;
           color: #1A2E1A;
-          background: #fff;
         }
 
         /* ── Nav ── */
-        .nav {
+        .hp-nav {
           position: absolute;
           top: 0; left: 0; right: 0;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 28px 48px;
+          padding: 28px 44px;
           z-index: 20;
         }
-
-        .logo { display: flex; align-items: center; text-decoration: none; }
-        .logo img { filter: brightness(0) invert(1); }
-
-        .nav-links { display: flex; align-items: center; gap: 32px; }
-
-        .nav-link {
-          font-size: 0.8125rem;
+        .hp-logo { display: flex; align-items: center; text-decoration: none; }
+        .hp-nav-links { display: flex; align-items: center; gap: 32px; }
+        .hp-nav-link {
+          font-size: 0.875rem;
           font-weight: 400;
-          color: rgba(255,255,255,0.8);
+          color: rgba(255,255,255,0.85);
           text-decoration: none;
-          letter-spacing: 0.04em;
+          letter-spacing: 0.02em;
           transition: color 0.15s;
         }
-        .nav-link:hover { color: #fff; }
-
-        .nav-signin {
-          font-size: 0.8125rem;
-          font-weight: 600;
-          color: #fff;
-          text-decoration: none;
-          padding: 8px 20px;
-          background: rgba(255,255,255,0.15);
-          border: 1px solid rgba(255,255,255,0.35);
+        .hp-nav-link:hover { color: #fff; }
+        .hp-nav-profile {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
           border-radius: 9999px;
+          background: rgba(10, 20, 10, 0.72);
+          border: 1.5px solid rgba(255,255,255,0.18);
+          color: #fff;
+          font-family: var(--font-manrope), 'Manrope', sans-serif;
+          font-weight: 700;
+          font-size: 15px;
+          text-decoration: none;
           backdrop-filter: blur(8px);
           -webkit-backdrop-filter: blur(8px);
-          transition: background 0.15s;
+          transition: background 0.15s, border-color 0.15s, transform 0.15s;
+          letter-spacing: 0;
+          flex-shrink: 0;
         }
-        .nav-signin:hover { background: rgba(255,255,255,0.25); }
+        .hp-nav-profile:hover {
+          background: rgba(10, 20, 10, 0.88);
+          border-color: rgba(255,255,255,0.3);
+          transform: translateY(-1px);
+        }
 
         /* ── Hero ── */
-        .hero {
+        .hp-hero {
           position: relative;
           min-height: 100dvh;
           display: flex;
-          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
         }
-
-        .hero-bg {
-          position: absolute;
-          inset: 0;
-          background: url('/hero.png') center center / cover no-repeat;
-          z-index: 0;
-        }
-        .hero-bg::after {
-          content: '';
+        .hp-hero-overlay {
           position: absolute;
           inset: 0;
           background: linear-gradient(
-            160deg,
-            rgba(0,0,0,0.45) 0%,
-            rgba(0,0,0,0.2) 50%,
-            rgba(0,0,0,0.55) 100%
+            180deg,
+            rgba(240, 244, 236, 0) 0%,
+            rgba(240, 244, 236, 0.25) 28%,
+            rgba(240, 244, 236, 0.65) 55%,
+            rgba(240, 244, 236, 0.92) 78%,
+            rgba(240, 244, 236, 1) 100%
           );
+          z-index: 2;
         }
-
-        .hero-content {
+        .hp-hero-content {
           position: relative;
-          z-index: 10;
-          flex: 1;
+          z-index: 3;
+          width: 100%;
+          max-width: 860px;
+          padding: 120px 44px 80px;
+          text-align: center;
+        }
+        .hp-hero h1 {
+          font-family: var(--font-manrope), 'Manrope', sans-serif;
+          font-weight: 800;
+          font-size: 72px;
+          line-height: 1.1;
+          color: #1A2E1A;
+          margin-bottom: 1.25rem;
+          letter-spacing: -0.02em;
+          opacity: 0;
+          animation: hp-rise 0.7s ease forwards 0.15s;
+        }
+        .hp-hero p {
+          font-family: var(--font-lexend), 'Lexend', sans-serif;
+          font-size: 21px;
+          font-weight: 400;
+          color: #44483E;
+          line-height: 1.55;
+          margin-bottom: 2.75rem;
+          max-width: 560px;
+          margin-left: auto;
+          margin-right: auto;
+          opacity: 0;
+          animation: hp-rise 0.7s ease forwards 0.3s;
+        }
+        .hp-hero-ctas {
           display: flex;
-          flex-direction: column;
+          gap: 0.875rem;
+          justify-content: center;
+          align-items: center;
+          flex-wrap: wrap;
+          opacity: 0;
+          animation: hp-rise 0.7s ease forwards 0.45s;
+        }
+        .hp-code-row {
+          display: flex;
           align-items: center;
           justify-content: center;
-          text-align: center;
-          padding: 120px 48px 60px;
-          color: #fff;
-        }
-
-        .hero-title {
-          font-family: 'Manrope', sans-serif;
-          font-size: clamp(2rem, 5.5vw, 3.5rem);
-          font-weight: 800;
-          line-height: 1.15;
-          letter-spacing: -0.025em;
-          color: #fff;
-          margin-bottom: 24px;
-          max-width: 820px;
-          text-shadow: 0 2px 32px rgba(0,0,0,0.3);
-          opacity: 0;
-          animation: rise 0.6s ease forwards 0.2s;
-        }
-
-        .hero-title-sub {
-          display: block;
-          margin-top: 0.5em;
-          font-size: clamp(1.25rem, 3vw, 2rem);
-          font-weight: 700;
-          opacity: 0.9;
-        }
-
-        .hero-sub {
-          font-size: 1.0625rem;
-          font-weight: 300;
-          color: rgba(255,255,255,0.82);
-          line-height: 1.65;
-          max-width: 460px;
-          margin-bottom: 44px;
-          text-shadow: 0 1px 8px rgba(0,0,0,0.25);
-          opacity: 0;
-          animation: rise 0.6s ease forwards 0.3s;
-        }
-
-        .hero-ctas {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin-bottom: 48px;
-          opacity: 0;
-          animation: rise 0.6s ease forwards 0.4s;
-        }
-
-        .btn-getstarted {
-          display: inline-flex;
-          align-items: center;
           gap: 8px;
-          padding: 14px 28px;
-          background: #0D631B;
-          color: #fff;
-          font-family: 'Manrope', sans-serif;
-          font-size: 0.9375rem;
-          font-weight: 700;
-          text-decoration: none;
-          border-radius: 9999px;
-          box-shadow: 0 8px 28px rgba(0,0,0,0.3);
-          transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
-        }
-        .btn-getstarted:hover { background: #0a4f15; transform: translateY(-1px); box-shadow: 0 12px 32px rgba(0,0,0,0.35); }
-
-        .btn-signin-hero {
-          display: inline-flex;
-          align-items: center;
-          padding: 14px 24px;
-          background: rgba(255,255,255,0.12);
-          border: 1px solid rgba(255,255,255,0.3);
-          color: #fff;
-          font-size: 0.9375rem;
-          font-weight: 500;
-          text-decoration: none;
-          border-radius: 9999px;
-          backdrop-filter: blur(8px);
-          -webkit-backdrop-filter: blur(8px);
-          transition: background 0.15s;
-        }
-        .btn-signin-hero:hover { background: rgba(255,255,255,0.22); }
-
-        /* Event code row */
-        .code-row {
-          display: flex;
-          align-items: center;
-          gap: 8px;
+          margin-top: 1.5rem;
           opacity: 0;
-          animation: rise 0.6s ease forwards 0.5s;
+          animation: hp-rise 0.4s ease forwards 0s;
         }
-
-        .code-label {
-          font-size: 0.8125rem;
-          color: rgba(255,255,255,0.6);
+        .hp-code-row.visible { animation: hp-rise 0.4s ease forwards 0s; opacity: 0; }
+        .hp-code-label {
+          font-size: 0.875rem;
+          color: #72786E;
           white-space: nowrap;
         }
-
-        .code-input {
-          width: 140px;
-          padding: 10px 14px;
-          background: rgba(255,255,255,0.12);
-          border: 1px solid rgba(255,255,255,0.28);
+        .hp-code-input {
+          width: 148px;
+          padding: 10px 16px;
+          background: rgba(255,255,255,0.75);
+          border: 1.5px solid rgba(26,28,28,0.18);
           border-radius: 9999px;
-          font-family: 'Lexend', sans-serif;
+          font-family: var(--font-lexend), 'Lexend', sans-serif;
           font-size: 0.875rem;
-          color: #fff;
+          color: #1A2E1A;
           outline: none;
-          backdrop-filter: blur(8px);
-          -webkit-backdrop-filter: blur(8px);
           text-align: center;
           letter-spacing: 0.08em;
-          transition: background 0.15s, border-color 0.15s, width 0.2s;
-        }
-        .code-input::placeholder { color: rgba(255,255,255,0.4); letter-spacing: 0.04em; }
-        .code-input:focus { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.5); width: 180px; }
-
-        .code-btn {
-          padding: 10px 16px;
-          background: rgba(255,255,255,0.15);
-          border: 1px solid rgba(255,255,255,0.28);
-          border-radius: 9999px;
-          color: #fff;
-          font-size: 0.875rem;
-          font-family: 'Manrope', sans-serif;
-          font-weight: 600;
-          cursor: pointer;
           backdrop-filter: blur(8px);
           -webkit-backdrop-filter: blur(8px);
+          transition: background 0.15s, border-color 0.15s, width 0.2s;
+        }
+        .hp-code-input::placeholder { color: #72786E; letter-spacing: 0.04em; }
+        .hp-code-input:focus {
+          background: #fff;
+          border-color: rgba(26,28,28,0.3);
+          width: 180px;
+          outline: none;
+        }
+        .hp-code-btn {
+          padding: 10px 18px;
+          background: rgba(26,44,26,0.08);
+          border: 1.5px solid rgba(26,28,28,0.15);
+          border-radius: 9999px;
+          color: #1A2E1A;
+          font-size: 0.875rem;
+          font-family: var(--font-lexend), 'Lexend', sans-serif;
+          font-weight: 500;
+          cursor: pointer;
           transition: background 0.15s;
         }
-        .code-btn:hover { background: rgba(255,255,255,0.25); }
+        .hp-code-btn:hover { background: rgba(26,44,26,0.14); }
 
-        /* Scroll cue */
-        .scroll-cue {
-          position: absolute;
-          bottom: 32px;
-          left: 0;
-          right: 0;
-          z-index: 10;
-          display: flex;
-          flex-direction: column;
+        /* ── Buttons ── */
+        .hp-btn-primary {
+          display: inline-flex;
           align-items: center;
-          gap: 6px;
-          opacity: 0;
-          animation: rise 0.6s ease forwards 0.9s;
-        }
-        .scroll-cue span {
-          font-size: 0.625rem;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: rgba(255,255,255,0.5);
-        }
-        .scroll-arrow {
-          width: 20px;
-          height: 20px;
-          border-right: 2px solid rgba(255,255,255,0.4);
-          border-bottom: 2px solid rgba(255,255,255,0.4);
-          transform: rotate(45deg);
-          animation: bounce 1.8s ease infinite 1.2s;
-        }
-
-        /* ── How it works ── */
-        .hiw {
-          background: #fff;
-          padding: 96px 48px;
-          text-align: center;
-        }
-
-        .section-label {
-          font-size: 0.6875rem;
+          background: linear-gradient(135deg, #2D5016 0%, #3D6B1A 100%);
+          color: #fff;
+          padding: 0.875rem 2.25rem;
+          border-radius: 9999px;
+          font-family: var(--font-lexend), 'Lexend', sans-serif;
           font-weight: 500;
-          letter-spacing: 0.18em;
-          text-transform: uppercase;
-          color: #0D631B;
-          margin-bottom: 16px;
-        }
-
-        .section-title {
-          font-family: 'Manrope', sans-serif;
-          font-size: clamp(1.75rem, 4vw, 2.5rem);
-          font-weight: 800;
-          letter-spacing: -0.02em;
-          color: #1A2E1A;
-          margin-bottom: 16px;
-          line-height: 1.1;
-        }
-
-        .section-sub {
           font-size: 1rem;
-          font-weight: 300;
-          color: #6B8C6B;
-          max-width: 440px;
-          margin: 0 auto 64px;
-          line-height: 1.65;
+          border: none;
+          cursor: pointer;
+          text-decoration: none;
+          box-shadow: 0 8px 24px rgba(26, 28, 28, 0.12);
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          white-space: nowrap;
         }
+        .hp-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(26, 28, 28, 0.2); }
+        .hp-btn-primary:focus-visible { outline: 2px solid #3D6B1A; outline-offset: 2px; }
 
-        .steps {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 32px;
-          max-width: 860px;
+        .hp-btn-secondary {
+          display: inline-flex;
+          align-items: center;
+          background: transparent;
+          color: #1A2E1A;
+          padding: 0.875rem 2.25rem;
+          border-radius: 9999px;
+          font-family: var(--font-lexend), 'Lexend', sans-serif;
+          font-weight: 500;
+          font-size: 1rem;
+          border: 2px solid rgba(26, 28, 28, 0.22);
+          cursor: pointer;
+          text-decoration: none;
+          white-space: nowrap;
+          transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+        }
+        .hp-btn-secondary:hover {
+          background: rgba(255,255,255,0.65);
+          border-color: rgba(26,28,28,0.32);
+          transform: translateY(-1px);
+        }
+        .hp-btn-secondary:focus-visible { outline: 2px solid #1A2E1A; outline-offset: 2px; }
+
+        .hp-btn-link {
+          display: inline-flex;
+          align-items: center;
+          background: transparent;
+          color: #923357;
+          padding: 0.875rem 1.25rem;
+          font-family: var(--font-lexend), 'Lexend', sans-serif;
+          font-weight: 500;
+          font-size: 1rem;
+          border: none;
+          cursor: pointer;
+          text-decoration: underline;
+          text-underline-offset: 4px;
+          transition: color 0.2s ease;
+          white-space: nowrap;
+        }
+        .hp-btn-link:hover { color: #7A2A49; text-decoration-thickness: 2px; }
+        .hp-btn-link:focus-visible { outline: 2px solid #923357; outline-offset: 2px; }
+
+        /* ── Features ── */
+        .hp-features {
+          background: #F0F4EC;
+          padding: 6rem 44px;
+        }
+        .hp-features-inner {
+          max-width: 1400px;
           margin: 0 auto;
         }
-
-        .step {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 16px;
-          padding: 32px 24px;
-          background: #F6FAF6;
-          border-radius: 1.5rem;
-          border: 1px solid #E0EBE0;
-        }
-
-        .step-num {
-          width: 40px;
-          height: 40px;
-          background: #0D631B;
-          color: #fff;
-          font-family: 'Manrope', sans-serif;
-          font-size: 1rem;
+        .hp-features h2 {
+          font-family: var(--font-manrope), 'Manrope', sans-serif;
           font-weight: 800;
-          border-radius: 9999px;
+          font-size: 48px;
+          color: #1A2E1A;
+          text-align: center;
+          margin-bottom: 3.5rem;
+          letter-spacing: -0.015em;
+        }
+        .hp-features-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 1.75rem;
+        }
+        .hp-feature-card {
+          background: #fff;
+          border-radius: 24px;
+          padding: 2.5rem 1.75rem;
+          text-align: center;
+          box-shadow: 0 8px 24px rgba(26, 28, 28, 0.06);
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .hp-feature-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 12px 32px rgba(26, 28, 28, 0.12);
+        }
+        .hp-feature-icon {
+          width: 64px;
+          height: 64px;
+          margin: 0 auto 1.5rem;
           display: flex;
           align-items: center;
           justify-content: center;
+          background: linear-gradient(135deg, rgba(45,80,22,0.1) 0%, rgba(61,107,26,0.1) 100%);
+          border-radius: 16px;
+          flex-shrink: 0;
         }
-
-        .step-title {
-          font-family: 'Manrope', sans-serif;
-          font-size: 1rem;
+        .hp-feature-card h3 {
+          font-family: var(--font-manrope), 'Manrope', sans-serif;
           font-weight: 700;
+          font-size: 19px;
           color: #1A2E1A;
+          margin-bottom: 0.625rem;
         }
-
-        .step-desc {
-          font-size: 0.875rem;
-          font-weight: 300;
-          color: #6B8C6B;
-          line-height: 1.6;
-          text-align: center;
-        }
-
-        /* ── Features ── */
-        .features {
-          background: #F6FAF6;
-          padding: 96px 48px;
-        }
-
-        .features-inner {
-          max-width: 860px;
-          margin: 0 auto;
-          text-align: center;
-        }
-
-        .feature-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 20px;
-          margin-top: 56px;
-          text-align: left;
-        }
-
-        .feature-card {
-          background: #fff;
-          border-radius: 1.25rem;
-          padding: 28px;
-          border: 1px solid #E0EBE0;
-        }
-
-        .feature-icon { font-size: 1.5rem; margin-bottom: 12px; }
-        .feature-title {
-          font-family: 'Manrope', sans-serif;
-          font-size: 1rem;
-          font-weight: 700;
-          color: #1A2E1A;
-          margin-bottom: 6px;
-        }
-        .feature-desc {
-          font-size: 0.875rem;
-          font-weight: 300;
-          color: #6B8C6B;
-          line-height: 1.6;
-        }
-
-        /* ── CTA section ── */
-        .cta-section {
-          background: #1A2E1A;
-          padding: 96px 48px;
-          text-align: center;
-          color: #fff;
-        }
-
-        .cta-title {
-          font-family: 'Manrope', sans-serif;
-          font-size: clamp(1.75rem, 4vw, 2.5rem);
-          font-weight: 800;
-          letter-spacing: -0.02em;
-          margin-bottom: 16px;
-          line-height: 1.1;
-        }
-
-        .cta-sub {
-          font-size: 1rem;
-          font-weight: 300;
-          color: rgba(255,255,255,0.7);
-          margin-bottom: 40px;
+        .hp-feature-card p {
+          font-family: var(--font-lexend), 'Lexend', sans-serif;
+          font-size: 15px;
+          color: #44483E;
           line-height: 1.65;
+          animation: none;
+          opacity: 1;
         }
-
-        .btn-cta-primary {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 15px 32px;
-          background: #0D631B;
-          color: #fff;
-          font-family: 'Manrope', sans-serif;
-          font-size: 1rem;
-          font-weight: 700;
-          text-decoration: none;
-          border-radius: 9999px;
-          box-shadow: 0 8px 28px rgba(0,0,0,0.3);
-          transition: background 0.15s, transform 0.15s;
-        }
-        .btn-cta-primary:hover { background: #0a4f15; transform: translateY(-1px); }
 
         /* ── Footer ── */
-        .footer {
+        .hp-footer {
           background: #111D11;
-          padding: 32px 48px;
+          padding: 32px 44px;
           display: flex;
           align-items: center;
           justify-content: space-between;
         }
-
-        .footer-links { display: flex; gap: 24px; }
-        .footer-link {
+        .hp-footer-links { display: flex; gap: 24px; }
+        .hp-footer-link {
           font-size: 0.6875rem;
           font-weight: 400;
           color: rgba(255,255,255,0.35);
@@ -453,162 +343,160 @@ export default function HomePage() {
           text-transform: uppercase;
           transition: color 0.15s;
         }
-        .footer-link:hover { color: rgba(255,255,255,0.7); }
-
-        .footer-copy {
+        .hp-footer-link:hover { color: rgba(255,255,255,0.7); }
+        .hp-footer-copy {
           font-size: 0.6875rem;
           color: rgba(255,255,255,0.3);
           letter-spacing: 0.04em;
         }
 
-        @keyframes rise {
+        /* ── Animations ── */
+        @keyframes hp-rise {
           from { opacity: 0; transform: translateY(14px); }
           to   { opacity: 1; transform: translateY(0); }
         }
 
-        @keyframes bounce {
-          0%, 100% { transform: rotate(45deg) translateY(0); }
-          50% { transform: rotate(45deg) translateY(5px); }
+        /* ── Responsive ── */
+        @media (max-width: 1024px) {
+          .hp-hero h1 { font-size: 52px; }
+          .hp-features-grid { grid-template-columns: repeat(2, 1fr); }
+          .hp-features h2 { font-size: 38px; }
         }
-
         @media (max-width: 768px) {
-          .nav { padding: 20px 24px; }
-          .nav-link { display: none; }
-          .hero-content { padding: 100px 24px 60px; }
-          .hiw, .features, .cta-section { padding: 72px 24px; }
-          .steps { grid-template-columns: 1fr; max-width: 360px; }
-          .feature-grid { grid-template-columns: 1fr; }
-          .footer { padding: 24px; flex-direction: column; gap: 16px; }
-          .hero-ctas { flex-direction: column; }
+          .hp-nav { padding: 20px 24px; }
+          .hp-nav-link { display: none; }
+          .hp-hero-content { padding: 100px 24px 72px; }
+          .hp-hero h1 { font-size: 38px; line-height: 1.12; }
+          .hp-hero p { font-size: 17px; margin-bottom: 2rem; }
+          .hp-hero-ctas { flex-direction: column; gap: 0.75rem; }
+          .hp-btn-primary, .hp-btn-secondary { width: 100%; justify-content: center; }
+          .hp-code-row { flex-wrap: wrap; }
+          .hp-features { padding: 4rem 24px; }
+          .hp-features h2 { font-size: 30px; margin-bottom: 2.5rem; }
+          .hp-features-grid { grid-template-columns: 1fr; }
+          .hp-footer { padding: 24px; flex-direction: column; gap: 16px; text-align: center; }
+          .hp-footer-links { justify-content: center; }
         }
       `}</style>
 
       {/* Nav */}
-      <nav className="nav">
-        <Link href="/" className="logo">
-          <Image src="/lx2-logo.svg" alt="LX2" height={96} width={192} style={{ height: '48px', width: 'auto' }} />
+      <nav className="hp-nav">
+        <Link href="/" className="hp-logo">
+          <Image
+            src="/lx2-logo.svg"
+            alt="LX2"
+            height={96}
+            width={192}
+            style={{ height: '44px', width: 'auto' }}
+            priority
+          />
         </Link>
-        <div className="nav-links">
-          <a href="#how-it-works" className="nav-link">How it works</a>
-          {userEmail ? (
-            <Link href="/play" className="nav-signin">Dashboard</Link>
-          ) : (
-            <Link href="/auth/login" className="nav-signin">Sign in</Link>
+        <div className="hp-nav-links">
+          <a href="#features" className="hp-nav-link">Features</a>
+          {userInitial && (
+            <Link href="/play" className="hp-nav-profile" aria-label="My profile">
+              {userInitial}
+            </Link>
           )}
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="hero">
-        <div className="hero-bg" />
-        <div className="hero-content">
-          <h1 className="hero-title">
-            Every round.<br />
-            Every competition.<br />
-            Every member.<br />
-            <span className="hero-title-sub">Finally in one place.</span>
-          </h1>
-          <p className="hero-sub">
-            One platform for golfers, societies, and clubs.
-          </p>
-          <div className="hero-ctas">
-            <a href="/auth/login?mode=signup" className="btn-getstarted">
-              Get started free →
-            </a>
-            {userEmail ? (
-              <Link href="/play" className="btn-signin-hero">Go to dashboard</Link>
-            ) : (
-              <Link href="/auth/login" className="btn-signin-hero">Sign in</Link>
-            )}
+      <section className="hp-hero">
+        <Image
+          src="/hero.png"
+          alt="Links golf course at golden hour"
+          fill
+          priority
+          style={{ objectFit: 'cover', zIndex: 1 }}
+          sizes="100vw"
+        />
+        <div className="hp-hero-overlay" />
+        <div className="hp-hero-content">
+          <h1>One place for<br />every golfer,<br />every society,<br />every club.</h1>
+          <p>Track your rounds. Play with friends. Compete in events. Run your club. All in one beautiful app.</p>
+          <div className="hp-hero-ctas">
+            <Link href="/auth/signup" className="hp-btn-primary">Create account</Link>
+            <Link href="/auth/login" className="hp-btn-secondary">Sign in</Link>
+            <button className="hp-btn-link" onClick={handleJoinEvent}>Join event →</button>
           </div>
-          <div className="code-row">
-            <span className="code-label">Got an event code?</span>
-            <input
-              className="code-input"
-              placeholder="e.g. GOLF24"
-              value={code}
-              onChange={e => setCode(e.target.value.toUpperCase())}
-              onKeyDown={e => e.key === 'Enter' && handleJoin()}
-            />
-            <button className="code-btn" onClick={handleJoin}>Join →</button>
-          </div>
-        </div>
-        <div className="scroll-cue">
-          <span>Scroll</span>
-          <div className="scroll-arrow" />
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section className="hiw" id="how-it-works">
-        <div className="section-label">How it works</div>
-        <h2 className="section-title">Up and running in minutes</h2>
-        <p className="section-sub">No training, no setup calls. If you can send a WhatsApp, you can run an event with LX2.</p>
-        <div className="steps">
-          <div className="step">
-            <div className="step-num">1</div>
-            <div className="step-title">Create your event</div>
-            <p className="step-desc">Set your format — Stableford, stroke play or match play. Add players and tee times in a 3-step form.</p>
-          </div>
-          <div className="step">
-            <div className="step-num">2</div>
-            <div className="step-title">Players join via link</div>
-            <p className="step-desc">Share one link over WhatsApp. Players tap it and score hole-by-hole — no app download, no account needed.</p>
-          </div>
-          <div className="step">
-            <div className="step-num">3</div>
-            <div className="step-title">Live scores, instant results</div>
-            <p className="step-desc">Watch the leaderboard update in real time. Results are calculated automatically when the last card comes in.</p>
-          </div>
+          {showCode && (
+            <div className="hp-code-row visible">
+              <span className="hp-code-label">Enter event code:</span>
+              <input
+                ref={codeRef}
+                className="hp-code-input"
+                placeholder="e.g. GOLF24"
+                value={code}
+                onChange={e => setCode(e.target.value.toUpperCase())}
+                onKeyDown={e => e.key === 'Enter' && handleJoin()}
+              />
+              <button className="hp-code-btn" onClick={handleJoin}>Go →</button>
+            </div>
+          )}
         </div>
       </section>
 
       {/* Features */}
-      <section className="features">
-        <div className="features-inner">
-          <div className="section-label">Everything you need</div>
-          <h2 className="section-title">Built for how societies actually play</h2>
-          <p className="section-sub">From casual Saturday medals to full society days with side competitions.</p>
-          <div className="feature-grid">
-            <div className="feature-card">
-              <div className="feature-icon">🏆</div>
-              <div className="feature-title">Multiple formats</div>
-              <p className="feature-desc">Stableford, stroke play and match play with handicap indexing. NTP and longest drive side contests.</p>
+      <section className="hp-features" id="features">
+        <div className="hp-features-inner">
+          <h2>Everything you need for every round</h2>
+          <div className="hp-features-grid">
+            <div className="hp-feature-card">
+              <div className="hp-feature-icon">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                  <path d="M4 20l6-8 5 6 4-5 5 7" stroke="#2D5016" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="14" cy="6" r="2.5" fill="#3D6B1A" opacity="0.4"/>
+                </svg>
+              </div>
+              <h3>Track Your Game</h3>
+              <p>Keep detailed stats, monitor your progress, and watch your handicap improve over time.</p>
             </div>
-            <div className="feature-card">
-              <div className="feature-icon">📡</div>
-              <div className="feature-title">Live leaderboard</div>
-              <p className="feature-desc">Real-time standings as scores come in. Share a TV-mode link for the 19th hole screen.</p>
+            <div className="hp-feature-card">
+              <div className="hp-feature-icon">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                  <circle cx="10" cy="9" r="3.5" stroke="#2D5016" strokeWidth="2" fill="none"/>
+                  <circle cx="19" cy="9" r="3.5" stroke="#3D6B1A" strokeWidth="2" fill="none" opacity="0.6"/>
+                  <path d="M3 22c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="#2D5016" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                  <path d="M19 15c2.761 0 5 2.239 5 5" stroke="#3D6B1A" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.6"/>
+                </svg>
+              </div>
+              <h3>Play With Friends</h3>
+              <p>Create foursomes, manage groups, and keep everyone connected throughout the round.</p>
             </div>
-            <div className="feature-card">
-              <div className="feature-icon">📱</div>
-              <div className="feature-title">No app needed</div>
-              <p className="feature-desc">Players score on any phone via a web link. Nothing to download, nothing to sign up for.</p>
+            <div className="hp-feature-card">
+              <div className="hp-feature-icon">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                  <path d="M14 3l2.8 5.6 6.2.9-4.5 4.4 1.1 6.1L14 17l-5.6 3 1.1-6.1L5 9.5l6.2-.9L14 3z" stroke="#2D5016" strokeWidth="2" strokeLinejoin="round" fill="rgba(45,80,22,0.15)"/>
+                  <path d="M9 24h10" stroke="#3D6B1A" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </div>
+              <h3>Compete in Events</h3>
+              <p>Join tournaments, leagues, and society competitions. Track live leaderboards in real-time.</p>
             </div>
-            <div className="feature-card">
-              <div className="feature-icon">📊</div>
-              <div className="feature-title">Handicap tracking</div>
-              <p className="feature-desc">Handicap indexes tracked across rounds. Player profiles with full scoring history.</p>
+            <div className="hp-feature-card">
+              <div className="hp-feature-icon">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                  <rect x="3" y="12" width="22" height="13" rx="3" stroke="#2D5016" strokeWidth="2" fill="none"/>
+                  <path d="M9 12V8a5 5 0 0110 0v4" stroke="#3D6B1A" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.7"/>
+                  <circle cx="14" cy="18.5" r="2" fill="#2D5016" opacity="0.5"/>
+                </svg>
+              </div>
+              <h3>Run Your Club</h3>
+              <p>Complete club management tools for memberships, events, bookings, and communication.</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Bottom CTA */}
-      <section className="cta-section">
-        <h2 className="cta-title">Ready to run your first event?</h2>
-        <p className="cta-sub">Free to get started. No credit card required.</p>
-        <a href="/auth/login?mode=signup" className="btn-cta-primary">Create your account →</a>
-      </section>
-
       {/* Footer */}
-      <footer className="footer">
-        <div className="footer-links">
-          <a href="#how-it-works" className="footer-link">How it works</a>
-          <a href="/auth/login" className="footer-link">Sign in</a>
-          <a href="https://lx2-architecture.vercel.app" className="footer-link">Architecture</a>
+      <footer className="hp-footer">
+        <div className="hp-footer-links">
+          <a href="#features" className="hp-footer-link">Features</a>
+          <a href="/auth/login" className="hp-footer-link">Sign in</a>
+          <a href="https://lx2-architecture.vercel.app" className="hp-footer-link">Architecture</a>
         </div>
-        <span className="footer-copy">lx2.golf · Play to par.</span>
+        <span className="hp-footer-copy">lx2.golf · Play to par.</span>
       </footer>
     </>
   )
