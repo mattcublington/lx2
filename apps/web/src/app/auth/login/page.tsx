@@ -2,6 +2,7 @@
 import { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 
 function AuthForm() {
@@ -88,12 +89,9 @@ function AuthForm() {
         .auth-back-btn:hover { transform: translateX(-2px); }
 
         .auth-logo {
-          font-family: var(--font-manrope, 'Manrope', sans-serif);
-          font-weight: 800;
-          font-size: 24px;
-          color: #2D5016;
-          letter-spacing: -0.02em;
           text-decoration: none;
+          display: flex;
+          align-items: center;
         }
 
         .auth-main {
@@ -281,7 +279,9 @@ function AuthForm() {
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
           </Link>
-          <Link href="/" className="auth-logo">LX2</Link>
+          <Link href="/" className="auth-logo" aria-label="LX2 home">
+            <Image src="/lx2-logo.svg" alt="LX2" width={56} height={28} priority />
+          </Link>
           <div style={{ width: 40 }} />
         </header>
 
@@ -373,9 +373,12 @@ function AuthForm() {
             {/* Toggle mode */}
             <div className="create-account">
               {mode === 'signin' ? (
-                <Link href="/auth/signup" className="create-account-btn" style={{ textDecoration: 'none' }}>
+                <button
+                  className="create-account-btn"
+                  onClick={() => { setMode('signup'); setError(''); setSuccess('') }}
+                >
                   Create account
-                </Link>
+                </button>
               ) : (
                 <button
                   className="create-account-btn"
