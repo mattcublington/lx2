@@ -373,12 +373,9 @@ function AuthForm() {
             {/* Toggle mode */}
             <div className="create-account">
               {mode === 'signin' ? (
-                <button
-                  className="create-account-btn"
-                  onClick={() => { setMode('signup'); setError(''); setSuccess('') }}
-                >
+                <Link href="/auth/signup" className="create-account-btn" style={{ textDecoration: 'none' }}>
                   Create account
-                </button>
+                </Link>
               ) : (
                 <button
                   className="create-account-btn"
