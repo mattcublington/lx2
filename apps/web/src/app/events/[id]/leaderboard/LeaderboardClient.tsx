@@ -30,6 +30,7 @@ interface ComputedRow {
   nR: boolean
   perHole: number[]
   playingHandicap: number
+  vsParLabel: string
 }
 
 interface Props {
@@ -41,6 +42,28 @@ interface Props {
   initialPlayers: PlayerData[]
   ntpHoles: number[]
   ldHoles: number[]
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function getOrdinal(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd']
+  const v = n % 100
+  return n + (s[(v - 20) % 10] ?? s[v] ?? 'th')
+}
+
+function formatVsPar(diff: number): string {
+  if (diff === 0) return 'E'
+  return diff > 0 ? `+${diff}` : `${diff}`
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map(w => w[0] ?? '')
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
@@ -98,7 +121,7 @@ const STYLES = `
   .lb-count {
     font-size: 0.75rem;
     color: rgba(255,255,255,0.4);
-    font-family: var(--font-lexend), 'Lexend', sans-serif;
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
   }
 
   /* ── Body ── */
@@ -107,6 +130,21 @@ const STYLES = `
     display: flex;
     flex-direction: column;
     gap: 7px;
+  }
+
+  /* ── Progress card ── */
+  .lb-progress-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 0.875rem 1.25rem;
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--muted);
+    box-shadow: 0 4px 12px rgba(26, 28, 28, 0.04);
+  }
+  .lb-progress-card strong {
+    color: var(--forest);
+    font-weight: 600;
   }
 
   /* ── Player card ── */
@@ -123,59 +161,72 @@ const STYLES = `
   .lb-card:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(13,99,27,0.1); }
   .lb-card.flash { box-shadow: 0 0 0 3px rgba(13,99,27,0.22); }
   .lb-card.dim { opacity: 0.5; }
-  .lb-card.pos-1 { border-color: #b6d9ba; }
 
   /* ── Card main row ── */
   .lb-row {
     display: flex;
     align-items: center;
-    padding: 16px 18px;
-    gap: 14px;
+    padding: 14px 16px;
+    gap: 12px;
   }
 
-  /* ── Rank badge ── */
+  /* ── Rank badge (circle, medal colours) ── */
   .lb-rank {
     flex-shrink: 0;
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: var(--font-manrope), 'Manrope', sans-serif;
-    font-weight: 800;
-    font-size: 1rem;
-    letter-spacing: -0.03em;
+    font-weight: 700;
+    font-size: 0.6875rem;
     line-height: 1;
   }
   .lb-rank.r1 {
-    background: linear-gradient(135deg, #2D5016 0%, #0D631B 100%);
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(13,99,27,0.35);
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    color: #1A2E1A;
   }
   .lb-rank.r2 {
-    background: #D1FAE5;
-    color: #065F46;
+    background: linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%);
+    color: #1A2E1A;
   }
   .lb-rank.r3 {
-    background: #EDE9FE;
-    color: #5B21B6;
+    background: linear-gradient(135deg, #CD7F32 0%, #B8722E 100%);
+    color: #ffffff;
   }
   .lb-rank.r-other {
-    background: #F2F5F0;
-    color: #6B8C6B;
+    background: rgba(26, 28, 28, 0.08);
+    color: #1A2E1A;
   }
   .lb-rank.r-nr {
     background: #FEE2E2;
     color: #B91C1C;
-    font-size: 0.75rem;
+    font-size: 0.5625rem;
   }
   .lb-rank.r-ns {
     background: #F9FAFB;
     color: #9CA3AF;
-    font-size: 1.25rem;
+    font-size: 1rem;
   }
-  .lb-rank.r-tied { font-size: 0.75rem; letter-spacing: 0; }
+
+  /* ── Avatar ── */
+  .lb-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2D5016 0%, #0D631B 100%);
+    color: #fff;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    font-family: var(--font-manrope), 'Manrope', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    letter-spacing: -0.01em;
+  }
 
   /* ── Name block ── */
   .lb-name-block { flex: 1; min-width: 0; }
@@ -187,7 +238,7 @@ const STYLES = `
   }
   .lb-name {
     font-weight: 600;
-    font-size: 1rem;
+    font-size: 0.9375rem;
     color: var(--forest);
     line-height: 1.25;
     word-break: break-word;
@@ -206,104 +257,130 @@ const STYLES = `
     font-size: 0.6875rem;
     color: var(--muted);
     margin-top: 3px;
-    font-family: var(--font-lexend), 'Lexend', sans-serif;
-    font-weight: 300;
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+    font-weight: 400;
   }
 
-  /* ── Score ── */
+  /* ── Score block ── */
   .lb-score-block {
-    text-align: right;
-    flex-shrink: 0;
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
   }
   .lb-score {
     font-family: var(--font-manrope), 'Manrope', sans-serif;
     font-weight: 800;
-    font-size: 2.25rem;
+    font-size: 1.75rem;
     line-height: 1;
     letter-spacing: -0.04em;
     color: var(--forest);
   }
-  .lb-score.leader { color: var(--green-primary); }
-  .lb-score-unit {
-    font-size: 0.625rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-
-  /* ── Progress bar ── */
-  .lb-progress-wrap {
-    padding: 0 18px 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .lb-progress-track {
-    flex: 1;
-    height: 3px;
-    background: #EEF3EE;
-    border-radius: 2px;
-    overflow: hidden;
-  }
-  .lb-progress-fill {
-    height: 100%;
-    border-radius: 2px;
-    background: var(--green-primary);
-    transition: width 0.4s ease;
-  }
-  .lb-progress-label {
-    font-size: 0.625rem;
-    font-weight: 700;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
-    color: var(--muted);
+  .lb-score.leader { color: var(--green-dark); }
+  .lb-pts-pill {
+    background: linear-gradient(135deg, rgba(45,80,22,0.1) 0%, rgba(61,107,26,0.1) 100%);
+    padding: 0.3rem 0.625rem;
+    border-radius: 10px;
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 0.6875rem;
+    color: var(--green-dark);
     white-space: nowrap;
   }
 
-  /* ── Scorecard strip ── */
-  .lb-strip-wrap {
-    border-top: 1px solid var(--green-faint);
-    padding: 12px 18px 16px;
+  /* ── Chevron toggle ── */
+  .lb-chevron {
+    flex-shrink: 0;
+    color: #c0ccc0;
+    transition: transform 0.2s ease;
+    margin-left: 2px;
+  }
+  .lb-chevron.open { transform: rotate(180deg); }
+
+  /* ── Scorecard table (expanded) ── */
+  .lb-sc-wrap {
+    border-top: 1px solid rgba(26,28,28,0.06);
+    padding: 1.25rem 1rem 1.5rem;
     overflow-x: auto;
     scrollbar-width: none;
     animation: lb-strip-in 0.22s ease both;
+    position: relative;
   }
-  .lb-strip-wrap::-webkit-scrollbar { display: none; }
-  .lb-strip {
-    display: flex;
-    gap: 5px;
-    min-width: max-content;
+  .lb-sc-wrap::-webkit-scrollbar { display: none; }
+  .lb-sc-wrap::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 32px;
+    background: linear-gradient(to left, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+    pointer-events: none;
   }
-
-  /* ── Hole dot ── */
-  .lb-dot-col {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
+  .lb-sc-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: 220px;
   }
-  .lb-dot-num {
-    font-size: 0.5rem;
-    font-weight: 600;
-    line-height: 1;
-    letter-spacing: -0.01em;
+  .lb-sc-table th {
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 0.6875rem;
+    color: var(--muted);
+    text-align: center;
+    padding: 0.375rem 0.5rem;
+    border-bottom: 1px solid rgba(26,28,28,0.06);
   }
-  .lb-dot {
-    width: 26px;
-    height: 26px;
+  .lb-sc-table td {
+    text-align: center;
+    padding: 0.625rem 0.5rem;
+    border-bottom: 1px solid rgba(26,28,28,0.06);
+  }
+  .lb-sc-table tr:last-child td { border-bottom: none; }
+  .lb-sc-hole {
+    width: 28px; height: 28px;
     border-radius: 50%;
-    display: flex;
+    background: rgba(26,28,28,0.05);
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.625rem;
+    font-family: var(--font-manrope), 'Manrope', sans-serif;
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: var(--forest);
+  }
+  .lb-sc-par {
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    color: #44483E;
+  }
+  .lb-sc-score {
+    font-family: var(--font-manrope), 'Manrope', sans-serif;
     font-weight: 700;
-    line-height: 1;
-    flex-shrink: 0;
+    font-size: 1rem;
+  }
+  .lb-sc-score.under-par { color: #2D5016; }
+  .lb-sc-score.over-par  { color: #923357; }
+  .lb-sc-score.at-par    { color: var(--forest); }
+  .lb-sc-score.unplayed  { color: #c0c0c0; font-weight: 400; font-size: 0.875rem; }
+  .lb-sc-pts {
+    background: rgba(45,80,22,0.08);
+    padding: 0.2rem 0.4rem;
+    border-radius: 6px;
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 0.75rem;
+    color: var(--green-dark);
+    display: inline-block;
+    white-space: nowrap;
+  }
+  .lb-sc-total {
+    text-align: right;
+    font-family: var(--font-manrope), 'Manrope', sans-serif;
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: var(--green-dark);
+    padding-top: 0.5rem;
   }
 
   /* ── Empty state ── */
@@ -313,14 +390,6 @@ const STYLES = `
     color: var(--muted);
     font-size: 0.9375rem;
   }
-
-  /* ── Chevron toggle ── */
-  .lb-chevron {
-    flex-shrink: 0;
-    color: #c0ccc0;
-    transition: transform 0.2s ease;
-  }
-  .lb-chevron.open { transform: rotate(180deg); }
 
   /* ── Animations ── */
   @keyframes lb-in {
@@ -416,6 +485,8 @@ export default function LeaderboardClient({
   }
 
   const startedCount = leaderboard.filter(r => r.thru > 0).length
+  const maxThru = leaderboard.reduce((max, r) => Math.max(max, r.thru), 0)
+  const allFinished = startedCount > 0 && leaderboard.filter(r => r.thru > 0).every(r => r.thru === totalHoles)
 
   return (
     <>
@@ -437,6 +508,16 @@ export default function LeaderboardClient({
 
         {/* Body */}
         <div className="lb-body">
+          {/* Progress indicator */}
+          {maxThru > 0 && (
+            <div className="lb-progress-card">
+              {allFinished
+                ? <p><strong>All finished</strong> &middot; Final results</p>
+                : <p><strong>Thru {maxThru} hole{maxThru !== 1 ? 's' : ''}</strong> &middot; Competition in progress</p>
+              }
+            </div>
+          )}
+
           {leaderboard.length === 0 ? (
             <div className="lb-empty">No confirmed players yet.</div>
           ) : (
@@ -478,39 +559,44 @@ interface PlayerCardProps {
 function rankClass(posLabel: string, thru: number, nR: boolean): string {
   if (thru === 0) return 'r-ns'
   if (nR) return 'r-nr'
-  if (posLabel === '1') return 'r1'
-  if (posLabel === 'T1') return 'r1 r-tied'
-  if (posLabel === '2' || posLabel === 'T2') {
-    return posLabel.startsWith('T') ? 'r2 r-tied' : 'r2'
-  }
-  if (posLabel === '3' || posLabel === 'T3') {
-    return posLabel.startsWith('T') ? 'r3 r-tied' : 'r3'
-  }
+  const base = posLabel.replace('T', '')
+  if (base === '1') return 'r1'
+  if (base === '2') return 'r2'
+  if (base === '3') return 'r3'
   if (posLabel === '–') return 'r-ns'
-  if (posLabel.startsWith('T')) return 'r-other r-tied'
   return 'r-other'
+}
+
+function rankLabel(posLabel: string, thru: number, nR: boolean): string {
+  if (thru === 0) return '–'
+  if (nR) return 'NR'
+  if (posLabel === '–') return '–'
+  if (posLabel.startsWith('T')) return posLabel
+  const n = parseInt(posLabel, 10)
+  return isNaN(n) ? posLabel : getOrdinal(n)
 }
 
 function PlayerCard({ row, format, holeData, ntpHoles, ldHoles, isFlashing, isExpanded, onToggle, animDelay }: PlayerCardProps) {
   const isDim = row.positionLabel === '–' && row.thru === 0 && !row.nR
-  const totalHoles = holeData.length
-  const progressPct = totalHoles > 0 ? (row.thru / totalHoles) * 100 : 0
-  const isFinished = row.thru === totalHoles
+  const isLeader = row.positionLabel === '1' || row.positionLabel === 'T1'
 
   const cardClass = [
     'lb-card',
-    row.positionLabel === '1' ? 'pos-1' : '',
     isFlashing ? 'flash' : '',
     isDim ? 'dim' : '',
   ].filter(Boolean).join(' ')
 
-  const scoreClass = ['lb-score', (row.positionLabel === '1' || row.positionLabel === 'T1') ? 'leader' : ''].filter(Boolean).join(' ')
+  const scoreClass = ['lb-score', isLeader ? 'leader' : ''].filter(Boolean).join(' ')
 
   const thruLabel = row.thru === 0
     ? 'Not started'
-    : isFinished
+    : row.thru === holeData.length
       ? 'Finished'
       : `Thru ${row.thru}`
+
+  const subLabel = row.thru > 0 && !row.nR
+    ? `${row.vsParLabel} · ${thruLabel}`
+    : `hcp ${row.playingHandicap} · ${thruLabel}`
 
   return (
     <div
@@ -526,7 +612,12 @@ function PlayerCard({ row, format, holeData, ntpHoles, ldHoles, isFlashing, isEx
       <div className="lb-row">
         {/* Rank badge */}
         <div className={`lb-rank ${rankClass(row.positionLabel, row.thru, row.nR)}`}>
-          {row.thru === 0 ? '–' : row.nR ? 'NR' : row.positionLabel}
+          {rankLabel(row.positionLabel, row.thru, row.nR)}
+        </div>
+
+        {/* Avatar */}
+        <div className="lb-avatar">
+          {getInitials(row.player.displayName)}
         </div>
 
         {/* Name block */}
@@ -539,119 +630,131 @@ function PlayerCard({ row, format, holeData, ntpHoles, ldHoles, isFlashing, isEx
               </span>
             ))}
           </div>
-          <div className="lb-sub">
-            hcp {row.playingHandicap}&nbsp;&middot;&nbsp;{thruLabel}
-          </div>
+          <div className="lb-sub">{subLabel}</div>
         </div>
 
-        {/* Score */}
+        {/* Score + pill */}
         <div className="lb-score-block">
-          <span className={scoreClass}>
-            {row.nR ? 'NR' : row.thru === 0 ? '–' : row.score}
-          </span>
-          {row.thru > 0 && !row.nR && (
-            <span className="lb-score-unit">
-              {format === 'stableford' ? 'pts' : 'gross'}
-            </span>
+          {row.thru > 0 && !row.nR ? (
+            <>
+              <span className={scoreClass}>{row.score}</span>
+              <span className="lb-pts-pill">
+                {format === 'stableford' ? `${row.score} pts` : 'gross'}
+              </span>
+            </>
+          ) : (
+            <span className="lb-score" style={{ fontSize: '1.25rem', color: '#c0ccc0' }}>–</span>
           )}
         </div>
 
-        {/* Chevron (only shown when started) */}
+        {/* Chevron */}
         {row.thru > 0 && (
           <svg
             className={`lb-chevron ${isExpanded ? 'open' : ''}`}
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
+            width="16" height="16" viewBox="0 0 16 16" fill="none"
           >
             <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         )}
       </div>
 
-      {/* Progress bar */}
-      {row.thru > 0 && !isFinished && (
-        <div className="lb-progress-wrap">
-          <div className="lb-progress-track">
-            <div className="lb-progress-fill" style={{ width: `${progressPct}%` }} />
-          </div>
-          <span className="lb-progress-label">{row.thru}/{totalHoles}</span>
-        </div>
-      )}
-
-      {/* Scorecard strip (expanded) */}
+      {/* Scorecard table (expanded) */}
       {row.thru > 0 && isExpanded && (
-        <div className="lb-strip-wrap">
-          <div className="lb-strip">
-            {holeData.map((hole, idx) => (
-              <HoleDot
-                key={hole.holeNumber}
-                holeNumber={hole.holeNumber}
-                par={hole.par}
-                grossStroke={row.grossStrokes[idx] ?? null}
-                pointValue={format === 'stableford' ? row.perHole[idx] ?? 0 : null}
-                format={format}
-                isContest={ntpHoles.includes(hole.holeNumber) || ldHoles.includes(hole.holeNumber)}
-              />
-            ))}
-          </div>
-        </div>
+        <ScorecardTable
+          holeData={holeData}
+          grossStrokes={row.grossStrokes}
+          perHole={row.perHole}
+          format={format}
+          ntpHoles={ntpHoles}
+          ldHoles={ldHoles}
+        />
       )}
     </div>
   )
 }
 
-// ─── Hole dot ─────────────────────────────────────────────────────────────────
+// ─── Scorecard table ──────────────────────────────────────────────────────────
 
-interface HoleDotProps {
-  holeNumber: number
-  par: number
-  grossStroke: number | null
-  pointValue: number | null
+interface ScorecardTableProps {
+  holeData: HoleData[]
+  grossStrokes: (number | null)[]
+  perHole: number[]
   format: 'stableford' | 'strokeplay'
-  isContest: boolean
+  ntpHoles: number[]
+  ldHoles: number[]
 }
 
-function HoleDot({ holeNumber, par, grossStroke, pointValue, format, isContest }: HoleDotProps) {
-  const played = grossStroke !== null
+function ScorecardTable({ holeData, grossStrokes, perHole, format, ntpHoles, ldHoles }: ScorecardTableProps) {
+  const playedHoles = holeData.filter((_, i) => grossStrokes[i] !== null)
+  const totalPts = format === 'stableford'
+    ? perHole.reduce((s, p, i) => grossStrokes[i] !== null ? s + p : s, 0)
+    : playedHoles.reduce((s, h, i) => {
+        const actualIdx = holeData.indexOf(h)
+        return s + (grossStrokes[actualIdx] ?? 0) - h.par
+      }, 0)
 
-  let bg = 'transparent'
-  let textColor = '#c0c0c0'
-  let border = '1.5px solid #E0EBE0'
-  let label = ''
-
-  if (played) {
-    border = 'none'
-    if (format === 'stableford' && pointValue !== null) {
-      label = String(pointValue)
-      if (pointValue >= 3)       { bg = '#0D631B'; textColor = '#fff' }
-      else if (pointValue === 2) { bg = '#D1FAE5'; textColor = '#065F46' }
-      else if (pointValue === 1) { bg = '#FEF3C7'; textColor = '#92400E' }
-      else                       { bg = '#FEE2E2'; textColor = '#B91C1C' }
-    } else if (format === 'strokeplay') {
-      const rel = (grossStroke ?? 0) - par
-      label = String(grossStroke)
-      if (rel <= -1)      { bg = '#0D631B'; textColor = '#fff' }
-      else if (rel === 0) { bg = '#D1FAE5'; textColor = '#065F46' }
-      else if (rel === 1) { bg = '#FEF3C7'; textColor = '#92400E' }
-      else                { bg = '#FEE2E2'; textColor = '#B91C1C' }
-    }
-  }
+  const lastHoleIndex = holeData.reduce((last, _, i) => grossStrokes[i] !== null ? i : last, -1)
 
   return (
-    <div className="lb-dot-col">
-      <span
-        className="lb-dot-num"
-        style={{ color: isContest ? '#f59e0b' : '#c0ccbf', fontWeight: isContest ? 700 : 400 }}
-      >
-        {isContest ? '★' : holeNumber}
-      </span>
-      <div
-        className="lb-dot"
-        style={{ background: bg, border, color: textColor }}
-      >
-        {label}
+    <div className="lb-sc-wrap">
+      <table className="lb-sc-table">
+        <thead>
+          <tr>
+            <th>Hole</th>
+            <th>Par</th>
+            <th>Score</th>
+            <th>{format === 'stableford' ? 'Points' : '+/−'}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {holeData.map((hole, idx) => {
+            const gross = grossStrokes[idx] ?? null
+            const pts = perHole[idx] ?? 0
+            const played = gross !== null
+            const isContest = ntpHoles.includes(hole.holeNumber) || ldHoles.includes(hole.holeNumber)
+            const isLast = idx === lastHoleIndex
+
+            let scoreClass = 'lb-sc-score unplayed'
+            if (played) {
+              const rel = gross - hole.par
+              if (rel < 0) scoreClass = 'lb-sc-score under-par'
+              else if (rel > 0) scoreClass = 'lb-sc-score over-par'
+              else scoreClass = 'lb-sc-score at-par'
+            }
+
+            const ptLabel = format === 'stableford'
+              ? `${pts} pt${pts !== 1 ? 's' : ''}`
+              : played ? formatVsPar(gross - hole.par) : '–'
+
+            return (
+              <tr key={hole.holeNumber} style={isLast ? { fontWeight: 600 } : undefined}>
+                <td>
+                  <span className="lb-sc-hole" style={isContest ? { outline: '2px solid #f59e0b', outlineOffset: '1px' } : undefined}>
+                    {hole.holeNumber}
+                  </span>
+                </td>
+                <td><span className="lb-sc-par">{hole.par}</span></td>
+                <td>
+                  <span className={scoreClass}>
+                    {played ? gross : '–'}
+                  </span>
+                </td>
+                <td>
+                  {played
+                    ? <span className="lb-sc-pts">{ptLabel}</span>
+                    : <span style={{ color: '#c0c0c0', fontSize: '0.875rem' }}>–</span>
+                  }
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+      <div className="lb-sc-total">
+        {format === 'stableford'
+          ? `Total: ${totalPts} pts`
+          : `Total: ${formatVsPar(totalPts)}`
+        }
       </div>
     </div>
   )
@@ -690,6 +793,12 @@ function computeLeaderboard(
       perHole = grossStrokes.map(s => s ?? 0)
     }
 
+    const grossTotal = grossStrokes.reduce<number>((s, g) => s + (g ?? 0), 0)
+    const parForPlayed = holeData
+      .filter((_, i) => grossStrokes[i] !== null)
+      .reduce((s, h) => s + h.par, 0)
+    const vsParLabel = thru > 0 ? formatVsPar(grossTotal - parForPlayed) : ''
+
     return {
       positionLabel: '–',
       isFirst: false,
@@ -700,6 +809,7 @@ function computeLeaderboard(
       nR,
       perHole,
       playingHandicap,
+      vsParLabel,
     }
   })
 
