@@ -32,7 +32,6 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
   const [name, setName] = useState(displayName)
   const [hcp, setHcp] = useState<string>(handicapIndex !== null ? String(handicapIndex) : '')
   const [editing, setEditing] = useState<EditingField>(null)
-  const [saved, setSaved] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(initialAvatarUrl)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
@@ -42,14 +41,11 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
 
   const handleSave = () => {
     setErrorMsg(null)
-    setSaved(false)
     const parsedHcp = hcp.trim() === '' ? null : parseFloat(hcp)
     startTransition(async () => {
       const result = await updateProfile({ displayName: name, handicapIndex: parsedHcp })
       if (result.ok) {
         setEditing(null)
-        setSaved(true)
-        setTimeout(() => setSaved(false), 2500)
       } else {
         setErrorMsg(result.error)
       }
