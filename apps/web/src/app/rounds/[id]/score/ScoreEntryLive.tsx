@@ -651,6 +651,83 @@ const STYLES = `
   @media (min-width: 480px) {
     .sc-bottom { max-width: 480px; left: 50%; transform: translateX(-50%); }
   }
+
+  /* ── Scorecard redesign ─────────────────────────────────── */
+  .sc-ctx {
+    background: #FFFFFF; border-radius: 16px;
+    padding: 1.25rem; margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(26,28,28,0.05);
+  }
+  .sc-course {
+    font-family: var(--font-manrope), sans-serif;
+    font-weight: 700; font-size: 18px; color: #1A2E1A; margin-bottom: 4px;
+  }
+  .sc-meta {
+    font-family: var(--font-lexend), sans-serif;
+    font-size: 13px; color: #44483E; margin-bottom: 2px;
+  }
+  .sc-player {
+    font-family: var(--font-lexend), sans-serif;
+    font-size: 14px; font-weight: 500; color: #1A1C1C; margin-top: 6px;
+  }
+  .sc-toggle { display: flex; gap: 8px; margin-bottom: 16px; }
+  .sc-pill {
+    flex: 1; padding: 10px 12px; border-radius: 24px;
+    border: 1.5px solid #d0d8cc; background: transparent;
+    font-family: var(--font-lexend), sans-serif;
+    font-weight: 500; font-size: 13px; color: #44483E;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .sc-pill.act {
+    background: linear-gradient(135deg, #2D5016 0%, #3D6B1A 100%);
+    color: #FFFFFF; border-color: #2D5016;
+  }
+  .sc-tbl-wrap {
+    margin: 0 16px 16px; border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(26,28,28,0.05); overflow: hidden;
+  }
+  .sc-tbl { width: 100%; border-collapse: collapse; background: #FFFFFF; }
+  .sc-th {
+    font-size: 10px; font-weight: 500; color: #72786E;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 10px 8px; text-align: center;
+    border-bottom: 1px solid rgba(26,28,28,0.06);
+    background: #F0F4EC;
+    font-family: var(--font-lexend), sans-serif;
+  }
+  .sc-th-hole { text-align: left; padding-left: 14px; }
+  .sc-th-player { color: #2D5016; }
+  .sc-td {
+    padding: 10px 8px; text-align: center;
+    font-size: 13px; color: #1A2E1A;
+    font-family: var(--font-lexend), sans-serif;
+  }
+  .sc-td-hole {
+    text-align: left; padding-left: 14px;
+    font-family: var(--font-manrope), sans-serif;
+    font-weight: 700; color: #1A2E1A; font-size: 14px;
+  }
+  .sc-td-par { color: #72786E; }
+  .sc-td-muted { color: #9aaa9a; font-size: 12px; }
+  .sc-row { border-bottom: 1px solid rgba(240,244,236,0.8); }
+  .sc-row-even { background: rgba(240,244,236,0.35); }
+  .sc-row-cur { background: #EDF2E9 !important; }
+  .sc-row:active { background: #F0F4EC; }
+  .sc-sub td {
+    padding: 10px 8px; font-size: 11px; font-weight: 700;
+    border-top: 2px solid rgba(26,28,28,0.1);
+    border-bottom: 2px solid rgba(26,28,28,0.06);
+    background: rgba(240,244,236,0.6);
+    font-family: var(--font-manrope), sans-serif;
+    text-align: center;
+  }
+  .sc-sub .sc-td-hole {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: #44483E;
+  }
+  .sc-total td {
+    border-top: 3px solid rgba(45,80,22,0.4) !important;
+    background: rgba(45,80,22,0.06) !important;
+  }
 `
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -690,7 +767,7 @@ export default function ScoreEntryLive(props: Props) {
   const [autoAdvance, setAutoAdvance] = useState<{ from: number; to: number } | null>(null)
   const [cDist, setCDist] = useState('')
   const [showContestOverlay, setShowContestOverlay] = useState(false)
-  const [viewingId, setViewingId] = useState<string>(scorecardId)
+  const [cardView, setCardView] = useState<'front9' | 'back9' | 'all18'>('front9')
 
   const autoAdvanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const autoAdvancedHoles = useRef<Set<number>>(new Set())
@@ -939,139 +1016,199 @@ export default function ScoreEntryLive(props: Props) {
     const outPar = holes.slice(0, 9).reduce((sum, h) => sum + h.par, 0)
     const inPar  = holes.slice(9).reduce((sum, h) => sum + h.par, 0)
 
-    const viewingPlayer = groupPlayers.find(p => p.scorecardId === viewingId) ?? groupPlayers[0]
-    const isViewingOwn = viewingId === scorecardId
-    const viewingScores: Record<number, number | null | undefined> = isViewingOwn
-      ? s.scores
-      : (liveScores[viewingId] ?? viewingPlayer?.initialScores ?? {})
-    const viewingPickups: Record<number, boolean> = isViewingOwn ? s.pickups : {}
-    const viewingHc = Math.round((viewingPlayer?.handicapIndex ?? handicapIndex) * allowancePct)
-    const viewingStrokes = allocateStrokes(viewingHc, holes)
-    const hasMultiplePlayers = groupPlayers.filter(p => p.scorecardId).length > 1
+    const playersWithCard = groupPlayers.filter(p => p.scorecardId)
+    const isMulti = playersWithCard.length > 1
+    const is18 = holes.length >= 18
 
-    function holeTotal(from: number, to: number) {
+    const displayHoles = cardView === 'back9' ? holes.slice(9) : cardView === 'front9' ? holes.slice(0, Math.min(9, holes.length)) : holes
+
+    const getPlayerScores = (p: GroupPlayer): Record<number, number | null | undefined> =>
+      p.isCurrentUser && p.scorecardId === scorecardId
+        ? s.scores
+        : (liveScores[p.scorecardId] ?? p.initialScores ?? {})
+
+    const getPlayerPickup = (p: GroupPlayer, hir: number): boolean =>
+      p.isCurrentUser && p.scorecardId === scorecardId ? (s.pickups[hir] ?? false) : false
+
+    const getPlayerStrokes = (p: GroupPlayer): Record<number, number> =>
+      allocateStrokes(Math.round((p.handicapIndex ?? handicapIndex) * allowancePct), holes)
+
+    const playerHoleTotal = (p: GroupPlayer, fromIdx: number, toIdx: number): string => {
+      const pScores = getPlayerScores(p)
+      const pStrokes = getPlayerStrokes(p)
       if (format === 'stableford') {
-        let p = 0
-        for (let i = from; i < to; i++) {
+        let total = 0
+        for (let i = fromIdx; i < toIdx; i++) {
           const h = holes[i]!
-          const sc = viewingScores[h.holeInRound]
-          if (sc != null && !viewingPickups[h.holeInRound]) p += pts(sc, h.par, viewingStrokes[h.holeInRound] ?? 0)
+          const sc = pScores[h.holeInRound]
+          if (sc != null && !getPlayerPickup(p, h.holeInRound)) total += pts(sc, h.par, pStrokes[h.holeInRound] ?? 0)
         }
-        return p > 0 ? String(p) : '–'
+        return total > 0 ? String(total) : '–'
       } else {
-        let st = 0; let any = false
-        for (let i = from; i < to; i++) {
+        let total = 0; let any = false
+        for (let i = fromIdx; i < toIdx; i++) {
           const h = holes[i]!
-          const sc = viewingScores[h.holeInRound]
-          if (sc != null && !viewingPickups[h.holeInRound]) { st += sc; any = true }
+          const sc = pScores[h.holeInRound]
+          if (sc != null && !getPlayerPickup(p, h.holeInRound)) { total += sc; any = true }
         }
-        return any ? String(st) : '–'
+        return any ? String(total) : '–'
       }
     }
+
+    const scoreColor = (sc: number | null | undefined, par: number, pu: boolean): string => {
+      if (pu || sc == null) return '#9aaa9a'
+      if (sc < par) return '#2D5016'
+      if (sc === par) return '#1A2E1A'
+      return '#923357'
+    }
+
+    const currentPlayerObj = playersWithCard.find(p => p.scorecardId === scorecardId)
+
+    const renderSubtotalRow = (label: string, par: number, fromIdx: number, toIdx: number) => (
+      <tr key={`sub-${label}`} className={`sc-sub${label === 'TOT' ? ' sc-total' : ''}`}>
+        <td className="sc-td sc-td-hole">{label}</td>
+        <td className="sc-td sc-td-par">{par}</td>
+        {isMulti ? (
+          playersWithCard.map(p => (
+            <td key={p.scorecardId} className="sc-td" style={{ color: '#2D5016', fontWeight: 700 }}>
+              {playerHoleTotal(p, fromIdx, toIdx)}
+            </td>
+          ))
+        ) : (
+          <>
+            <td className="sc-td sc-td-muted" />
+            <td className="sc-td sc-td-muted" />
+            <td className="sc-td" style={{ color: '#2D5016', fontWeight: 700 }}>
+              {currentPlayerObj ? playerHoleTotal(currentPlayerObj, fromIdx, toIdx) : '–'}
+            </td>
+            {format === 'stableford' && (
+              <td className="sc-td" style={{ color: '#2D5016', fontWeight: 700 }}>
+                {currentPlayerObj ? playerHoleTotal(currentPlayerObj, fromIdx, toIdx) : '–'}
+              </td>
+            )}
+          </>
+        )}
+      </tr>
+    )
+
+    const tableRows: JSX.Element[] = []
+    displayHoles.forEach((h, di) => {
+      const globalIdx = holes.findIndex(hh => hh.holeInRound === h.holeInRound)
+      const cur = globalIdx === s.hole
+      tableRows.push(
+        <tr key={h.holeInRound}
+          className={`sc-row${cur ? ' sc-row-cur' : di % 2 !== 0 ? ' sc-row-even' : ''}`}
+          style={{ cursor: 'pointer' }}
+          onClick={() => { d({ type: 'SET_HOLE', idx: globalIdx }); d({ type: 'TOGGLE_CARD' }) }}>
+          <td className="sc-td sc-td-hole">{h.holeInRound}</td>
+          <td className="sc-td sc-td-par">{h.par}</td>
+          {isMulti ? (
+            playersWithCard.map(p => {
+              const sc = getPlayerScores(p)[h.holeInRound]
+              const pu = getPlayerPickup(p, h.holeInRound)
+              return (
+                <td key={p.scorecardId} className="sc-td"
+                  style={{ color: scoreColor(sc, h.par, pu), fontWeight: sc != null && sc !== h.par ? 600 : 400, opacity: sc == null && !pu ? 0.25 : 1 }}>
+                  {pu ? 'NR' : sc != null ? sc : '–'}
+                </td>
+              )
+            })
+          ) : (() => {
+            const sc = s.scores[h.holeInRound]
+            const pu = s.pickups[h.holeInRound] ?? false
+            const p = sc != null ? pts(sc, h.par, strokesPerHole[h.holeInRound] ?? 0) : null
+            const col = scoreColor(sc, h.par, pu)
+            return (
+              <>
+                <td className="sc-td sc-td-muted">{h.siM ?? '–'}</td>
+                <td className="sc-td sc-td-muted">{h.yards[selectedTee] ?? '–'}</td>
+                <td className="sc-td" style={{ color: col, fontWeight: sc != null ? 600 : 400 }}>
+                  {pu ? 'NR' : sc != null ? sc : '–'}
+                </td>
+                {format === 'stableford' && (
+                  <td className="sc-td" style={{ color: p != null ? (p >= 3 ? '#2D5016' : p === 0 ? '#923357' : '#888') : '#ddd', fontWeight: 600 }}>
+                    {pu ? '0' : p != null ? p : '–'}
+                  </td>
+                )}
+              </>
+            )
+          })()}
+        </tr>
+      )
+      // Insert OUT subtotal inline when showing all 18
+      if (cardView === 'all18' && h.holeInRound === 9 && is18) {
+        tableRows.push(renderSubtotalRow('OUT', outPar, 0, 9))
+      }
+    })
+
+    if (cardView === 'front9') tableRows.push(renderSubtotalRow('OUT', outPar, 0, Math.min(9, holes.length)))
+    if (cardView === 'back9') tableRows.push(renderSubtotalRow('IN', inPar, 9, holes.length))
+    if (cardView === 'all18') {
+      tableRows.push(renderSubtotalRow('IN', inPar, 9, 18))
+      tableRows.push(renderSubtotalRow('TOT', totalPar, 0, holes.length))
+    }
+    if (!is18) tableRows.push(renderSubtotalRow('TOT', totalPar, 0, holes.length))
+
+    const formatLabel = format === 'stableford' ? 'Stableford' : format === 'strokeplay' ? 'Stroke Play' : 'Match Play'
 
     return (
       <div className="sc-card-page">
         <style>{STYLES}</style>
+
+        {/* Header */}
         <div className="sc-card-topbar">
           <button className="sc-card-back" onClick={() => d({ type: 'TOGGLE_CARD' })}>← Scoring</button>
           <div className="sc-card-ttl">Scorecard</div>
           <div style={{ width: 60 }} />
         </div>
 
-        {hasMultiplePlayers && (
-          <div style={{ display: 'flex', gap: 6, padding: '8px 12px', overflowX: 'auto', WebkitOverflowScrolling: 'touch' as const }}>
-            {groupPlayers.filter(p => p.scorecardId).map(p => {
-              const active = p.scorecardId === viewingId
-              const firstName = p.displayName.split(' ')[0]
-              return (
-                <button key={p.scorecardId} onClick={() => setViewingId(p.scorecardId)} style={{
-                  flexShrink: 0, padding: '5px 12px', borderRadius: 9999,
-                  border: active ? '1.5px solid #2D5016' : '1.5px solid #d0d8cc',
-                  background: active ? '#2D5016' : '#fff',
-                  color: active ? '#fff' : '#4a5e4a',
-                  fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' as const,
-                  fontFamily: 'var(--font-lexend), sans-serif',
-                }}>
-                  {firstName}{p.isCurrentUser ? ' (you)' : ''}
-                </button>
-              )
-            })}
+        <div style={{ padding: '12px 16px 0' }}>
+          {/* Round context card */}
+          <div className="sc-ctx">
+            <div className="sc-course">{eventName}</div>
+            <div className="sc-meta">{eventDate}</div>
+            <div className="sc-meta">{formatLabel}{selectedTee ? ` · ${selectedTee} Tees` : ''}</div>
+            <div className="sc-player">{playerName} · HC {effectiveHc}</div>
           </div>
-        )}
 
-        <div style={{ padding: hasMultiplePlayers ? '2px 12px 4px' : '8px 12px 4px', fontSize: 12, color: '#6b7c6b', fontFamily: 'var(--font-lexend), sans-serif' }}>
-          {eventName} · {eventDate} · HC {viewingHc}
+          {/* Front 9 / Back 9 / All 18 toggle */}
+          {is18 && (
+            <div className="sc-toggle">
+              <button className={`sc-pill${cardView === 'front9' ? ' act' : ''}`} onClick={() => setCardView('front9')}>Front 9</button>
+              <button className={`sc-pill${cardView === 'back9' ? ' act' : ''}`} onClick={() => setCardView('back9')}>Back 9</button>
+              <button className={`sc-pill${cardView === 'all18' ? ' act' : ''}`} onClick={() => setCardView('all18')}>All 18</button>
+            </div>
+          )}
         </div>
 
-        <div style={{ overflowX: 'auto', padding: '4px', WebkitOverflowScrolling: 'touch' as const }}>
-          <table style={{ borderCollapse: 'collapse', fontSize: 11, minWidth: 320, width: '100%' }}>
+        {/* Scorecard table */}
+        <div className="sc-tbl-wrap">
+          <table className="sc-tbl">
             <thead>
-              <tr style={{ borderBottom: '2px solid #E0EBE0' }}>
-                <th style={thS}>#</th>
-                <th style={thS}>Par</th>
-                <th style={thS}>SI</th>
-                <th style={thS}>Yds</th>
-                <th style={{ ...thS, color: '#2D5016' }}>{(viewingPlayer?.displayName ?? playerName).split(' ')[0]}</th>
-                {format === 'stableford' && <th style={{ ...thS, color: '#2D5016' }}>Pts</th>}
+              <tr>
+                <th className="sc-th sc-th-hole">Hole</th>
+                <th className="sc-th">Par</th>
+                {isMulti ? (
+                  playersWithCard.map(p => (
+                    <th key={p.scorecardId} className={`sc-th${p.scorecardId === scorecardId ? ' sc-th-player' : ''}`}>
+                      {p.displayName.split(' ')[0]}{p.isCurrentUser ? ' ★' : ''}
+                    </th>
+                  ))
+                ) : (
+                  <>
+                    <th className="sc-th">SI</th>
+                    <th className="sc-th">Yds</th>
+                    <th className="sc-th sc-th-player">{playerName.split(' ')[0]}</th>
+                    {format === 'stableford' && <th className="sc-th sc-th-player">Pts</th>}
+                  </>
+                )}
               </tr>
             </thead>
-            <tbody>
-              {holes.map((h, i) => {
-                const sc = viewingScores[h.holeInRound]
-                const pu = isViewingOwn
-                  ? (viewingPickups[h.holeInRound] ?? false)
-                  : (h.holeInRound in (liveScores[viewingId] ?? {}) && sc === null)
-                const p = sc != null ? pts(sc, h.par, viewingStrokes[h.holeInRound] ?? 0) : null
-                const cur = i === s.hole && isViewingOwn
-                return (
-                  <tr key={h.holeInRound}
-                    style={{ borderBottom: '1px solid #F0F4EC', background: cur ? '#F0F4EC' : 'transparent', cursor: isViewingOwn ? 'pointer' : 'default' }}
-                    onClick={() => { if (isViewingOwn) { d({ type: 'SET_HOLE', idx: i }); d({ type: 'TOGGLE_CARD' }) } }}>
-                    <td style={{ ...tdS, fontWeight: 600 }}>{h.holeInRound}</td>
-                    <td style={tdS}>{h.par}</td>
-                    <td style={{ ...tdS, color: '#8a9a8a' }}>{h.siM ?? '–'}</td>
-                    <td style={{ ...tdS, color: '#8a9a8a' }}>{h.yards[selectedTee] ?? '–'}</td>
-                    <td style={{ ...tdS, fontWeight: 600, color: pu ? '#aaa' : sc != null ? '#1a2e1a' : '#ddd' }}>
-                      {pu ? 'NR' : sc != null ? sc : '–'}
-                    </td>
-                    {format === 'stableford' && (
-                      <td style={{ ...tdS, fontWeight: 600, color: p != null && p >= 3 ? '#2D5016' : p === 0 ? '#923357' : '#888' }}>
-                        {pu ? '0' : p != null ? p : '–'}
-                      </td>
-                    )}
-                  </tr>
-                )
-              })}
-              {holes.length >= 9 && (
-                <>
-                  <tr style={{ borderTop: '2px solid #E0EBE0', fontWeight: 700 }}>
-                    <td style={tdS}>Out</td>
-                    <td style={tdS}>{outPar}</td>
-                    <td /><td />
-                    <td style={{ ...tdS, color: '#2D5016' }}>{holeTotal(0, 9)}</td>
-                    {format === 'stableford' && <td style={{ ...tdS, color: '#2D5016' }}>{holeTotal(0, 9)}</td>}
-                  </tr>
-                  {holes.length >= 18 && (
-                    <tr style={{ borderTop: '1px solid #E0EBE0', fontWeight: 700 }}>
-                      <td style={tdS}>In</td>
-                      <td style={tdS}>{inPar}</td>
-                      <td /><td />
-                      <td style={{ ...tdS, color: '#2D5016' }}>{holeTotal(9, 18)}</td>
-                      {format === 'stableford' && <td style={{ ...tdS, color: '#2D5016' }}>{holeTotal(9, 18)}</td>}
-                    </tr>
-                  )}
-                  <tr style={{ borderTop: '2px solid #E0EBE0', fontWeight: 700 }}>
-                    <td style={tdS}>Total</td>
-                    <td style={tdS}>{totalPar}</td>
-                    <td /><td />
-                    <td style={{ ...tdS, color: '#2D5016' }}>{holeTotal(0, holes.length)}</td>
-                    {format === 'stableford' && <td style={{ ...tdS, color: '#2D5016' }}>{holeTotal(0, holes.length)}</td>}
-                  </tr>
-                </>
-              )}
-            </tbody>
+            <tbody>{tableRows}</tbody>
           </table>
         </div>
+
+        <div style={{ height: 32 }} />
       </div>
     )
   }

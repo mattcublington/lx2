@@ -47,6 +47,49 @@ export default async function PlayPage() {
     .select('id, event_players!inner(user_id)', { count: 'exact', head: true })
     .eq('event_players.user_id', user.id)
 
+  // All scorecard IDs for this user (for stats)
+  const { data: allScorecards } = await supabase
+    .from('scorecards')
+    .select('id, created_at, event_players!inner(user_id)')
+    .eq('event_players.user_id', user.id)
+
+  const scorecardIds = (allScorecards ?? []).map(s => s.id)
+
+  // Hole scores for all the user's rounds (for avg + best)
+  const { data: holeScores } = scorecardIds.length > 0
+    ? await supabase
+        .from('hole_scores')
+        .select('scorecard_id, gross_strokes')
+        .in('scorecard_id', scorecardIds)
+        .not('gross_strokes', 'is', null)
+    : { data: [] }
+
+  // Total gross per scorecard
+  const scorecardTotals = new Map<string, number>()
+  for (const hs of holeScores ?? []) {
+    if (hs.gross_strokes == null) continue
+    scorecardTotals.set(hs.scorecard_id, (scorecardTotals.get(hs.scorecard_id) ?? 0) + hs.gross_strokes)
+  }
+
+  // Average score — last 12 months, only scorecards with at least 9 holes scored
+  const twelveMonthsAgo = new Date()
+  twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1)
+  const recentIds = new Set(
+    (allScorecards ?? [])
+      .filter(s => new Date(s.created_at) >= twelveMonthsAgo)
+      .map(s => s.id)
+  )
+  const recentTotals = [...scorecardTotals.entries()]
+    .filter(([id, total]) => recentIds.has(id) && total >= 27) // min 9 holes
+    .map(([, total]) => total)
+  const avgScore = recentTotals.length > 0
+    ? Math.round(recentTotals.reduce((a, b) => a + b, 0) / recentTotals.length)
+    : null
+
+  // Best ever score (lowest gross total, min 9 holes scored)
+  const allTotals = [...scorecardTotals.values()].filter(t => t >= 27)
+  const bestScore = allTotals.length > 0 ? Math.min(...allTotals) : null
+
   type RoundRow = {
     id: string
     created_at: string
@@ -75,6 +118,8 @@ export default async function PlayPage() {
       rounds={rounds}
       handicapIndex={profile?.handicap_index ?? null}
       roundsCount={roundsCount ?? 0}
+      avgScore={avgScore}
+      bestScore={bestScore}
     />
   )
 }

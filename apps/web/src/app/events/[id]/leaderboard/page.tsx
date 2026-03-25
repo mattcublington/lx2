@@ -95,19 +95,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
           }}>
             LX<span style={{ color: '#4ade80' }}>2</span>
           </span>
-          {isOrganiser ? (
-            <Link
-              href={`/events/${id}/manage`}
-              style={{
-                fontSize: '0.8125rem', color: '#6db56d',
-                fontFamily: 'var(--font-dm-sans), sans-serif', textDecoration: 'none',
-              }}
-            >
-              Manage
-            </Link>
-          ) : (
-            <span style={{ width: 48 }} />
-          )}
+          <span style={{ width: 48 }} />
         </div>
       </header>
 
