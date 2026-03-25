@@ -5,7 +5,6 @@ import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 
 export default function HomePage() {
-  const [userEmail, setUserEmail] = useState<string | null>(null)
   const [userInitial, setUserInitial] = useState<string | null>(null)
   const [showCode, setShowCode] = useState(false)
   const [code, setCode] = useState('')
@@ -14,7 +13,6 @@ export default function HomePage() {
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
-      setUserEmail(user?.email ?? null)
       const name = user?.user_metadata?.full_name ?? user?.email ?? null
       setUserInitial(name ? name[0].toUpperCase() : null)
     })
