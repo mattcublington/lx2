@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import ManageActions from './ManageActions'
+import ManageActions, { ConfirmPlayers } from './ManageActions'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -55,6 +55,7 @@ export default async function ManagePage({ params }: PageProps) {
     .order('created_at')
 
   const confirmed   = players?.filter(p => p.rsvp_status === 'confirmed') ?? []
+  const invited     = players?.filter(p => p.rsvp_status === 'invited') ?? []
   const waitlisted  = players?.filter(p => p.rsvp_status === 'waitlisted') ?? []
   const comboName   = (event.course_combinations as unknown as { name: string } | null)?.name ?? null
   const allowancePct = Math.round(Number(event.handicap_allowance_pct) * 100)
@@ -200,6 +201,18 @@ export default async function ManagePage({ params }: PageProps) {
               </>
             )}
           </div>
+
+          {/* ── Invited / awaiting confirmation ── */}
+          {invited.length > 0 && (
+            <ConfirmPlayers
+              eventId={id}
+              players={invited.map(p => ({
+                id: p.id,
+                displayName: p.display_name,
+                handicapIndex: Number(p.handicap_index),
+              }))}
+            />
+          )}
 
           {/* ── Quick links ── */}
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>

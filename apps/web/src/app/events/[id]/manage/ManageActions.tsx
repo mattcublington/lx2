@@ -1,9 +1,82 @@
 'use client'
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
+import { confirmPlayer } from './actions'
 
 interface Props {
   eventUrl: string
   eventName: string
+}
+
+// ─── Confirm invited players ──────────────────────────────────────────────────
+
+interface InvitedPlayer {
+  id: string
+  displayName: string
+  handicapIndex: number
+}
+
+interface ConfirmPlayersProps {
+  eventId: string
+  players: InvitedPlayer[]
+}
+
+export function ConfirmPlayers({ eventId, players }: ConfirmPlayersProps) {
+  const [confirmed, setConfirmed] = useState<Set<string>>(new Set())
+  const [pending, startTransition] = useTransition()
+  const [confirmingId, setConfirmingId] = useState<string | null>(null)
+
+  const remaining = players.filter(p => !confirmed.has(p.id))
+
+  if (remaining.length === 0) return null
+
+  function handleConfirm(playerId: string) {
+    setConfirmingId(playerId)
+    startTransition(async () => {
+      await confirmPlayer(eventId, playerId)
+      setConfirmed(prev => new Set([...prev, playerId]))
+      setConfirmingId(null)
+    })
+  }
+
+  return (
+    <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #E0EBE0', padding: '24px' }}>
+      <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#6B8C6B', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4, fontFamily: 'var(--font-dm-sans), sans-serif' }}>
+        Awaiting confirmation
+      </div>
+      <p style={{ margin: '0 0 14px', fontSize: '0.8125rem', color: '#6B8C6B', fontFamily: 'var(--font-dm-sans), sans-serif', lineHeight: 1.5 }}>
+        These players have been added but need confirming before they appear on the leaderboard.
+      </p>
+      {remaining.map(p => (
+        <div
+          key={p.id}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '10px 0', borderBottom: '1px solid #f0f4f0',
+            fontFamily: 'var(--font-dm-sans), sans-serif',
+          }}
+        >
+          <div>
+            <span style={{ fontSize: '0.9375rem', fontWeight: 500, color: '#1A2E1A' }}>{p.displayName}</span>
+            <span style={{ marginLeft: 8, fontSize: '0.8125rem', color: '#6B8C6B' }}>{Number(p.handicapIndex).toFixed(1)} hcp</span>
+          </div>
+          <button
+            onClick={() => handleConfirm(p.id)}
+            disabled={pending && confirmingId === p.id}
+            style={{
+              padding: '7px 16px', border: 'none', borderRadius: 8,
+              background: confirmingId === p.id ? '#6B8C6B' : '#0D631B',
+              color: '#fff', fontSize: '0.8125rem', fontWeight: 600,
+              fontFamily: 'var(--font-dm-sans), sans-serif',
+              cursor: confirmingId === p.id ? 'default' : 'pointer',
+              transition: 'background 0.15s',
+            }}
+          >
+            {confirmingId === p.id ? 'Confirming…' : 'Confirm'}
+          </button>
+        </div>
+      ))}
+    </div>
+  )
 }
 
 export default function ManageActions({ eventUrl, eventName }: Props) {
