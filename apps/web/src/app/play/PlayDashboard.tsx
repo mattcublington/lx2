@@ -67,8 +67,6 @@ export default function PlayDashboard({
     router.push('/')
   }
 
-  const firstName = displayName.split(' ')[0] || displayName.split('@')[0]
-
   // Build stat cards from available data
   const stats: Array<{ icon: React.ReactNode; value: string; label: string }> = []
 
