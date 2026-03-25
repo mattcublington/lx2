@@ -99,14 +99,14 @@ const modules: Record<string, Module> = {
   marketing_home: {
     id: 'marketing_home', name: 'Marketing homepage', phase: 'mvp', tier: 'player-web',
     status: 'done', surface: 'shared',
-    sub: '"Golf, connected" — LX2 SEVENTY TWO',
-    desc: 'Public homepage at lx2.golf. Hero headline: "Golf, connected" with label "LX2 — SEVENTY TWO" and subheading "Score together. See every shot. Settle it on the course." Positioned as connected scoring platform for golfers — live scoring, real-time leaderboards, and group play. Full-bleed hero with dark gradient overlay, frosted glass action cards, how-it-works section, feature highlights grid.',
+    sub: 'Fairway Editorial — hero + 4-feature grid',
+    desc: 'Public homepage at lx2.golf. Fairway Editorial design system: sage #F0F4EC background, full-bleed hero photo with gradient fade, Manrope 800 headline. Three hero CTAs: Create account → /auth/signup, Sign in → /auth/login, Join event → (inline code entry). Top-right nav shows dark frosted-glass avatar with user initial when signed in (links to /play), hidden when logged out. Feature grid: Track Your Game, Play With Friends, Compete in Events, Run Your Club.',
     deps: ['auth'],
     data: [],
     liveUrl: APP, prdUrl: `${GITHUB}/docs/prd/marketing-home.md`,
     codeUrl: `${GITHUB}/apps/web/src/app/page.tsx`,
-    features: ['Full-bleed hero photo + dark gradient overlay', 'Frosted glass action cards', 'Headline: "Golf, connected" with "LX2 — SEVENTY TWO" label', 'Subheading: "Score together. See every shot. Settle it on the course."', 'Event code entry for joining a round', '"For clubs →" link/button to club.lx2.golf', 'How it works (3-step)', 'Feature highlights grid'],
-    tech: 'Next.js client component. CSS-in-JSX. hero.png served from public/. Manrope + Lexend fonts.',
+    features: ['Full-bleed hero photo + sage gradient fade', 'Manrope 800 hero headline', 'Three CTAs: Create account, Sign in, Join event (always visible — no conditional Dashboard)', 'Join event → inline event code input (pill, auto-focus)', 'Profile avatar top-right (dark frosted-glass, user initial) when signed in → /play', 'Feature highlights grid (4 cards)', 'Lexend body, Manrope headings throughout', 'Dark footer (#111D11) with Features / Sign in / Architecture links'],
+    tech: 'Next.js client component. CSS-in-JSX. hero.png served from public/. Supabase getUser() on mount to show/hide profile avatar. Manrope + Lexend via next/font.',
   },
 
   // ── Player — web & stats ────────────────────────────────────────────────────
