@@ -398,11 +398,11 @@ const modules: Record<string, Module> = {
     id: 'auth', name: 'Authentication', phase: 'mvp', tier: 'infra',
     status: 'done', surface: 'shared',
     sub: 'Google OAuth + email/password',
-    desc: 'Organisers sign up via Google OAuth or email/password. Players joining events need no account. Magic link available as fallback. Auth callback uses createAdminClient (service-role key) for user upsert to bypass RLS. Row-level security on all Supabase tables with is_event_participant() SECURITY DEFINER function to prevent infinite recursion in RLS policy evaluation.',
+    desc: 'Organisers sign up via Google OAuth or email/password. Players joining events need no account. Magic link available as fallback. Auth callback uses createAdminClient (service-role key) for user upsert to bypass RLS. Row-level security on all Supabase tables with is_event_participant() SECURITY DEFINER function to prevent infinite recursion in RLS policy evaluation. Sign-in page redesigned to Fairway Editorial design system: sage #F0F4EC background, three-part header (back arrow / LX2 logo / spacer), centered white card with float shadow, Manrope 700 title, berry Forgot password, dark Google button.',
     deps: [], data: ['users'],
     liveUrl: `${APP}/auth/login`, prdUrl: `${GITHUB}/docs/prd/auth.md`,
     codeUrl: `${GITHUB}/apps/web/src/app/auth`,
-    features: ['Google OAuth (primary — one tap)', 'Email + password sign up/in', 'Magic link as fallback', 'Anonymous play for event participants', 'Row-level security on all tables — comprehensive policies for all tables', 'is_event_participant() SECURITY DEFINER function — prevents infinite RLS recursion', 'Auth callback user upsert via createAdminClient (service-role key)', 'Supabase session via SSR cookies'],
+    features: ['Google OAuth (primary — one tap)', 'Email + password sign up/in', 'Magic link as fallback', 'Anonymous play for event participants', 'Row-level security on all tables — comprehensive policies for all tables', 'is_event_participant() SECURITY DEFINER function — prevents infinite RLS recursion', 'Auth callback user upsert via createAdminClient (service-role key)', 'Supabase session via SSR cookies', 'Fairway Editorial sign-in UI — sage background, Manrope/Lexend typography, berry forgot-password, dark Google button'],
     tech: 'Supabase Auth. @supabase/ssr for server-side session. Google Cloud OAuth 2.0 client. createAdminClient in auth callback for user upsert.',
   },
   realtime: {
