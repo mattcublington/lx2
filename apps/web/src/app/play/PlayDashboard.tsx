@@ -68,44 +68,24 @@ export default function PlayDashboard({
     router.push('/')
   }
 
-  // Build stat cards from available data
-  const stats: Array<{ icon: React.ReactNode; value: string; label: string }> = []
-
-  if (roundsThisMonth != null) {
-    stats.push({
+  // Always 3 stat cards — show n/a if data unavailable
+  const stats: Array<{ icon: React.ReactNode; value: string; label: string }> = [
+    {
       icon: <GolfBallIcon />,
-      value: String(roundsThisMonth),
-      label: 'Rounds this month',
-    })
-  } else if (roundsCount > 0) {
-    stats.push({
-      icon: <GolfBallIcon />,
-      value: String(roundsCount),
+      value: roundsCount > 0 ? String(roundsCount) : 'n/a',
       label: 'Total rounds',
-    })
-  }
-
-  if (avgScore != null) {
-    stats.push({
+    },
+    {
       icon: <ChartIcon />,
-      value: String(avgScore),
-      label: 'Avg score',
-    })
-  }
-
-  if (bestScore != null) {
-    stats.push({
+      value: avgScore != null ? String(avgScore) : 'n/a',
+      label: 'Avg score (12mo)',
+    },
+    {
       icon: <TrophyIcon />,
-      value: String(bestScore),
-      label: 'Best',
-    })
-  } else if (handicapIndex != null && stats.length < 3) {
-    stats.push({
-      icon: <FlagIcon />,
-      value: handicapIndex % 1 === 0 ? handicapIndex.toFixed(1) : String(handicapIndex),
-      label: 'Handicap',
-    })
-  }
+      value: bestScore != null ? String(bestScore) : 'n/a',
+      label: 'Best score',
+    },
+  ]
 
   return (
     <>
@@ -121,12 +101,11 @@ export default function PlayDashboard({
 
         /* ── Header ──────────────────────────────────────── */
         .fe-hd {
-          background: #FFFFFF;
+          background: #F0F4EC;
           padding: 1rem 1.25rem;
           display: flex;
           justify-content: space-between;
           align-items: center;
-          box-shadow: 0 2px 8px rgba(26, 28, 28, 0.04);
           position: sticky;
           top: 0;
           z-index: 50;
@@ -210,7 +189,6 @@ export default function PlayDashboard({
           margin-bottom: 1.5rem;
           animation: fe-rise 0.45s 0.06s cubic-bezier(0.2, 0, 0, 1) both;
         }
-        .fe-stats-2 { grid-template-columns: repeat(2, 1fr); }
         .fe-stat {
           background: #FFFFFF;
           border-radius: 16px;
@@ -514,18 +492,16 @@ export default function PlayDashboard({
             )}
           </section>
 
-          {/* Quick stats — only rendered if we have data */}
-          {stats.length > 0 && (
-            <div className={`fe-stats${stats.length === 2 ? ' fe-stats-2' : ''}`}>
-              {stats.map((s, i) => (
-                <div className="fe-stat" key={i}>
-                  <div className="fe-stat-icon">{s.icon}</div>
-                  <div className="fe-stat-val">{s.value}</div>
-                  <div className="fe-stat-label">{s.label}</div>
-                </div>
-              ))}
-            </div>
-          )}
+          {/* Quick stats — always 3 cards */}
+          <div className="fe-stats">
+            {stats.map((s, i) => (
+              <div className="fe-stat" key={i}>
+                <div className="fe-stat-icon">{s.icon}</div>
+                <div className="fe-stat-val">{s.value}</div>
+                <div className="fe-stat-label">{s.label}</div>
+              </div>
+            ))}
+          </div>
 
           {/* Primary CTA */}
           {activeRoundId ? (
@@ -605,22 +581,22 @@ export default function PlayDashboard({
 
         {/* ── Bottom nav ── */}
         <nav className="fe-bnav">
-          <button className="fe-bnav-item active" aria-label="Home">
+          <Link href="/play" className="fe-bnav-item active" aria-label="Home">
             <HomeIcon />
             <span>Home</span>
-          </button>
-          <button className="fe-bnav-item" aria-label="Rounds">
+          </Link>
+          <Link href="/rounds" className="fe-bnav-item" aria-label="Rounds">
             <ClipboardIcon />
             <span>Rounds</span>
-          </button>
-          <button className="fe-bnav-item" aria-label="Events">
+          </Link>
+          <Link href="/events" className="fe-bnav-item" aria-label="Events">
             <TrophyIcon size={20} />
             <span>Events</span>
-          </button>
-          <button className="fe-bnav-item" aria-label="Society">
+          </Link>
+          <Link href="/society" className="fe-bnav-item" aria-label="Society">
             <UsersIcon size={20} />
             <span>Society</span>
-          </button>
+          </Link>
           <Link href="/profile" className="fe-bnav-item" aria-label="Profile">
             <UserIcon />
             <span>Profile</span>
