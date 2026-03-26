@@ -1162,6 +1162,205 @@ export default function LX2Architecture() {
         </div>
       )}
 
+      {/* ── Tests view ── */}
+      {view === 'tests' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 20 }}>
+
+          {/* Strategy overview */}
+          <div style={{ background: 'linear-gradient(135deg, #0D2B12 0%, #1A3E1A 100%)', borderRadius: 16, padding: '18px 22px', boxShadow: '0 8px 24px rgba(13,43,18,0.18)' }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', fontFamily: "'Manrope', sans-serif", marginBottom: 4 }}>Test strategy</div>
+            <div style={{ fontSize: 12, color: '#86EFAC', lineHeight: 1.6 }}>Two-layer approach: fast <strong style={{ color: '#fff' }}>unit tests</strong> for all scoring and offline logic (Vitest, run on every commit), plus <strong style={{ color: '#fff' }}>E2E tests</strong> covering critical user journeys (Playwright, run after build in CI). No mocking the database — integration tests use real Supabase.</div>
+          </div>
+
+          {/* Test pyramid */}
+          <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 16, padding: '18px 20px', boxShadow: '0 8px 24px rgba(26,28,28,0.06)' }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#1A2E1A', fontFamily: "'Manrope', sans-serif", marginBottom: 14 }}>Test pyramid</div>
+            {[
+              { layer: 'E2E (Playwright)', count: '11 tests', tool: 'Playwright · Chromium', color: '#2563EB', bg: '#DBEAFE', desc: 'Full browser flows: auth, /play dashboard, new round wizard, public pages. Saved auth state (global-setup.ts). CI uploads report on failure.' },
+              { layer: 'Unit (Vitest)', count: '~40 tests', tool: 'Vitest · @lx2/scoring + @lx2/pwa', color: '#0D631B', bg: '#DCFCE7', desc: 'Pure functions only. Stableford / Stroke Play / Match Play / Handicap engines. Offline queue IndexedDB wrapper. Zero framework dependencies.' },
+            ].map((row, i) => (
+              <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', padding: '12px 0', borderBottom: i < 1 ? '0.5px solid rgba(0,0,0,0.06)' : 'none' }}>
+                <div style={{ flexShrink: 0, width: 120 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: row.color, fontFamily: "'Manrope', sans-serif" }}>{row.layer}</div>
+                  <div style={{ fontSize: 10, padding: '2px 7px', borderRadius: 99, background: row.bg, color: row.color, fontWeight: 500, marginTop: 4, display: 'inline-block' }}>{row.count}</div>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 11, color: '#6B8C6B', marginBottom: 4, fontFamily: 'monospace' }}>{row.tool}</div>
+                  <div style={{ fontSize: 12, color: '#44483E', lineHeight: 1.5 }}>{row.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* E2E suites */}
+          <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 16, padding: '18px 20px', boxShadow: '0 8px 24px rgba(26,28,28,0.06)' }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#1A2E1A', fontFamily: "'Manrope', sans-serif", marginBottom: 12 }}>E2E test suites (Playwright)</div>
+            {[
+              { file: 'e2e/public.spec.ts', label: 'Public flows', tests: ['Homepage loads + has LX2 title', 'Login page renders email/password form', 'Unauthenticated /play → redirects to /auth/login', 'Unauthenticated /play/new → redirects to /auth/login'] },
+              { file: 'e2e/auth.spec.ts', label: 'Authentication', tests: ['Sign-in with valid credentials → lands on /play', 'Sign-in with bad password → shows error', 'Signed-in user visiting /auth/login redirects to /play'] },
+              { file: 'e2e/play.spec.ts', label: 'Play dashboard + wizard', tests: ['Play dashboard loads and shows 3 stat cards', '"Start a round" button visible', 'New round wizard opens on venue step', 'Back link returns to /play'] },
+            ].map((suite, i) => (
+              <div key={i} style={{ marginBottom: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <code style={{ fontSize: 11, padding: '2px 8px', borderRadius: 6, background: '#F3F4F6', color: '#44483E', fontFamily: 'monospace' }}>{suite.file}</code>
+                  <span style={{ fontSize: 11, color: '#6B8C6B' }}>{suite.label}</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3, paddingLeft: 12 }}>
+                  {suite.tests.map((t, j) => (
+                    <div key={j} style={{ fontSize: 12, color: '#44483E', display: 'flex', gap: 7, alignItems: 'flex-start' }}>
+                      <span style={{ color: '#0D631B', flexShrink: 0 }}>✓</span><span>{t}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+            <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4, fontStyle: 'italic' }}>global-setup.ts logs in once, saves auth state to e2e/.auth/user.json — reused by all authenticated suites</div>
+          </div>
+
+          {/* CI pipeline */}
+          <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 16, padding: '18px 20px', boxShadow: '0 8px 24px rgba(26,28,28,0.06)' }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#1A2E1A', fontFamily: "'Manrope', sans-serif", marginBottom: 12 }}>CI pipeline (GitHub Actions · main + PRs)</div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+              {[
+                { step: 'npm ci', color: '#6B7280', bg: '#F3F4F6' },
+                { step: 'type-check', color: '#7C3AED', bg: '#EDE9FE' },
+                { step: 'lint', color: '#B45309', bg: '#FEF3C7' },
+                { step: 'vitest', color: '#0D631B', bg: '#DCFCE7' },
+                { step: 'build', color: '#1565C0', bg: '#E3F2FD' },
+                { step: 'playwright', color: '#2563EB', bg: '#DBEAFE' },
+              ].map((s, i, arr) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 11, padding: '4px 12px', borderRadius: 99, background: s.bg, color: s.color, fontWeight: 500, fontFamily: 'monospace' }}>{s.step}</span>
+                  {i < arr.length - 1 && <span style={{ fontSize: 12, color: '#D1D5DB' }}>→</span>}
+                </div>
+              ))}
+            </div>
+            <div style={{ fontSize: 11, color: '#6B8C6B', marginTop: 10, lineHeight: 1.6 }}>
+              Playwright requires <code style={{ fontSize: 10, background: '#F3F4F6', padding: '1px 5px', borderRadius: 4 }}>NEXT_PUBLIC_SUPABASE_URL</code>, <code style={{ fontSize: 10, background: '#F3F4F6', padding: '1px 5px', borderRadius: 4 }}>E2E_TEST_EMAIL</code>, <code style={{ fontSize: 10, background: '#F3F4F6', padding: '1px 5px', borderRadius: 4 }}>E2E_TEST_PASSWORD</code> as GitHub Secrets. Report uploaded as artifact on failure (7-day retention).
+            </div>
+          </div>
+
+          {/* Coverage gaps */}
+          <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 16, padding: '18px 20px', boxShadow: '0 8px 24px rgba(26,28,28,0.06)' }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#1A2E1A', fontFamily: "'Manrope', sans-serif", marginBottom: 10 }}>Coverage gaps — planned next</div>
+            {[
+              { gap: 'Score entry flow', note: 'Hole-by-hole scoring, leaderboard panel overlay, marker mode' },
+              { gap: 'New round creation', note: 'Full wizard: venue → combination → players → start' },
+              { gap: 'Offline queue', note: 'E2E: go offline, score holes, reconnect, verify sync' },
+              { gap: 'Event join (anonymous)', note: 'Name + handicap join flow, join_token cookie' },
+              { gap: 'Leaderboard realtime', note: 'Supabase Realtime subscription — needs two concurrent browser contexts' },
+            ].map((row, i, arr) => (
+              <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '7px 0', borderBottom: i < arr.length - 1 ? '0.5px solid rgba(0,0,0,0.05)' : 'none' }}>
+                <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 99, background: '#FEF3C7', color: '#B45309', fontWeight: 500, flexShrink: 0, marginTop: 1 }}>gap</span>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 500, color: '#1A2E1A' }}>{row.gap}</div>
+                  <div style={{ fontSize: 11, color: '#6B8C6B' }}>{row.note}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+        </div>
+      )}
+
+      {/* ── Stack view ── */}
+      {view === 'stack' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
+          {[
+            {
+              layer: 'Frontend', icon: '🖥',
+              items: [
+                { name: 'Next.js 15', role: 'App Router, SSR, server actions, streaming', tag: 'core' },
+                { name: 'React 18', role: 'Server + client components, Suspense, useReducer', tag: 'core' },
+                { name: 'TypeScript', role: 'Strict mode throughout', tag: 'core' },
+                { name: 'CSS-in-JSX', role: 'Component styles in <style> blocks — no CSS Modules', tag: 'pattern' },
+                { name: 'Tailwind CSS', role: 'globals.css only — base reset', tag: 'pattern' },
+              ],
+              color: '#2563EB', bg: '#EFF6FF', border: '#BFDBFE',
+            },
+            {
+              layer: 'Design system', icon: '🎨',
+              items: [
+                { name: 'Manrope 800', role: 'Marketing headings, wizard headers', tag: 'font' },
+                { name: 'Lexend 300–500', role: 'Marketing body, inputs, UI labels', tag: 'font' },
+                { name: 'DM Serif Display', role: 'App headings (scoring, auth)', tag: 'font' },
+                { name: 'DM Sans 300–700', role: 'App body, UI labels (scoring, play)', tag: 'font' },
+                { name: 'Green palette', role: '#0D631B primary · #0a1f0a header · #F2F5F0 bg', tag: 'colour' },
+              ],
+              color: '#0D631B', bg: '#F0FDF4', border: '#BBF7D0',
+            },
+            {
+              layer: 'Backend / Data', icon: '🗄',
+              items: [
+                { name: 'Supabase Postgres', role: 'Primary database — all app data', tag: 'infra' },
+                { name: 'Supabase Auth', role: 'Google OAuth + email/password', tag: 'infra' },
+                { name: 'Supabase Realtime', role: 'postgres_changes — live leaderboard, player list', tag: 'infra' },
+                { name: 'Row-level security', role: 'RLS on all tables + SECURITY DEFINER fn', tag: 'pattern' },
+                { name: '@supabase/ssr', role: 'Server-side session via cookies', tag: 'lib' },
+              ],
+              color: '#059669', bg: '#ECFDF5', border: '#A7F3D0',
+            },
+            {
+              layer: 'Shared packages', icon: '📦',
+              items: [
+                { name: '@lx2/scoring', role: 'Stableford, Stroke Play, Match Play, Handicap — pure TS, Vitest', tag: 'pkg' },
+                { name: '@lx2/leaderboard', role: 'computeLeaderboard() — shared by web + club', tag: 'pkg' },
+                { name: '@lx2/brand', role: 'Design tokens, getCSSVars(), applyClubTheme()', tag: 'pkg' },
+                { name: '@lx2/db', role: 'Supabase client factory, shared migrations', tag: 'pkg' },
+              ],
+              color: '#7C3AED', bg: '#F5F3FF', border: '#DDD6FE',
+            },
+            {
+              layer: 'Monorepo + build', icon: '🏗',
+              items: [
+                { name: 'Turborepo', role: 'Task orchestration, remote caching, parallel builds', tag: 'build' },
+                { name: 'apps/web :3000', role: 'Player PWA — lx2.golf', tag: 'app' },
+                { name: 'apps/club :3001', role: 'Organiser console — club.lx2.golf', tag: 'app' },
+                { name: 'apps/arch :3002', role: 'This control tower — local only', tag: 'app' },
+                { name: 'Vercel', role: 'Deployment target for web + club apps', tag: 'infra' },
+              ],
+              color: '#B45309', bg: '#FFFBEB', border: '#FDE68A',
+            },
+            {
+              layer: 'Testing', icon: '🧪',
+              items: [
+                { name: 'Vitest', role: 'Unit — @lx2/scoring engines + offline-queue', tag: 'test' },
+                { name: 'Playwright', role: 'E2E — auth, /play, new round, public. Chromium only', tag: 'test' },
+                { name: 'GitHub Actions', role: 'CI: type-check → lint → vitest → build → playwright', tag: 'ci' },
+              ],
+              color: '#0891B2', bg: '#ECFEFF', border: '#A5F3FC',
+            },
+            {
+              layer: 'PWA / Offline', icon: '📱',
+              items: [
+                { name: 'IndexedDB queue', role: 'Offline score writes — per-scorecard draining guard', tag: 'lib' },
+                { name: 'Service worker', role: 'Cache-first static, network-first API (public/sw.js)', tag: 'lib' },
+                { name: 'OfflineBanner', role: 'Connectivity + sync state indicator', tag: 'ui' },
+              ],
+              color: '#6B7280', bg: '#F9FAFB', border: '#E5E7EB',
+            },
+          ].map(section => (
+            <div key={section.layer} style={{ background: '#fff', border: `0.5px solid ${section.border}`, borderRadius: 16, padding: '16px 20px', boxShadow: '0 4px 16px rgba(26,28,28,0.04)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                <span style={{ fontSize: 16 }}>{section.icon}</span>
+                <div style={{ fontSize: 13, fontWeight: 700, color: section.color, fontFamily: "'Manrope', sans-serif" }}>{section.layer}</div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {section.items.map((item, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                    <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 99, background: section.bg, color: section.color, fontWeight: 600, flexShrink: 0, marginTop: 1, minWidth: 50, textAlign: 'center' as const }}>{item.tag}</span>
+                    <div>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: '#1A2E1A', marginRight: 6 }}>{item.name}</span>
+                      <span style={{ fontSize: 12, color: '#6B8C6B' }}>{item.role}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* ── Modules view ── */}
       {view === 'modules' && tierOrder.map(tier => {
         const mods = grouped[tier] ?? []
