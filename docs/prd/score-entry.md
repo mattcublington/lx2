@@ -2,7 +2,7 @@
 
 **Module:** `score_entry`  
 **Phase:** MVP  
-**Status:** In progress  
+**Status:** Done
 **Last updated:** March 2026
 
 ---
@@ -23,29 +23,30 @@ A mobile-first score entry screen that feels faster than writing on a card. One 
 
 ## Core requirements
 
-### Must have (MVP)
+### Delivered (MVP — done)
 - Hole-by-hole score entry for up to 4 players in a group
 - Quick-tap buttons for par −1, par, par +1, par +2, par +3
 - Stepper (+ / −) for unusual scores (max 15)
 - Running Stableford points total after each hole
 - Handicap strokes displayed per hole (95% allowance)
-- Pick up / No Return for any hole
+- Pick up / No Return for any hole (null gross_strokes in DB)
 - Undo last entry
 - NTP and Longest Drive result capture on designated holes
-- Scorecard view (tap to review all holes)
-- Auto-advance to next player after score entry
-- Settings: toggle players in/out of group
+- Full scorecard view (tap to review all holes, scores, points)
+- Live group leaderboard — inline panel overlay, real-time via Supabase postgres_changes
+- Marker mode — organiser can score for any player in the event
+- Offline queue — IndexedDB, auto-synced on reconnect
+- **Share code chip** — 6-char alphanumeric in header, tap to copy (✓ Copied feedback)
+- **"Finish round" → /rounds/[id]** — "View summary →" CTA links to persistent round summary
 
-### Should have (MVP)
+### Should have (Phase 2)
 - Flash feedback showing points scored (birdie, par, blob etc.)
 - Hole navigation: prev/next arrows + direct hole select
 - Completion indicators (✓ when all players have scored)
 - NTP/LD hole indicators (orange/blue dots)
 
-### Won't have (MVP)
-- Offline sync (PWA — Phase 2)
-- Match Play status display (Phase 2)
-- Real-time leaderboard push (Phase 2)
+### Won't have (this phase)
+- Match Play status display
 - GPS yardage (native app only)
 
 ## Scoring logic
@@ -79,6 +80,11 @@ contest_entries: id, event_id, hole_number, type (ntp|ld), event_player_id, dist
 
 ## Links
 
-- Component: `apps/web/src/app/score/ScoreEntry.tsx`
+- Server page: `apps/web/src/app/rounds/[id]/score/page.tsx`
+- Client component: `apps/web/src/app/rounds/[id]/score/ScoreEntryLive.tsx`
+- Join flow: `apps/web/src/app/play/join/`
 - Scoring engine: `packages/scoring/src/stableford.ts`
-- DB migration: `packages/db/migrations/001_initial_schema.sql`
+- DB migration: `packages/db/migrations/golfer/001_initial_schema.sql`
+- DB migration (share codes): `packages/db/migrations/golfer/002_share_code.sql`
+- Related PRD: `docs/prd/group-joining.md`
+- Related PRD: `docs/prd/round-summary.md`

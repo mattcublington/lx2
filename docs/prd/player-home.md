@@ -34,9 +34,11 @@ A mobile-first player dashboard at `/play` that shows the user's identity, handi
 - Primary action button:
   - "Start a new round" (green, links to `/play/new`) when no active round
   - "Join ongoing round" (white outline variant, links to `/rounds/[id]/score`) when `activeRoundId` is set
+- Secondary action button:
+  - "Join a group's round" (ghost border style, muted green, links to `/play/join`) — shown only when no active round
 - Recent rounds list in a card with shadow:
   - Each row: colour bar (format-coded: green Stableford, blue Stroke Play, amber Match Play), event name, format tag, course name, date, chevron
-  - Links to `/rounds/[id]/score`
+  - Links to `/rounds/[id]` (round summary page)
   - Empty state: "No rounds yet" with prompt to start first round
 - Profile link in header pill (links to `/profile`)
 - Sign-out: button in header (desktop), bottom nav (mobile)
@@ -109,7 +111,7 @@ scorecards (id, event_id, event_player_id, created_at, submitted_at)
 
 - [ ] Should the dashboard show upcoming events the player has joined?
 - [ ] When do we activate the History and Stats bottom nav tabs?
-- [ ] Should we show a "Join event" input on the dashboard (like the homepage code input)?
+- [x] Should we show a "Join event" input on the dashboard? → Yes, added "Join a group's round" secondary CTA linking to /play/join
 
 ## Links
 
