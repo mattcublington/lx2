@@ -943,7 +943,7 @@ function JourneyFlow({ journey, onSelectModule }: { journey: Journey; onSelectMo
 
 export default function LX2Architecture() {
   const [selected, setSelected] = useState<string | null>(null)
-  const [view, setView] = useState<'modules' | 'surfaces' | 'deps' | 'journeys' | 'tests' | 'stack'>('modules')
+  const [view, setView] = useState<'modules' | 'surfaces' | 'deps' | 'journeys' | 'tests' | 'stack' | 'claude'>('modules')
   const [activeJourney, setActiveJourney] = useState<string>('player')
   const mod = selected ? modules[selected] : null
 
@@ -1064,9 +1064,9 @@ export default function LX2Architecture() {
 
       {/* View tabs */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
-        {(['modules', 'surfaces', 'deps', 'journeys', 'tests', 'stack'] as const).map(v => (
+        {(['modules', 'surfaces', 'deps', 'journeys', 'tests', 'stack', 'claude'] as const).map(v => (
           <button key={v} onClick={() => setView(v)} style={{ fontSize: 12, padding: '6px 14px', borderRadius: 99, border: 'none', background: view === v ? '#1A2E1A' : '#F3F4F6', color: view === v ? '#fff' : '#6B7280', cursor: 'pointer', fontFamily: "'Lexend', sans-serif", fontWeight: view === v ? 500 : 400, transition: 'all 0.15s' }}>
-            {v === 'modules' ? 'All modules' : v === 'surfaces' ? 'Surfaces' : v === 'deps' ? 'Dependencies' : v === 'journeys' ? 'Journeys' : v === 'tests' ? 'Test strategy' : 'Tech stack'}
+            {v === 'modules' ? 'All modules' : v === 'surfaces' ? 'Surfaces' : v === 'deps' ? 'Dependencies' : v === 'journeys' ? 'Journeys' : v === 'tests' ? 'Test strategy' : v === 'stack' ? 'Tech stack' : 'Claude setup'}
           </button>
         ))}
       </div>
@@ -1358,6 +1358,186 @@ export default function LX2Architecture() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* ── Claude setup view ── */}
+      {view === 'claude' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 20 }}>
+
+          {/* Overview */}
+          <div style={{ background: 'linear-gradient(135deg, #0D2B12 0%, #1A3E1A 100%)', borderRadius: 16, padding: '18px 22px', boxShadow: '0 8px 24px rgba(13,43,18,0.18)' }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', fontFamily: "'Manrope', sans-serif", marginBottom: 4 }}>.claude/ — AI-assisted development setup</div>
+            <div style={{ fontSize: 12, color: '#86EFAC', lineHeight: 1.6 }}>The <code style={{ background: 'rgba(255,255,255,0.12)', padding: '1px 5px', borderRadius: 4 }}>.claude/</code> folder configures how Claude Code works with LX2. It defines <strong style={{ color: '#fff' }}>agents</strong> (specialist AI roles), <strong style={{ color: '#fff' }}>slash commands</strong> (multi-step workflows), <strong style={{ color: '#fff' }}>hooks</strong> (automated gates), and <strong style={{ color: '#fff' }}>rules</strong> (context injected by file path). Together they enforce the design system, architecture patterns, and quality gates on every change — without repeating them in every prompt.</div>
+          </div>
+
+          {/* Folder tree */}
+          <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 16, padding: '18px 20px', boxShadow: '0 4px 16px rgba(26,28,28,0.04)' }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#1A2E1A', fontFamily: "'Manrope', sans-serif", marginBottom: 12 }}>Folder structure</div>
+            <div style={{ fontFamily: 'monospace', fontSize: 11, lineHeight: 2, color: '#44483E' }}>
+              {[
+                { indent: 0, text: '.claude/', color: '#0D631B', bold: true },
+                { indent: 1, text: 'CLAUDE.md', color: '#1A2E1A', note: '— master project instructions (always read first)' },
+                { indent: 1, text: 'launch.json', color: '#1A2E1A', note: '— dev server configs (web :3000, club :3001, arch :3002)' },
+                { indent: 1, text: 'settings.json', color: '#1A2E1A', note: '— Claude Code permissions & tool allowlist' },
+                { indent: 1, text: 'commands/', color: '#7C3AED', bold: true, note: '— slash commands' },
+                { indent: 2, text: 'audit.md', color: '#44483E', note: '— /audit: 9-step project health check' },
+                { indent: 1, text: 'hooks/', color: '#B45309', bold: true, note: '— automated gates' },
+                { indent: 2, text: 'pre-push.sh', color: '#44483E', note: '— blocks push on type errors, build failures, suppressions' },
+                { indent: 1, text: 'rules/', color: '#2563EB', bold: true, note: '— auto-injected context rules' },
+                { indent: 2, text: 'quality-gates.md', color: '#44483E', note: '— applies to all .tsx/.ts files' },
+                { indent: 1, text: 'lx2-claude/', color: '#0D631B', bold: true, note: '— full agent/workflow framework' },
+                { indent: 2, text: 'agents/', color: '#7C3AED', bold: true },
+                { indent: 3, text: 'architect.md', color: '#44483E', note: '— Opus · plan only, never implements' },
+                { indent: 3, text: 'coder.md', color: '#44483E', note: '— Sonnet · executes architect plans' },
+                { indent: 3, text: 'design-guardian.md', color: '#44483E', note: '— Sonnet · design system enforcer' },
+                { indent: 3, text: 'code-reviewer.md', color: '#44483E', note: '— Opus · 3-pass security+design+quality' },
+                { indent: 3, text: 'debugger.md', color: '#44483E', note: '— Opus (high effort) · root cause, never symptoms' },
+                { indent: 3, text: 'scribe.md', color: '#44483E', note: '— Haiku · docs + cleanup, no logic changes' },
+                { indent: 2, text: 'commands/', color: '#7C3AED', bold: true },
+                { indent: 3, text: 'new-feature.md', color: '#44483E', note: '— architect → approve → DB → server → UI → verify' },
+                { indent: 3, text: 'deploy.md', color: '#44483E', note: '— pre-flight → push main → live verification' },
+                { indent: 3, text: 'pr-review.md', color: '#44483E', note: '— types → lint → build → code-reviewer agent' },
+                { indent: 2, text: 'hooks/', color: '#B45309', bold: true },
+                { indent: 3, text: 'lint-on-save.sh', color: '#44483E', note: '— lint on every file save' },
+                { indent: 3, text: 'pre-commit.sh', color: '#44483E', note: '— type-check + lint before every commit' },
+                { indent: 2, text: 'rules/', color: '#2563EB', bold: true },
+                { indent: 3, text: 'frontend.md', color: '#44483E', note: '— injected for apps/**/src/** files' },
+                { indent: 3, text: 'api.md', color: '#44483E', note: '— injected for server actions + route handlers' },
+                { indent: 3, text: 'database.md', color: '#44483E', note: '— injected for migration + Supabase files' },
+              ].map((row, i) => (
+                <div key={i} style={{ display: 'flex', gap: 4, alignItems: 'baseline', paddingLeft: row.indent * 18 }}>
+                  {row.indent > 0 && <span style={{ color: '#D1D5DB', flexShrink: 0 }}>{row.indent === 1 ? '├─' : row.indent === 2 ? '│ ├─' : '│ │ ├─'}</span>}
+                  <span style={{ color: row.color, fontWeight: row.bold ? 700 : 400 }}>{row.text}</span>
+                  {row.note && <span style={{ color: '#9CA3AF', fontWeight: 400 }}>{row.note}</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Agents */}
+          <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 16, padding: '18px 20px', boxShadow: '0 4px 16px rgba(26,28,28,0.04)' }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#1A2E1A', fontFamily: "'Manrope', sans-serif", marginBottom: 12 }}>Agents — specialist AI roles</div>
+            <div style={{ fontSize: 11, color: '#6B8C6B', marginBottom: 12 }}>Each agent has a fixed model, a limited toolset, and a single responsibility. Invoke with <code style={{ background: '#F3F4F6', padding: '1px 5px', borderRadius: 4 }}>claude --agent &lt;name&gt;</code> or from a command.</div>
+            {[
+              { name: 'architect', model: 'Opus', tag: 'plan', color: '#7C3AED', bg: '#F5F3FF', tools: 'Read, Glob, Grep, Bash', desc: 'Produces numbered implementation plans — files to create, DB changes, sequence of work, risks. Never writes code. Always runs before significant new work.' },
+              { name: 'coder', model: 'Sonnet', tag: 'build', color: '#0D631B', bg: '#DCFCE7', tools: 'Read, Write, Edit, Glob, Grep, Bash', desc: 'Executes architect plans precisely. Reads CLAUDE.md + relevant rules/ before every file. Runs tsc + lint after writing. No design system deviations.' },
+              { name: 'design-guardian', model: 'Sonnet', tag: 'audit', color: '#B45309', bg: '#FEF3C7', tools: 'Read, Glob, Grep', desc: 'Audits any component for design system compliance. Flags fonts, colours, layout, and animation violations with FILE → LINE → SEVERITY → FIX.' },
+              { name: 'code-reviewer', model: 'Opus', tag: 'review', color: '#1565C0', bg: '#E3F2FD', tools: 'Read, Glob, Grep, Bash', desc: 'Three independent passes: (1) security — secrets, RLS, auth guards; (2) design system compliance; (3) code quality — Next.js 15, TypeScript, patterns. Blocks merge on CRITICAL.' },
+              { name: 'debugger', model: 'Opus ↑', tag: 'debug', color: '#B91C1C', bg: '#FEE2E2', tools: 'Read, Glob, Grep, Bash', desc: 'Root cause investigation. Reproduce → check LX2 gotchas (async APIs, wrong Supabase client, stale Turbo cache) → investigate systematically → fix minimally → verify.' },
+              { name: 'scribe', model: 'Haiku', tag: 'docs', color: '#6B7280', bg: '#F3F4F6', tools: 'Read, Write, Edit, Glob, Grep', desc: 'JSDoc, README, inline comments, rename, extract constants, remove dead code. No logic changes. No CSS changes. Keeps CLAUDE.md Session Learnings up to date.' },
+            ].map((a, i, arr) => (
+              <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '10px 0', borderBottom: i < arr.length - 1 ? '0.5px solid rgba(0,0,0,0.06)' : 'none' }}>
+                <div style={{ flexShrink: 0, width: 110 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: a.color, fontFamily: "'Manrope', sans-serif" }}>{a.name}</div>
+                  <div style={{ display: 'flex', gap: 4, marginTop: 4, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 99, background: a.bg, color: a.color, fontWeight: 600 }}>{a.tag}</span>
+                    <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 99, background: '#F3F4F6', color: '#6B7280', fontWeight: 500 }}>{a.model}</span>
+                  </div>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 10, color: '#9CA3AF', fontFamily: 'monospace', marginBottom: 3 }}>tools: {a.tools}</div>
+                  <div style={{ fontSize: 12, color: '#44483E', lineHeight: 1.5 }}>{a.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Commands */}
+          <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 16, padding: '18px 20px', boxShadow: '0 4px 16px rgba(26,28,28,0.04)' }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#1A2E1A', fontFamily: "'Manrope', sans-serif", marginBottom: 12 }}>Slash commands — multi-step workflows</div>
+            {[
+              {
+                cmd: '/new-feature',
+                trigger: 'Starting any new feature',
+                color: '#0D631B', bg: '#DCFCE7',
+                steps: ['architect agent produces full plan (apps affected, DB, server, UI, risks)', 'Wait for Matt\'s approval before any code', 'DB: migration + RLS in supabase/migrations/', 'Server: actions in app/actions/, route handlers in app/api/ only for public/webhooks', 'UI: coder agent — server component by default, CSS-in-JSX, design system', 'Verify: tsc --noEmit + lint + test in affected apps'],
+              },
+              {
+                cmd: '/deploy',
+                trigger: 'Deploying to production',
+                color: '#2563EB', bg: '#DBEAFE',
+                steps: ['Pre-flight: git status clean, lint clean, tsc clean, build clean, no .env staged', 'git push origin main → Vercel auto-deploys', 'Verify lx2.golf and club.lx2.golf load', 'Test Google OAuth login on both apps', 'If anything fails: fix and re-run all checks — no force push, no skipping'],
+              },
+              {
+                cmd: '/pr-review',
+                trigger: 'Before raising any PR',
+                color: '#7C3AED', bg: '#F5F3FF',
+                steps: ['tsc --noEmit → fix all type errors', 'turbo run lint → fix all warnings', 'turbo run build → clean across all apps', 'Invoke code-reviewer agent (3-pass: security, design, quality)', 'Fix all CRITICAL findings', 'Remove console.log, commented-out code, TODO comments'],
+              },
+              {
+                cmd: '/audit',
+                trigger: 'After every feature completion or on demand',
+                color: '#B45309', bg: '#FEF3C7',
+                steps: ['TypeScript — tsc --noEmit, no ignoreBuildErrors, no @ts-ignore', 'Build — turbo run build all apps clean', 'Lint — turbo run lint zero warnings', 'Tests — turbo run test all passing', 'RLS — every table has RLS enabled AND at least one policy', 'Schema drift — live DB vs migration files', 'Design system — fonts, colours, layout, no Tailwind in components', 'Dead code — unused exports, files, TODO/FIXME', 'Vision check — would a golfer on hole 14 understand this in 3 seconds?'],
+              },
+            ].map((cmd, i, arr) => (
+              <div key={i} style={{ padding: '12px 0', borderBottom: i < arr.length - 1 ? '0.5px solid rgba(0,0,0,0.06)' : 'none' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <code style={{ fontSize: 12, fontWeight: 700, color: cmd.color, fontFamily: 'monospace', background: cmd.bg, padding: '2px 10px', borderRadius: 6 }}>{cmd.cmd}</code>
+                  <span style={{ fontSize: 11, color: '#6B8C6B' }}>— {cmd.trigger}</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3, paddingLeft: 8 }}>
+                  {cmd.steps.map((s, j) => (
+                    <div key={j} style={{ fontSize: 11, color: '#44483E', display: 'flex', gap: 7 }}>
+                      <span style={{ color: cmd.color, flexShrink: 0, fontSize: 10, marginTop: 1 }}>{j + 1}.</span>
+                      <span>{s}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Hooks + Rules */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            {/* Hooks */}
+            <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 16, padding: '16px 18px', boxShadow: '0 4px 16px rgba(26,28,28,0.04)' }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#1A2E1A', fontFamily: "'Manrope', sans-serif", marginBottom: 10 }}>Hooks — automated gates</div>
+              {[
+                { file: 'pre-push.sh', trigger: 'git push', steps: ['type-check (blocks on error)', 'lint (blocks on error)', 'build (blocks on failure)', 'tests (warns, not blocking)', 'no ignoreBuildErrors / ignoreDuringBuilds in next.config', 'colour spot-check (warns on unapproved hex)'] },
+                { file: 'pre-commit.sh', trigger: 'git commit', steps: ['tsc --noEmit', 'npm run lint', 'fail fast — no bad commits reach the tree'] },
+                { file: 'lint-on-save.sh', trigger: 'file save', steps: ['npm run lint on changed file', 'instant feedback — catch issues before commit'] },
+              ].map((h, i, arr) => (
+                <div key={i} style={{ marginBottom: i < arr.length - 1 ? 12 : 0 }}>
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 4 }}>
+                    <code style={{ fontSize: 10, background: '#FEF3C7', color: '#B45309', padding: '1px 6px', borderRadius: 4 }}>{h.file}</code>
+                    <span style={{ fontSize: 10, color: '#9CA3AF' }}>on {h.trigger}</span>
+                  </div>
+                  {h.steps.map((s, j) => (
+                    <div key={j} style={{ fontSize: 11, color: '#44483E', display: 'flex', gap: 5, paddingLeft: 4 }}>
+                      <span style={{ color: '#B45309', flexShrink: 0 }}>·</span><span>{s}</span>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+
+            {/* Rules */}
+            <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 16, padding: '16px 18px', boxShadow: '0 4px 16px rgba(26,28,28,0.04)' }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#1A2E1A', fontFamily: "'Manrope', sans-serif", marginBottom: 4 }}>Rules — context injected by file path</div>
+              <div style={{ fontSize: 11, color: '#6B8C6B', marginBottom: 10 }}>Automatically added to the context when Claude reads/edits matching files. No manual prompting needed.</div>
+              {[
+                { file: 'quality-gates.md', paths: 'apps/**/*.tsx, apps/**/*.ts, packages/**/*.ts', rules: ['Before coding: read CLAUDE.md, check for DB migration + RLS impact', 'After every edit: tsc --noEmit, no any, no @ts-ignore, no Tailwind in components, approved colours + fonts only', 'After every feature: /audit, update PRD, update architecture module status'] },
+                { file: 'frontend.md', paths: 'apps/web/src/**, apps/club/src/**', rules: ['Server component by default, \'use client\' only for hooks/browser APIs', 'CSS-in-JSX <style> blocks — no inline styles, no CSS Modules', 'next/image with explicit dimensions, no blocking fetches in client components'] },
+                { file: 'api.md', paths: 'server actions + route handler files', rules: ['Server actions for mutations, route handlers for public/webhook APIs only', 'Type all inputs and outputs — no any', 'Validate inputs with Zod before DB writes'] },
+                { file: 'database.md', paths: 'supabase/migrations/**, Supabase client files', rules: ['Every new table: RLS enabled + at least one policy', 'Migrations: YYYYMMDDHHMMSS_description.sql, ON CONFLICT DO NOTHING', 'Use SECURITY DEFINER sparingly — only for is_event_participant() style cross-table checks'] },
+              ].map((r, i, arr) => (
+                <div key={i} style={{ marginBottom: i < arr.length - 1 ? 12 : 0 }}>
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 3 }}>
+                    <code style={{ fontSize: 10, background: '#DBEAFE', color: '#1565C0', padding: '1px 6px', borderRadius: 4 }}>{r.file}</code>
+                  </div>
+                  <div style={{ fontSize: 10, color: '#9CA3AF', fontFamily: 'monospace', marginBottom: 3 }}>{r.paths}</div>
+                  {r.rules.map((s, j) => (
+                    <div key={j} style={{ fontSize: 11, color: '#44483E', display: 'flex', gap: 5 }}>
+                      <span style={{ color: '#2563EB', flexShrink: 0 }}>·</span><span>{s}</span>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+
         </div>
       )}
 
