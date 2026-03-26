@@ -1650,7 +1650,7 @@ export default function ScoreEntryLive(props: Props) {
                   : `${totalStrokes} strokes total`}
               </div>
             </div>
-            <a href="/play" className="sc-finish-btn">Finish round →</a>
+            <a href={`/rounds/${scorecardId}`} className="sc-finish-btn">View summary →</a>
           </div>
         )}
 

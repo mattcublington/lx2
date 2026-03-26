@@ -205,7 +205,7 @@ export default async function RoundsPage() {
                 const format = event?.format ?? ''
 
                 return (
-                  <Link key={round.id} href={`/rounds/${round.id}/score`} className="rp-row">
+                  <Link key={round.id} href={`/rounds/${round.id}`} className="rp-row">
                     <div className="rp-info">
                       <div className="rp-course">{displayCourse}</div>
                       <div className="rp-meta">
