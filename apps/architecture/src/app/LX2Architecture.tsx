@@ -39,14 +39,14 @@ const modules: Record<string, Module> = {
       'Undo — removes a saved score and returns to entry state',
       'NTP / Longest Drive overlay — captures distance in yards after contest holes',
       'Full scorecard view — tap to see all holes, scores, points, sub-totals',
-      'GROUP LEADERBOARD — all players in the event, sorted by running score, live',
-      'MARKER MODE — organiser taps any player row to switch to their scoring page',
+      'GROUP LEADERBOARD — inline panel overlay (replaces navigate-away): tap the standings bar at bottom to expand/collapse over the scorecard',
+      'MARKER MODE — organiser taps any player row in leaderboard panel to switch to their scoring page',
       '"Scoring for [Name]" amber banner when on a guest\'s scorecard',
       'Supabase Realtime postgres_changes — other players\' scores update without refresh',
       'Offline queue — IndexedDB persistence, per-scorecard draining guard, auto-synced on reconnect',
       'RLS: players write own scores; organiser writes scores for all players in their event (via is_event_participant SECURITY DEFINER fn)',
     ],
-    tech: 'page.tsx: Next.js server component (data fetch + auth). ScoreEntryLive.tsx: client component with useReducer for local state, Supabase browser client for realtime + persistence. Sage green (#3a7d44) player theme.',
+    tech: 'page.tsx: Next.js server component (data fetch + auth). ScoreEntryLive.tsx: client component with useReducer for local state, Supabase browser client for realtime + persistence. Leaderboard panel: absolute-positioned overlay toggled by bottom bar tap — no page navigation required. Sage green (#3a7d44) player theme.',
   },
   ntp_ld: {
     id: 'ntp_ld', name: 'NTP / Longest Drive', phase: 'mvp', tier: 'player-pwa',
@@ -120,7 +120,7 @@ const modules: Record<string, Module> = {
     data: ['users', 'scorecards', 'events'],
     liveUrl: `${APP}/play`, prdUrl: `${GITHUB}/docs/prd/player-home.md`,
     codeUrl: `${GITHUB}/apps/web/src/app/play/PlayDashboard.tsx`,
-    features: ['Fairway Editorial layout: sage bg, white sticky header, Manrope/Lexend fonts', 'Hero: Manrope 800 display name + green handicap badge (inline-flex, tonal gradient)', 'Dynamic quick-stats grid: rounds, avg score, best — hidden when no data', 'Forest-green gradient CTA: "Start a new round" / "Join ongoing round" (white outline variant)', 'Editorial rounds list: white rounded container, course name + date, hover tint, tap-to-navigate', 'Optional upcoming event card: berry date badge, event name, course + player count', 'Bottom nav 5 items: Home (active) / Rounds / Events / Society / Profile — mobile only', 'Desktop: bottom nav hidden, sign-out link in sticky header', 'Optional props: roundsThisMonth, avgScore, bestScore, upcomingEvent — fully backward-compatible'],
+    features: ['Fairway Editorial layout: sage bg, white sticky header with sage gradient + dot/noise texture, Manrope/Lexend fonts', 'Hero: Manrope 800 display name + green handicap badge (inline-flex, tonal gradient)', 'Always-3 stat cards (Total rounds / Avg score 12mo / Best score) — rendered with "—" placeholder when no data, never hidden', 'Forest-green gradient CTA: "Start a new round" / "Join ongoing round" (white outline variant)', 'Editorial rounds list: white rounded container, course name + date, hover tint, tap-to-navigate', 'Optional upcoming event card: berry date badge, event name, course + player count', 'Bottom nav 5 items wired: Home / Rounds / Events / Society / Profile — mobile only (hidden on desktop)', 'Desktop: sign-out link in sticky header', 'Optional props: roundsThisMonth, avgScore, bestScore, upcomingEvent — fully backward-compatible'],
     tech: 'Next.js server component (page.tsx fetches handicap_index + roundsCount) + client PlayDashboard. Manrope + Lexend (Fairway Editorial fonts via CSS vars). Supabase join: scorecards → events → courses + course_combinations. Inline SVG icons — no external icon lib.',
   },
   player_profile: {
@@ -230,6 +230,8 @@ const modules: Record<string, Module> = {
       'Tee swatches: Green=solid, White=bordered, Yellow/Purple=split gradient, Red/Black=split',
       'Step 3 — Players: up to 4 players, handicap index, search registered users by name',
       'Guest players supported: name + handicap only, no account required (user_id = null)',
+      'Remove button on player rows 2–4 — tap × to drop a player before starting',
+      'Course rating and slope shown as read-only info (not editable inputs) in step 2',
       'Step 4 — Format: Stableford / Stroke Play / Match Play, handicap allowance %',
       'Server action creates: 1 event row, N event_player rows, N scorecard rows',
       'Redirects organiser to /rounds/[userScorecardId]/score — other players accessed from group leaderboard',
@@ -245,7 +247,7 @@ const modules: Record<string, Module> = {
     data: ['event_players', 'users'],
     liveUrl: null, prdUrl: `${GITHUB}/docs/prd/invite.md`,
     codeUrl: `${GITHUB}/apps/web/src/app/events/[id]/page.tsx`,
-    features: ['Public URL — no login needed', 'Enter name + handicap index to join', 'join_token cookie ties anonymous player to scorecard', 'RealtimeRefresher — live player list updates as others join', 'Organiser can manually add players', 'Event details: name, date, course, format shown on landing'],
+    features: ['Public URL — no login needed', 'Enter name + handicap index to join', 'join_token cookie ties anonymous player to scorecard', 'RealtimeRefresher — live player list updates as others join', 'Organiser can manually add players', 'Manage page (/events/[id]/manage): organiser confirms invited players before round starts', 'Event details: name, date, course, format shown on landing'],
     tech: 'Public Next.js server component + client join form. Supabase insert into event_players. join_token cookie for anonymous session continuity. Supabase Realtime for live player list.',
   },
   payments: {
@@ -941,7 +943,7 @@ function JourneyFlow({ journey, onSelectModule }: { journey: Journey; onSelectMo
 
 export default function LX2Architecture() {
   const [selected, setSelected] = useState<string | null>(null)
-  const [view, setView] = useState<'modules' | 'surfaces' | 'deps' | 'journeys'>('modules')
+  const [view, setView] = useState<'modules' | 'surfaces' | 'deps' | 'journeys' | 'tests' | 'stack'>('modules')
   const [activeJourney, setActiveJourney] = useState<string>('player')
   const mod = selected ? modules[selected] : null
 
@@ -972,7 +974,7 @@ export default function LX2Architecture() {
         <Image src="/lx2-logo.svg" alt="LX2" width={144} height={57} style={{ display: 'block' }} />
         <div>
           <div style={{ fontSize: 13, color: '#6B7280', fontWeight: 400 }}>Platform architecture</div>
-          <div style={{ fontSize: 11, color: '#9CA3AF' }}>v0.5 · March 2026 · two-app platform</div>
+          <div style={{ fontSize: 11, color: '#9CA3AF' }}>v0.6 · March 2026 · two-app platform</div>
         </div>
       </div>
 
@@ -1062,9 +1064,9 @@ export default function LX2Architecture() {
 
       {/* View tabs */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
-        {(['modules', 'surfaces', 'deps', 'journeys'] as const).map(v => (
+        {(['modules', 'surfaces', 'deps', 'journeys', 'tests', 'stack'] as const).map(v => (
           <button key={v} onClick={() => setView(v)} style={{ fontSize: 12, padding: '6px 14px', borderRadius: 99, border: 'none', background: view === v ? '#1A2E1A' : '#F3F4F6', color: view === v ? '#fff' : '#6B7280', cursor: 'pointer', fontFamily: "'Lexend', sans-serif", fontWeight: view === v ? 500 : 400, transition: 'all 0.15s' }}>
-            {v === 'modules' ? 'All modules' : v === 'surfaces' ? 'Surfaces' : v === 'deps' ? 'Dependencies' : 'Journeys'}
+            {v === 'modules' ? 'All modules' : v === 'surfaces' ? 'Surfaces' : v === 'deps' ? 'Dependencies' : v === 'journeys' ? 'Journeys' : v === 'tests' ? 'Test strategy' : 'Tech stack'}
           </button>
         ))}
       </div>
