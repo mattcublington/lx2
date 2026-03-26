@@ -86,9 +86,20 @@ export default async function PlayPage() {
     ? Math.round(recentTotals.reduce((a, b) => a + b, 0) / recentTotals.length)
     : null
 
-  // Best ever score (lowest gross total, min 9 holes scored)
-  const allTotals = [...scorecardTotals.values()].filter(t => t >= 27)
-  const bestScore = allTotals.length > 0 ? Math.min(...allTotals) : null
+  // Last round score + course
+  const lastRound = (recentRounds ?? [])[0] as unknown as {
+    id: string
+    events: {
+      name: string
+      courses: { name: string } | null
+      course_combinations: { name: string } | null
+    } | null
+  } | undefined
+  const lastRoundScore = lastRound ? (scorecardTotals.get(lastRound.id) ?? null) : null
+  const lastRoundCourse = lastRound?.events?.course_combinations?.name
+    ?? lastRound?.events?.courses?.name
+    ?? lastRound?.events?.name
+    ?? null
 
   type RoundRow = {
     id: string
@@ -119,7 +130,8 @@ export default async function PlayPage() {
       handicapIndex={profile?.handicap_index ?? null}
       roundsCount={roundsCount ?? 0}
       avgScore={avgScore}
-      bestScore={bestScore}
+      lastRoundScore={lastRoundScore}
+      lastRoundCourse={lastRoundCourse}
     />
   )
 }

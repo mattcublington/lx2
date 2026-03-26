@@ -292,11 +292,6 @@ export default function HomePage() {
           padding: 2.5rem 1.75rem;
           text-align: center;
           box-shadow: 0 8px 24px rgba(26, 28, 28, 0.06);
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .hp-feature-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 12px 32px rgba(26, 28, 28, 0.12);
         }
         .hp-feature-icon {
           width: 64px;

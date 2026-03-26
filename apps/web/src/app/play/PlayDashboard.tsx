@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import BottomNav from '@/components/BottomNav'
 
 type RoundRow = {
   id: string
@@ -34,7 +35,8 @@ interface Props {
   activeRoundId?: string | null
   roundsThisMonth?: number | null
   avgScore?: number | null
-  bestScore?: number | null
+  lastRoundScore?: number | null
+  lastRoundCourse?: string | null
   upcomingEvent?: UpcomingEvent | null
 }
 
@@ -57,7 +59,8 @@ export default function PlayDashboard({
   activeRoundId,
   roundsThisMonth,
   avgScore,
-  bestScore,
+  lastRoundScore,
+  lastRoundCourse,
   upcomingEvent,
 }: Props) {
   const router = useRouter()
@@ -82,8 +85,8 @@ export default function PlayDashboard({
     },
     {
       icon: <TrophyIcon />,
-      value: bestScore != null ? String(bestScore) : 'n/a',
-      label: 'Best score',
+      value: lastRoundScore != null ? String(lastRoundScore) : 'n/a',
+      label: lastRoundCourse ? `Last · ${lastRoundCourse}` : 'Last round',
     },
   ]
 
@@ -114,23 +117,6 @@ export default function PlayDashboard({
           display: flex;
           align-items: center;
           gap: 0.5rem;
-        }
-        .fe-icon-btn {
-          width: 40px;
-          height: 40px;
-          border-radius: 12px;
-          background: transparent;
-          border: none;
-          color: #44483E;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: background 0.2s ease-in-out, color 0.2s ease-in-out;
-        }
-        .fe-icon-btn:hover {
-          background: rgba(26, 28, 28, 0.05);
-          color: #1A2E1A;
         }
         /* Desktop: sign-out link in header */
         .fe-so-hd {
@@ -226,6 +212,9 @@ export default function PlayDashboard({
           font-weight: 400;
           color: #72786E;
           line-height: 1.3;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
 
         /* ── CTA button ──────────────────────────────────── */
@@ -406,42 +395,6 @@ export default function PlayDashboard({
         }
         .fe-event-detail svg { color: #72786E; flex-shrink: 0; }
 
-        /* ── Bottom nav ──────────────────────────────────── */
-        .fe-bnav {
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          background: #FFFFFF;
-          display: grid;
-          grid-template-columns: repeat(5, 1fr);
-          box-shadow: 0 -2px 8px rgba(26, 28, 28, 0.06);
-          z-index: 100;
-          padding-bottom: env(safe-area-inset-bottom);
-        }
-        .fe-bnav-item {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          padding: 0.75rem 0;
-          gap: 0.25rem;
-          text-decoration: none;
-          color: #72786E;
-          font-family: var(--font-lexend), sans-serif;
-          font-size: 0.6875rem;
-          font-weight: 500;
-          background: none;
-          border: none;
-          cursor: pointer;
-          transition: color 0.2s ease-in-out;
-        }
-        .fe-bnav-item svg {
-          transition: transform 0.2s ease-in-out;
-        }
-        .fe-bnav-item.active { color: #2D5016; }
-        .fe-bnav-item:hover { color: #2D5016; }
-        .fe-bnav-item:hover svg { transform: translateY(-2px); }
 
         /* ── Animations ──────────────────────────────────── */
         @keyframes fe-rise {
@@ -456,7 +409,6 @@ export default function PlayDashboard({
             padding: 2rem 2rem;
           }
           .fe-name { font-size: 2.5rem; }
-          .fe-bnav { display: none; }
           .fe-so-hd { display: block; }
           .fe { padding-bottom: 0; }
         }
@@ -468,12 +420,6 @@ export default function PlayDashboard({
         <header className="fe-hd">
           <Image src="/lx2-logo.svg" alt="LX2" width={72} height={36} priority />
           <div className="fe-hd-r">
-            <button className="fe-icon-btn" aria-label="Search">
-              <SearchIcon />
-            </button>
-            <button className="fe-icon-btn" aria-label="Notifications">
-              <BellIcon />
-            </button>
             <button className="fe-so-hd" onClick={handleSignOut}>Sign out</button>
           </div>
         </header>
@@ -579,29 +525,7 @@ export default function PlayDashboard({
 
         </main>
 
-        {/* ── Bottom nav ── */}
-        <nav className="fe-bnav">
-          <Link href="/play" className="fe-bnav-item active" aria-label="Home">
-            <HomeIcon />
-            <span>Home</span>
-          </Link>
-          <Link href="/rounds" className="fe-bnav-item" aria-label="Rounds">
-            <ClipboardIcon />
-            <span>Rounds</span>
-          </Link>
-          <Link href="/events" className="fe-bnav-item" aria-label="Events">
-            <TrophyIcon size={20} />
-            <span>Events</span>
-          </Link>
-          <Link href="/society" className="fe-bnav-item" aria-label="Society">
-            <UsersIcon size={20} />
-            <span>Society</span>
-          </Link>
-          <Link href="/profile" className="fe-bnav-item" aria-label="Profile">
-            <UserIcon />
-            <span>Profile</span>
-          </Link>
-        </nav>
+        <BottomNav active="home" />
 
       </div>
     </>
@@ -610,23 +534,6 @@ export default function PlayDashboard({
 
 /* ── Inline SVG icons ────────────────────────────────────────── */
 
-function SearchIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.75"/>
-      <path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-    </svg>
-  )
-}
-
-function BellIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M13.73 21a2 2 0 01-3.46 0" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  )
-}
 
 function FlagIcon({ size = 16 }: { size?: number }) {
   return (
@@ -705,34 +612,6 @@ function UsersIcon({ size = 12 }: { size?: number }) {
       <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
       <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="1.75"/>
       <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-    </svg>
-  )
-}
-
-function HomeIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M3 12L12 4l9 8" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M5 10v9a1 1 0 001 1h4v-4h4v4h4a1 1 0 001-1v-9" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  )
-}
-
-function ClipboardIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" strokeWidth="1.75"/>
-      <path d="M8 2v4M16 2v4M3 10h18" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-      <path d="M8 14h4M8 17h6" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-    </svg>
-  )
-}
-
-function UserIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.75"/>
-      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
     </svg>
   )
 }

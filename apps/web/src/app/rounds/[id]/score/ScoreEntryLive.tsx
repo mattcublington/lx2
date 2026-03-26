@@ -425,6 +425,46 @@ const STYLES = `
     transform: translateY(-1px);
   }
 
+  /* ── Finish round banner ───────────────────────────────── */
+  .sc-finish {
+    margin: 0 1rem 1rem;
+    background: linear-gradient(135deg, #2D5016 0%, #3D6B1A 100%);
+    border-radius: 16px;
+    padding: 1.125rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    box-shadow: 0 6px 20px rgba(45,80,22,0.25);
+    animation: sc-in 0.3s cubic-bezier(0.2,0,0,1) both;
+  }
+  .sc-finish-text { flex: 1; }
+  .sc-finish-h {
+    font-family: var(--font-manrope), sans-serif;
+    font-weight: 700; font-size: 0.9375rem; color: #ffffff;
+    margin-bottom: 0.125rem;
+  }
+  .sc-finish-s {
+    font-family: var(--font-lexend), sans-serif;
+    font-size: 0.8125rem; color: rgba(255,255,255,0.75);
+  }
+  .sc-finish-btn {
+    background: rgba(255,255,255,0.15);
+    border: 1.5px solid rgba(255,255,255,0.3);
+    color: #ffffff;
+    font-family: var(--font-lexend), sans-serif;
+    font-weight: 600; font-size: 0.875rem;
+    padding: 0.625rem 1rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+    text-decoration: none;
+    display: inline-flex; align-items: center;
+  }
+  .sc-finish-btn:hover { background: rgba(255,255,255,0.25); }
+
   /* ── Modal overlay ─────────────────────────────────────── */
   .sc-overlay {
     position: fixed; inset: 0;
@@ -1070,8 +1110,21 @@ export default function ScoreEntryLive(props: Props) {
     if (autoAdvancedHoles.current.has(hir)) return
     if (s.hole >= maxIdx) return
     const playersWithScorecard = groupPlayers.filter(p => p.scorecardId)
-    if (playersWithScorecard.length <= 1) return
 
+    // Solo play: advance quickly after scoring
+    if (playersWithScorecard.length <= 1) {
+      autoAdvancedHoles.current.add(hir)
+      const nextHoleNum = holes[s.hole + 1]?.holeInRound ?? hir + 1
+      setAutoAdvance({ from: hir, to: nextHoleNum })
+      if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current)
+      autoAdvanceTimer.current = setTimeout(() => {
+        setAutoAdvance(null)
+        d({ type: 'NEXT', maxIdx })
+      }, 500)
+      return
+    }
+
+    // Group play: advance once all others have scored this hole
     const allOthersDone = playersWithScorecard
       .filter(p => p.scorecardId !== scorecardId)
       .every(p => hir in (liveScores[p.scorecardId] ?? {}))
@@ -1152,6 +1205,7 @@ export default function ScoreEntryLive(props: Props) {
   // ── Derivations for render ─────────────────────────────────────────────────
 
   const { totalPts, totalStrokes, holesPlayed } = getRunningTotal()
+  const roundComplete = holesPlayed === holes.length
   const myInitials = playerName.split(' ').filter(Boolean).map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?'
 
   // 4-hole navigation window
@@ -1544,6 +1598,21 @@ export default function ScoreEntryLive(props: Props) {
             )
           })}
         </div>
+
+        {/* ── Finish round banner ── */}
+        {roundComplete && (
+          <div className="sc-finish">
+            <div className="sc-finish-text">
+              <div className="sc-finish-h">Round complete 🏌️</div>
+              <div className="sc-finish-s">
+                {format === 'stableford'
+                  ? `${totalPts} pts total`
+                  : `${totalStrokes} strokes total`}
+              </div>
+            </div>
+            <a href="/play" className="sc-finish-btn">Finish round →</a>
+          </div>
+        )}
 
         {/* Bottom spacer */}
         <div style={{ height: 80 }} />
