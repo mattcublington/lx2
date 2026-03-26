@@ -280,7 +280,7 @@ function AuthForm() {
             </svg>
           </Link>
           <Link href="/" className="auth-logo" aria-label="LX2 home">
-            <Image src="/lx2-logo.svg" alt="LX2" width={56} height={28} priority />
+            <Image src="/lx2-logo.svg" alt="LX2" width={72} height={36} priority />
           </Link>
           <div style={{ width: 40 }} />
         </header>
