@@ -987,7 +987,7 @@ export default function LX2Architecture() {
       {/* Two-app overview */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
         {/* Golfer app */}
-        <div style={{ background: '#fff', border: '1.5px solid #22C55E40', borderRadius: 14, padding: '14px 16px', boxShadow: '0 4px 16px rgba(34,197,94,0.08)' }}>
+        <div onClick={() => setView('surfaces')} style={{ background: '#fff', border: '1.5px solid #22C55E40', borderRadius: 14, padding: '14px 16px', boxShadow: '0 4px 16px rgba(34,197,94,0.08)', cursor: 'pointer' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#16A34A', flexShrink: 0 }} />
             <div style={{ fontSize: 12, fontWeight: 700, color: '#15803D', fontFamily: "'Manrope', sans-serif" }}>lx2.golf</div>
@@ -1008,7 +1008,7 @@ export default function LX2Architecture() {
         </div>
 
         {/* Club console */}
-        <div style={{ background: '#fff', border: '1.5px solid #3B82F640', borderRadius: 14, padding: '14px 16px', boxShadow: '0 4px 16px rgba(59,130,246,0.08)' }}>
+        <div onClick={() => setView('surfaces')} style={{ background: '#fff', border: '1.5px solid #3B82F640', borderRadius: 14, padding: '14px 16px', boxShadow: '0 4px 16px rgba(59,130,246,0.08)', cursor: 'pointer' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#2563EB', flexShrink: 0 }} />
             <div style={{ fontSize: 12, fontWeight: 700, color: '#1D4ED8', fontFamily: "'Manrope', sans-serif" }}>club.lx2.golf</div>
@@ -1066,7 +1066,7 @@ export default function LX2Architecture() {
       <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
         {(['modules', 'surfaces', 'deps', 'journeys', 'tests', 'stack', 'claude'] as const).map(v => (
           <button key={v} onClick={() => setView(v)} style={{ fontSize: 12, padding: '6px 14px', borderRadius: 99, border: 'none', background: view === v ? '#1A2E1A' : '#F3F4F6', color: view === v ? '#fff' : '#6B7280', cursor: 'pointer', fontFamily: "'Lexend', sans-serif", fontWeight: view === v ? 500 : 400, transition: 'all 0.15s' }}>
-            {v === 'modules' ? 'All modules' : v === 'surfaces' ? 'Surfaces' : v === 'deps' ? 'Dependencies' : v === 'journeys' ? 'Journeys' : v === 'tests' ? 'Test strategy' : v === 'stack' ? 'Tech stack' : 'Claude setup'}
+            {v === 'modules' ? 'All modules' : v === 'surfaces' ? 'App map' : v === 'deps' ? 'Dependencies' : v === 'journeys' ? 'Journeys' : v === 'tests' ? 'Test strategy' : v === 'stack' ? 'Tech stack' : 'Claude setup'}
           </button>
         ))}
       </div>
