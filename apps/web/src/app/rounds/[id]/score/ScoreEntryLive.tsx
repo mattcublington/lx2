@@ -728,6 +728,174 @@ const STYLES = `
     border-top: 3px solid rgba(45,80,22,0.4) !important;
     background: rgba(45,80,22,0.06) !important;
   }
+
+  /* ── Leaderboard panel ──────────────────────────────────── */
+  .sc-lb-page {
+    position: fixed; inset: 0;
+    background: #F0F4EC;
+    z-index: 80;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    font-family: var(--font-lexend), 'Lexend', sans-serif;
+    animation: sc-lb-in 0.22s ease both;
+  }
+  @keyframes sc-lb-in {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .sc-lb-header {
+    background: #F0F4EC;
+    padding: 1rem 1.25rem;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .sc-lb-back {
+    width: 40px; height: 40px;
+    background: transparent; border: none;
+    border-radius: 12px; color: #1A2E1A;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 1.25rem; transition: background 0.15s, transform 0.15s;
+  }
+  .sc-lb-back:hover { background: rgba(26,28,28,0.05); transform: translateX(-2px); }
+  .sc-lb-title {
+    font-family: var(--font-manrope), 'Manrope', sans-serif;
+    font-weight: 700; font-size: 1.125rem; color: #1A2E1A;
+    position: absolute; left: 50%; transform: translateX(-50%);
+    letter-spacing: -0.01em;
+  }
+  .sc-lb-tv {
+    font-family: var(--font-lexend), sans-serif;
+    font-size: 0.75rem; font-weight: 600; color: #2D5016;
+    text-decoration: none; padding: 6px 12px;
+    border-radius: 8px; border: 1.5px solid rgba(45,80,22,0.3);
+    transition: background 0.15s;
+  }
+  .sc-lb-tv:hover { background: rgba(45,80,22,0.06); }
+  .sc-lb-body { padding: 0 1.25rem 80px; display: flex; flex-direction: column; gap: 6px; }
+  .sc-lb-status {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 4px 2px 8px;
+  }
+  .sc-lb-live { display: flex; align-items: center; gap: 6px; }
+  .sc-lb-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #4ade80; box-shadow: 0 0 0 2px rgba(74,222,128,0.25);
+    animation: sc-lb-pulse 2.2s ease-in-out infinite;
+  }
+  @keyframes sc-lb-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .sc-lb-live-lbl {
+    font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: #4ade80;
+  }
+  .sc-lb-count { font-size: 0.75rem; color: #6B8C6B; }
+  .sc-lb-progress {
+    background: #fff; border-radius: 12px;
+    padding: 0.75rem 1rem; text-align: center;
+    font-size: 0.875rem; color: #6B8C6B;
+    box-shadow: 0 2px 8px rgba(26,28,28,0.04);
+  }
+  .sc-lb-progress strong { color: #1A2E1A; font-weight: 600; }
+  .sc-lb-card {
+    background: #fff; border-radius: 14px;
+    border: 1px solid #E0EBE0; overflow: hidden;
+    cursor: pointer; transition: box-shadow 0.15s, transform 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .sc-lb-card:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(13,99,27,0.08); }
+  .sc-lb-card.me { background: rgba(240,244,236,0.6); }
+  .sc-lb-row { display: flex; align-items: center; padding: 14px 14px; gap: 10px; }
+  .sc-lb-rank {
+    flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-manrope), sans-serif;
+    font-weight: 700; font-size: 0.6875rem;
+  }
+  .sc-lb-rank.r1 { background: linear-gradient(135deg,#FFD700,#FFA500); color: #1A2E1A; }
+  .sc-lb-rank.r2 { background: linear-gradient(135deg,#C0C0C0,#A8A8A8); color: #1A2E1A; }
+  .sc-lb-rank.r3 { background: linear-gradient(135deg,#CD7F32,#B8722E); color: #fff; }
+  .sc-lb-rank.rx { background: rgba(26,28,28,0.08); color: #44483E; }
+  .sc-lb-rank.rns { background: #F9FAFB; color: #9CA3AF; }
+  .sc-lb-avatar {
+    flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg,#2D5016,#0D631B);
+    color: #fff; font-size: 0.75rem; font-weight: 700;
+    font-family: var(--font-manrope), sans-serif;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .sc-lb-info { flex: 1; min-width: 0; }
+  .sc-lb-name {
+    font-weight: 600; font-size: 0.9375rem; color: #1A2E1A;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .sc-lb-name.me { color: #0D631B; }
+  .sc-lb-sub { font-size: 0.6875rem; color: #6B8C6B; margin-top: 2px; }
+  .sc-lb-scores { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .sc-lb-pts {
+    font-family: var(--font-manrope), sans-serif;
+    font-weight: 800; font-size: 1.5rem; color: #2D5016;
+    letter-spacing: -0.03em; line-height: 1;
+  }
+  .sc-lb-pts.leader { color: #0D631B; }
+  .sc-lb-pill {
+    background: linear-gradient(135deg,rgba(45,80,22,0.1),rgba(61,107,26,0.1));
+    padding: 0.25rem 0.5rem; border-radius: 8px;
+    font-size: 0.6875rem; font-weight: 500; color: #2D5016;
+    white-space: nowrap;
+  }
+  .sc-lb-chev {
+    flex-shrink: 0; color: #b0c0b0; transition: transform 0.2s;
+  }
+  .sc-lb-chev.open { transform: rotate(180deg); }
+  /* Expanded scorecard inside lb card */
+  .sc-lb-sc {
+    border-top: 1px solid rgba(26,28,28,0.06);
+    padding: 1rem 1rem 1.25rem;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .sc-lb-sc::-webkit-scrollbar { display: none; }
+  .sc-lb-sc-tbl { width: 100%; border-collapse: collapse; min-width: 200px; }
+  .sc-lb-sc-tbl th {
+    font-size: 0.6875rem; font-weight: 500; color: #6B8C6B; text-align: center;
+    padding: 0.375rem 0.5rem; border-bottom: 1px solid rgba(26,28,28,0.06);
+    font-family: var(--font-lexend), sans-serif;
+  }
+  .sc-lb-sc-tbl td { text-align: center; padding: 0.5rem 0.5rem; border-bottom: 1px solid rgba(26,28,28,0.04); }
+  .sc-lb-sc-tbl tr:last-child td { border-bottom: none; }
+  .sc-lb-sc-hole {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: rgba(26,28,28,0.05);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: var(--font-manrope), sans-serif;
+    font-weight: 600; font-size: 0.75rem; color: #1A2E1A;
+  }
+  .sc-lb-sc-par { font-size: 0.875rem; color: #44483E; font-family: var(--font-lexend), sans-serif; }
+  .sc-lb-sc-score {
+    font-family: var(--font-manrope), sans-serif;
+    font-weight: 700; font-size: 0.9375rem;
+  }
+  .sc-lb-sc-score.under { color: #2D5016; }
+  .sc-lb-sc-score.over  { color: #923357; }
+  .sc-lb-sc-score.par   { color: #1A2E1A; }
+  .sc-lb-sc-score.blank { color: #c0c0c0; font-weight: 400; font-size: 0.8125rem; }
+  .sc-lb-sc-pts-cell {
+    background: rgba(45,80,22,0.08); padding: 0.15rem 0.375rem;
+    border-radius: 5px; font-size: 0.6875rem; font-weight: 500;
+    color: #2D5016; display: inline-block;
+    font-family: var(--font-lexend), sans-serif;
+  }
+  .sc-lb-total {
+    text-align: right; font-family: var(--font-manrope), sans-serif;
+    font-weight: 700; font-size: 0.875rem; color: #2D5016; padding-top: 0.5rem;
+  }
+  .sc-lb-footer {
+    text-align: center; padding: 1rem 0 0.5rem;
+  }
+  .sc-lb-full-link {
+    font-family: var(--font-lexend), sans-serif;
+    font-size: 0.8125rem; color: #6B8C6B; text-decoration: underline;
+    background: none; border: none; cursor: pointer;
+    text-decoration-color: rgba(107,140,107,0.4);
+  }
 `
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -768,6 +936,7 @@ export default function ScoreEntryLive(props: Props) {
   const [cDist, setCDist] = useState('')
   const [showContestOverlay, setShowContestOverlay] = useState(false)
   const [cardView, setCardView] = useState<'front9' | 'back9' | 'all18'>('front9')
+  const [showLeaderboard, setShowLeaderboard] = useState(false)
 
   const autoAdvanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const autoAdvancedHoles = useRef<Set<number>>(new Set())
@@ -1400,9 +1569,9 @@ export default function ScoreEntryLive(props: Props) {
           <button className="sc-act-btn" onClick={() => d({ type: 'TOGGLE_CARD' })}>
             Scorecard
           </button>
-          <a className="sc-act-btn" href={`/events/${eventId}/leaderboard`}>
+          <button className="sc-act-btn" onClick={() => setShowLeaderboard(true)}>
             Leaderboard
-          </a>
+          </button>
         </div>
 
         {/* ── Score entry modal ── */}
@@ -1432,7 +1601,23 @@ export default function ScoreEntryLive(props: Props) {
           <SettingsModal
             eventId={eventId}
             onScorecard={() => { setSettingsOpen(false); d({ type: 'TOGGLE_CARD' }) }}
+            onLeaderboard={() => { setSettingsOpen(false); setShowLeaderboard(true) }}
             onClose={() => setSettingsOpen(false)}
+          />
+        )}
+
+        {/* ── Leaderboard panel ── */}
+        {showLeaderboard && (
+          <LeaderboardPanel
+            groupPlayers={groupPlayers}
+            liveScores={liveScores}
+            currentScores={s.scores}
+            currentScorecardId={scorecardId}
+            holes={holes}
+            format={format}
+            allowancePct={allowancePct}
+            eventId={eventId}
+            onClose={() => setShowLeaderboard(false)}
           />
         )}
 
@@ -1590,10 +1775,12 @@ function ScoreModal({
 function SettingsModal({
   eventId,
   onScorecard,
+  onLeaderboard,
   onClose,
 }: {
   eventId: string
   onScorecard: () => void
+  onLeaderboard: () => void
   onClose: () => void
 }) {
   return (
@@ -1611,11 +1798,11 @@ function SettingsModal({
             <span className="sc-settings-lbl">View scorecard</span>
             <span className="sc-settings-chev">›</span>
           </button>
-          <a className="sc-settings-row" href={`/events/${eventId}/leaderboard`}>
+          <button className="sc-settings-row" onClick={onLeaderboard}>
             <div className="sc-settings-ico green">🏆</div>
-            <span className="sc-settings-lbl">Event leaderboard</span>
+            <span className="sc-settings-lbl">Leaderboard</span>
             <span className="sc-settings-chev">›</span>
-          </a>
+          </button>
         </div>
 
         <div className="sc-settings-div" />
@@ -1633,6 +1820,301 @@ function SettingsModal({
           <button className="sc-cancel-btn" onClick={onClose}>Cancel</button>
         </div>
 
+      </div>
+    </div>
+  )
+}
+
+// ─── Leaderboard Panel ────────────────────────────────────────────────────────
+
+interface LbRow {
+  player: GroupPlayer
+  thru: number
+  score: number        // stableford: total pts; strokeplay: vs-par diff
+  perHole: number[]
+  grossStrokes: (number | null)[]
+  playingHandicap: number
+  posLabel: string
+}
+
+function computeGroupLeaderboard(
+  groupPlayers: GroupPlayer[],
+  liveScores: Record<string, Record<number, number | null>>,
+  currentScores: Record<number, number | null>,
+  currentScorecardId: string,
+  holes: ScoringHole[],
+  format: 'stableford' | 'strokeplay' | 'matchplay',
+  allowancePct: number,
+): LbRow[] {
+  const rows: LbRow[] = groupPlayers.map(player => {
+    const rawScores = player.scorecardId === currentScorecardId
+      ? currentScores
+      : (liveScores[player.scorecardId] ?? player.initialScores)
+
+    const playingHandicap = Math.round(player.handicapIndex * allowancePct)
+    const hcPerHole = allocateStrokes(playingHandicap, holes)
+
+    let totalPts = 0
+    let grossTotal = 0
+    let parTotal = 0
+    let thru = 0
+    const perHole: number[] = []
+    const grossStrokes: (number | null)[] = []
+
+    for (const h of holes) {
+      const gross = rawScores[h.holeInRound] ?? null
+      grossStrokes.push(gross)
+      if (gross !== null) {
+        const hcShots = hcPerHole[h.holeInRound] ?? 0
+        if (format === 'stableford') {
+          const p = pts(gross, h.par, hcShots)
+          perHole.push(p)
+          totalPts += p
+        } else {
+          perHole.push(gross)
+          grossTotal += gross
+          parTotal += h.par
+        }
+        thru++
+      } else {
+        perHole.push(0)
+      }
+    }
+
+    const score = format === 'stableford' ? totalPts : (grossTotal - parTotal)
+    return { player, thru, score, perHole, grossStrokes, playingHandicap, posLabel: '–' }
+  })
+
+  rows.sort((a, b) => {
+    if (a.thru === 0 && b.thru === 0) return 0
+    if (a.thru === 0) return 1
+    if (b.thru === 0) return -1
+    return format === 'stableford' ? b.score - a.score : a.score - b.score
+  })
+
+  // Assign position labels
+  let i = 0
+  while (i < rows.length) {
+    const row = rows[i]!
+    if (row.thru === 0) { i++; continue }
+    let j = i
+    while (j + 1 < rows.length && rows[j + 1]!.thru > 0 && rows[j + 1]!.score === row.score) j++
+    const label = j > i ? `T${i + 1}` : `${i + 1}`
+    for (let k = i; k <= j; k++) rows[k]!.posLabel = label
+    i = j + 1
+  }
+
+  return rows
+}
+
+function lbRankClass(pos: string, thru: number) {
+  if (thru === 0) return 'rns'
+  const base = pos.replace('T', '')
+  if (base === '1') return 'r1'
+  if (base === '2') return 'r2'
+  if (base === '3') return 'r3'
+  return 'rx'
+}
+
+function lbOrdinal(pos: string, thru: number) {
+  if (thru === 0) return '–'
+  const n = parseInt(pos.replace('T', ''), 10)
+  if (isNaN(n)) return pos
+  const s = ['th', 'st', 'nd', 'rd']
+  const v = n % 100
+  return (pos.startsWith('T') ? 'T' : '') + n + (s[(v - 20) % 10] ?? s[v] ?? 'th')
+}
+
+function LeaderboardPanel({
+  groupPlayers,
+  liveScores,
+  currentScores,
+  currentScorecardId,
+  holes,
+  format,
+  allowancePct,
+  eventId,
+  onClose,
+}: {
+  groupPlayers: GroupPlayer[]
+  liveScores: Record<string, Record<number, number | null>>
+  currentScores: Record<number, number | null>
+  currentScorecardId: string
+  holes: ScoringHole[]
+  format: 'stableford' | 'strokeplay' | 'matchplay'
+  allowancePct: number
+  eventId: string
+  onClose: () => void
+}) {
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  const rows = computeGroupLeaderboard(
+    groupPlayers, liveScores, currentScores, currentScorecardId, holes, format, allowancePct,
+  )
+
+  const maxThru = rows.reduce((m, r) => Math.max(m, r.thru), 0)
+  const startedCount = rows.filter(r => r.thru > 0).length
+  const isEvent = groupPlayers.length > 0 && eventId
+
+  return (
+    <div className="sc-lb-page">
+      {/* Header */}
+      <header className="sc-lb-header">
+        <button className="sc-lb-back" onClick={onClose} aria-label="Back to scoring">
+          ←
+        </button>
+        <span className="sc-lb-title">Leaderboard</span>
+        {isEvent ? (
+          <a className="sc-lb-tv" href={`/events/${eventId}/leaderboard`} target="_blank" rel="noopener noreferrer">
+            Full ↗
+          </a>
+        ) : (
+          <span style={{ width: 60 }} />
+        )}
+      </header>
+
+      <div className="sc-lb-body">
+        {/* Live status */}
+        <div className="sc-lb-status">
+          <div className="sc-lb-live">
+            <span className="sc-lb-dot" />
+            <span className="sc-lb-live-lbl">Live</span>
+          </div>
+          <span className="sc-lb-count">{startedCount}/{rows.length} playing</span>
+        </div>
+
+        {/* Progress */}
+        {maxThru > 0 && (
+          <div className="sc-lb-progress">
+            <strong>Thru {maxThru} hole{maxThru !== 1 ? 's' : ''}</strong>
+            {' · '}
+            {rows.filter(r => r.thru > 0).every(r => r.thru === holes.length)
+              ? 'Final results'
+              : 'Round in progress'}
+          </div>
+        )}
+
+        {/* Player rows */}
+        {rows.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '48px 0', color: '#6B8C6B', fontSize: '0.9375rem' }}>
+            No players yet.
+          </div>
+        ) : rows.map(row => {
+          const pid = row.player.scorecardId || row.player.displayName
+          const isMe = row.player.scorecardId === currentScorecardId
+          const isExpanded = expandedId === pid
+          const thruLabel = row.thru === 0
+            ? 'Not started'
+            : row.thru === holes.length ? 'Finished' : `Thru ${row.thru}`
+          const subLabel = row.thru > 0
+            ? format === 'stableford'
+              ? `${row.score} pts · ${thruLabel}`
+              : `${row.score === 0 ? 'E' : row.score > 0 ? `+${row.score}` : `${row.score}`} · ${thruLabel}`
+            : `HC ${row.playingHandicap} · ${thruLabel}`
+
+          return (
+            <div
+              key={pid}
+              className={`sc-lb-card${isMe ? ' me' : ''}`}
+              onClick={() => row.thru > 0 ? setExpandedId(isExpanded ? null : pid) : undefined}
+              role={row.thru > 0 ? 'button' : undefined}
+              tabIndex={row.thru > 0 ? 0 : undefined}
+              onKeyDown={row.thru > 0 ? (e) => { if (e.key === 'Enter' || e.key === ' ') setExpandedId(isExpanded ? null : pid) } : undefined}
+              aria-expanded={row.thru > 0 ? isExpanded : undefined}
+            >
+              <div className="sc-lb-row">
+                <div className={`sc-lb-rank ${lbRankClass(row.posLabel, row.thru)}`}>
+                  {lbOrdinal(row.posLabel, row.thru)}
+                </div>
+                <div className="sc-lb-avatar">
+                  {row.player.displayName.split(' ').map(w => w[0] ?? '').join('').slice(0, 2).toUpperCase()}
+                </div>
+                <div className="sc-lb-info">
+                  <div className={`sc-lb-name${isMe ? ' me' : ''}`}>{row.player.displayName}</div>
+                  <div className="sc-lb-sub">{subLabel}</div>
+                </div>
+                {row.thru > 0 && (
+                  <div className="sc-lb-scores">
+                    <span className={`sc-lb-pts${row.posLabel === '1' || row.posLabel === 'T1' ? ' leader' : ''}`}>
+                      {format === 'stableford' ? row.score : row.score === 0 ? 'E' : row.score > 0 ? `+${row.score}` : `${row.score}`}
+                    </span>
+                    {format === 'stableford' && (
+                      <span className="sc-lb-pill">{row.score} pts</span>
+                    )}
+                  </div>
+                )}
+                {row.thru > 0 && (
+                  <svg className={`sc-lb-chev${isExpanded ? ' open' : ''}`} width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </div>
+
+              {/* Expanded scorecard */}
+              {isExpanded && row.thru > 0 && (
+                <div className="sc-lb-sc">
+                  <table className="sc-lb-sc-tbl">
+                    <thead>
+                      <tr>
+                        <th>Hole</th>
+                        <th>Par</th>
+                        <th>Score</th>
+                        <th>{format === 'stableford' ? 'Pts' : '+/−'}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {holes.map((h, idx) => {
+                        const gross = row.grossStrokes[idx] ?? null
+                        const p = row.perHole[idx] ?? 0
+                        const played = gross !== null
+                        let scoreClass = 'blank'
+                        if (played) {
+                          const rel = gross - h.par
+                          scoreClass = rel < 0 ? 'under' : rel > 0 ? 'over' : 'par'
+                        }
+                        const ptLabel = format === 'stableford'
+                          ? `${p}pt${p !== 1 ? 's' : ''}`
+                          : played ? (gross - h.par === 0 ? 'E' : gross - h.par > 0 ? `+${gross - h.par}` : `${gross - h.par}`) : '–'
+                        return (
+                          <tr key={h.holeInRound}>
+                            <td><span className="sc-lb-sc-hole">{h.holeInRound}</span></td>
+                            <td><span className="sc-lb-sc-par">{h.par}</span></td>
+                            <td>
+                              <span className={`sc-lb-sc-score ${scoreClass}`}>
+                                {played ? gross : '–'}
+                              </span>
+                            </td>
+                            <td>
+                              {played
+                                ? <span className="sc-lb-sc-pts-cell">{ptLabel}</span>
+                                : <span style={{ color: '#c0c0c0', fontSize: '0.8125rem' }}>–</span>
+                              }
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                  <div className="sc-lb-total">
+                    {format === 'stableford'
+                      ? `Total: ${row.score} pts`
+                      : `Total: ${row.score === 0 ? 'E' : row.score > 0 ? `+${row.score}` : `${row.score}`}`
+                    }
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        })}
+
+        {/* Link to full event leaderboard */}
+        {isEvent && (
+          <div className="sc-lb-footer">
+            <a className="sc-lb-full-link" href={`/events/${eventId}/leaderboard`} target="_blank" rel="noopener noreferrer">
+              View full event leaderboard →
+            </a>
+          </div>
+        )}
       </div>
     </div>
   )
