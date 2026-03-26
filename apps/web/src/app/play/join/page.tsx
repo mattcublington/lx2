@@ -28,7 +28,7 @@ export default async function JoinRoundPage({ searchParams }: PageProps) {
       userId={user.id}
       displayName={displayName}
       handicapIndex={handicapIndex}
-      initialCode={code?.toUpperCase()}
+      {...(code ? { initialCode: code.toUpperCase() } : {})}
     />
   )
 }

@@ -325,7 +325,7 @@ export default async function ScorePage({ params, searchParams }: PageProps) {
       eventDate={event.date}
       groupPlayers={groupPlayers}
       initialHole={initialHole}
-      shareCode={event.share_code ?? undefined}
+      {...(event.share_code ? { shareCode: event.share_code } : {})}
     />
   )
 }

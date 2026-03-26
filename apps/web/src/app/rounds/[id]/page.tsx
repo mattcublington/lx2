@@ -109,7 +109,7 @@ function HoleChart({
   let current: { x: number; y: number }[] = []
   for (let i = 0; i < n; i++) {
     const v = relScores[i]
-    if (v !== null) {
+    if (v !== null && v !== undefined) {
       current.push({ x: xAt(i), y: yAt(v) })
     } else {
       if (current.length >= 2) segments.push(current)
@@ -205,7 +205,7 @@ function HoleChart({
       {/* Dots */}
       {holes.map((h, i) => {
         const v = relScores[i]
-        if (v === null) return null
+        if (v == null) return null
         const cx = xAt(i)
         const cy = yAt(v)
         return (
