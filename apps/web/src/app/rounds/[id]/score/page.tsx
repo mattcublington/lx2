@@ -83,7 +83,8 @@ export default async function ScorePage({ params, searchParams }: PageProps) {
         loop_id,
         name,
         date,
-        created_by
+        created_by,
+        share_code
       )
     `)
     .eq('id', id)
@@ -113,6 +114,7 @@ export default async function ScorePage({ params, searchParams }: PageProps) {
     name: string
     date: string
     created_by: string
+    share_code: string | null
   }
 
   // ── 2. Ownership check ─────────────────────────────────────────────────────
@@ -323,6 +325,7 @@ export default async function ScorePage({ params, searchParams }: PageProps) {
       eventDate={event.date}
       groupPlayers={groupPlayers}
       initialHole={initialHole}
+      shareCode={event.share_code ?? undefined}
     />
   )
 }

@@ -2,6 +2,16 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getCourse } from '@/lib/courses'
+import crypto from 'crypto'
+
+// ─── Share code ────────────────────────────────────────────────────────────────
+// 6-char uppercase alphanumeric with no visually confusable characters.
+
+function generateShareCode(): string {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
+  const bytes = crypto.randomBytes(6)
+  return Array.from(bytes as Uint8Array).map(b => chars[b % chars.length]).join('')
+}
 
 interface StartRoundPlayer {
   name: string
@@ -94,7 +104,8 @@ export async function startRound(data: StartRoundData): Promise<string> {
   const eventName = `${shortCombo} · ${formatLabel} · ${dateLabel}`
   const todayIso = today.toISOString().split('T')[0]!
 
-  // 6. Create events row
+  // 6. Create events row (with share code for group joining)
+  const shareCode = generateShareCode()
   const { data: event, error: eventErr } = await supabase
     .from('events')
     .insert({
@@ -110,6 +121,7 @@ export async function startRound(data: StartRoundData): Promise<string> {
       ld_holes: data.ldHoles,
       is_public: false,
       finalised: false,
+      share_code: shareCode,
     })
     .select('id')
     .single()

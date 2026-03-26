@@ -29,6 +29,7 @@ export interface Props {
   eventDate: string
   groupPlayers: GroupPlayer[]
   initialHole?: number
+  shareCode?: string
 }
 
 interface State {
@@ -178,6 +179,28 @@ const STYLES = `
     flex-shrink: 0;
   }
   .sc-icon-btn:hover { background: rgba(26,28,28,0.05); color: #1A2E1A; }
+
+  /* ── Share code chip ───────────────────────────────────── */
+  .sc-share-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.3rem 0.625rem;
+    border-radius: 20px;
+    border: 1.5px solid rgba(45, 80, 22, 0.25);
+    background: rgba(45, 80, 22, 0.07);
+    color: #2D5016;
+    font-family: var(--font-manrope), 'Manrope', sans-serif;
+    font-weight: 700;
+    font-size: 0.8125rem;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .sc-share-chip:hover { background: rgba(45, 80, 22, 0.12); border-color: rgba(45, 80, 22, 0.4); }
+  .sc-share-chip.copied { background: rgba(45, 80, 22, 0.15); color: #1A5C0A; border-color: rgba(45, 80, 22, 0.5); }
 
   /* ── Hole navigation ───────────────────────────────────── */
   .sc-nav {
@@ -945,6 +968,7 @@ export default function ScoreEntryLive(props: Props) {
     scorecardId, eventId, playerName, handicapIndex, format, allowancePct,
     holes, initialScores, initialPickups, ntpHoles, ldHoles,
     selectedTee, eventName, eventDate, groupPlayers, initialHole = 0,
+    shareCode,
   } = props
 
   const router = useRouter()
@@ -977,6 +1001,7 @@ export default function ScoreEntryLive(props: Props) {
   const [showContestOverlay, setShowContestOverlay] = useState(false)
   const [cardView, setCardView] = useState<'front9' | 'back9' | 'all18'>('front9')
   const [showLeaderboard, setShowLeaderboard] = useState(false)
+  const [codeCopied, setCodeCopied] = useState(false)
 
   const autoAdvanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const autoAdvancedHoles = useRef<Set<number>>(new Set())
@@ -1446,9 +1471,24 @@ export default function ScoreEntryLive(props: Props) {
         {/* ── Context bar ── */}
         <div className="sc-bar">
           <span className="sc-bar-title">{eventName}</span>
-          <button className="sc-icon-btn" onClick={() => setSettingsOpen(true)} aria-label="Round settings">
-            <GearIcon />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            {shareCode && (
+              <button
+                className={`sc-share-chip${codeCopied ? ' copied' : ''}`}
+                onClick={() => {
+                  navigator.clipboard.writeText(shareCode).catch(() => {})
+                  setCodeCopied(true)
+                  setTimeout(() => setCodeCopied(false), 2000)
+                }}
+                title="Tap to copy — share this code so another group can join"
+              >
+                {codeCopied ? '✓ Copied' : shareCode}
+              </button>
+            )}
+            <button className="sc-icon-btn" onClick={() => setSettingsOpen(true)} aria-label="Round settings">
+              <GearIcon />
+            </button>
+          </div>
         </div>
 
         {/* ── Hole navigation ── */}

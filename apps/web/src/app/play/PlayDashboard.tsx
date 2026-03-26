@@ -246,7 +246,7 @@ export default function PlayDashboard({
         }
         .fe-cta:active { transform: translateY(0); }
 
-        /* Join variant */
+        /* Join ongoing-round variant */
         .fe-cta.join {
           background: #FFFFFF;
           color: #2D5016;
@@ -255,6 +255,34 @@ export default function PlayDashboard({
         }
         .fe-cta.join:hover {
           box-shadow: 0 8px 20px rgba(26, 28, 28, 0.1);
+        }
+
+        /* Join-group secondary link (below primary CTA) */
+        .fe-cta-secondary {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          width: 100%;
+          padding: 0.875rem;
+          background: transparent;
+          color: #6B8C6B;
+          border: 1.5px solid rgba(107, 140, 107, 0.35);
+          border-radius: 14px;
+          font-family: var(--font-lexend), sans-serif;
+          font-weight: 500;
+          font-size: 0.9375rem;
+          cursor: pointer;
+          transition: border-color 0.15s, color 0.15s, background 0.15s;
+          margin-bottom: 2rem;
+          text-decoration: none;
+          letter-spacing: 0;
+          animation: fe-rise 0.45s 0.15s cubic-bezier(0.2, 0, 0, 1) both;
+        }
+        .fe-cta-secondary:hover {
+          color: #2D5016;
+          border-color: rgba(45, 80, 22, 0.4);
+          background: rgba(45, 80, 22, 0.04);
         }
 
         /* ── Section header ──────────────────────────────── */
@@ -462,6 +490,14 @@ export default function PlayDashboard({
             </Link>
           )}
 
+          {/* Secondary CTA — join another group's round */}
+          {!activeRoundId && (
+            <Link href="/play/join" className="fe-cta-secondary">
+              <PeopleIcon />
+              Join a group&apos;s round
+            </Link>
+          )}
+
           {/* Recent rounds */}
           <section className="fe-rounds">
             <h2 className="fe-section-hd">Recent Rounds</h2>
@@ -584,6 +620,16 @@ function PlayIcon() {
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.75"/>
       <path d="M10 8l6 4-6 4V8z" fill="currentColor"/>
+    </svg>
+  )
+}
+
+function PeopleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="9" cy="7" r="3" stroke="currentColor" strokeWidth="1.75"/>
+      <path d="M3 21v-1a6 6 0 0112 0v1" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
+      <path d="M16 3.13a4 4 0 010 7.75M21 21v-1a4 4 0 00-3-3.85" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
     </svg>
   )
 }
