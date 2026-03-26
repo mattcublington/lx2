@@ -966,20 +966,22 @@ function SettingsStep({
           {hasCourseRating && (
             <div style={{ marginBottom: '1.5rem' }}>
               <SettingLabel>Handicap</SettingLabel>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', gap: '1.5rem' }}>
                 <div>
-                  <div style={{ fontFamily: font.body, fontWeight: 500, fontSize: 12, textTransform: 'uppercase' as const, letterSpacing: '0.05em', color: FE.onTertiary, marginBottom: '0.5rem' }}>
+                  <div style={{ fontFamily: font.body, fontWeight: 500, fontSize: 12, textTransform: 'uppercase' as const, letterSpacing: '0.05em', color: FE.onTertiary, marginBottom: '0.25rem' }}>
                     Course Rating
                   </div>
-                  <input type="text" value={typeof displayCR === 'number' ? displayCR.toFixed(1) : displayCR} readOnly
-                    style={{ width: '100%', padding: '0.875rem', border: FE.borderGhost, borderRadius: 12, fontFamily: font.body, fontSize: 16, color: FE.onPrimary, background: FE.white, boxSizing: 'border-box' as const, outline: 'none' }} />
+                  <div style={{ fontFamily: font.body, fontSize: 20, fontWeight: 600, color: FE.onPrimary }}>
+                    {typeof displayCR === 'number' ? displayCR.toFixed(1) : displayCR}
+                  </div>
                 </div>
                 <div>
-                  <div style={{ fontFamily: font.body, fontWeight: 500, fontSize: 12, textTransform: 'uppercase' as const, letterSpacing: '0.05em', color: FE.onTertiary, marginBottom: '0.5rem' }}>
+                  <div style={{ fontFamily: font.body, fontWeight: 500, fontSize: 12, textTransform: 'uppercase' as const, letterSpacing: '0.05em', color: FE.onTertiary, marginBottom: '0.25rem' }}>
                     Slope Rating
                   </div>
-                  <input type="text" value={displaySlope} readOnly
-                    style={{ width: '100%', padding: '0.875rem', border: FE.borderGhost, borderRadius: 12, fontFamily: font.body, fontSize: 16, color: FE.onPrimary, background: FE.white, boxSizing: 'border-box' as const, outline: 'none' }} />
+                  <div style={{ fontFamily: font.body, fontSize: 20, fontWeight: 600, color: FE.onPrimary }}>
+                    {displaySlope}
+                  </div>
                 </div>
               </div>
             </div>
