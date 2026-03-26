@@ -392,7 +392,6 @@ export default function HomePage() {
           />
         </Link>
         <div className="hp-nav-links">
-          <a href="#features" className="hp-nav-link">Features</a>
           {userInitial && (
             <Link href="/play" className="hp-nav-profile" aria-label="My profile">
               {userInitial}
