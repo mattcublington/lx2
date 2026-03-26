@@ -1,5 +1,9 @@
 # LX2 — Claude Instructions
 
+## Git workflow
+
+Commit and push directly to `main`. Do not create feature branches or PRs unless explicitly asked.
+
 ## Project
 
 Golf scoring and society management platform. Turborepo monorepo.
