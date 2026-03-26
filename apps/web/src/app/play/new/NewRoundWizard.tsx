@@ -531,6 +531,7 @@ function PlayersStep({
   onChange: (players: Player[]) => void
   onNext: () => void
 }) {
+  const [showP2, setShowP2] = useState(true)
   const [showP3, setShowP3] = useState(false)
   const [showP4, setShowP4] = useState(false)
   const [searchIdx, setSearchIdx] = useState<number | null>(null)
@@ -593,77 +594,27 @@ function PlayersStep({
           </div>
         </div>
 
-        {/* Player 2 — always shown with input */}
+        {/* Player 2 */}
         <div style={{ marginBottom: '1.5rem' }}>
           <SectionLabel>PLAYER 2</SectionLabel>
-          <div style={{ background: FE.white, borderRadius: 16, padding: '1rem', boxShadow: FE.shadowFloat }}>
-            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem' }}>
-              <div style={{ flex: 1 }}>
-                <label htmlFor="p2-name" style={{ display: 'block', fontFamily: font.body, fontWeight: 500, fontSize: 14, color: FE.onPrimary, marginBottom: '0.5rem' }}>Name</label>
-                <input
-                  id="p2-name" type="text" value={players[1]?.name ?? ''}
-                  onChange={e => update(1, 'name', e.target.value)}
-                  placeholder="Enter name" style={inputFieldStyle}
-                  onFocus={e => { e.currentTarget.style.borderColor = FE.greenDark; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(45, 80, 22, 0.08)' }}
-                  onBlur={e => { e.currentTarget.style.borderColor = 'rgba(26,28,28,0.12)'; e.currentTarget.style.boxShadow = 'none' }}
-                />
-              </div>
-              <div style={{ width: 80 }}>
-                <label htmlFor="p2-hcp" style={{ display: 'block', fontFamily: font.body, fontWeight: 500, fontSize: 14, color: FE.onPrimary, marginBottom: '0.5rem' }}>HCP</label>
-                <input
-                  id="p2-hcp" type="number" value={players[1]?.handicapIndex ?? ''}
-                  onChange={e => update(1, 'handicapIndex', e.target.value)}
-                  placeholder="18" min={0} max={54} step={0.1}
-                  style={inputFieldStyle}
-                  onFocus={e => { e.currentTarget.style.borderColor = FE.greenDark; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(45, 80, 22, 0.08)' }}
-                  onBlur={e => { e.currentTarget.style.borderColor = 'rgba(26,28,28,0.12)'; e.currentTarget.style.boxShadow = 'none' }}
-                />
-              </div>
-            </div>
-            {searchIdx === 1 ? (
-              <div>
-                <input
-                  type="text" value={searchQuery}
-                  onChange={e => handleSearch(e.target.value)}
-                  placeholder="Search by name…" autoFocus
-                  style={{ ...inputFieldStyle, borderColor: FE.greenDark, boxShadow: '0 0 0 3px rgba(45,80,22,0.08)' }}
-                />
-                {searching && <div style={{ fontFamily: font.body, fontSize: 13, color: FE.onTertiary, padding: '6px 2px' }}>Searching…</div>}
-                {searchResults.length > 0 && (
-                  <div style={{ border: FE.borderGhost, borderRadius: 8, marginTop: 4, overflow: 'hidden' }}>
-                    {searchResults.map(u => (
-                      <button key={u.id} onClick={() => {
-                        update(1, 'name', u.displayName)
-                        update(1, 'handicapIndex', u.handicapIndex?.toString() ?? '')
-                        setSearchIdx(null); setSearchQuery(''); setSearchResults([])
-                      }} style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        width: '100%', padding: '10px 12px', background: FE.white,
-                        border: 'none', borderBottom: `1px solid rgba(26,28,28,0.06)`, cursor: 'pointer',
-                        fontFamily: font.body,
-                      }}>
-                        <span style={{ fontWeight: 500, fontSize: 14, color: FE.onPrimary }}>{u.displayName}</span>
-                        {u.handicapIndex !== null && <span style={{ fontSize: 13, color: FE.onTertiary }}>HCP {u.handicapIndex}</span>}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                <button onClick={() => { setSearchIdx(null); setSearchQuery(''); setSearchResults([]) }}
-                  style={{ fontFamily: font.body, fontSize: 13, color: FE.onTertiary, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', marginTop: 4 }}>
-                  Cancel
-                </button>
-              </div>
-            ) : (
-              <button onClick={() => setSearchIdx(1)} style={{
-                fontFamily: font.body, fontWeight: 500, fontSize: 14, color: FE.berryTertiary,
-                background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-                display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-              }}>
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="5" cy="5" r="3.5" stroke="currentColor" strokeWidth="1.2"/><path d="M8 8L10.5 10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
-                Search existing players
-              </button>
-            )}
-          </div>
+          {showP2 ? (
+            <PlayerCard
+              playerId="p2" playerIndex={1} players={players}
+              searchIdx={searchIdx} searchQuery={searchQuery} searchResults={searchResults} searching={searching}
+              onUpdate={update} onSearch={handleSearch}
+              onSetSearchIdx={setSearchIdx} onClearSearch={() => { setSearchIdx(null); setSearchQuery(''); setSearchResults([]) }}
+              onRemove={() => {
+                const next = [...players]
+                next[1] = { name: '', handicapIndex: '', isUser: false, gender: 'm', teeOverride: null }
+                onChange(next)
+                setShowP2(false)
+                setShowP3(false)
+                setShowP4(false)
+              }}
+            />
+          ) : (
+            <AddPlayerButton label="Add player 2" onClick={() => setShowP2(true)} />
+          )}
         </div>
 
         {/* Player 3 */}
