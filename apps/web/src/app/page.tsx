@@ -490,12 +490,16 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="hp-footer">
-        <div className="hp-footer-links">
-          <a href="#features" className="hp-footer-link">Features</a>
-          <a href="/auth/login" className="hp-footer-link">Sign in</a>
-          <a href="https://lx2-architecture.vercel.app" className="hp-footer-link">Architecture</a>
-        </div>
-        <span className="hp-footer-copy">lx2.golf · Play to par.</span>
+        <div />
+        <Link href="/" className="hp-logo">
+          <Image
+            src="/lx2-logo.svg"
+            alt="LX2"
+            height={96}
+            width={192}
+            style={{ height: '32px', width: 'auto', opacity: 0.5 }}
+          />
+        </Link>
       </footer>
     </>
   )
