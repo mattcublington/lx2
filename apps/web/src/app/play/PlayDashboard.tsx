@@ -466,7 +466,7 @@ export default function PlayDashboard({
 
         {/* ── Header ── */}
         <header className="fe-hd">
-          <Image src="/lx2-logo.svg" alt="LX2" width={56} height={28} priority />
+          <Image src="/lx2-logo.svg" alt="LX2" width={72} height={36} priority />
           <div className="fe-hd-r">
             <button className="fe-icon-btn" aria-label="Search">
               <SearchIcon />
