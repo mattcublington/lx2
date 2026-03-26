@@ -420,6 +420,106 @@ function VenueStep({
   )
 }
 
+// ── Player sub-components ───────────────────────────────────────────────────────
+
+function AddPlayerButton({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem', background: FE.white, border: 'none', borderRadius: 16, cursor: 'pointer', boxShadow: FE.shadowFloat, transition: 'all 0.2s ease-in-out' }}
+      onMouseEnter={e => { e.currentTarget.style.boxShadow = FE.shadowHover; e.currentTarget.style.transform = 'translateY(-1px)' }}
+      onMouseLeave={e => { e.currentTarget.style.boxShadow = FE.shadowFloat; e.currentTarget.style.transform = 'translateY(0)' }}
+    >
+      <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(240, 244, 236, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4V16M4 10H16" stroke={FE.greenDark} strokeWidth="2" strokeLinecap="round"/></svg>
+      </div>
+      <span style={{ fontFamily: font.body, fontWeight: 500, fontSize: 15, color: FE.onPrimary }}>{label}</span>
+    </button>
+  )
+}
+
+function PlayerCard({
+  playerId, playerIndex, players, searchIdx, searchQuery, searchResults, searching,
+  onUpdate, onSearch, onSetSearchIdx, onClearSearch, onRemove,
+}: {
+  playerId: string
+  playerIndex: number
+  players: Player[]
+  searchIdx: number | null
+  searchQuery: string
+  searchResults: { id: string; displayName: string; handicapIndex: number | null }[]
+  searching: boolean
+  onUpdate: (index: number, field: keyof Player, value: string) => void
+  onSearch: (q: string) => void
+  onSetSearchIdx: (idx: number) => void
+  onClearSearch: () => void
+  onRemove: () => void
+}) {
+  return (
+    <div style={{ background: FE.white, borderRadius: 16, padding: '1rem', boxShadow: FE.shadowFloat }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}>
+        <button onClick={onRemove} style={{ fontFamily: font.body, fontSize: 13, color: FE.onTertiary, background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2L10 10M10 2L2 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+          Remove
+        </button>
+      </div>
+      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem' }}>
+        <div style={{ flex: 1 }}>
+          <label htmlFor={`${playerId}-name`} style={{ display: 'block', fontFamily: font.body, fontWeight: 500, fontSize: 14, color: FE.onPrimary, marginBottom: '0.5rem' }}>Name</label>
+          <input
+            id={`${playerId}-name`} type="text" value={players[playerIndex]?.name ?? ''}
+            onChange={e => onUpdate(playerIndex, 'name', e.target.value)}
+            placeholder="Enter name" style={inputFieldStyle}
+            onFocus={e => { e.currentTarget.style.borderColor = FE.greenDark; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(45, 80, 22, 0.08)' }}
+            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(26,28,28,0.12)'; e.currentTarget.style.boxShadow = 'none' }}
+          />
+        </div>
+        <div style={{ width: 80 }}>
+          <label htmlFor={`${playerId}-hcp`} style={{ display: 'block', fontFamily: font.body, fontWeight: 500, fontSize: 14, color: FE.onPrimary, marginBottom: '0.5rem' }}>HCP</label>
+          <input
+            id={`${playerId}-hcp`} type="number" value={players[playerIndex]?.handicapIndex ?? ''}
+            onChange={e => onUpdate(playerIndex, 'handicapIndex', e.target.value)}
+            placeholder="18" min={0} max={54} step={0.1} style={inputFieldStyle}
+            onFocus={e => { e.currentTarget.style.borderColor = FE.greenDark; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(45, 80, 22, 0.08)' }}
+            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(26,28,28,0.12)'; e.currentTarget.style.boxShadow = 'none' }}
+          />
+        </div>
+      </div>
+      {searchIdx === playerIndex ? (
+        <div>
+          <input
+            type="text" value={searchQuery}
+            onChange={e => onSearch(e.target.value)}
+            placeholder="Search by name…" autoFocus
+            style={{ ...inputFieldStyle, borderColor: FE.greenDark, boxShadow: '0 0 0 3px rgba(45,80,22,0.08)' }}
+          />
+          {searching && <div style={{ fontFamily: font.body, fontSize: 13, color: FE.onTertiary, padding: '6px 2px' }}>Searching…</div>}
+          {searchResults.length > 0 && (
+            <div style={{ border: FE.borderGhost, borderRadius: 8, marginTop: 4, overflow: 'hidden' }}>
+              {searchResults.map(u => (
+                <button key={u.id} onClick={() => {
+                  onUpdate(playerIndex, 'name', u.displayName)
+                  onUpdate(playerIndex, 'handicapIndex', u.handicapIndex?.toString() ?? '')
+                  onClearSearch()
+                }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '10px 12px', background: FE.white, border: 'none', borderBottom: `1px solid rgba(26,28,28,0.06)`, cursor: 'pointer', fontFamily: font.body }}>
+                  <span style={{ fontWeight: 500, fontSize: 14, color: FE.onPrimary }}>{u.displayName}</span>
+                  {u.handicapIndex !== null && <span style={{ fontSize: 13, color: FE.onTertiary }}>HCP {u.handicapIndex}</span>}
+                </button>
+              ))}
+            </div>
+          )}
+          <button onClick={onClearSearch} style={{ fontFamily: font.body, fontSize: 13, color: FE.onTertiary, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', marginTop: 4 }}>Cancel</button>
+        </div>
+      ) : (
+        <button onClick={() => onSetSearchIdx(playerIndex)} style={{ fontFamily: font.body, fontWeight: 500, fontSize: 14, color: FE.berryTertiary, background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="5" cy="5" r="3.5" stroke="currentColor" strokeWidth="1.2"/><path d="M8 8L10.5 10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
+          Search existing players
+        </button>
+      )}
+    </div>
+  )
+}
+
 // ── Screen 2: Player Management ────────────────────────────────────────────────
 
 function PlayersStep({
@@ -431,7 +531,8 @@ function PlayersStep({
   onChange: (players: Player[]) => void
   onNext: () => void
 }) {
-  const [revealed, setRevealed] = useState(1)
+  const [showP3, setShowP3] = useState(false)
+  const [showP4, setShowP4] = useState(false)
   const [searchIdx, setSearchIdx] = useState<number | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<{ id: string; displayName: string; handicapIndex: number | null }[]>([])
@@ -565,112 +666,50 @@ function PlayersStep({
           </div>
         </div>
 
-        {/* Players 3 and 4 — add button or input */}
-        {([2, 3] as const).map((playerNum) => {
-          const idx = playerNum - 1 // 1-indexed players[1] = Player 2 done above; players[2]=P3, players[3]=P4
-          const isRevealed = revealed >= idx
-          const label = `PLAYER ${playerNum + 1}` // P3, P4
+        {/* Player 3 */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <SectionLabel>PLAYER 3</SectionLabel>
+          {showP3 ? (
+            <PlayerCard
+              playerId="p3" playerIndex={2} players={players}
+              searchIdx={searchIdx} searchQuery={searchQuery} searchResults={searchResults} searching={searching}
+              onUpdate={update} onSearch={handleSearch}
+              onSetSearchIdx={setSearchIdx} onClearSearch={() => { setSearchIdx(null); setSearchQuery(''); setSearchResults([]) }}
+              onRemove={() => {
+                const next = [...players]
+                next[2] = { name: '', handicapIndex: '', isUser: false, gender: 'm', teeOverride: null }
+                onChange(next)
+                setShowP3(false)
+                setShowP4(false)
+              }}
+            />
+          ) : (
+            <AddPlayerButton label="Add player 3" onClick={() => setShowP3(true)} />
+          )}
+        </div>
 
-          return (
-            <div key={playerNum} style={{ marginBottom: '1.5rem' }}>
-              <SectionLabel>{label}</SectionLabel>
-              {isRevealed ? (
-                <div style={{ background: FE.white, borderRadius: 16, padding: '1rem', boxShadow: FE.shadowFloat }}>
-                  <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                    <div style={{ flex: 1 }}>
-                      <label htmlFor={`p${playerNum + 1}-name`} style={{ display: 'block', fontFamily: font.body, fontWeight: 500, fontSize: 14, color: FE.onPrimary, marginBottom: '0.5rem' }}>Name</label>
-                      <input
-                        id={`p${playerNum + 1}-name`} type="text" value={players[idx]?.name ?? ''}
-                        onChange={e => update(idx, 'name', e.target.value)}
-                        placeholder="Enter name" style={inputFieldStyle}
-                        onFocus={e => { e.currentTarget.style.borderColor = FE.greenDark; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(45, 80, 22, 0.08)' }}
-                        onBlur={e => { e.currentTarget.style.borderColor = 'rgba(26,28,28,0.12)'; e.currentTarget.style.boxShadow = 'none' }}
-                      />
-                    </div>
-                    <div style={{ width: 80 }}>
-                      <label htmlFor={`p${playerNum + 1}-hcp`} style={{ display: 'block', fontFamily: font.body, fontWeight: 500, fontSize: 14, color: FE.onPrimary, marginBottom: '0.5rem' }}>HCP</label>
-                      <input
-                        id={`p${playerNum + 1}-hcp`} type="number" value={players[idx]?.handicapIndex ?? ''}
-                        onChange={e => update(idx, 'handicapIndex', e.target.value)}
-                        placeholder="18" min={0} max={54} step={0.1}
-                        style={inputFieldStyle}
-                        onFocus={e => { e.currentTarget.style.borderColor = FE.greenDark; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(45, 80, 22, 0.08)' }}
-                        onBlur={e => { e.currentTarget.style.borderColor = 'rgba(26,28,28,0.12)'; e.currentTarget.style.boxShadow = 'none' }}
-                      />
-                    </div>
-                  </div>
-                  {searchIdx === idx ? (
-                    <div>
-                      <input
-                        type="text" value={searchQuery}
-                        onChange={e => handleSearch(e.target.value)}
-                        placeholder="Search by name…" autoFocus
-                        style={{ ...inputFieldStyle, borderColor: FE.greenDark, boxShadow: '0 0 0 3px rgba(45,80,22,0.08)' }}
-                      />
-                      {searching && <div style={{ fontFamily: font.body, fontSize: 13, color: FE.onTertiary, padding: '6px 2px' }}>Searching…</div>}
-                      {searchResults.length > 0 && (
-                        <div style={{ border: FE.borderGhost, borderRadius: 8, marginTop: 4, overflow: 'hidden' }}>
-                          {searchResults.map(u => (
-                            <button key={u.id} onClick={() => {
-                              update(idx, 'name', u.displayName)
-                              update(idx, 'handicapIndex', u.handicapIndex?.toString() ?? '')
-                              setSearchIdx(null); setSearchQuery(''); setSearchResults([])
-                            }} style={{
-                              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                              width: '100%', padding: '10px 12px', background: FE.white,
-                              border: 'none', borderBottom: `1px solid rgba(26,28,28,0.06)`, cursor: 'pointer',
-                              fontFamily: font.body,
-                            }}>
-                              <span style={{ fontWeight: 500, fontSize: 14, color: FE.onPrimary }}>{u.displayName}</span>
-                              {u.handicapIndex !== null && <span style={{ fontSize: 13, color: FE.onTertiary }}>HCP {u.handicapIndex}</span>}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                      <button onClick={() => { setSearchIdx(null); setSearchQuery(''); setSearchResults([]) }}
-                        style={{ fontFamily: font.body, fontSize: 13, color: FE.onTertiary, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', marginTop: 4 }}>
-                        Cancel
-                      </button>
-                    </div>
-                  ) : (
-                    <button onClick={() => setSearchIdx(idx)} style={{
-                      fontFamily: font.body, fontWeight: 500, fontSize: 14, color: FE.berryTertiary,
-                      background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-                      display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                    }}>
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="5" cy="5" r="3.5" stroke="currentColor" strokeWidth="1.2"/><path d="M8 8L10.5 10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
-                      Search existing players
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <button
-                  onClick={() => setRevealed(idx)}
-                  style={{
-                    width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem',
-                    padding: '1rem', background: FE.white, border: 'none', borderRadius: 16,
-                    cursor: 'pointer', boxShadow: FE.shadowFloat, transition: 'all 0.2s ease-in-out',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.boxShadow = FE.shadowHover; e.currentTarget.style.transform = 'translateY(-1px)' }}
-                  onMouseLeave={e => { e.currentTarget.style.boxShadow = FE.shadowFloat; e.currentTarget.style.transform = 'translateY(0)' }}
-                >
-                  <div style={{
-                    width: 44, height: 44, borderRadius: '50%',
-                    background: 'rgba(240, 244, 236, 0.5)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                      <path d="M10 4V16M4 10H16" stroke={FE.greenDark} strokeWidth="2" strokeLinecap="round"/>
-                    </svg>
-                  </div>
-                  <span style={{ fontFamily: font.body, fontWeight: 500, fontSize: 15, color: FE.onPrimary }}>
-                    Add player {playerNum}
-                  </span>
-                </button>
-              )}
-            </div>
-          )
-        })}
+        {/* Player 4 — only show option once P3 is added */}
+        {showP3 && (
+          <div style={{ marginBottom: '1.5rem' }}>
+            <SectionLabel>PLAYER 4</SectionLabel>
+            {showP4 ? (
+              <PlayerCard
+                playerId="p4" playerIndex={3} players={players}
+                searchIdx={searchIdx} searchQuery={searchQuery} searchResults={searchResults} searching={searching}
+                onUpdate={update} onSearch={handleSearch}
+                onSetSearchIdx={setSearchIdx} onClearSearch={() => { setSearchIdx(null); setSearchQuery(''); setSearchResults([]) }}
+                onRemove={() => {
+                  const next = [...players]
+                  next[3] = { name: '', handicapIndex: '', isUser: false, gender: 'm', teeOverride: null }
+                  onChange(next)
+                  setShowP4(false)
+                }}
+              />
+            ) : (
+              <AddPlayerButton label="Add player 4" onClick={() => setShowP4(true)} />
+            )}
+          </div>
+        )}
       </div>
 
       <BottomBar>
