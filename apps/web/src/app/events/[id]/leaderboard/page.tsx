@@ -93,7 +93,16 @@ export default async function LeaderboardPage({ params }: PageProps) {
           }}>
             LX<span style={{ color: '#4ade80' }}>2</span>
           </span>
-          <span style={{ width: 48 }} />
+          <Link
+            href={`/events/${id}/leaderboard/tv`}
+            style={{
+              textDecoration: 'none', color: '#6db56d',
+              fontSize: '0.8125rem', fontFamily: 'var(--font-dm-sans), sans-serif',
+              display: 'flex', alignItems: 'center', gap: 4,
+            }}
+          >
+            TV ↗
+          </Link>
         </div>
       </header>
 

@@ -72,35 +72,37 @@ const STYLES = `
   :root {
     --forest: #1A2E1A;
     --green-dark: #2D5016;
-    --green-mid: #3a7d44;
-    --green-primary: #0D631B;
-    --green-light: #D1FAE5;
-    --green-faint: #F2F5F0;
+    --green-faint: #F0F4EC;
     --green-border: #E0EBE0;
     --muted: #6B8C6B;
     --amber: #92400E;
     --amber-bg: #FEF3C7;
-    --red-bg: #FEE2E2;
-    --red-text: #B91C1C;
   }
 
   .lb-wrap {
     background: var(--green-faint);
     min-height: 100dvh;
     font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+    padding-bottom: 48px;
   }
 
-  /* ── Live bar ── */
-  .lb-live-bar {
+  /* ── Status bar ── */
+  .lb-status-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px 16px 8px;
+    padding: 12px 20px 4px;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .lb-live-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
   .lb-live-dot {
     width: 7px; height: 7px;
     border-radius: 50%;
-    display: inline-block;
     flex-shrink: 0;
   }
   .lb-live-dot.connected {
@@ -108,302 +110,214 @@ const STYLES = `
     box-shadow: 0 0 0 2px rgba(74,222,128,0.25);
     animation: lb-pulse 2.2s ease-in-out infinite;
   }
-  .lb-live-dot.disconnected { background: rgba(255,255,255,0.25); }
+  .lb-live-dot.disconnected { background: #9CA3AF; }
   .lb-live-label {
     font-size: 0.6875rem;
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    margin-left: 7px;
   }
-  .lb-live-label.connected { color: #4ade80; }
-  .lb-live-label.disconnected { color: rgba(255,255,255,0.35); }
-  .lb-count {
+  .lb-live-label.connected { color: #16a34a; }
+  .lb-live-label.disconnected { color: #9CA3AF; }
+  .lb-count-lbl {
     font-size: 0.75rem;
-    color: rgba(255,255,255,0.4);
-    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+    color: var(--muted);
   }
 
   /* ── Body ── */
   .lb-body {
-    padding: 16px 16px 80px;
+    padding: 8px 16px 0;
+    max-width: 640px;
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 7px;
+    gap: 10px;
   }
 
   /* ── Progress card ── */
   .lb-progress-card {
     background: #fff;
-    border-radius: 16px;
-    padding: 0.875rem 1.25rem;
+    border-radius: 14px;
+    padding: 0.75rem 1.25rem;
     text-align: center;
     font-size: 0.875rem;
     color: var(--muted);
-    box-shadow: 0 4px 12px rgba(26, 28, 28, 0.04);
+    box-shadow: 0 2px 8px rgba(26,28,28,0.04);
   }
-  .lb-progress-card strong {
-    color: var(--forest);
-    font-weight: 600;
-  }
+  .lb-progress-card strong { color: var(--forest); font-weight: 600; }
 
-  /* ── Player card ── */
-  .lb-card {
+  /* ── Single leaderboard container ── */
+  .lb-container {
     background: #fff;
     border-radius: 16px;
     border: 1px solid var(--green-border);
     overflow: hidden;
-    animation: lb-in 0.32s ease both;
-    transition: box-shadow 0.4s ease, transform 0.15s ease;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
+    box-shadow: 0 4px 12px rgba(26,28,28,0.04);
+    animation: lb-in 0.28s ease both;
   }
-  .lb-card:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(13,99,27,0.1); }
-  .lb-card.flash { box-shadow: 0 0 0 3px rgba(13,99,27,0.22); }
-  .lb-card.dim { opacity: 0.5; }
 
-  /* ── Card main row ── */
+  /* ── Player row ── */
   .lb-row {
     display: flex;
     align-items: center;
     padding: 14px 16px;
     gap: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-bottom: 1px solid rgba(26,28,28,0.06);
+    -webkit-tap-highlight-color: transparent;
   }
+  .lb-row:last-child { border-bottom: none; }
+  .lb-row:hover { background: rgba(240,244,236,0.5); }
+  .lb-row.flash { background: rgba(13,99,27,0.05); }
+  .lb-row.dim { opacity: 0.45; cursor: default; }
+  .lb-row.expanded { background: rgba(240,244,236,0.4); border-bottom: none; }
 
-  /* ── Rank badge (circle, medal colours) ── */
+  /* ── Rank badge ── */
   .lb-rank {
     flex-shrink: 0;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
+    width: 36px; height: 28px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: var(--font-manrope), 'Manrope', sans-serif;
     font-weight: 700;
-    font-size: 0.6875rem;
+    font-size: 0.625rem;
     line-height: 1;
+    letter-spacing: 0.01em;
   }
   .lb-rank.r1 {
-    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-    color: #1A2E1A;
+    background: linear-gradient(135deg, rgba(45,80,22,0.18) 0%, rgba(61,107,26,0.18) 100%);
+    color: var(--green-dark);
   }
-  .lb-rank.r2 {
-    background: linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%);
-    color: #1A2E1A;
-  }
-  .lb-rank.r3 {
-    background: linear-gradient(135deg, #CD7F32 0%, #B8722E 100%);
-    color: #ffffff;
-  }
-  .lb-rank.r-other {
-    background: rgba(26, 28, 28, 0.08);
-    color: #1A2E1A;
-  }
-  .lb-rank.r-nr {
-    background: #FEE2E2;
-    color: #B91C1C;
-    font-size: 0.5625rem;
-  }
-  .lb-rank.r-ns {
-    background: #F9FAFB;
-    color: #9CA3AF;
-    font-size: 1rem;
-  }
+  .lb-rank.r2 { background: rgba(26,28,28,0.07); color: #44483E; }
+  .lb-rank.r3 { background: rgba(26,28,28,0.07); color: #44483E; }
+  .lb-rank.r-other { background: rgba(26,28,28,0.05); color: var(--muted); }
+  .lb-rank.r-nr { background: #FEE2E2; color: #B91C1C; font-size: 0.5625rem; }
+  .lb-rank.r-ns { background: transparent; color: #c0c0c0; font-size: 1rem; }
 
   /* ── Avatar ── */
   .lb-avatar {
-    width: 38px;
-    height: 38px;
+    width: 38px; height: 38px;
     border-radius: 50%;
     background: linear-gradient(135deg, #2D5016 0%, #0D631B 100%);
     color: #fff;
     font-size: 0.8125rem;
     font-weight: 700;
     font-family: var(--font-manrope), 'Manrope', sans-serif;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
     letter-spacing: -0.01em;
   }
 
   /* ── Name block ── */
   .lb-name-block { flex: 1; min-width: 0; }
-  .lb-name-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
+  .lb-name-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .lb-name {
-    font-weight: 600;
-    font-size: 0.9375rem;
-    color: var(--forest);
-    line-height: 1.25;
-    word-break: break-word;
+    font-weight: 600; font-size: 0.9375rem;
+    color: var(--forest); line-height: 1.25; word-break: break-word;
   }
   .lb-badge {
-    font-size: 0.625rem;
-    font-weight: 700;
-    padding: 2px 6px;
-    border-radius: 5px;
-    white-space: nowrap;
-    flex-shrink: 0;
+    font-size: 0.625rem; font-weight: 700;
+    padding: 2px 6px; border-radius: 5px; white-space: nowrap; flex-shrink: 0;
   }
   .lb-badge.ntp { background: var(--amber-bg); color: var(--amber); }
   .lb-badge.ld  { background: #DBEAFE; color: #1E40AF; }
   .lb-sub {
-    font-size: 0.6875rem;
-    color: var(--muted);
+    font-size: 0.6875rem; color: var(--muted);
     margin-top: 3px;
-    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
-    font-weight: 400;
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif; font-weight: 400;
   }
 
   /* ── Score block ── */
   .lb-score-block {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
+    display: flex; flex-direction: row; align-items: center; gap: 8px; flex-shrink: 0;
   }
   .lb-score {
     font-family: var(--font-manrope), 'Manrope', sans-serif;
-    font-weight: 800;
-    font-size: 1.75rem;
-    line-height: 1;
-    letter-spacing: -0.04em;
-    color: var(--forest);
+    font-weight: 800; font-size: 1.625rem; line-height: 1;
+    letter-spacing: -0.04em; color: var(--forest);
   }
   .lb-score.leader { color: var(--green-dark); }
   .lb-pts-pill {
     background: linear-gradient(135deg, rgba(45,80,22,0.1) 0%, rgba(61,107,26,0.1) 100%);
-    padding: 0.3rem 0.625rem;
-    border-radius: 10px;
+    padding: 0.3rem 0.625rem; border-radius: 10px;
     font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
-    font-weight: 500;
-    font-size: 0.6875rem;
-    color: var(--green-dark);
-    white-space: nowrap;
+    font-weight: 500; font-size: 0.6875rem; color: var(--green-dark); white-space: nowrap;
   }
 
-  /* ── Chevron toggle ── */
-  .lb-chevron {
-    flex-shrink: 0;
-    color: #c0ccc0;
-    transition: transform 0.2s ease;
-    margin-left: 2px;
-  }
+  /* ── Chevron ── */
+  .lb-chevron { flex-shrink: 0; color: #c0ccc0; transition: transform 0.2s ease; margin-left: 2px; }
   .lb-chevron.open { transform: rotate(180deg); }
 
-  /* ── Scorecard table (expanded) ── */
+  /* ── Scorecard (expanded inline) ── */
   .lb-sc-wrap {
     border-top: 1px solid rgba(26,28,28,0.06);
+    border-bottom: 1px solid rgba(26,28,28,0.06);
+    background: rgba(240,244,236,0.4);
     padding: 1.25rem 1rem 1.5rem;
-    overflow-x: auto;
-    scrollbar-width: none;
-    animation: lb-strip-in 0.22s ease both;
+    overflow-x: auto; scrollbar-width: none;
+    animation: lb-strip-in 0.2s ease both;
     position: relative;
   }
   .lb-sc-wrap::-webkit-scrollbar { display: none; }
   .lb-sc-wrap::after {
-    content: '';
-    position: absolute;
-    top: 0; right: 0; bottom: 0;
-    width: 32px;
-    background: linear-gradient(to left, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+    content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 32px;
+    background: linear-gradient(to left, rgba(240,244,236,0.9) 0%, transparent 100%);
     pointer-events: none;
   }
   .lb-sc-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    min-width: 220px;
+    width: 100%; border-collapse: separate; border-spacing: 0;
+    min-width: 220px; background: #fff; border-radius: 12px;
+    overflow: hidden; box-shadow: 0 2px 8px rgba(26,28,28,0.04);
   }
   .lb-sc-table th {
     font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
-    font-weight: 500;
-    font-size: 0.6875rem;
-    color: var(--muted);
-    text-align: center;
-    padding: 0.375rem 0.5rem;
+    font-weight: 500; font-size: 0.6875rem; color: var(--muted);
+    text-align: center; padding: 0.5rem 0.5rem;
+    background: rgba(26,28,28,0.03);
     border-bottom: 1px solid rgba(26,28,28,0.06);
   }
   .lb-sc-table td {
-    text-align: center;
-    padding: 0.625rem 0.5rem;
-    border-bottom: 1px solid rgba(26,28,28,0.06);
+    text-align: center; padding: 0.625rem 0.5rem;
+    border-bottom: 1px solid rgba(26,28,28,0.04);
   }
   .lb-sc-table tr:last-child td { border-bottom: none; }
   .lb-sc-hole {
-    width: 28px; height: 28px;
-    border-radius: 50%;
+    width: 28px; height: 28px; border-radius: 50%;
     background: rgba(26,28,28,0.05);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    display: inline-flex; align-items: center; justify-content: center;
     font-family: var(--font-manrope), 'Manrope', sans-serif;
-    font-weight: 600;
-    font-size: 0.8125rem;
-    color: var(--forest);
+    font-weight: 600; font-size: 0.8125rem; color: var(--forest);
   }
-  .lb-sc-par {
-    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
-    font-size: 0.875rem;
-    color: #44483E;
-  }
-  .lb-sc-score {
-    font-family: var(--font-manrope), 'Manrope', sans-serif;
-    font-weight: 700;
-    font-size: 1rem;
-  }
+  .lb-sc-par { font-family: var(--font-dm-sans), 'DM Sans', sans-serif; font-size: 0.875rem; color: #44483E; }
+  .lb-sc-score { font-family: var(--font-manrope), 'Manrope', sans-serif; font-weight: 700; font-size: 1rem; }
   .lb-sc-score.under-par { color: #2D5016; }
   .lb-sc-score.over-par  { color: #923357; }
   .lb-sc-score.at-par    { color: var(--forest); }
   .lb-sc-score.unplayed  { color: #c0c0c0; font-weight: 400; font-size: 0.875rem; }
   .lb-sc-pts {
-    background: rgba(45,80,22,0.08);
-    padding: 0.2rem 0.4rem;
-    border-radius: 6px;
+    background: rgba(45,80,22,0.08); padding: 0.2rem 0.4rem; border-radius: 6px;
     font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
-    font-weight: 500;
-    font-size: 0.75rem;
-    color: var(--green-dark);
-    display: inline-block;
-    white-space: nowrap;
+    font-weight: 500; font-size: 0.75rem; color: var(--green-dark);
+    display: inline-block; white-space: nowrap;
   }
   .lb-sc-total {
-    text-align: right;
-    font-family: var(--font-manrope), 'Manrope', sans-serif;
-    font-weight: 700;
-    font-size: 0.875rem;
-    color: var(--green-dark);
-    padding-top: 0.5rem;
+    text-align: right; font-family: var(--font-manrope), 'Manrope', sans-serif;
+    font-weight: 700; font-size: 0.875rem; color: var(--green-dark); padding-top: 0.75rem;
   }
 
   /* ── Empty state ── */
-  .lb-empty {
-    text-align: center;
-    padding: 72px 24px;
-    color: var(--muted);
-    font-size: 0.9375rem;
-  }
+  .lb-empty { text-align: center; padding: 72px 24px; color: var(--muted); font-size: 0.9375rem; }
 
   /* ── Animations ── */
   @keyframes lb-in {
-    from { opacity: 0; transform: translateY(10px); }
+    from { opacity: 0; transform: translateY(8px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-  @keyframes lb-strip-in {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
-  @keyframes lb-pulse {
-    0%, 100% { opacity: 1; }
-    50%       { opacity: 0.4; }
-  }
+  @keyframes lb-strip-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes lb-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 `
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -494,14 +408,14 @@ export default function LeaderboardClient({
       <div className="lb-wrap">
 
         {/* Live status bar */}
-        <div className="lb-live-bar">
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div className="lb-status-bar">
+          <div className="lb-live-pill">
             <span className={`lb-live-dot ${connected ? 'connected' : 'disconnected'}`} />
             <span className={`lb-live-label ${connected ? 'connected' : 'disconnected'}`}>
               {connected ? 'Live' : 'Connecting…'}
             </span>
           </div>
-          <span className="lb-count">
+          <span className="lb-count-lbl">
             {startedCount}/{leaderboard.length} playing
           </span>
         </div>
@@ -521,20 +435,22 @@ export default function LeaderboardClient({
           {leaderboard.length === 0 ? (
             <div className="lb-empty">No confirmed players yet.</div>
           ) : (
-            leaderboard.map((row, i) => (
-              <PlayerCard
-                key={row.player.eventPlayerId}
-                row={row}
-                format={format}
-                holeData={holeData}
-                ntpHoles={ntpHoles}
-                ldHoles={ldHoles}
-                isFlashing={row.player.scorecardId === flashId}
-                isExpanded={expandedId === row.player.eventPlayerId}
-                onToggle={() => toggleExpand(row.player.eventPlayerId)}
-                animDelay={Math.min(i * 0.04, 0.28)}
-              />
-            ))
+            <div className="lb-container">
+              {leaderboard.map((row, i) => (
+                <PlayerCard
+                  key={row.player.eventPlayerId}
+                  row={row}
+                  format={format}
+                  holeData={holeData}
+                  ntpHoles={ntpHoles}
+                  ldHoles={ldHoles}
+                  isFlashing={row.player.scorecardId === flashId}
+                  isExpanded={expandedId === row.player.eventPlayerId}
+                  onToggle={() => toggleExpand(row.player.eventPlayerId)}
+                  animDelay={Math.min(i * 0.04, 0.28)}
+                />
+              ))}
+            </div>
           )}
         </div>
       </div>
@@ -580,10 +496,11 @@ function PlayerCard({ row, format, holeData, ntpHoles, ldHoles, isFlashing, isEx
   const isDim = row.positionLabel === '–' && row.thru === 0 && !row.nR
   const isLeader = row.positionLabel === '1' || row.positionLabel === 'T1'
 
-  const cardClass = [
-    'lb-card',
+  const rowClass = [
+    'lb-row',
     isFlashing ? 'flash' : '',
     isDim ? 'dim' : '',
+    isExpanded ? 'expanded' : '',
   ].filter(Boolean).join(' ')
 
   const scoreClass = ['lb-score', isLeader ? 'leader' : ''].filter(Boolean).join(' ')
@@ -599,17 +516,16 @@ function PlayerCard({ row, format, holeData, ntpHoles, ldHoles, isFlashing, isEx
     : `hcp ${row.playingHandicap} · ${thruLabel}`
 
   return (
-    <div
-      className={cardClass}
-      style={{ animationDelay: `${animDelay}s` }}
-      onClick={row.thru > 0 ? onToggle : undefined}
-      role={row.thru > 0 ? 'button' : undefined}
-      tabIndex={row.thru > 0 ? 0 : undefined}
-      onKeyDown={row.thru > 0 ? (e) => { if (e.key === 'Enter' || e.key === ' ') onToggle() } : undefined}
-      aria-expanded={row.thru > 0 ? isExpanded : undefined}
-    >
-      {/* Main row */}
-      <div className="lb-row">
+    <>
+      <div
+        className={rowClass}
+        style={{ animationDelay: `${animDelay}s` }}
+        onClick={row.thru > 0 ? onToggle : undefined}
+        role={row.thru > 0 ? 'button' : undefined}
+        tabIndex={row.thru > 0 ? 0 : undefined}
+        onKeyDown={row.thru > 0 ? (e) => { if (e.key === 'Enter' || e.key === ' ') onToggle() } : undefined}
+        aria-expanded={row.thru > 0 ? isExpanded : undefined}
+      >
         {/* Rank badge */}
         <div className={`lb-rank ${rankClass(row.positionLabel, row.thru, row.nR)}`}>
           {rankLabel(row.positionLabel, row.thru, row.nR)}
@@ -669,7 +585,7 @@ function PlayerCard({ row, format, holeData, ntpHoles, ldHoles, isFlashing, isEx
           ldHoles={ldHoles}
         />
       )}
-    </div>
+    </>
   )
 }
 
