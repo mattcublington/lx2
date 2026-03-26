@@ -108,3 +108,9 @@ No gold, ivory, warm-cream, brass, or off-palette accent colours.
 - What broke / didn't work: `MODULE_NOT_FOUND: Cannot find module './116.js'` — webpack-runtime.js referenced `./116.js` relative to `.next/server/` but only `.next/server/chunks/116.js` existed. All event page bundles affected. Streaming SSR caused partial render: share card flushed before failure, so "header renders fine but below crashes"
 - What to do instead: Delete `apps/web/.next` and restart the dev server. Stop the server first (can't delete .next while running). Root cause: mixed build artifacts from different webpack chunk layouts
 - Any new patterns established: When server components crash mid-stream (partial HTML visible), check `preview_logs` for MODULE_NOT_FOUND before doing static analysis. Stale `.next` = first thing to clear when unexplained crashes appear after switching branches or builds
+
+### 2026-03-26 — Stale .next variants: `__webpack_modules__[moduleId] is not a function` and ENOENT rename 500.html
+- What we tried: Architecture app showing runtime crash after a fresh deploy/push
+- What broke / didn't work: Two more stale `.next` error variants: (1) `__webpack_modules__[moduleId] is not a function` — client-side webpack runtime references a module that no longer exists at expected ID. (2) `ENOENT: no such file or directory, rename '.next/export/500.html' -> '.next/server/pages/500.html'` — occurs during `next build` when old export artifacts conflict with new build layout
+- What to do instead: Same fix — stop server, `rm -rf apps/<app>/.next`, restart. For the ENOENT build error in the pre-push hook: delete `.next` before pushing, not after the hook fails
+- Any new patterns established: All three stale `.next` error forms (MODULE_NOT_FOUND, webpack moduleId TypeError, ENOENT 500.html rename) have the same root cause and same fix. The architecture app is especially prone because the dev server `.next` conflicts with `next build` in the pre-push hook
