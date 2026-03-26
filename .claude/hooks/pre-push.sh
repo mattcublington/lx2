@@ -23,9 +23,9 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# 3. Build
+# 3. Build (exclude architecture — local-only tool, and next build conflicts with dev server .next)
 echo "  → Build..."
-npx turbo run build 2>&1
+npx turbo run build --filter='!@lx2/architecture' 2>&1
 if [ $? -ne 0 ]; then
   echo "❌ Build failed. Fix before pushing."
   exit 1
