@@ -1,7 +1,7 @@
 'use client'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { joinEvent, joinEventAnon } from './actions'
+import { joinEvent, joinEventAnon } from '@/app/events/event-actions'
 
 interface Props {
   eventId:        string

@@ -1,6 +1,6 @@
 'use client'
 import { useState, useTransition } from 'react'
-import { confirmPlayer } from './actions'
+import { confirmPlayer } from '@/app/events/manage-actions'
 
 interface Props {
   eventUrl: string
