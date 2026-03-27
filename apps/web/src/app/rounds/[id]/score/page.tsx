@@ -35,7 +35,7 @@ function ErrorCard({ title, body, retry }: { title: string; body: string; retry?
         LX<span style={{ color: '#3a7d44' }}>2</span>
       </div>
       <div style={{ marginTop: 32, fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{title}</div>
-      <div style={{ fontSize: 14, color: '#6b7c6b', lineHeight: 1.5 }}>{body}</div>
+      <div style={{ fontSize: 14, color: '#6B8C6B', lineHeight: 1.5 }}>{body}</div>
       {retry && (
         <a href={retry} style={{ display: 'inline-block', marginTop: 20, color: '#3a7d44', fontWeight: 600, fontSize: 14 }}>
           Try again

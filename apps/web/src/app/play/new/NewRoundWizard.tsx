@@ -59,18 +59,18 @@ interface WizardState {
 
 const FE = {
   forestPrimary: '#1A2E1A',
-  greenDark: '#2D5016',
-  greenLight: '#3D6B1A',
+  greenDark: '#0D631B',
+  greenLight: '#0a4f15',
   sageBg: '#F0F4EC',
   white: '#FFFFFF',
-  onPrimary: '#1A1C1C',
+  onPrimary: '#1A2E1A',
   onSecondary: '#44483E',
   onTertiary: '#72786E',
   berryTertiary: '#923357',
   shadowFloat: '0 4px 12px rgba(26, 28, 28, 0.04)',
   shadowHover: '0 6px 16px rgba(26, 28, 28, 0.08)',
   borderGhost: '1px solid rgba(26, 28, 28, 0.12)',
-  gradientGreen: 'linear-gradient(135deg, #2D5016 0%, #3D6B1A 100%)',
+  gradientGreen: 'linear-gradient(135deg, #0D631B 0%, #0a4f15 100%)',
 } as const
 
 const font = {
@@ -78,20 +78,6 @@ const font = {
   body: "'Lexend', sans-serif",
 } as const
 
-// ── Tee colour maps ────────────────────────────────────────────────────────────
-
-const TEE_SWATCH: Record<string, { bg: string; border?: string; text: string }> = {
-  'Green':         { bg: '#15803d', text: '#fff' },
-  'White':         { bg: '#f9fafb', border: '#d1d5db', text: '#374151' },
-  'Yellow/Purple': { bg: 'linear-gradient(90deg, #ca8a04 50%, #7c3aed 50%)', text: '#fff' },
-  'Red/Black':     { bg: 'linear-gradient(90deg, #dc2626 50%, #1f2937 50%)', text: '#fff' },
-  'Yellow':        { bg: '#ca8a04', text: '#fff' },
-  'Purple':        { bg: '#7c3aed', text: '#fff' },
-  'Red':           { bg: '#dc2626', text: '#fff' },
-  'Blue':          { bg: '#2563eb', text: '#fff' },
-  'Orange':        { bg: '#ea580c', text: '#fff' },
-  'Gold':          { bg: '#b45309', text: '#fff' },
-}
 
 const TEE_TO_DB_COLOUR: Record<string, string> = {
   'Green': 'Green', 'White': 'White', 'Yellow/Purple': 'Purple',
@@ -194,7 +180,7 @@ function StepBar({ step }: { step: Step }) {
               alignItems: 'center', justifyContent: 'center',
               background: done || active ? FE.gradientGreen : FE.white,
               border: done || active ? 'none' : '2px solid rgba(26, 28, 28, 0.12)',
-              boxShadow: active ? '0 0 0 4px rgba(45, 80, 22, 0.1)' : 'none',
+              boxShadow: active ? '0 0 0 4px rgba(13, 99, 27, 0.1)' : 'none',
               transition: 'all 0.2s ease-in-out',
             }}>
               {done ? (
@@ -258,12 +244,12 @@ function PrimaryButton({
         border: 'none', borderRadius: 16,
         fontFamily: font.display, fontWeight: 700, fontSize: 16,
         cursor: disabled ? 'default' : 'pointer',
-        boxShadow: disabled ? 'none' : '0 8px 24px rgba(45, 80, 22, 0.15)',
+        boxShadow: disabled ? 'none' : '0 8px 24px rgba(13, 99, 27, 0.15)',
         transition: 'all 0.2s ease-in-out',
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
       }}
-      onMouseEnter={e => { if (!disabled) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(45, 80, 22, 0.25)' } }}
-      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = disabled ? 'none' : '0 8px 24px rgba(45, 80, 22, 0.15)' }}
+      onMouseEnter={e => { if (!disabled) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(13, 99, 27, 0.25)' } }}
+      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = disabled ? 'none' : '0 8px 24px rgba(13, 99, 27, 0.15)' }}
       onMouseDown={e => { e.currentTarget.style.transform = 'translateY(0)' }}
     >
       {children}
@@ -309,7 +295,7 @@ function SearchInput({
           boxShadow: FE.shadowFloat, outline: 'none', boxSizing: 'border-box',
           transition: 'all 0.2s ease-in-out',
         }}
-        onFocus={e => { e.currentTarget.style.borderColor = FE.greenDark; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(45, 80, 22, 0.1)' }}
+        onFocus={e => { e.currentTarget.style.borderColor = FE.greenDark; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(13, 99, 27, 0.1)' }}
         onBlur={e => { e.currentTarget.style.borderColor = 'rgba(26,28,28,0.12)'; e.currentTarget.style.boxShadow = FE.shadowFloat }}
       />
     </div>
@@ -360,7 +346,7 @@ function VenueStep({
                 onKeyDown={e => e.key === 'Enter' && onSelect(venue.club)}
                 style={{
                   display: 'flex', gap: '1rem', padding: '1.25rem',
-                  background: selected ? 'rgba(45, 80, 22, 0.05)' : FE.white,
+                  background: selected ? 'rgba(13, 99, 27, 0.05)' : FE.white,
                   borderRadius: 16, cursor: 'pointer', marginBottom: '1rem',
                   boxShadow: FE.shadowFloat,
                   borderLeft: selected ? `4px solid ${FE.greenDark}` : '4px solid transparent',
@@ -372,7 +358,7 @@ function VenueStep({
                 {/* Venue icon */}
                 <div style={{
                   width: 48, height: 48, borderRadius: 8, flexShrink: 0,
-                  background: 'linear-gradient(135deg, rgba(45,80,22,0.1) 0%, rgba(61,107,26,0.1) 100%)',
+                  background: 'linear-gradient(135deg, rgba(13,99,27,0.1) 0%, rgba(61,107,26,0.1) 100%)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -470,7 +456,7 @@ function PlayerCard({
             id={`${playerId}-name`} type="text" value={players[playerIndex]?.name ?? ''}
             onChange={e => onUpdate(playerIndex, 'name', e.target.value)}
             placeholder="Enter name" style={inputFieldStyle}
-            onFocus={e => { e.currentTarget.style.borderColor = FE.greenDark; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(45, 80, 22, 0.08)' }}
+            onFocus={e => { e.currentTarget.style.borderColor = FE.greenDark; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(13, 99, 27, 0.08)' }}
             onBlur={e => { e.currentTarget.style.borderColor = 'rgba(26,28,28,0.12)'; e.currentTarget.style.boxShadow = 'none' }}
           />
         </div>
@@ -480,7 +466,7 @@ function PlayerCard({
             id={`${playerId}-hcp`} type="number" value={players[playerIndex]?.handicapIndex ?? ''}
             onChange={e => onUpdate(playerIndex, 'handicapIndex', e.target.value)}
             placeholder="18" min={0} max={54} step={0.1} style={inputFieldStyle}
-            onFocus={e => { e.currentTarget.style.borderColor = FE.greenDark; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(45, 80, 22, 0.08)' }}
+            onFocus={e => { e.currentTarget.style.borderColor = FE.greenDark; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(13, 99, 27, 0.08)' }}
             onBlur={e => { e.currentTarget.style.borderColor = 'rgba(26,28,28,0.12)'; e.currentTarget.style.boxShadow = 'none' }}
           />
         </div>
@@ -491,7 +477,7 @@ function PlayerCard({
             type="text" value={searchQuery}
             onChange={e => onSearch(e.target.value)}
             placeholder="Search by name…" autoFocus
-            style={{ ...inputFieldStyle, borderColor: FE.greenDark, boxShadow: '0 0 0 3px rgba(45,80,22,0.08)' }}
+            style={{ ...inputFieldStyle, borderColor: FE.greenDark, boxShadow: '0 0 0 3px rgba(13,99,27,0.08)' }}
           />
           {searching && <div style={{ fontFamily: font.body, fontSize: 13, color: FE.onTertiary, padding: '6px 2px' }}>Searching…</div>}
           {searchResults.length > 0 && (
@@ -580,7 +566,7 @@ function PlayersStep({
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <div style={{
                   width: 44, height: 44, borderRadius: '50%',
-                  background: 'linear-gradient(135deg, rgba(45,80,22,0.1) 0%, rgba(61,107,26,0.1) 100%)',
+                  background: 'linear-gradient(135deg, rgba(13,99,27,0.1) 0%, rgba(61,107,26,0.1) 100%)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontFamily: font.display, fontWeight: 700, fontSize: 16, color: FE.greenDark,
                 }}>
@@ -731,7 +717,7 @@ function CombinationStep({
                 tabIndex={0}
                 onKeyDown={e => e.key === 'Enter' && setSelectedId(course.id)}
                 style={{
-                  background: selected ? 'rgba(45, 80, 22, 0.05)' : FE.white,
+                  background: selected ? 'rgba(13, 99, 27, 0.05)' : FE.white,
                   borderRadius: 16, padding: '1rem',
                   boxShadow: FE.shadowFloat, cursor: 'pointer',
                   borderLeft: `4px solid ${selected ? FE.greenDark : 'transparent'}`,
@@ -746,7 +732,7 @@ function CombinationStep({
                   </span>
                   {hasWhs && (
                     <span style={{
-                      background: 'linear-gradient(135deg, rgba(45,80,22,0.1) 0%, rgba(61,107,26,0.1) 100%)',
+                      background: 'linear-gradient(135deg, rgba(13,99,27,0.1) 0%, rgba(61,107,26,0.1) 100%)',
                       color: FE.greenDark, padding: '0.25rem 0.625rem', borderRadius: 12,
                       fontFamily: font.body, fontSize: 12, fontWeight: 500,
                       display: 'flex', alignItems: 'center', gap: '0.25rem',
@@ -794,14 +780,14 @@ function CombinationStep({
 const inputFieldStyle: React.CSSProperties = {
   width: '100%', padding: '0.875rem 1rem',
   background: '#FFFFFF', border: '1px solid rgba(26, 28, 28, 0.12)', borderRadius: 12,
-  fontFamily: "'Lexend', sans-serif", fontSize: 16, color: '#1A1C1C',
+  fontFamily: "'Lexend', sans-serif", fontSize: 16, color: '#1A2E1A',
   outline: 'none', boxSizing: 'border-box', transition: 'all 0.2s ease-in-out',
 }
 
 const dropdownStyle: React.CSSProperties = {
   width: '100%', padding: '0.75rem',
   border: '1px solid rgba(26, 28, 28, 0.12)', borderRadius: 12,
-  fontFamily: "'Lexend', sans-serif", fontSize: 15, color: '#1A1C1C',
+  fontFamily: "'Lexend', sans-serif", fontSize: 15, color: '#1A2E1A',
   background: `#FFFFFF url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%2372786E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 0.75rem center`,
   appearance: 'none', paddingRight: '2.5rem',
   cursor: 'pointer', outline: 'none',
@@ -859,7 +845,7 @@ const BALL_COLOURS = [
   { key: 'Yellow', bg: '#FCD34D', border: '#FCD34D' },
   { key: 'Purple', bg: '#A78BFA', border: '#A78BFA' },
   { key: 'Red', bg: '#EF4444', border: '#EF4444' },
-  { key: 'Black', bg: '#1A1C1C', border: '#1A1C1C' },
+  { key: 'Black', bg: '#1a1a1a', border: '#1a1a1a' },
 ]
 
 function SettingsStep({
@@ -1079,7 +1065,7 @@ function SettingsStep({
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
                           <div style={{
                             width: 36, height: 36, borderRadius: '50%',
-                            background: 'linear-gradient(135deg, rgba(45,80,22,0.1) 0%, rgba(61,107,26,0.1) 100%)',
+                            background: 'linear-gradient(135deg, rgba(13,99,27,0.1) 0%, rgba(61,107,26,0.1) 100%)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             fontFamily: font.display, fontWeight: 600, fontSize: 14, color: FE.greenDark,
                           }}>
@@ -1140,7 +1126,7 @@ function SettingsStep({
                         <button key={h} onClick={() => onUpdate({ ntpHoles: toggle(state.ntpHoles, h) })} style={{
                           width: 40, height: 40, borderRadius: 8,
                           border: active ? `2px solid ${FE.greenDark}` : FE.borderGhost,
-                          background: active ? 'rgba(45,80,22,0.1)' : FE.white,
+                          background: active ? 'rgba(13,99,27,0.1)' : FE.white,
                           color: active ? FE.greenDark : FE.onTertiary,
                           fontFamily: font.body, fontSize: 14, fontWeight: active ? 700 : 400,
                           cursor: 'pointer',
@@ -1165,7 +1151,7 @@ function SettingsStep({
                       <button key={h} onClick={() => onUpdate({ ldHoles: toggle(state.ldHoles, h) })} style={{
                         width: 40, height: 40, borderRadius: 8,
                         border: active ? `2px solid ${FE.greenDark}` : FE.borderGhost,
-                        background: active ? 'rgba(45,80,22,0.1)' : FE.white,
+                        background: active ? 'rgba(13,99,27,0.1)' : FE.white,
                         color: active ? FE.greenDark : FE.onTertiary,
                         fontFamily: font.body, fontSize: 14, fontWeight: active ? 700 : 400,
                         cursor: 'pointer',

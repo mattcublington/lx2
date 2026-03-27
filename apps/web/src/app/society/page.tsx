@@ -15,7 +15,7 @@ export default async function SocietyPage() {
           min-height: 100dvh;
           background: #F0F4EC;
           font-family: var(--font-lexend), system-ui, sans-serif;
-          color: #1A1C1C;
+          color: #1A2E1A;
           padding-bottom: max(80px, calc(80px + env(safe-area-inset-bottom)));
         }
         .sp-hd {
@@ -29,8 +29,8 @@ export default async function SocietyPage() {
           z-index: 50;
         }
         .sp-main {
-          padding: 1.5rem 1.25rem;
-          max-width: 480px;
+          padding: 1.5rem 2rem;
+          max-width: 600px;
           margin: 0 auto;
           display: flex;
           flex-direction: column;

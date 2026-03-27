@@ -124,15 +124,6 @@ function reducer(s: State, a: Action): State {
   }
 }
 
-// ─── Scorecard table helpers (same as before) ─────────────────────────────────
-
-const thS: React.CSSProperties = {
-  padding: '5px 5px', textAlign: 'center', color: '#72786E',
-  fontWeight: 500, fontSize: 11, whiteSpace: 'nowrap',
-  fontFamily: 'var(--font-lexend), sans-serif',
-}
-const tdS: React.CSSProperties = { padding: '6px 5px', textAlign: 'center', fontSize: 12 }
-
 // ─── CSS ──────────────────────────────────────────────────────────────────────
 
 const STYLES = `
@@ -145,7 +136,7 @@ const STYLES = `
     margin: 0 auto;
     padding-bottom: calc(80px + env(safe-area-inset-bottom));
     position: relative;
-    color: #1A1C1C;
+    color: #1A2E1A;
   }
 
   /* ── Context bar ───────────────────────────────────────── */
@@ -187,9 +178,9 @@ const STYLES = `
     gap: 0.375rem;
     padding: 0.3rem 0.625rem;
     border-radius: 20px;
-    border: 1.5px solid rgba(45, 80, 22, 0.25);
-    background: rgba(45, 80, 22, 0.07);
-    color: #2D5016;
+    border: 1.5px solid rgba(13, 99, 27, 0.25);
+    background: rgba(13, 99, 27, 0.07);
+    color: #0D631B;
     font-family: var(--font-manrope), 'Manrope', sans-serif;
     font-weight: 700;
     font-size: 0.8125rem;
@@ -199,8 +190,8 @@ const STYLES = `
     white-space: nowrap;
     flex-shrink: 0;
   }
-  .sc-share-chip:hover { background: rgba(45, 80, 22, 0.12); border-color: rgba(45, 80, 22, 0.4); }
-  .sc-share-chip.copied { background: rgba(45, 80, 22, 0.15); color: #1A5C0A; border-color: rgba(45, 80, 22, 0.5); }
+  .sc-share-chip:hover { background: rgba(13, 99, 27, 0.12); border-color: rgba(13, 99, 27, 0.4); }
+  .sc-share-chip.copied { background: rgba(13, 99, 27, 0.15); color: #0D631B; border-color: rgba(13, 99, 27, 0.5); }
 
   /* ── Hole navigation ───────────────────────────────────── */
   .sc-nav {
@@ -242,13 +233,13 @@ const STYLES = `
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
   }
-  .sc-hc.active  { background: #2D5016; border-color: #2D5016; color: #FFFFFF; }
-  .sc-hc.scored  { border-color: #2D5016; color: #2D5016; }
+  .sc-hc.active  { background: #0D631B; border-color: #0D631B; color: #FFFFFF; }
+  .sc-hc.scored  { border-color: #0D631B; color: #0D631B; }
   .sc-hc-check {
     position: absolute; top: -3px; right: -3px;
     width: 16px; height: 16px;
     border-radius: 50%;
-    background: #2D5016;
+    background: #0D631B;
     color: #FFFFFF;
     font-size: 8px;
     display: flex; align-items: center; justify-content: center;
@@ -258,8 +249,8 @@ const STYLES = `
   /* ── Auto-advance banner ───────────────────────────────── */
   .sc-advance {
     margin: 0 1.25rem 0.75rem;
-    background: linear-gradient(135deg, rgba(45,80,22,0.1), rgba(61,107,26,0.15));
-    border: 1px solid rgba(45,80,22,0.2);
+    background: linear-gradient(135deg, rgba(13,99,27,0.1), rgba(61,107,26,0.15));
+    border: 1px solid rgba(13,99,27,0.2);
     border-radius: 12px;
     padding: 0.875rem 1rem;
     display: flex;
@@ -271,7 +262,7 @@ const STYLES = `
     from { opacity: 0; transform: translateY(-8px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-  .sc-advance-icon { color: #2D5016; flex-shrink: 0; }
+  .sc-advance-icon { color: #0D631B; flex-shrink: 0; }
   .sc-advance-h { font-family: var(--font-lexend), sans-serif; font-size: 0.875rem; font-weight: 500; color: #1A2E1A; }
   .sc-advance-s { font-family: var(--font-lexend), sans-serif; font-size: 0.75rem; color: #72786E; margin-top: 1px; }
 
@@ -298,8 +289,8 @@ const STYLES = `
   .sc-stroke-badge {
     display: inline-flex;
     margin-top: 0.375rem;
-    background: rgba(45,80,22,0.1);
-    color: #2D5016;
+    background: rgba(13,99,27,0.1);
+    color: #0D631B;
     font-family: var(--font-lexend), sans-serif;
     font-size: 0.75rem;
     font-weight: 500;
@@ -363,7 +354,7 @@ const STYLES = `
   }
   .sc-player-name {
     font-family: var(--font-lexend), sans-serif;
-    font-weight: 500; font-size: 0.9375rem; color: #1A1C1C;
+    font-weight: 500; font-size: 0.9375rem; color: #1A2E1A;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .sc-player-you {
@@ -376,17 +367,17 @@ const STYLES = `
   .sc-qbtn {
     width: 36px; height: 36px;
     border-radius: 10px;
-    border: 1.5px solid rgba(45,80,22,0.25);
+    border: 1.5px solid rgba(13,99,27,0.25);
     background: rgba(240,244,236,0.5);
-    color: #2D5016;
+    color: #0D631B;
     font-family: var(--font-manrope), sans-serif;
     font-weight: 700; font-size: 0.9375rem;
     cursor: pointer;
     transition: all 0.12s;
     display: flex; align-items: center; justify-content: center;
   }
-  .sc-qbtn:hover { background: #2D5016; color: #FFFFFF; border-color: #2D5016; }
-  .sc-qbtn.par  { border-color: rgba(45,80,22,0.5); }
+  .sc-qbtn:hover { background: #0D631B; color: #FFFFFF; border-color: #0D631B; }
+  .sc-qbtn.par  { border-color: rgba(13,99,27,0.5); }
   .sc-tap-hint  { font-family: var(--font-lexend), sans-serif; font-size: 0.6875rem; color: #72786E; }
   /* Scored right */
   .sc-scored-r { display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem; }
@@ -396,8 +387,8 @@ const STYLES = `
     line-height: 1; letter-spacing: -0.02em;
   }
   .sc-pts-pill {
-    background: linear-gradient(135deg, rgba(45,80,22,0.1), rgba(61,107,26,0.12));
-    color: #2D5016;
+    background: linear-gradient(135deg, rgba(13,99,27,0.1), rgba(61,107,26,0.12));
+    color: #0D631B;
     font-family: var(--font-lexend), sans-serif;
     font-size: 0.6875rem; font-weight: 500;
     padding: 0.2rem 0.625rem;
@@ -451,14 +442,14 @@ const STYLES = `
   /* ── Finish round banner ───────────────────────────────── */
   .sc-finish {
     margin: 0 1rem 1rem;
-    background: linear-gradient(135deg, #2D5016 0%, #3D6B1A 100%);
+    background: linear-gradient(135deg, #0D631B 0%, #0a4f15 100%);
     border-radius: 16px;
     padding: 1.125rem 1.25rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
-    box-shadow: 0 6px 20px rgba(45,80,22,0.25);
+    box-shadow: 0 6px 20px rgba(13,99,27,0.25);
     animation: sc-in 0.3s cubic-bezier(0.2,0,0,1) both;
   }
   .sc-finish-text { flex: 1; }
@@ -537,26 +528,26 @@ const STYLES = `
     border-radius: 50%;
     border: 2px solid transparent;
     background: rgba(240,244,236,0.6);
-    color: #1A1C1C;
+    color: #1A2E1A;
     font-family: var(--font-manrope), sans-serif;
     font-weight: 700; font-size: 1.0625rem;
     cursor: pointer;
     transition: all 0.14s;
     display: flex; align-items: center; justify-content: center;
   }
-  .sc-mqbtn.par    { border-color: rgba(45,80,22,0.3); }
-  .sc-mqbtn.sel    { background: #2D5016; color: #FFFFFF; border-color: #2D5016; }
-  .sc-mqbtn:hover:not(.sel) { background: rgba(45,80,22,0.1); border-color: rgba(45,80,22,0.3); }
+  .sc-mqbtn.par    { border-color: rgba(13,99,27,0.3); }
+  .sc-mqbtn.sel    { background: #0D631B; color: #FFFFFF; border-color: #0D631B; }
+  .sc-mqbtn:hover:not(.sel) { background: rgba(13,99,27,0.1); border-color: rgba(13,99,27,0.3); }
   .sc-stepper { display: flex; align-items: center; justify-content: center; gap: 1.5rem; margin-bottom: 1rem; }
   .sc-step-btn {
     width: 48px; height: 48px;
     border-radius: 50%; border: none;
-    background: #F0F4EC; color: #2D5016;
+    background: #F0F4EC; color: #0D631B;
     font-size: 1.375rem; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     transition: all 0.14s;
   }
-  .sc-step-btn:hover { background: rgba(45,80,22,0.15); }
+  .sc-step-btn:hover { background: rgba(13,99,27,0.15); }
   .sc-step-display {
     font-family: var(--font-manrope), sans-serif;
     font-weight: 800; font-size: 3.5rem;
@@ -565,8 +556,8 @@ const STYLES = `
   }
   .sc-step-display.dim { color: #C8D4C8; }
   .sc-feedback {
-    background: linear-gradient(135deg, rgba(45,80,22,0.1), rgba(61,107,26,0.14));
-    color: #2D5016;
+    background: linear-gradient(135deg, rgba(13,99,27,0.1), rgba(61,107,26,0.14));
+    color: #0D631B;
     font-family: var(--font-lexend), sans-serif;
     font-size: 0.875rem; font-weight: 500;
     padding: 0.625rem 1.25rem;
@@ -580,7 +571,7 @@ const STYLES = `
   }
   .sc-save-btn {
     width: 100%; padding: 1rem;
-    background: linear-gradient(135deg, #2D5016, #3D6B1A);
+    background: linear-gradient(135deg, #0D631B, #0a4f15);
     color: #FFFFFF; border: none;
     border-radius: 16px;
     font-family: var(--font-manrope), sans-serif;
@@ -588,7 +579,7 @@ const STYLES = `
     cursor: pointer; letter-spacing: -0.01em;
     transition: transform 0.14s, box-shadow 0.14s;
   }
-  .sc-save-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(45,80,22,0.25); }
+  .sc-save-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(13,99,27,0.25); }
   .sc-save-btn:disabled { opacity: 0.45; cursor: default; }
   .sc-pickup-lnk {
     background: none; border: none;
@@ -642,11 +633,11 @@ const STYLES = `
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0; font-size: 1.125rem;
   }
-  .sc-settings-ico.green { background: linear-gradient(135deg, rgba(45,80,22,0.1), rgba(61,107,26,0.12)); }
+  .sc-settings-ico.green { background: linear-gradient(135deg, rgba(13,99,27,0.1), rgba(61,107,26,0.12)); }
   .sc-settings-ico.berry { background: rgba(146,51,87,0.1); }
   .sc-settings-lbl { font-family: var(--font-lexend), sans-serif; font-weight: 500; font-size: 1rem; flex: 1; }
   .sc-settings-lbl.berry { color: #923357; }
-  .sc-settings-lbl.green { color: #2D5016; }
+  .sc-settings-lbl.green { color: #0D631B; }
   .sc-settings-chev { color: #72786E; font-size: 0.9375rem; }
   .sc-settings-div { height: 1px; background: rgba(26,28,28,0.06); margin: 0.5rem 1.5rem; }
   .sc-danger-lbl {
@@ -683,9 +674,9 @@ const STYLES = `
     width: 100%; padding: 0.875rem 1rem;
     border: 2px solid #E0EBE0; border-radius: 12px;
     font-family: var(--font-lexend), sans-serif; font-size: 1rem;
-    outline: none; transition: border-color 0.15s; color: #1A1C1C;
+    outline: none; transition: border-color 0.15s; color: #1A2E1A;
   }
-  .sc-contest-input:focus { border-color: #2D5016; }
+  .sc-contest-input:focus { border-color: #0D631B; }
 
   /* ── Scorecard view ────────────────────────────────────── */
   .sc-card-page {
@@ -702,7 +693,7 @@ const STYLES = `
   }
   .sc-card-back {
     background: none; border: none; font-size: 0.875rem;
-    color: #2D5016; font-weight: 600; cursor: pointer;
+    color: #0D631B; font-weight: 600; cursor: pointer;
     font-family: var(--font-lexend), sans-serif;
   }
   .sc-card-ttl {
@@ -731,7 +722,7 @@ const STYLES = `
   }
   .sc-player {
     font-family: var(--font-lexend), sans-serif;
-    font-size: 14px; font-weight: 500; color: #1A1C1C; margin-top: 6px;
+    font-size: 14px; font-weight: 500; color: #1A2E1A; margin-top: 6px;
   }
   .sc-toggle { display: flex; gap: 8px; margin-bottom: 16px; }
   .sc-pill {
@@ -742,8 +733,8 @@ const STYLES = `
     cursor: pointer; transition: all 0.15s;
   }
   .sc-pill.act {
-    background: linear-gradient(135deg, #2D5016 0%, #3D6B1A 100%);
-    color: #FFFFFF; border-color: #2D5016;
+    background: linear-gradient(135deg, #0D631B 0%, #0a4f15 100%);
+    color: #FFFFFF; border-color: #0D631B;
   }
   .sc-tbl-wrap {
     margin: 0 16px 16px; border-radius: 16px;
@@ -759,7 +750,7 @@ const STYLES = `
     font-family: var(--font-lexend), sans-serif;
   }
   .sc-th-hole { text-align: left; padding-left: 14px; }
-  .sc-th-player { color: #2D5016; }
+  .sc-th-player { color: #0D631B; }
   .sc-td {
     padding: 10px 8px; text-align: center;
     font-size: 13px; color: #1A2E1A;
@@ -788,8 +779,8 @@ const STYLES = `
     font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: #44483E;
   }
   .sc-total td {
-    border-top: 3px solid rgba(45,80,22,0.4) !important;
-    background: rgba(45,80,22,0.06) !important;
+    border-top: 3px solid rgba(13,99,27,0.4) !important;
+    background: rgba(13,99,27,0.06) !important;
   }
 
   /* ── Leaderboard panel ──────────────────────────────────── */
@@ -828,12 +819,12 @@ const STYLES = `
   }
   .sc-lb-tv {
     font-family: var(--font-lexend), sans-serif;
-    font-size: 0.75rem; font-weight: 600; color: #2D5016;
+    font-size: 0.75rem; font-weight: 600; color: #0D631B;
     text-decoration: none; padding: 6px 12px;
-    border-radius: 8px; border: 1.5px solid rgba(45,80,22,0.3);
+    border-radius: 8px; border: 1.5px solid rgba(13,99,27,0.3);
     transition: background 0.15s;
   }
-  .sc-lb-tv:hover { background: rgba(45,80,22,0.06); }
+  .sc-lb-tv:hover { background: rgba(13,99,27,0.06); }
   .sc-lb-body { padding: 0 1.25rem 80px; display: flex; flex-direction: column; gap: 6px; }
   .sc-lb-status {
     display: flex; align-items: center; justify-content: space-between;
@@ -880,7 +871,7 @@ const STYLES = `
   .sc-lb-rank.rns { background: #F9FAFB; color: #9CA3AF; }
   .sc-lb-avatar {
     flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%;
-    background: linear-gradient(135deg,#2D5016,#0D631B);
+    background: linear-gradient(135deg,#0D631B,#0D631B);
     color: #fff; font-size: 0.75rem; font-weight: 700;
     font-family: var(--font-manrope), sans-serif;
     display: flex; align-items: center; justify-content: center;
@@ -895,14 +886,14 @@ const STYLES = `
   .sc-lb-scores { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
   .sc-lb-pts {
     font-family: var(--font-manrope), sans-serif;
-    font-weight: 800; font-size: 1.5rem; color: #2D5016;
+    font-weight: 800; font-size: 1.5rem; color: #0D631B;
     letter-spacing: -0.03em; line-height: 1;
   }
   .sc-lb-pts.leader { color: #0D631B; }
   .sc-lb-pill {
-    background: linear-gradient(135deg,rgba(45,80,22,0.1),rgba(61,107,26,0.1));
+    background: linear-gradient(135deg,rgba(13,99,27,0.1),rgba(61,107,26,0.1));
     padding: 0.25rem 0.5rem; border-radius: 8px;
-    font-size: 0.6875rem; font-weight: 500; color: #2D5016;
+    font-size: 0.6875rem; font-weight: 500; color: #0D631B;
     white-space: nowrap;
   }
   .sc-lb-chev {
@@ -936,19 +927,19 @@ const STYLES = `
     font-family: var(--font-manrope), sans-serif;
     font-weight: 700; font-size: 0.9375rem;
   }
-  .sc-lb-sc-score.under { color: #2D5016; }
+  .sc-lb-sc-score.under { color: #0D631B; }
   .sc-lb-sc-score.over  { color: #923357; }
   .sc-lb-sc-score.par   { color: #1A2E1A; }
   .sc-lb-sc-score.blank { color: #c0c0c0; font-weight: 400; font-size: 0.8125rem; }
   .sc-lb-sc-pts-cell {
-    background: rgba(45,80,22,0.08); padding: 0.15rem 0.375rem;
+    background: rgba(13,99,27,0.08); padding: 0.15rem 0.375rem;
     border-radius: 5px; font-size: 0.6875rem; font-weight: 500;
-    color: #2D5016; display: inline-block;
+    color: #0D631B; display: inline-block;
     font-family: var(--font-lexend), sans-serif;
   }
   .sc-lb-total {
     text-align: right; font-family: var(--font-manrope), sans-serif;
-    font-weight: 700; font-size: 0.875rem; color: #2D5016; padding-top: 0.5rem;
+    font-weight: 700; font-size: 0.875rem; color: #0D631B; padding-top: 0.5rem;
   }
   .sc-lb-footer {
     text-align: center; padding: 1rem 0 0.5rem;
@@ -1305,7 +1296,7 @@ export default function ScoreEntryLive(props: Props) {
 
     const scoreColor = (sc: number | null | undefined, par: number, pu: boolean): string => {
       if (pu || sc == null) return '#9aaa9a'
-      if (sc < par) return '#2D5016'
+      if (sc < par) return '#0D631B'
       if (sc === par) return '#1A2E1A'
       return '#923357'
     }
@@ -1318,7 +1309,7 @@ export default function ScoreEntryLive(props: Props) {
         <td className="sc-td sc-td-par">{par}</td>
         {isMulti ? (
           playersWithCard.map(p => (
-            <td key={p.scorecardId} className="sc-td" style={{ color: '#2D5016', fontWeight: 700 }}>
+            <td key={p.scorecardId} className="sc-td" style={{ color: '#0D631B', fontWeight: 700 }}>
               {playerHoleTotal(p, fromIdx, toIdx)}
             </td>
           ))
@@ -1326,11 +1317,11 @@ export default function ScoreEntryLive(props: Props) {
           <>
             <td className="sc-td sc-td-muted" />
             <td className="sc-td sc-td-muted" />
-            <td className="sc-td" style={{ color: '#2D5016', fontWeight: 700 }}>
+            <td className="sc-td" style={{ color: '#0D631B', fontWeight: 700 }}>
               {currentPlayerObj ? playerHoleTotal(currentPlayerObj, fromIdx, toIdx) : '–'}
             </td>
             {format === 'stableford' && (
-              <td className="sc-td" style={{ color: '#2D5016', fontWeight: 700 }}>
+              <td className="sc-td" style={{ color: '#0D631B', fontWeight: 700 }}>
                 {currentPlayerObj ? playerHoleTotal(currentPlayerObj, fromIdx, toIdx) : '–'}
               </td>
             )}
@@ -1374,7 +1365,7 @@ export default function ScoreEntryLive(props: Props) {
                   {pu ? 'NR' : sc != null ? sc : '–'}
                 </td>
                 {format === 'stableford' && (
-                  <td className="sc-td" style={{ color: p != null ? (p >= 3 ? '#2D5016' : p === 0 ? '#923357' : '#888') : '#ddd', fontWeight: 600 }}>
+                  <td className="sc-td" style={{ color: p != null ? (p >= 3 ? '#0D631B' : p === 0 ? '#923357' : '#888') : '#ddd', fontWeight: 600 }}>
                     {pu ? '0' : p != null ? p : '–'}
                   </td>
                 )}
@@ -1708,7 +1699,6 @@ export default function ScoreEntryLive(props: Props) {
         {/* ── Settings modal ── */}
         {settingsOpen && (
           <SettingsModal
-            eventId={eventId}
             onScorecard={() => { setSettingsOpen(false); d({ type: 'TOGGLE_CARD' }) }}
             onLeaderboard={() => { setSettingsOpen(false); setShowLeaderboard(true) }}
             onClose={() => setSettingsOpen(false)}
@@ -1810,7 +1800,7 @@ function ScoreModal({
         {/* Header */}
         <div className="sc-modal-hd">
           <div className="sc-modal-player-row">
-            <div className="sc-avatar" style={{ width: 36, height: 36, background: '#2D5016', fontSize: '0.75rem' }}>
+            <div className="sc-avatar" style={{ width: 36, height: 36, background: '#0D631B', fontSize: '0.75rem' }}>
               {initials}
             </div>
             <h2 className="sc-modal-title">
@@ -1882,12 +1872,10 @@ function ScoreModal({
 // ─── Settings Modal ───────────────────────────────────────────────────────────
 
 function SettingsModal({
-  eventId,
   onScorecard,
   onLeaderboard,
   onClose,
 }: {
-  eventId: string
   onScorecard: () => void
   onLeaderboard: () => void
   onClose: () => void

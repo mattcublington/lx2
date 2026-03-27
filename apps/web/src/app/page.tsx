@@ -204,7 +204,7 @@ export default function HomePage() {
         .hp-btn-primary {
           display: inline-flex;
           align-items: center;
-          background: linear-gradient(135deg, #2D5016 0%, #3D6B1A 100%);
+          background: linear-gradient(135deg, #0D631B 0%, #0a4f15 100%);
           color: #fff;
           padding: 0.875rem 2.25rem;
           border-radius: 9999px;
@@ -219,7 +219,7 @@ export default function HomePage() {
           white-space: nowrap;
         }
         .hp-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(26, 28, 28, 0.2); }
-        .hp-btn-primary:focus-visible { outline: 2px solid #3D6B1A; outline-offset: 2px; }
+        .hp-btn-primary:focus-visible { outline: 2px solid #0a4f15; outline-offset: 2px; }
 
         .hp-btn-secondary {
           display: inline-flex;
@@ -300,7 +300,7 @@ export default function HomePage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: linear-gradient(135deg, rgba(45,80,22,0.1) 0%, rgba(61,107,26,0.1) 100%);
+          background: linear-gradient(135deg, rgba(13,99,27,0.1) 0%, rgba(61,107,26,0.1) 100%);
           border-radius: 16px;
           flex-shrink: 0;
         }
@@ -439,8 +439,8 @@ export default function HomePage() {
             <div className="hp-feature-card">
               <div className="hp-feature-icon">
                 <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                  <path d="M4 20l6-8 5 6 4-5 5 7" stroke="#2D5016" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <circle cx="14" cy="6" r="2.5" fill="#3D6B1A" opacity="0.4"/>
+                  <path d="M4 20l6-8 5 6 4-5 5 7" stroke="#0D631B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="14" cy="6" r="2.5" fill="#0a4f15" opacity="0.4"/>
                 </svg>
               </div>
               <h3>Track Your Game</h3>
@@ -449,10 +449,10 @@ export default function HomePage() {
             <div className="hp-feature-card">
               <div className="hp-feature-icon">
                 <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                  <circle cx="10" cy="9" r="3.5" stroke="#2D5016" strokeWidth="2" fill="none"/>
-                  <circle cx="19" cy="9" r="3.5" stroke="#3D6B1A" strokeWidth="2" fill="none" opacity="0.6"/>
-                  <path d="M3 22c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="#2D5016" strokeWidth="2" strokeLinecap="round" fill="none"/>
-                  <path d="M19 15c2.761 0 5 2.239 5 5" stroke="#3D6B1A" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.6"/>
+                  <circle cx="10" cy="9" r="3.5" stroke="#0D631B" strokeWidth="2" fill="none"/>
+                  <circle cx="19" cy="9" r="3.5" stroke="#0a4f15" strokeWidth="2" fill="none" opacity="0.6"/>
+                  <path d="M3 22c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="#0D631B" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                  <path d="M19 15c2.761 0 5 2.239 5 5" stroke="#0a4f15" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.6"/>
                 </svg>
               </div>
               <h3>Play With Friends</h3>
@@ -461,8 +461,8 @@ export default function HomePage() {
             <div className="hp-feature-card">
               <div className="hp-feature-icon">
                 <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                  <path d="M14 3l2.8 5.6 6.2.9-4.5 4.4 1.1 6.1L14 17l-5.6 3 1.1-6.1L5 9.5l6.2-.9L14 3z" stroke="#2D5016" strokeWidth="2" strokeLinejoin="round" fill="rgba(45,80,22,0.15)"/>
-                  <path d="M9 24h10" stroke="#3D6B1A" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M14 3l2.8 5.6 6.2.9-4.5 4.4 1.1 6.1L14 17l-5.6 3 1.1-6.1L5 9.5l6.2-.9L14 3z" stroke="#0D631B" strokeWidth="2" strokeLinejoin="round" fill="rgba(13,99,27,0.15)"/>
+                  <path d="M9 24h10" stroke="#0a4f15" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
               </div>
               <h3>Compete in Events</h3>
@@ -471,9 +471,9 @@ export default function HomePage() {
             <div className="hp-feature-card">
               <div className="hp-feature-icon">
                 <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                  <rect x="3" y="12" width="22" height="13" rx="3" stroke="#2D5016" strokeWidth="2" fill="none"/>
-                  <path d="M9 12V8a5 5 0 0110 0v4" stroke="#3D6B1A" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.7"/>
-                  <circle cx="14" cy="18.5" r="2" fill="#2D5016" opacity="0.5"/>
+                  <rect x="3" y="12" width="22" height="13" rx="3" stroke="#0D631B" strokeWidth="2" fill="none"/>
+                  <path d="M9 12V8a5 5 0 0110 0v4" stroke="#0a4f15" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.7"/>
+                  <circle cx="14" cy="18.5" r="2" fill="#0D631B" opacity="0.5"/>
                 </svg>
               </div>
               <h3>Run Your Club</h3>

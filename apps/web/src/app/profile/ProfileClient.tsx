@@ -195,7 +195,7 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
           width: 80px;
           height: 80px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #2D5016 0%, #3D6B1A 100%);
+          background: linear-gradient(135deg, #0D631B 0%, #0a4f15 100%);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -245,19 +245,19 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
           right: 0;
           width: 28px;
           height: 28px;
-          background: linear-gradient(135deg, #2D5016 0%, #3D6B1A 100%);
+          background: linear-gradient(135deg, #0D631B 0%, #0a4f15 100%);
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
-          box-shadow: 0 2px 8px rgba(45, 80, 22, 0.2);
+          box-shadow: 0 2px 8px rgba(13, 99, 27, 0.2);
           transition: all 0.2s ease-in-out;
           border: none;
         }
         .pf-edit-photo:hover {
           transform: scale(1.1);
-          box-shadow: 0 4px 12px rgba(45, 80, 22, 0.3);
+          box-shadow: 0 4px 12px rgba(13, 99, 27, 0.3);
         }
 
         .pf-user-name {
@@ -382,8 +382,8 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
           margin-top: 6px;
         }
         .pf-field-input:focus {
-          border-color: #2D5016;
-          box-shadow: 0 0 0 3px rgba(45, 80, 22, 0.1);
+          border-color: #0D631B;
+          box-shadow: 0 0 0 3px rgba(13, 99, 27, 0.1);
         }
 
         .pf-edit-actions {
@@ -394,7 +394,7 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
 
         .pf-btn-save {
           flex: 1;
-          background: #2D5016;
+          background: #0D631B;
           color: #fff;
           border: none;
           border-radius: 8px;
@@ -406,7 +406,7 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
           transition: background 0.15s, transform 0.15s;
         }
         .pf-btn-save:hover:not(:disabled) {
-          background: #1A3A0A;
+          background: #0a1f0a;
           transform: translateY(-1px);
         }
         .pf-btn-save:disabled { background: #7aaa7a; cursor: not-allowed; }
@@ -442,7 +442,7 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
           font-family: var(--font-lexend, 'Lexend', sans-serif);
           font-weight: 500;
           font-size: 14px;
-          color: #2D5016;
+          color: #0D631B;
           text-decoration: none;
           display: flex;
           align-items: center;
@@ -501,8 +501,8 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
           transition: color 0.2s ease-in-out;
         }
         .pf-bnav-item svg { transition: transform 0.2s ease-in-out; }
-        .pf-bnav-item.active { color: #2D5016; }
-        .pf-bnav-item:hover { color: #2D5016; }
+        .pf-bnav-item.active { color: #0D631B; }
+        .pf-bnav-item:hover { color: #0D631B; }
         .pf-bnav-item:hover svg { transform: translateY(-2px); }
       `}</style>
 

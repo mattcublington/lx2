@@ -58,7 +58,7 @@ function SignupForm() {
         .signup-page {
           font-family: var(--font-lexend, 'Lexend', sans-serif);
           background: #F0F4EC;
-          color: #1A1C1C;
+          color: #1A2E1A;
           min-height: 100dvh;
           padding: 2.75rem;
           display: flex;
@@ -80,7 +80,7 @@ function SignupForm() {
           margin-bottom: 2rem;
           padding: 0;
           text-decoration: none;
-          color: #1A1C1C;
+          color: #1A2E1A;
           transition: transform 0.2s ease-in-out;
           flex-shrink: 0;
         }
@@ -93,7 +93,7 @@ function SignupForm() {
           font-weight: 700;
           font-size: 32px;
           line-height: 1.2;
-          color: #1A1C1C;
+          color: #1A2E1A;
           margin: 0 0 0.5rem 0;
         }
 
@@ -122,7 +122,7 @@ function SignupForm() {
           font-family: var(--font-lexend, 'Lexend', sans-serif);
           font-weight: 500;
           font-size: 14px;
-          color: #1A1C1C;
+          color: #1A2E1A;
           margin-bottom: 0.5rem;
         }
 
@@ -134,15 +134,15 @@ function SignupForm() {
           border-radius: 16px;
           font-family: var(--font-lexend, 'Lexend', sans-serif);
           font-size: 16px;
-          color: #1A1C1C;
+          color: #1A2E1A;
           outline: none;
           box-sizing: border-box;
           transition: all 0.2s ease-in-out;
         }
         .signup-input::placeholder { color: #72786E; }
         .signup-input:focus {
-          border-color: #2D5016;
-          box-shadow: 0 0 0 3px rgba(45, 80, 22, 0.1);
+          border-color: #0D631B;
+          box-shadow: 0 0 0 3px rgba(13, 99, 27, 0.1);
         }
 
         .strength-track {
@@ -160,7 +160,7 @@ function SignupForm() {
         }
         .strength-bar.weak   { width: 33%; background: #923357; }
         .strength-bar.medium { width: 66%; background: #F59E0B; }
-        .strength-bar.strong { width: 100%; background: #2D5016; }
+        .strength-bar.strong { width: 100%; background: #0D631B; }
 
         .terms-text {
           font-family: var(--font-lexend, 'Lexend', sans-serif);
@@ -187,7 +187,7 @@ function SignupForm() {
           padding: 16px 20px;
           background: #E8F5EE;
           border-radius: 12px;
-          border: 1px solid rgba(45, 80, 22, 0.2);
+          border: 1px solid rgba(13, 99, 27, 0.2);
           font-size: 14px;
           color: #1A2E1A;
           line-height: 1.5;
@@ -197,7 +197,7 @@ function SignupForm() {
         .cta-button {
           width: 100%;
           padding: 18px;
-          background: #2D5016;
+          background: #0D631B;
           color: #ffffff;
           border: none;
           border-radius: 16px;
@@ -209,9 +209,9 @@ function SignupForm() {
           transition: all 0.2s ease-in-out;
         }
         .cta-button:hover:not(:disabled) {
-          background: #3D6B1A;
+          background: #0a4f15;
           transform: translateY(-1px);
-          box-shadow: 0 8px 24px rgba(45, 80, 22, 0.15);
+          box-shadow: 0 8px 24px rgba(13, 99, 27, 0.15);
         }
         .cta-button:active:not(:disabled) { transform: translateY(0); }
         .cta-button:disabled { background: #9ca3af; cursor: default; }
@@ -224,12 +224,12 @@ function SignupForm() {
           color: #72786E;
         }
         .footer-link a {
-          color: #1A1C1C;
+          color: #1A2E1A;
           font-weight: 500;
           text-decoration: none;
           transition: color 0.2s ease-in-out;
         }
-        .footer-link a:hover { color: #2D5016; }
+        .footer-link a:hover { color: #0D631B; }
 
         @media (max-width: 768px) {
           .signup-page { padding: 1.5rem 1.25rem; }

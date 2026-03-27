@@ -63,7 +63,7 @@ function AuthForm() {
           display: flex;
           flex-direction: column;
           font-family: var(--font-lexend, 'Lexend', sans-serif);
-          color: #1A1C1C;
+          color: #1A2E1A;
         }
 
         .auth-header {
@@ -84,7 +84,7 @@ function AuthForm() {
           cursor: pointer;
           transition: transform 0.2s ease-in-out;
           text-decoration: none;
-          color: #1A1C1C;
+          color: #1A2E1A;
         }
         .auth-back-btn:hover { transform: translateX(-2px); }
 
@@ -118,7 +118,7 @@ function AuthForm() {
           font-family: var(--font-manrope, 'Manrope', sans-serif);
           font-weight: 700;
           font-size: 32px;
-          color: #1A1C1C;
+          color: #1A2E1A;
           margin: 0 0 2rem 0;
           letter-spacing: -0.02em;
         }
@@ -129,7 +129,7 @@ function AuthForm() {
           font-family: var(--font-lexend, 'Lexend', sans-serif);
           font-weight: 500;
           font-size: 14px;
-          color: #1A1C1C;
+          color: #1A2E1A;
           display: block;
           margin-bottom: 0.5rem;
         }
@@ -143,15 +143,15 @@ function AuthForm() {
           border: 1px solid rgba(26, 28, 28, 0.12);
           border-radius: 12px;
           background: #ffffff;
-          color: #1A1C1C;
+          color: #1A2E1A;
           outline: none;
           box-sizing: border-box;
           transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         }
         .form-input::placeholder { color: #72786E; }
         .form-input:focus {
-          border-color: #2D5016;
-          box-shadow: 0 0 0 3px rgba(45, 80, 22, 0.08);
+          border-color: #0D631B;
+          box-shadow: 0 0 0 3px rgba(13, 99, 27, 0.08);
         }
 
         .hint-text {
@@ -197,15 +197,15 @@ function AuthForm() {
         .btn:active:not(:disabled) { transform: translateY(0); }
 
         .btn-primary {
-          background: #2D5016;
+          background: #0D631B;
           color: #ffffff;
           margin-bottom: 1.5rem;
         }
-        .btn-primary:hover:not(:disabled) { background: #3D6B1A; }
+        .btn-primary:hover:not(:disabled) { background: #0a4f15; }
         .btn-primary:disabled { background: #9ca3af; cursor: default; }
 
         .btn-google {
-          background: #1A1C1C;
+          background: #1A2E1A;
           color: #ffffff;
         }
         .btn-google:hover:not(:disabled) { background: #2D2F2F; }
@@ -233,7 +233,7 @@ function AuthForm() {
           padding: 16px 20px;
           background: #E8F5EE;
           border-radius: 12px;
-          border: 1px solid rgba(45, 80, 22, 0.2);
+          border: 1px solid rgba(13, 99, 27, 0.2);
           font-size: 14px;
           color: #1A2E1A;
           line-height: 1.5;
@@ -254,7 +254,7 @@ function AuthForm() {
           font-family: var(--font-lexend, 'Lexend', sans-serif);
           font-weight: 500;
           font-size: 16px;
-          color: #2D5016;
+          color: #0D631B;
           background: none;
           border: none;
           cursor: pointer;

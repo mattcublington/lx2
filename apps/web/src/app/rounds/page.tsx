@@ -58,7 +58,7 @@ export default async function RoundsPage() {
           min-height: 100dvh;
           background: #F0F4EC;
           font-family: var(--font-lexend), system-ui, sans-serif;
-          color: #1A1C1C;
+          color: #1A2E1A;
           padding-bottom: max(80px, calc(80px + env(safe-area-inset-bottom)));
         }
         .rp-hd {
@@ -72,8 +72,8 @@ export default async function RoundsPage() {
           z-index: 50;
         }
         .rp-main {
-          padding: 1.5rem 1.25rem;
-          max-width: 480px;
+          padding: 1.5rem 2rem;
+          max-width: 1200px;
           margin: 0 auto;
         }
         .rp-title {
@@ -106,7 +106,7 @@ export default async function RoundsPage() {
         .rp-course {
           font-weight: 500;
           font-size: 0.9375rem;
-          color: #1A1C1C;
+          color: #1A2E1A;
           margin-bottom: 0.2rem;
           white-space: nowrap;
           overflow: hidden;
@@ -134,7 +134,7 @@ export default async function RoundsPage() {
           flex-shrink: 0;
           transition: transform 0.15s, color 0.15s;
         }
-        .rp-row:hover .rp-chev { transform: translateX(2px); color: #2D5016; }
+        .rp-row:hover .rp-chev { transform: translateX(2px); color: #0D631B; }
         .rp-empty {
           padding: 3rem 1.5rem;
           text-align: center;
@@ -156,7 +156,7 @@ export default async function RoundsPage() {
           gap: 0.5rem;
           width: 100%;
           padding: 1rem;
-          background: linear-gradient(135deg, #2D5016 0%, #3D6B1A 100%);
+          background: linear-gradient(135deg, #0D631B 0%, #0a4f15 100%);
           color: #FFFFFF;
           border: none;
           border-radius: 14px;
@@ -168,9 +168,9 @@ export default async function RoundsPage() {
           margin-bottom: 1.25rem;
           letter-spacing: -0.01em;
           transition: transform 0.15s, box-shadow 0.15s;
-          box-shadow: 0 6px 20px rgba(45, 80, 22, 0.2);
+          box-shadow: 0 6px 20px rgba(13, 99, 27, 0.2);
         }
-        .rp-cta:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(45, 80, 22, 0.28); }
+        .rp-cta:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(13, 99, 27, 0.28); }
         @media (min-width: 768px) {
           .rp-main { max-width: 560px; padding: 2rem; }
           .rp { padding-bottom: 0; }

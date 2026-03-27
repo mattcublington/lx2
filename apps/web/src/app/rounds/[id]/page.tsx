@@ -131,7 +131,7 @@ function HoleChart({
   function dotFill(v: number | null): string {
     if (v === null) return 'none'
     if (v <= -2) return '#F59E0B'  // eagle+ → amber/gold
-    if (v === -1) return '#2D5016'  // birdie → green
+    if (v === -1) return '#0D631B'  // birdie → green
     if (v === 0) return '#72786E'   // par → grey
     if (v === 1) return '#B45309'   // bogey → amber
     return '#DC2626'                // double+ → red
@@ -194,7 +194,7 @@ function HoleChart({
           key={si}
           points={seg.map(p => `${p.x},${p.y}`).join(' ')}
           fill="none"
-          stroke="#2D5016"
+          stroke="#0D631B"
           strokeWidth="2"
           strokeLinejoin="round"
           strokeLinecap="round"
@@ -330,19 +330,19 @@ function ScorecardTable({
                 </td>
               </tr>
               {isStableford && (
-                <tr style={{ background: 'rgba(45,80,22,0.04)' }}>
-                  <td style={{ ...td, textAlign: 'left', paddingLeft: 8, color: '#2D5016', fontWeight: 600 }}>Pts</td>
+                <tr style={{ background: 'rgba(13,99,27,0.04)' }}>
+                  <td style={{ ...td, textAlign: 'left', paddingLeft: 8, color: '#0D631B', fontWeight: 600 }}>Pts</td>
                   {sHoles.map(h => {
                     const g = scores[h.holeInRound]
                     if (g == null) return <td key={h.holeInRound} style={{ ...td, color: '#C8D4C0' }}>–</td>
                     const p = stablefordPts(g, h.par, hcStrokes[h.holeInRound] ?? 0)
                     return (
-                      <td key={h.holeInRound} style={{ ...td, color: p === 0 ? '#DC2626' : '#2D5016', fontWeight: p >= 3 ? 700 : 400 }}>
+                      <td key={h.holeInRound} style={{ ...td, color: p === 0 ? '#DC2626' : '#0D631B', fontWeight: p >= 3 ? 700 : 400 }}>
                         {p}
                       </td>
                     )
                   })}
-                  <td style={{ ...tdBold, color: '#2D5016', background: 'rgba(45,80,22,0.06)' }}>{sectionPts}</td>
+                  <td style={{ ...tdBold, color: '#0D631B', background: 'rgba(13,99,27,0.06)' }}>{sectionPts}</td>
                 </tr>
               )}
             </tbody>
@@ -358,7 +358,7 @@ function ScorecardTable({
           borderTop: '1px solid rgba(26,28,28,0.08)',
         }}>
           {isStableford ? (
-            <span style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 15, color: '#2D5016' }}>
+            <span style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 15, color: '#0D631B' }}>
               {grandTotalPts} pts total
             </span>
           ) : (
@@ -378,8 +378,8 @@ function ErrorCard({ title, body }: { title: string; body: string }) {
   return (
     <div style={{ maxWidth: 420, margin: '0 auto', padding: '40px 20px', fontFamily: "'DM Sans', sans-serif", color: '#1a2e1a', minHeight: '100vh' }}>
       <div style={{ marginTop: 32, fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{title}</div>
-      <div style={{ fontSize: 14, color: '#6b7c6b', lineHeight: 1.5 }}>{body}</div>
-      <Link href="/rounds" style={{ display: 'inline-block', marginTop: 20, color: '#2D5016', fontWeight: 600, fontSize: 14 }}>
+      <div style={{ fontSize: 14, color: '#6B8C6B', lineHeight: 1.5 }}>{body}</div>
+      <Link href="/rounds" style={{ display: 'inline-block', marginTop: 20, color: '#0D631B', fontWeight: 600, fontSize: 14 }}>
         ← My Rounds
       </Link>
     </div>
@@ -680,7 +680,7 @@ export default async function RoundSummaryPage({ params }: PageProps) {
             <section className="rs-card rs-chart-card">
               <div className="rs-card-hd">Score per hole vs par</div>
               <div className="rs-chart-legend">
-                <span className="rs-legend-dot" style={{ background: '#2D5016' }} /> Birdie
+                <span className="rs-legend-dot" style={{ background: '#0D631B' }} /> Birdie
                 <span className="rs-legend-dot" style={{ background: '#72786E', marginLeft: '0.75rem' }} /> Par
                 <span className="rs-legend-dot" style={{ background: '#B45309', marginLeft: '0.75rem' }} /> Bogey
                 <span className="rs-legend-dot" style={{ background: '#DC2626', marginLeft: '0.75rem' }} /> Double+
@@ -762,7 +762,7 @@ const STYLES = `
     min-height: 100dvh;
     background: #F0F4EC;
     font-family: var(--font-lexend), system-ui, sans-serif;
-    color: #1A1C1C;
+    color: #1A2E1A;
     padding-bottom: max(80px, calc(80px + env(safe-area-inset-bottom)));
   }
 
@@ -785,7 +785,7 @@ const STYLES = `
     text-decoration: none;
     transition: color 0.15s;
   }
-  .rs-back:hover { color: #2D5016; }
+  .rs-back:hover { color: #0D631B; }
 
   /* Main */
   .rs-main {
@@ -822,8 +822,8 @@ const STYLES = `
     align-items: center;
     padding: 0.2rem 0.625rem;
     border-radius: 20px;
-    background: rgba(45, 80, 22, 0.1);
-    color: #2D5016;
+    background: rgba(13, 99, 27, 0.1);
+    color: #0D631B;
     font-size: 0.75rem;
     font-weight: 500;
   }
@@ -857,7 +857,7 @@ const STYLES = `
     font-family: var(--font-manrope), sans-serif;
     font-weight: 700;
     font-size: 1.5rem;
-    color: #2D5016;
+    color: #0D631B;
     letter-spacing: -0.01em;
   }
   .rs-score-sub {
@@ -873,19 +873,19 @@ const STYLES = `
     align-items: center;
     justify-content: center;
     padding: 1rem;
-    background: linear-gradient(135deg, #2D5016 0%, #3D6B1A 100%);
+    background: linear-gradient(135deg, #0D631B 0%, #0a4f15 100%);
     color: #FFFFFF;
     border-radius: 14px;
     font-family: var(--font-manrope), sans-serif;
     font-weight: 700;
     font-size: 0.9375rem;
     text-decoration: none;
-    box-shadow: 0 6px 20px rgba(45, 80, 22, 0.2);
+    box-shadow: 0 6px 20px rgba(13, 99, 27, 0.2);
     transition: transform 0.15s, box-shadow 0.15s;
     letter-spacing: -0.01em;
     animation: rs-rise 0.4s 0.05s cubic-bezier(0.2, 0, 0, 1) both;
   }
-  .rs-continue:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(45, 80, 22, 0.28); }
+  .rs-continue:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(13, 99, 27, 0.28); }
 
   /* Cards */
   .rs-card {
@@ -950,7 +950,7 @@ const STYLES = `
     transition: background 0.15s;
   }
   .rs-lb-row:last-child { border-bottom: none; }
-  .rs-lb-row.you { background: rgba(45, 80, 22, 0.04); }
+  .rs-lb-row.you { background: rgba(13, 99, 27, 0.04); }
   .rs-lb-pos {
     font-family: var(--font-manrope), sans-serif;
     font-weight: 700;
@@ -959,12 +959,12 @@ const STYLES = `
     width: 20px;
     flex-shrink: 0;
   }
-  .rs-lb-row:first-child .rs-lb-pos { color: #2D5016; }
+  .rs-lb-row:first-child .rs-lb-pos { color: #0D631B; }
   .rs-lb-name {
     flex: 1;
     font-weight: 500;
     font-size: 0.9375rem;
-    color: #1A1C1C;
+    color: #1A2E1A;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -972,8 +972,8 @@ const STYLES = `
   .rs-lb-you {
     font-size: 0.6875rem;
     font-weight: 600;
-    color: #2D5016;
-    background: rgba(45, 80, 22, 0.1);
+    color: #0D631B;
+    background: rgba(13, 99, 27, 0.1);
     padding: 0.15rem 0.4rem;
     border-radius: 6px;
   }

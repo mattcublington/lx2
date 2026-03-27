@@ -57,7 +57,6 @@ export default function PlayDashboard({
   handicapIndex,
   roundsCount = 0,
   activeRoundId,
-  roundsThisMonth,
   avgScore,
   lastRoundScore,
   lastRoundCourse,
@@ -98,7 +97,7 @@ export default function PlayDashboard({
           min-height: 100dvh;
           background: #F0F4EC;
           font-family: var(--font-lexend), system-ui, sans-serif;
-          color: #1A1C1C;
+          color: #1A2E1A;
           padding-bottom: max(80px, calc(80px + env(safe-area-inset-bottom)));
         }
 
@@ -131,12 +130,12 @@ export default function PlayDashboard({
           letter-spacing: 0.01em;
           transition: color 0.15s;
         }
-        .fe-so-hd:hover { color: #2D5016; }
+        .fe-so-hd:hover { color: #0D631B; }
 
         /* ── Main content ────────────────────────────────── */
         .fe-main {
-          padding: 1.5rem 1.25rem;
-          max-width: 480px;
+          padding: 1.5rem 2rem;
+          max-width: 1200px;
           margin: 0 auto;
         }
 
@@ -158,13 +157,13 @@ export default function PlayDashboard({
           display: inline-flex;
           align-items: center;
           gap: 0.4rem;
-          background: linear-gradient(135deg, rgba(45, 80, 22, 0.1) 0%, rgba(61, 107, 26, 0.1) 100%);
+          background: linear-gradient(135deg, rgba(13, 99, 27, 0.1) 0%, rgba(61, 107, 26, 0.1) 100%);
           padding: 0.5rem 1rem;
           border-radius: 24px;
           font-family: var(--font-lexend), sans-serif;
           font-size: 0.875rem;
           font-weight: 500;
-          color: #2D5016;
+          color: #0D631B;
         }
 
         /* ── Stat cards ──────────────────────────────────── */
@@ -194,9 +193,9 @@ export default function PlayDashboard({
           display: flex;
           align-items: center;
           justify-content: center;
-          background: linear-gradient(135deg, rgba(45, 80, 22, 0.1) 0%, rgba(61, 107, 26, 0.1) 100%);
+          background: linear-gradient(135deg, rgba(13, 99, 27, 0.1) 0%, rgba(61, 107, 26, 0.1) 100%);
           border-radius: 10px;
-          color: #2D5016;
+          color: #0D631B;
         }
         .fe-stat-val {
           font-family: var(--font-manrope), sans-serif;
@@ -225,7 +224,7 @@ export default function PlayDashboard({
           gap: 0.6rem;
           width: 100%;
           padding: 1.125rem;
-          background: linear-gradient(135deg, #2D5016 0%, #3D6B1A 100%);
+          background: linear-gradient(135deg, #0D631B 0%, #0a4f15 100%);
           color: #FFFFFF;
           border: none;
           border-radius: 16px;
@@ -233,7 +232,7 @@ export default function PlayDashboard({
           font-weight: 700;
           font-size: 1rem;
           cursor: pointer;
-          box-shadow: 0 8px 24px rgba(45, 80, 22, 0.2);
+          box-shadow: 0 8px 24px rgba(13, 99, 27, 0.2);
           transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
           margin-bottom: 2rem;
           text-decoration: none;
@@ -242,14 +241,14 @@ export default function PlayDashboard({
         }
         .fe-cta:hover {
           transform: translateY(-1px);
-          box-shadow: 0 12px 32px rgba(45, 80, 22, 0.28);
+          box-shadow: 0 12px 32px rgba(13, 99, 27, 0.28);
         }
         .fe-cta:active { transform: translateY(0); }
 
         /* Join ongoing-round variant */
         .fe-cta.join {
           background: #FFFFFF;
-          color: #2D5016;
+          color: #0D631B;
           border: 1.5px solid #E0EBE0;
           box-shadow: 0 4px 12px rgba(26, 28, 28, 0.06);
         }
@@ -280,9 +279,9 @@ export default function PlayDashboard({
           animation: fe-rise 0.45s 0.15s cubic-bezier(0.2, 0, 0, 1) both;
         }
         .fe-cta-secondary:hover {
-          color: #2D5016;
-          border-color: rgba(45, 80, 22, 0.4);
-          background: rgba(45, 80, 22, 0.04);
+          color: #0D631B;
+          border-color: rgba(13, 99, 27, 0.4);
+          background: rgba(13, 99, 27, 0.04);
         }
 
         /* ── Section header ──────────────────────────────── */
@@ -324,7 +323,7 @@ export default function PlayDashboard({
           font-family: var(--font-lexend), sans-serif;
           font-weight: 500;
           font-size: 0.9375rem;
-          color: #1A1C1C;
+          color: #1A2E1A;
           margin-bottom: 0.2rem;
           white-space: nowrap;
           overflow: hidden;
@@ -345,7 +344,7 @@ export default function PlayDashboard({
         }
         .fe-round-row:hover .fe-round-chev {
           transform: translateX(2px);
-          color: #2D5016;
+          color: #0D631B;
         }
 
         /* Empty state */

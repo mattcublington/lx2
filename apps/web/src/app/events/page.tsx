@@ -87,7 +87,7 @@ export default async function EventsPage() {
           min-height: 100dvh;
           background: #F0F4EC;
           font-family: var(--font-lexend), system-ui, sans-serif;
-          color: #1A1C1C;
+          color: #1A2E1A;
           padding-bottom: max(80px, calc(80px + env(safe-area-inset-bottom)));
         }
         .ep-hd {
@@ -101,8 +101,8 @@ export default async function EventsPage() {
           z-index: 50;
         }
         .ep-main {
-          padding: 1.5rem 1.25rem;
-          max-width: 480px;
+          padding: 1.5rem 2rem;
+          max-width: 1200px;
           margin: 0 auto;
         }
         .ep-title {
@@ -145,7 +145,7 @@ export default async function EventsPage() {
         .ep-name {
           font-weight: 500;
           font-size: 0.9375rem;
-          color: #1A1C1C;
+          color: #1A2E1A;
           margin-bottom: 0.2rem;
           white-space: nowrap;
           overflow: hidden;
@@ -174,7 +174,7 @@ export default async function EventsPage() {
           flex-shrink: 0;
           transition: transform 0.15s, color 0.15s;
         }
-        .ep-row:hover .ep-chev { transform: translateX(2px); color: #2D5016; }
+        .ep-row:hover .ep-chev { transform: translateX(2px); color: #0D631B; }
         .ep-empty {
           padding: 2rem 1.5rem;
           text-align: center;

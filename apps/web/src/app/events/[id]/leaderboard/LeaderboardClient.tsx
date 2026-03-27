@@ -71,7 +71,7 @@ function getInitials(name: string): string {
 const STYLES = `
   :root {
     --forest: #1A2E1A;
-    --green-dark: #2D5016;
+    --green-dark: #0D631B;
     --green-faint: #F0F4EC;
     --green-border: #E0EBE0;
     --muted: #6B8C6B;
@@ -188,7 +188,7 @@ const STYLES = `
     letter-spacing: 0.01em;
   }
   .lb-rank.r1 {
-    background: linear-gradient(135deg, rgba(45,80,22,0.18) 0%, rgba(61,107,26,0.18) 100%);
+    background: linear-gradient(135deg, rgba(13,99,27,0.18) 0%, rgba(61,107,26,0.18) 100%);
     color: var(--green-dark);
   }
   .lb-rank.r2 { background: rgba(26,28,28,0.07); color: #44483E; }
@@ -201,7 +201,7 @@ const STYLES = `
   .lb-avatar {
     width: 38px; height: 38px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #2D5016 0%, #0D631B 100%);
+    background: linear-gradient(135deg, #0D631B 0%, #0D631B 100%);
     color: #fff;
     font-size: 0.8125rem;
     font-weight: 700;
@@ -241,7 +241,7 @@ const STYLES = `
   }
   .lb-score.leader { color: var(--green-dark); }
   .lb-pts-pill {
-    background: linear-gradient(135deg, rgba(45,80,22,0.1) 0%, rgba(61,107,26,0.1) 100%);
+    background: linear-gradient(135deg, rgba(13,99,27,0.1) 0%, rgba(61,107,26,0.1) 100%);
     padding: 0.3rem 0.625rem; border-radius: 10px;
     font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
     font-weight: 500; font-size: 0.6875rem; color: var(--green-dark); white-space: nowrap;
@@ -293,12 +293,12 @@ const STYLES = `
   }
   .lb-sc-par { font-family: var(--font-dm-sans), 'DM Sans', sans-serif; font-size: 0.875rem; color: #44483E; }
   .lb-sc-score { font-family: var(--font-manrope), 'Manrope', sans-serif; font-weight: 700; font-size: 1rem; }
-  .lb-sc-score.under-par { color: #2D5016; }
+  .lb-sc-score.under-par { color: #0D631B; }
   .lb-sc-score.over-par  { color: #923357; }
   .lb-sc-score.at-par    { color: var(--forest); }
   .lb-sc-score.unplayed  { color: #c0c0c0; font-weight: 400; font-size: 0.875rem; }
   .lb-sc-pts {
-    background: rgba(45,80,22,0.08); padding: 0.2rem 0.4rem; border-radius: 6px;
+    background: rgba(13,99,27,0.08); padding: 0.2rem 0.4rem; border-radius: 6px;
     font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
     font-weight: 500; font-size: 0.75rem; color: var(--green-dark);
     display: inline-block; white-space: nowrap;
@@ -604,7 +604,7 @@ function ScorecardTable({ holeData, grossStrokes, perHole, format, ntpHoles, ldH
   const playedHoles = holeData.filter((_, i) => grossStrokes[i] !== null)
   const totalPts = format === 'stableford'
     ? perHole.reduce((s, p, i) => grossStrokes[i] !== null ? s + p : s, 0)
-    : playedHoles.reduce((s, h, i) => {
+    : playedHoles.reduce((s, h) => {
         const actualIdx = holeData.indexOf(h)
         return s + (grossStrokes[actualIdx] ?? 0) - h.par
       }, 0)

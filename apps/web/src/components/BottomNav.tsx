@@ -33,8 +33,8 @@ export default function BottomNav({ active }: { active: Tab }) {
           transition: color 0.2s ease-in-out;
         }
         .bnav-item svg { transition: transform 0.2s ease-in-out; }
-        .bnav-item.active { color: #2D5016; }
-        .bnav-item:hover { color: #2D5016; }
+        .bnav-item.active { color: #0D631B; }
+        .bnav-item:hover { color: #0D631B; }
         .bnav-item:hover svg { transform: translateY(-2px); }
         @media (min-width: 768px) { .bnav { display: none; } }
       `}</style>

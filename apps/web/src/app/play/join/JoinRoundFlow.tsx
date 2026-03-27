@@ -8,20 +8,20 @@ import type { RoundPreview, JoinPlayer } from './actions'
 
 const FE = {
   forestPrimary: '#1A2E1A',
-  greenDark: '#2D5016',
+  greenDark: '#0D631B',
   sageBg: '#F0F4EC',
   white: '#FFFFFF',
   onSecondary: '#44483E',
   onTertiary: '#72786E',
   borderGhost: 'rgba(26, 28, 28, 0.12)',
-  gradientGreen: 'linear-gradient(135deg, #2D5016 0%, #3D6B1A 100%)',
+  gradientGreen: 'linear-gradient(135deg, #0D631B 0%, #0a4f15 100%)',
   shadowFloat: '0 4px 12px rgba(26, 28, 28, 0.04)',
   shadowHover: '0 6px 16px rgba(26, 28, 28, 0.08)',
 }
 
 const font = {
-  display: "'Manrope', sans-serif",
-  body: "'Lexend', sans-serif",
+  display: "var(--font-dm-serif), serif",
+  body: "var(--font-dm-sans), system-ui, sans-serif",
 }
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -285,7 +285,7 @@ export default function JoinRoundFlow({ displayName, handicapIndex, initialCode 
 
 // ─── Avatar colours ────────────────────────────────────────────────────────────
 
-const AVATAR_COLOURS = ['#2D5016', '#1A6DA0', '#923357', '#6B4C9A', '#B8660B']
+const AVATAR_COLOURS = ['#0D631B', '#1A6DA0', '#923357', '#6B4C9A', '#B8660B']
 
 // ─── Icons ─────────────────────────────────────────────────────────────────────
 
@@ -335,7 +335,7 @@ const STYLES = `
 
   .jr-main {
     padding: 1rem 1.25rem 2rem;
-    max-width: 480px;
+    max-width: 640px;
     margin: 0 auto;
   }
 
@@ -418,7 +418,7 @@ const STYLES = `
     align-items: center;
     padding: 0.2rem 0.625rem;
     border-radius: 24px;
-    background: rgba(45, 80, 22, 0.1);
+    background: rgba(13, 99, 27, 0.1);
     color: ${FE.greenDark};
     font-family: ${font.body};
     font-size: 0.75rem;
@@ -515,7 +515,7 @@ const STYLES = `
     gap: 0.5rem;
     width: 100%;
     background: ${FE.white};
-    border: 1.5px dashed rgba(45, 80, 22, 0.3);
+    border: 1.5px dashed rgba(13, 99, 27, 0.3);
     border-radius: 12px;
     padding: 0.75rem 1rem;
     font-family: ${font.body};
@@ -526,11 +526,11 @@ const STYLES = `
     transition: all 0.15s;
     margin-bottom: 1.25rem;
   }
-  .jr-btn-add:hover { background: rgba(45, 80, 22, 0.04); border-color: ${FE.greenDark}; }
+  .jr-btn-add:hover { background: rgba(13, 99, 27, 0.04); border-color: ${FE.greenDark}; }
   .jr-btn-add-icon {
     width: 24px; height: 24px;
     border-radius: 50%;
-    background: rgba(45, 80, 22, 0.12);
+    background: rgba(13, 99, 27, 0.12);
     color: ${FE.greenDark};
     font-size: 1.125rem;
     line-height: 1;
@@ -552,12 +552,12 @@ const STYLES = `
     font-weight: 700;
     font-size: 1rem;
     cursor: pointer;
-    box-shadow: 0 8px 24px rgba(45, 80, 22, 0.2);
+    box-shadow: 0 8px 24px rgba(13, 99, 27, 0.2);
     transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
     letter-spacing: -0.01em;
     margin-top: 0.25rem;
   }
-  .jr-btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 12px 32px rgba(45, 80, 22, 0.28); }
+  .jr-btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 12px 32px rgba(13, 99, 27, 0.28); }
   .jr-btn-primary:active { transform: translateY(0); }
   .jr-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 
