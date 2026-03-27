@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import BottomNav from '@/components/BottomNav'
-import { deleteRound } from '../rounds/[id]/actions'
+import { deleteRound } from './round-actions'
 
 type RoundRow = {
   id: string
