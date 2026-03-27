@@ -3,6 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import BottomNav from '@/components/BottomNav'
+import DeleteRoundButton from './DeleteRoundButton'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -670,9 +671,12 @@ export default async function RoundSummaryPage({ params }: PageProps) {
 
           {/* Continue scoring CTA if in progress */}
           {!roundComplete && (
-            <Link href={`/rounds/${id}/score`} className="rs-continue">
-              {holesPlayed === 0 ? 'Start scoring →' : `Continue scoring · hole ${holesPlayed + 1} →`}
-            </Link>
+            <>
+              <Link href={`/rounds/${id}/score`} className="rs-continue">
+                {holesPlayed === 0 ? 'Start scoring →' : `Continue scoring · hole ${holesPlayed + 1} →`}
+              </Link>
+              <DeleteRoundButton scorecardId={id} />
+            </>
           )}
 
           {/* Hole-by-hole chart */}
@@ -886,6 +890,51 @@ const STYLES = `
     animation: rs-rise 0.4s 0.05s cubic-bezier(0.2, 0, 0, 1) both;
   }
   .rs-continue:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(13, 99, 27, 0.28); }
+
+  /* Delete round */
+  .rs-delete-btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background: none;
+    border: none;
+    color: #6B8C6B;
+    font-family: var(--font-dm-sans);
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-align: center;
+    margin-top: 4px;
+  }
+  .rs-delete-btn:hover { color: #DC2626; }
+  .rs-delete-confirm {
+    background: #fff;
+    border: 1px solid #E0EBE0;
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 8px;
+    text-align: center;
+  }
+  .rs-delete-confirm-text {
+    font-family: var(--font-dm-sans);
+    font-size: 0.9rem;
+    color: #1A2E1A;
+    margin-bottom: 12px;
+  }
+  .rs-delete-confirm-btns { display: flex; gap: 8px; justify-content: center; }
+  .rs-delete-cancel, .rs-delete-confirm-btn {
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-family: var(--font-dm-sans);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+  }
+  .rs-delete-cancel { background: #F2F5F0; color: #1A2E1A; }
+  .rs-delete-cancel:hover { background: #E0EBE0; }
+  .rs-delete-confirm-btn { background: #DC2626; color: #fff; }
+  .rs-delete-confirm-btn:hover { background: #b91c1c; }
+  .rs-delete-cancel:disabled, .rs-delete-confirm-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
   /* Cards */
   .rs-card {

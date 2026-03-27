@@ -8,12 +8,16 @@ export default async function PlayPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  // Fetch profile, recent rounds, count, and all scorecards in parallel
+  // Fetch profile, recent rounds, count, all scorecards, and active round in parallel
+  const sevenDaysAgo = new Date()
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+
   const [
     { data: profile },
     { data: recentRounds },
     { count: roundsCount },
     { data: allScorecards },
+    { data: activeRound },
   ] = await Promise.all([
     supabase
       .from('users')
@@ -52,6 +56,15 @@ export default async function PlayPage() {
       .from('scorecards')
       .select('id, created_at, event_players!inner(user_id)')
       .eq('event_players.user_id', user.id),
+    supabase
+      .from('scorecards')
+      .select('id, event_players!inner(user_id)')
+      .eq('event_players.user_id', user.id)
+      .is('submitted_at', null)
+      .gte('created_at', sevenDaysAgo.toISOString())
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ])
 
   const scorecardIds = (allScorecards ?? []).map(s => s.id)
@@ -133,6 +146,7 @@ export default async function PlayPage() {
       avgScore={avgScore}
       lastRoundScore={lastRoundScore}
       lastRoundCourse={lastRoundCourse}
+      activeRoundId={(activeRound as { id: string } | null)?.id ?? null}
     />
   )
 }

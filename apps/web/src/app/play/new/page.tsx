@@ -8,6 +8,19 @@ export default async function NewRoundPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
+  // Guard: redirect to play if user has an active (incomplete) round in the last 7 days
+  const sevenDaysAgo = new Date()
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+  const { data: activeRound } = await supabase
+    .from('scorecards')
+    .select('id, event_players!inner(user_id)')
+    .eq('event_players.user_id', user.id)
+    .is('submitted_at', null)
+    .gte('created_at', sevenDaysAgo.toISOString())
+    .limit(1)
+    .maybeSingle()
+  if (activeRound) redirect('/play')
+
   // Fetch user profile
   const { data: profile } = await supabase
     .from('users')

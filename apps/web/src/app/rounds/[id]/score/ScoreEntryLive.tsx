@@ -5,6 +5,7 @@ import { createBrowserClient } from '@supabase/ssr'
 import { PLAYER_COLOURS } from '@/lib/player-colours'
 import type { ScoringHole, GroupPlayer } from './page'
 import { enqueueScore, getQueuedScores, deleteQueuedScore, migrateFromLocalStorage } from '@/lib/offline-queue'
+import { markRoundComplete } from '../actions'
 
 // Prevents concurrent drain runs per scorecard.
 const draining = new Set<string>()
@@ -1071,6 +1072,15 @@ export default function ScoreEntryLive(props: Props) {
     window.addEventListener('online', drainQueue)
     return () => window.removeEventListener('online', drainQueue)
   }, [drainQueue])
+
+  // Mark round complete server-side when all holes are scored
+  const { holesPlayed: _hp } = getRunningTotal()
+  const roundCompleteForEffect = _hp === holes.length && holes.length > 0
+  useEffect(() => {
+    if (roundCompleteForEffect) {
+      markRoundComplete(scorecardId).catch(() => {/* fire-and-forget */})
+    }
+  }, [roundCompleteForEffect, scorecardId])
 
   // ── Derived ────────────────────────────────────────────────────────────────
 
