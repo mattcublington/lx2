@@ -1,4 +1,8 @@
 import { defineConfig, devices } from '@playwright/test'
+import { config } from 'dotenv'
+import path from 'path'
+
+config({ path: path.resolve(__dirname, '.env.local') })
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000'
 
@@ -28,7 +32,7 @@ export default defineConfig({
         storageState: 'e2e/.auth/user.json',
       },
       dependencies: ['setup'],
-      testIgnore: /global-setup\.ts/,
+      testIgnore: [/global-setup\.ts/, /public\.spec\.ts/],
     },
     // Public tests — no auth needed (homepage, login page)
     {
