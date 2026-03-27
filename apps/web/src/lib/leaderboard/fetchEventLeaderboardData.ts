@@ -49,8 +49,8 @@ export async function fetchEventLeaderboardData(
 
   const roundType = event.round_type as '18' | '9'
 
-  // ── Hole data ──────────────────────────────────────────────────────────────
-  const [loop1Result, loop2Result] = await Promise.all([
+  // ── All dependent queries in parallel ──────────────────────────────────────
+  const [loop1Result, loop2Result, playersResult, scorecardsResult, contestResult, holeScoresResult] = await Promise.all([
     combo?.loop_1_id
       ? admin
           .from('loop_holes')
@@ -65,6 +65,24 @@ export async function fetchEventLeaderboardData(
           .eq('loop_id', combo.loop_2_id)
           .order('hole_number')
       : Promise.resolve({ data: null }),
+    admin
+      .from('event_players')
+      .select('id, display_name, handicap_index')
+      .eq('event_id', eventId)
+      .eq('rsvp_status', 'confirmed')
+      .order('created_at'),
+    admin
+      .from('scorecards')
+      .select('id, event_player_id')
+      .eq('event_id', eventId),
+    admin
+      .from('contest_entries')
+      .select('hole_number, type, event_player_id')
+      .eq('event_id', eventId),
+    admin
+      .from('hole_scores')
+      .select('scorecard_id, hole_number, gross_strokes, scorecards!inner(event_id)')
+      .eq('scorecards.event_id', eventId),
   ])
 
   const holeData: HoleData[] = []
@@ -93,36 +111,10 @@ export async function fetchEventLeaderboardData(
 
   const totalHoles = holeData.length
 
-  // ── Players, scorecards, contest entries ───────────────────────────────────
-  const [playersResult, scorecardsResult, contestResult] = await Promise.all([
-    admin
-      .from('event_players')
-      .select('id, display_name, handicap_index')
-      .eq('event_id', eventId)
-      .eq('rsvp_status', 'confirmed')
-      .order('created_at'),
-    admin
-      .from('scorecards')
-      .select('id, event_player_id')
-      .eq('event_id', eventId),
-    admin
-      .from('contest_entries')
-      .select('hole_number, type, event_player_id')
-      .eq('event_id', eventId),
-  ])
-
   const players = playersResult.data ?? []
   const scorecards = scorecardsResult.data ?? []
   const contestEntries = contestResult.data ?? []
-
-  // ── Hole scores ────────────────────────────────────────────────────────────
-  const scorecardIds = scorecards.map(s => s.id)
-  const { data: holeScoresData } = scorecardIds.length > 0
-    ? await admin
-        .from('hole_scores')
-        .select('scorecard_id, hole_number, gross_strokes')
-        .in('scorecard_id', scorecardIds)
-    : { data: [] as { scorecard_id: string; hole_number: number; gross_strokes: number | null }[] }
+  const holeScoresData = holeScoresResult.data ?? []
 
   // ── Build lookup maps ──────────────────────────────────────────────────────
   const scorecardByPlayer = new Map(scorecards.map(s => [s.event_player_id, s.id]))

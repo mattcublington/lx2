@@ -8,50 +8,51 @@ export default async function PlayPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  // Fetch user profile (including handicap index)
-  const { data: profile } = await supabase
-    .from('users')
-    .select('display_name, email, handicap_index')
-    .eq('id', user.id)
-    .single()
-
-  // Fetch recent rounds for current user
-  const { data: recentRounds } = await supabase
-    .from('scorecards')
-    .select(`
-      id,
-      created_at,
-      round_type,
-      events!inner (
-        name,
-        date,
-        format,
-        courses (
-          name
+  // Fetch profile, recent rounds, count, and all scorecards in parallel
+  const [
+    { data: profile },
+    { data: recentRounds },
+    { count: roundsCount },
+    { data: allScorecards },
+  ] = await Promise.all([
+    supabase
+      .from('users')
+      .select('display_name, email, handicap_index')
+      .eq('id', user.id)
+      .single(),
+    supabase
+      .from('scorecards')
+      .select(`
+        id,
+        created_at,
+        round_type,
+        events!inner (
+          name,
+          date,
+          format,
+          courses (
+            name
+          ),
+          course_combinations (
+            name
+          )
         ),
-        course_combinations (
-          name
+        event_players!inner (
+          user_id
         )
-      ),
-      event_players!inner (
-        user_id
-      )
-    `)
-    .eq('event_players.user_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(5)
-
-  // Total rounds played by this user
-  const { count: roundsCount } = await supabase
-    .from('scorecards')
-    .select('id, event_players!inner(user_id)', { count: 'exact', head: true })
-    .eq('event_players.user_id', user.id)
-
-  // All scorecard IDs for this user (for stats)
-  const { data: allScorecards } = await supabase
-    .from('scorecards')
-    .select('id, created_at, event_players!inner(user_id)')
-    .eq('event_players.user_id', user.id)
+      `)
+      .eq('event_players.user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(5),
+    supabase
+      .from('scorecards')
+      .select('id, event_players!inner(user_id)', { count: 'exact', head: true })
+      .eq('event_players.user_id', user.id),
+    supabase
+      .from('scorecards')
+      .select('id, created_at, event_players!inner(user_id)')
+      .eq('event_players.user_id', user.id),
+  ])
 
   const scorecardIds = (allScorecards ?? []).map(s => s.id)
 
