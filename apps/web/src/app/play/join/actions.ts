@@ -82,44 +82,37 @@ export async function joinRound(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
 
-  let userScorecardId: string | null = null
+  // Batch-insert all event_players in one request
+  const { data: eps, error: epsErr } = await supabase
+    .from('event_players')
+    .insert(players.map(player => ({
+      event_id: eventId,
+      user_id: player.isUser ? user.id : null,
+      display_name: player.name,
+      handicap_index: player.handicapIndex,
+    })))
+    .select('id')
 
-  for (const player of players) {
-    // Create event_player row
-    const { data: ep, error: epErr } = await supabase
-      .from('event_players')
-      .insert({
-        event_id: eventId,
-        user_id: player.isUser ? user.id : null,
-        display_name: player.name,
-        handicap_index: player.handicapIndex,
-      })
-      .select('id')
-      .single()
-
-    if (epErr || !ep) {
-      throw new Error(`Failed to add player ${player.name}: ${epErr?.message ?? 'unknown error'}`)
-    }
-
-    // Create scorecard row
-    const { data: sc, error: scErr } = await supabase
-      .from('scorecards')
-      .insert({
-        event_id: eventId,
-        event_player_id: ep.id,
-        round_type: roundType,
-      })
-      .select('id')
-      .single()
-
-    if (scErr || !sc) {
-      throw new Error(`Failed to create scorecard for ${player.name}: ${scErr?.message ?? 'unknown error'}`)
-    }
-
-    if (player.isUser) {
-      userScorecardId = sc.id
-    }
+  if (epsErr || !eps) {
+    throw new Error(`Failed to add players: ${epsErr?.message ?? 'unknown error'}`)
   }
+
+  // Batch-insert all scorecards in one request (order matches eps)
+  const { data: scs, error: scsErr } = await supabase
+    .from('scorecards')
+    .insert(eps.map(ep => ({
+      event_id: eventId,
+      event_player_id: ep.id,
+      round_type: roundType,
+    })))
+    .select('id')
+
+  if (scsErr || !scs) {
+    throw new Error(`Failed to create scorecards: ${scsErr?.message ?? 'unknown error'}`)
+  }
+
+  const userIdx = players.findIndex(p => p.isUser)
+  const userScorecardId = scs[userIdx]?.id
 
   if (!userScorecardId) {
     throw new Error('Could not determine user scorecard')

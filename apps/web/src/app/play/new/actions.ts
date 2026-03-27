@@ -38,34 +38,36 @@ export async function startRound(data: StartRoundData): Promise<string> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
 
-  // 2. Ensure public.users row exists; persist handicap_index if provided.
+  // 2. Get course data from courses.ts (sync — no DB call)
+  const course = getCourse(data.courseId)
+  if (!course) throw new Error(`Course not found: ${data.courseId}`)
+
+  // 3. Parallelise: upsert user row + look up course DB id
   // Uses service_role: public.users has no INSERT policy (writes are
   // restricted to server-side admin actions per 001_rls_policies.sql).
   const userHandicap = data.players.find(p => p.isUser)?.handicapIndex ?? null
   const admin = createAdminClient()
-  await admin
-    .from('users')
-    .upsert({
-      id: user.id,
-      email: user.email!,
-      display_name: user.email!.split('@')[0],
-      ...(userHandicap !== null ? { handicap_index: userHandicap } : {}),
-    }, { onConflict: 'id', ignoreDuplicates: false })
 
-  // 3. Get course data from courses.ts
-  const course = getCourse(data.courseId)
-  if (!course) throw new Error(`Course not found: ${data.courseId}`)
+  const [, existingCourse] = await Promise.all([
+    admin
+      .from('users')
+      .upsert({
+        id: user.id,
+        email: user.email!,
+        display_name: user.email!.split('@')[0],
+        ...(userHandicap !== null ? { handicap_index: userHandicap } : {}),
+      }, { onConflict: 'id', ignoreDuplicates: false }),
+    supabase
+      .from('courses')
+      .select('id')
+      .eq('name', course.name)
+      .maybeSingle()
+      .then(r => r.data),
+  ])
 
-  // 4. Find or create courses row in DB
-  // SELECT uses the user's session (courses are publicly readable).
+  // 4. Create course row only if it doesn't exist yet
   // INSERT uses the admin client — course records come from verified static
   // data in courses.ts, so service_role is appropriate here server-side.
-  const { data: existingCourse } = await supabase
-    .from('courses')
-    .select('id')
-    .eq('name', course.name)
-    .single()
-
   let courseDbId: string
 
   if (existingCourse) {
@@ -130,47 +132,39 @@ export async function startRound(data: StartRoundData): Promise<string> {
     throw new Error(`Failed to create event: ${eventErr?.message ?? 'unknown error'}`)
   }
 
-  // 7. Create event_players + scorecards for each player
-  let userScorecardId: string | null = null
+  // 7. Batch-insert all event_players in one request
+  const { data: eps, error: epsErr } = await supabase
+    .from('event_players')
+    .insert(data.players.map(player => ({
+      event_id: event.id,
+      user_id: player.isUser ? user.id : null,
+      display_name: player.name,
+      handicap_index: player.handicapIndex,
+    })))
+    .select('id')
 
-  for (const player of data.players) {
-    // a) Create event_player row
-    const { data: ep, error: epErr } = await supabase
-      .from('event_players')
-      .insert({
-        event_id: event.id,
-        user_id: player.isUser ? user.id : null,
-        display_name: player.name,
-        handicap_index: player.handicapIndex,
-      })
-      .select('id')
-      .single()
-
-    if (epErr || !ep) {
-      throw new Error(`Failed to create event_player for ${player.name}: ${epErr?.message ?? 'unknown error'}`)
-    }
-
-    // b) Create scorecard row
-    const { data: sc, error: scErr } = await supabase
-      .from('scorecards')
-      .insert({
-        event_id: event.id,
-        event_player_id: ep.id,
-        round_type: data.roundType,
-      })
-      .select('id')
-      .single()
-
-    if (scErr || !sc) {
-      throw new Error(`Failed to create scorecard for ${player.name}: ${scErr?.message ?? 'unknown error'}`)
-    }
-
-    if (player.isUser) {
-      userScorecardId = sc.id
-    }
+  if (epsErr || !eps) {
+    throw new Error(`Failed to create event_players: ${epsErr?.message ?? 'unknown error'}`)
   }
 
-  // 8. Redirect to scoring page for the current user's scorecard
+  // 8. Batch-insert all scorecards in one request (order matches eps)
+  const { data: scs, error: scsErr } = await supabase
+    .from('scorecards')
+    .insert(eps.map(ep => ({
+      event_id: event.id,
+      event_player_id: ep.id,
+      round_type: data.roundType,
+    })))
+    .select('id')
+
+  if (scsErr || !scs) {
+    throw new Error(`Failed to create scorecards: ${scsErr?.message ?? 'unknown error'}`)
+  }
+
+  // 9. Find the current user's scorecard by matching player index
+  const userIdx = data.players.findIndex(p => p.isUser)
+  const userScorecardId = scs[userIdx]?.id
+
   if (!userScorecardId) {
     throw new Error('Could not determine user scorecard ID')
   }
