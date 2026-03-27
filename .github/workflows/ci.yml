@@ -10,6 +10,8 @@ jobs:
   ci:
     name: Type-check, lint & test
     runs-on: ubuntu-latest
+    env:
+      E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
 
     steps:
       - uses: actions/checkout@v4
@@ -52,7 +54,7 @@ jobs:
       # Authenticated E2E tests — only run when test-account secrets are configured.
       # To enable: add E2E_TEST_EMAIL and E2E_TEST_PASSWORD to GitHub repo secrets.
       - name: E2E authenticated tests
-        if: ${{ secrets.E2E_TEST_EMAIL != '' }}
+        if: ${{ env.E2E_TEST_EMAIL != '' }}
         run: cd apps/web && npx playwright test --project=setup --project=chromium
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
