@@ -9,4 +9,7 @@ const compat = new FlatCompat({ baseDirectory: __dirname })
 
 const config = compat.extends('next/core-web-vitals', 'next/typescript')
 
-export default config
+export default [
+  { ignores: ['.next/**', 'node_modules/**', 'next-env.d.ts', 'eslint.config.mjs'] },
+  ...config,
+]
