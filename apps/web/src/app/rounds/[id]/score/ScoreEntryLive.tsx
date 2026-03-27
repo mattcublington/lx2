@@ -1073,6 +1073,10 @@ export default function ScoreEntryLive(props: Props) {
     return () => window.removeEventListener('online', drainQueue)
   }, [drainQueue])
 
+  // ── Must be declared before getRunningTotal() call below (avoids TDZ in production) ──
+  const effectiveHc    = Math.round(handicapIndex * allowancePct)
+  const strokesPerHole = allocateStrokes(effectiveHc, holes)
+
   // Mark round complete server-side when all holes are scored
   const { holesPlayed: _hp } = getRunningTotal()
   const roundCompleteForEffect = _hp === holes.length && holes.length > 0
@@ -1089,8 +1093,6 @@ export default function ScoreEntryLive(props: Props) {
   const isLD  = ldHoles.includes(hole.holeInRound)
   const isPickup   = s.pickups[hole.holeInRound] ?? false
   const currentScore = s.scores[hole.holeInRound] ?? null
-  const effectiveHc  = Math.round(handicapIndex * allowancePct)
-  const strokesPerHole = allocateStrokes(effectiveHc, holes)
   const hcOnHole = strokesPerHole[hole.holeInRound] ?? 0
   const yards = hole.yards[selectedTee] ?? null
 
