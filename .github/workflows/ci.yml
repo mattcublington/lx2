@@ -45,11 +45,12 @@ jobs:
         run: cd apps/web && npx playwright install --with-deps chromium
 
       # Public E2E tests — no login needed.
+      # These are anon/public keys, safe to commit (already in every visitor's browser bundle).
       - name: E2E public tests
         run: cd apps/web && npx playwright test --project=public
         env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: https://ulslyaesagciywombqef.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsc2x5YWVzYWdjaXl3b21icWVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MDc1ODUsImV4cCI6MjA4OTQ4MzU4NX0.ibgt6ss_4erzm8ayfY85bUHcxWJXxl--vonxwuPAiHI"
 
       # Authenticated E2E tests — only run when test-account secrets are configured.
       # To enable: add E2E_TEST_EMAIL and E2E_TEST_PASSWORD to GitHub repo secrets.
