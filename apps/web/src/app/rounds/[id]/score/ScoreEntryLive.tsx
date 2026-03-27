@@ -1603,7 +1603,7 @@ export default function ScoreEntryLive(props: Props) {
                   <div className="sc-avatar" style={{ width: 44, height: 44, background: color, fontSize: '0.875rem' }}>
                     {initials}
                   </div>
-                  <div>
+                  <div style={{ minWidth: 0, overflow: 'hidden' }}>
                     <div className="sc-player-name">{p.displayName.split(' ')[0]}</div>
                     {isOwn && <div className="sc-player-you">you</div>}
                   </div>
@@ -1622,19 +1622,21 @@ export default function ScoreEntryLive(props: Props) {
                   </div>
                 ) : (
                   <div className="sc-unscored-r">
-                    {isOwn && (
-                      <div className="sc-qpicks" onClick={e => e.stopPropagation()}>
-                        {quickVals.map(v => (
-                          <button key={v}
-                            className={`sc-qbtn${v === hole.par ? ' par' : ''}`}
-                            onClick={e => { e.stopPropagation(); tapScore(v) }}
-                            aria-label={`Score ${v}`}>
-                            {v}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    <span className="sc-tap-hint">{isOwn ? 'or tap to enter' : 'not scored'}</span>
+                    <div className="sc-qpicks" onClick={e => e.stopPropagation()}>
+                      {quickVals.map(v => (
+                        <button key={v}
+                          className={`sc-qbtn${v === hole.par ? ' par' : ''}`}
+                          onClick={e => {
+                            e.stopPropagation()
+                            if (isOwn) tapScore(v)
+                            else handleModalSave(p.scorecardId, v)
+                          }}
+                          aria-label={`Score ${v}`}>
+                          {v}
+                        </button>
+                      ))}
+                    </div>
+                    <span className="sc-tap-hint">or tap to enter</span>
                   </div>
                 )}
               </div>
