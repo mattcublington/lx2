@@ -77,7 +77,7 @@ create policy "club_user_roles_admin_write"
 
 -- Helper: is the current user a staff member of a given club?
 create or replace function public.is_club_staff(p_club_id uuid)
-returns boolean language sql security definer as $$
+returns boolean language sql security definer set search_path = public as $$
   select exists (
     select 1 from public.club_user_roles
     where club_id = p_club_id and user_id = auth.uid()
@@ -86,7 +86,7 @@ $$;
 
 -- Helper: does the current user have a specific role?
 create or replace function public.has_club_role(p_club_id uuid, p_role text)
-returns boolean language sql security definer as $$
+returns boolean language sql security definer set search_path = public as $$
   select exists (
     select 1 from public.club_user_roles
     where club_id = p_club_id and user_id = auth.uid() and role = p_role
@@ -262,7 +262,7 @@ create policy "bookings_own_cancel"
 
 -- Trigger: keep tee_slots.booked_count in sync
 create or replace function public.update_tee_slot_booked_count()
-returns trigger language plpgsql as $$
+returns trigger language plpgsql set search_path = public as $$
 begin
   if TG_OP = 'INSERT' and NEW.status = 'confirmed' then
     update public.tee_slots

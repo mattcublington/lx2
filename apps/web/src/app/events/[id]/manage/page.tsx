@@ -88,7 +88,7 @@ export default async function ManagePage({ params }: PageProps) {
       {/* ── Header ── */}
       <header style={{ background: '#0a1f0a', padding: '0 32px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Link href={`/events/${id}`} style={{ textDecoration: 'none', color: '#6db56d', fontSize: '0.8125rem', fontFamily: 'var(--font-dm-sans), sans-serif' }}>
+          <Link href={`/events/${id}`} style={{ textDecoration: 'none', color: '#6B8C6B', fontSize: '0.8125rem', fontFamily: 'var(--font-dm-sans), sans-serif' }}>
             ← Event page
           </Link>
           <span style={{ fontFamily: 'var(--font-dm-sans), sans-serif', fontWeight: 700, color: '#fff', fontSize: '1rem', letterSpacing: '-0.02em' }}>

@@ -7,4 +7,3 @@ export const PLAYER_COLOURS = [
   '#7a3aad',  // purple — player 4
 ] as const
 
-export type PlayerColour = typeof PLAYER_COLOURS[number]

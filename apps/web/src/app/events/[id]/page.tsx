@@ -177,7 +177,7 @@ export default async function EventPage({ params }: PageProps) {
         }}>
           <Link
             href="/play"
-            style={{ textDecoration: 'none', color: '#6db56d', fontSize: '0.8125rem', fontFamily: 'var(--font-dm-sans), sans-serif' }}
+            style={{ textDecoration: 'none', color: '#6B8C6B', fontSize: '0.8125rem', fontFamily: 'var(--font-dm-sans), sans-serif' }}
           >
             ← Back
           </Link>
@@ -187,14 +187,14 @@ export default async function EventPage({ params }: PageProps) {
           {user ? (
             <Link
               href="/play"
-              style={{ fontSize: '0.8125rem', color: '#6db56d', fontFamily: 'var(--font-dm-sans), sans-serif', textDecoration: 'none' }}
+              style={{ fontSize: '0.8125rem', color: '#6B8C6B', fontFamily: 'var(--font-dm-sans), sans-serif', textDecoration: 'none' }}
             >
               My rounds
             </Link>
           ) : (
             <Link
               href={`/auth/login?redirect=/events/${id}`}
-              style={{ fontSize: '0.8125rem', color: '#6db56d', fontFamily: 'var(--font-dm-sans), sans-serif', textDecoration: 'none' }}
+              style={{ fontSize: '0.8125rem', color: '#6B8C6B', fontFamily: 'var(--font-dm-sans), sans-serif', textDecoration: 'none' }}
             >
               Sign in
             </Link>

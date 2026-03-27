@@ -188,7 +188,7 @@ export default function NewEventWizard({
       {/* ── Header ── */}
       <header style={{ background: '#0a1f0a', padding: '0 32px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Link href="/play" style={{ textDecoration: 'none', color: '#6db56d', fontSize: '0.8125rem', fontFamily: 'var(--font-dm-sans), sans-serif' }}>
+          <Link href="/play" style={{ textDecoration: 'none', color: '#6B8C6B', fontSize: '0.8125rem', fontFamily: 'var(--font-dm-sans), sans-serif' }}>
             ← Back
           </Link>
           <span style={{ fontFamily: 'var(--font-dm-sans), sans-serif', fontWeight: 700, color: '#fff', fontSize: '1rem', letterSpacing: '-0.02em' }}>

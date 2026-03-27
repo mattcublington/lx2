@@ -81,7 +81,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
           <Link
             href={`/events/${id}`}
             style={{
-              textDecoration: 'none', color: '#6db56d',
+              textDecoration: 'none', color: '#6B8C6B',
               fontSize: '0.8125rem', fontFamily: 'var(--font-dm-sans), sans-serif',
             }}
           >
@@ -96,7 +96,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
           <Link
             href={`/events/${id}/leaderboard/tv`}
             style={{
-              textDecoration: 'none', color: '#6db56d',
+              textDecoration: 'none', color: '#6B8C6B',
               fontSize: '0.8125rem', fontFamily: 'var(--font-dm-sans), sans-serif',
               display: 'flex', alignItems: 'center', gap: 4,
             }}

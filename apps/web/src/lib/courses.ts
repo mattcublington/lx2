@@ -457,16 +457,6 @@ export const COURSES: Course[] = [
   },
 ]
 
-export function searchCourses(query: string): Course[] {
-  if (!query || query.length < 2) return []
-  const q = query.toLowerCase()
-  return COURSES.filter(c =>
-    c.name.toLowerCase().includes(q) ||
-    c.club.toLowerCase().includes(q) ||
-    c.location.toLowerCase().includes(q)
-  ).slice(0, 8)
-}
-
 export function getCourse(id: string): Course | undefined {
   return COURSES.find(c => c.id === id)
 }
