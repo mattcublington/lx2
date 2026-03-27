@@ -54,250 +54,11 @@ function formatDate(d: string): string {
   return dt.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
-export default function JoinRoundFlow({ displayName, handicapIndex, initialCode }: Props) {
-  const router = useRouter()
-  const [isPending, startTransition] = useTransition()
-
-  // Step 1: enter code
-  const [code, setCode] = useState(initialCode ?? '')
-  const [lookupError, setLookupError] = useState('')
-  const [isLooking, setIsLooking] = useState(false)
-
-  // Step 2: preview + add players
-  const [preview, setPreview] = useState<RoundPreview | null>(null)
-  const [players, setPlayers] = useState<PlayerRow[]>([
-    { name: displayName, handicapIndex: handicapIndex != null ? String(handicapIndex) : '', isUser: true },
-  ])
-  const [joinError, setJoinError] = useState('')
-
-  // ── Code lookup ─────────────────────────────────────────────────────────────
-
-  async function handleLookup() {
-    setLookupError('')
-    setIsLooking(true)
-    try {
-      const result = await lookupRound(code)
-      if (!result) {
-        setLookupError('Round not found. Check the code and try again.')
-      } else {
-        setPreview(result)
-      }
-    } catch {
-      setLookupError('Something went wrong. Please try again.')
-    } finally {
-      setIsLooking(false)
-    }
-  }
-
-  // ── Player management ───────────────────────────────────────────────────────
-
-  function addPlayer() {
-    if (players.length >= 4) return
-    setPlayers(p => [...p, { name: '', handicapIndex: '', isUser: false }])
-  }
-
-  function removePlayer(i: number) {
-    // Can't remove yourself
-    if (players[i]?.isUser) return
-    setPlayers(p => p.filter((_, idx) => idx !== i))
-  }
-
-  function updatePlayer(i: number, field: 'name' | 'handicapIndex', value: string) {
-    setPlayers(p => p.map((pl, idx) => idx === i ? { ...pl, [field]: value } : pl))
-  }
-
-  // ── Submit ──────────────────────────────────────────────────────────────────
-
-  function handleJoin() {
-    if (!preview) return
-    setJoinError('')
-
-    // Validate
-    for (const p of players) {
-      if (!p.name.trim()) { setJoinError('All players need a name.'); return }
-      const hcp = parseFloat(p.handicapIndex)
-      if (isNaN(hcp) || hcp < 0 || hcp > 54) { setJoinError(`Invalid handicap for ${p.name}.`); return }
-    }
-
-    const joinPlayers: JoinPlayer[] = players.map(p => ({
-      name: p.name.trim(),
-      handicapIndex: parseFloat(p.handicapIndex),
-      isUser: p.isUser,
-    }))
-
-    startTransition(async () => {
-      try {
-        const url = await joinRound(preview.eventId, preview.roundType, joinPlayers)
-        router.push(url)
-      } catch (e) {
-        setJoinError(e instanceof Error ? e.message : 'Failed to join round.')
-      }
-    })
-  }
-
-  // ── Render: step 1 — code entry ─────────────────────────────────────────────
-
-  if (!preview) {
-    return (
-      <>
-        <style>{STYLES}</style>
-        <div className="jr">
-          <header className="jr-hd">
-            <a href="/play" className="jr-back" aria-label="Back to dashboard">
-              <BackIcon /> Play
-            </a>
-          </header>
-
-          <main className="jr-main">
-            <div className="jr-hero">
-              <h1 className="jr-title">Join a round</h1>
-              <p className="jr-sub">
-                Get the 6-letter code from the group who set up the round and enter it below.
-              </p>
-            </div>
-
-            <div className="jr-card">
-              <label className="jr-label" htmlFor="share-code">Round code</label>
-              <input
-                id="share-code"
-                className="jr-code-input"
-                type="text"
-                inputMode="text"
-                autoCapitalize="characters"
-                autoComplete="off"
-                spellCheck={false}
-                maxLength={6}
-                placeholder="ABC123"
-                value={code}
-                onChange={e => {
-                  setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))
-                  setLookupError('')
-                }}
-                onKeyDown={e => { if (e.key === 'Enter' && code.length === 6) handleLookup() }}
-              />
-              {lookupError && <p className="jr-error">{lookupError}</p>}
-              <button
-                className="jr-btn-primary"
-                onClick={handleLookup}
-                disabled={code.length !== 6 || isLooking}
-              >
-                {isLooking ? 'Looking up…' : 'Find round'}
-              </button>
-            </div>
-          </main>
-        </div>
-      </>
-    )
-  }
-
-  // ── Render: step 2 — preview + players ──────────────────────────────────────
-
-  return (
-    <>
-      <style>{STYLES}</style>
-      <div className="jr">
-        <header className="jr-hd">
-          <button className="jr-back" onClick={() => { setPreview(null); setJoinError('') }}>
-            <BackIcon /> Back
-          </button>
-        </header>
-
-        <main className="jr-main">
-          <div className="jr-hero">
-            <h1 className="jr-title">You&apos;re joining</h1>
-          </div>
-
-          {/* Event preview card */}
-          <div className="jr-card jr-preview">
-            <div className="jr-preview-course">{preview.courseName}</div>
-            <div className="jr-preview-meta">
-              <span className="jr-badge">{formatLabel(preview.format)}</span>
-              <span className="jr-badge">{preview.roundType} holes</span>
-            </div>
-            <div className="jr-preview-date">{formatDate(preview.date)}</div>
-            {preview.existingPlayers.length > 0 && (
-              <div className="jr-preview-players">
-                {preview.existingPlayers.length} player{preview.existingPlayers.length !== 1 ? 's' : ''} already in:
-                &nbsp;<span className="jr-preview-names">{preview.existingPlayers.join(', ')}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Your group */}
-          <div className="jr-section-hd">Your group</div>
-          <div className="jr-players">
-            {players.map((p, i) => (
-              <div className="jr-player" key={i}>
-                <div className="jr-player-avatar" style={{ background: AVATAR_COLOURS[i % AVATAR_COLOURS.length] }}>
-                  {p.name.trim() ? p.name.trim()[0]!.toUpperCase() : (i + 1)}
-                </div>
-                <div className="jr-player-fields">
-                  <input
-                    className="jr-input"
-                    type="text"
-                    placeholder={p.isUser ? 'Your name' : 'Player name'}
-                    value={p.name}
-                    onChange={e => updatePlayer(i, 'name', e.target.value)}
-                    readOnly={p.isUser}
-                    style={p.isUser ? { opacity: 0.7, cursor: 'default' } : {}}
-                  />
-                  <input
-                    className="jr-input jr-hcp"
-                    type="number"
-                    inputMode="decimal"
-                    min={0}
-                    max={54}
-                    step={0.1}
-                    placeholder="HCP"
-                    value={p.handicapIndex}
-                    onChange={e => updatePlayer(i, 'handicapIndex', e.target.value)}
-                  />
-                </div>
-                {!p.isUser && (
-                  <button className="jr-remove" onClick={() => removePlayer(i)} aria-label="Remove player">×</button>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {players.length < 4 && (
-            <button className="jr-btn-add" onClick={addPlayer}>
-              <span className="jr-btn-add-icon">+</span> Add player
-            </button>
-          )}
-
-          {joinError && <p className="jr-error jr-error-bottom">{joinError}</p>}
-
-          <button
-            className="jr-btn-primary"
-            onClick={handleJoin}
-            disabled={isPending}
-          >
-            {isPending ? 'Joining…' : 'Start scoring →'}
-          </button>
-        </main>
-      </div>
-    </>
-  )
-}
-
 // ─── Avatar colours ────────────────────────────────────────────────────────────
 
 const AVATAR_COLOURS = ['#0D631B', '#1A6DA0', '#923357', '#6B4C9A', '#B8660B']
 
-// ─── Icons ─────────────────────────────────────────────────────────────────────
-
-function BackIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-// ─── Styles ────────────────────────────────────────────────────────────────────
+// ─── Styles (must be defined before component to avoid TDZ in production) ──────
 
 const STYLES = `
   .jr {
@@ -579,3 +340,242 @@ const STYLES = `
     to   { opacity: 1; transform: translateY(0); }
   }
 `
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function JoinRoundFlow({ displayName, handicapIndex, initialCode }: Props) {
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
+
+  // Step 1: enter code
+  const [code, setCode] = useState(initialCode ?? '')
+  const [lookupError, setLookupError] = useState('')
+  const [isLooking, setIsLooking] = useState(false)
+
+  // Step 2: preview + add players
+  const [preview, setPreview] = useState<RoundPreview | null>(null)
+  const [players, setPlayers] = useState<PlayerRow[]>([
+    { name: displayName, handicapIndex: handicapIndex != null ? String(handicapIndex) : '', isUser: true },
+  ])
+  const [joinError, setJoinError] = useState('')
+
+  // ── Code lookup ─────────────────────────────────────────────────────────────
+
+  async function handleLookup() {
+    setLookupError('')
+    setIsLooking(true)
+    try {
+      const result = await lookupRound(code)
+      if (!result) {
+        setLookupError('Round not found. Check the code and try again.')
+      } else {
+        setPreview(result)
+      }
+    } catch {
+      setLookupError('Something went wrong. Please try again.')
+    } finally {
+      setIsLooking(false)
+    }
+  }
+
+  // ── Player management ───────────────────────────────────────────────────────
+
+  function addPlayer() {
+    if (players.length >= 4) return
+    setPlayers(p => [...p, { name: '', handicapIndex: '', isUser: false }])
+  }
+
+  function removePlayer(i: number) {
+    // Can't remove yourself
+    if (players[i]?.isUser) return
+    setPlayers(p => p.filter((_, idx) => idx !== i))
+  }
+
+  function updatePlayer(i: number, field: 'name' | 'handicapIndex', value: string) {
+    setPlayers(p => p.map((pl, idx) => idx === i ? { ...pl, [field]: value } : pl))
+  }
+
+  // ── Submit ──────────────────────────────────────────────────────────────────
+
+  function handleJoin() {
+    if (!preview) return
+    setJoinError('')
+
+    // Validate
+    for (const p of players) {
+      if (!p.name.trim()) { setJoinError('All players need a name.'); return }
+      const hcp = parseFloat(p.handicapIndex)
+      if (isNaN(hcp) || hcp < 0 || hcp > 54) { setJoinError(`Invalid handicap for ${p.name}.`); return }
+    }
+
+    const joinPlayers: JoinPlayer[] = players.map(p => ({
+      name: p.name.trim(),
+      handicapIndex: parseFloat(p.handicapIndex),
+      isUser: p.isUser,
+    }))
+
+    startTransition(async () => {
+      try {
+        const url = await joinRound(preview.eventId, preview.roundType, joinPlayers)
+        router.push(url)
+      } catch (e) {
+        setJoinError(e instanceof Error ? e.message : 'Failed to join round.')
+      }
+    })
+  }
+
+  // ── Render: step 1 — code entry ─────────────────────────────────────────────
+
+  if (!preview) {
+    return (
+      <>
+        <style>{STYLES}</style>
+        <div className="jr">
+          <header className="jr-hd">
+            <a href="/play" className="jr-back" aria-label="Back to dashboard">
+              <BackIcon /> Play
+            </a>
+          </header>
+
+          <main className="jr-main">
+            <div className="jr-hero">
+              <h1 className="jr-title">Join a round</h1>
+              <p className="jr-sub">
+                Get the 6-letter code from the group who set up the round and enter it below.
+              </p>
+            </div>
+
+            <div className="jr-card">
+              <label className="jr-label" htmlFor="share-code">Round code</label>
+              <input
+                id="share-code"
+                className="jr-code-input"
+                type="text"
+                inputMode="text"
+                autoCapitalize="characters"
+                autoComplete="off"
+                spellCheck={false}
+                maxLength={6}
+                placeholder="ABC123"
+                value={code}
+                onChange={e => {
+                  setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))
+                  setLookupError('')
+                }}
+                onKeyDown={e => { if (e.key === 'Enter' && code.length === 6) handleLookup() }}
+              />
+              {lookupError && <p className="jr-error">{lookupError}</p>}
+              <button
+                className="jr-btn-primary"
+                onClick={handleLookup}
+                disabled={code.length !== 6 || isLooking}
+              >
+                {isLooking ? 'Looking up…' : 'Find round'}
+              </button>
+            </div>
+          </main>
+        </div>
+      </>
+    )
+  }
+
+  // ── Render: step 2 — preview + players ──────────────────────────────────────
+
+  return (
+    <>
+      <style>{STYLES}</style>
+      <div className="jr">
+        <header className="jr-hd">
+          <button className="jr-back" onClick={() => { setPreview(null); setJoinError('') }}>
+            <BackIcon /> Back
+          </button>
+        </header>
+
+        <main className="jr-main">
+          <div className="jr-hero">
+            <h1 className="jr-title">You&apos;re joining</h1>
+          </div>
+
+          {/* Event preview card */}
+          <div className="jr-card jr-preview">
+            <div className="jr-preview-course">{preview.courseName}</div>
+            <div className="jr-preview-meta">
+              <span className="jr-badge">{formatLabel(preview.format)}</span>
+              <span className="jr-badge">{preview.roundType} holes</span>
+            </div>
+            <div className="jr-preview-date">{formatDate(preview.date)}</div>
+            {preview.existingPlayers.length > 0 && (
+              <div className="jr-preview-players">
+                {preview.existingPlayers.length} player{preview.existingPlayers.length !== 1 ? 's' : ''} already in:
+                &nbsp;<span className="jr-preview-names">{preview.existingPlayers.join(', ')}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Your group */}
+          <div className="jr-section-hd">Your group</div>
+          <div className="jr-players">
+            {players.map((p, i) => (
+              <div className="jr-player" key={i}>
+                <div className="jr-player-avatar" style={{ background: AVATAR_COLOURS[i % AVATAR_COLOURS.length] }}>
+                  {p.name.trim() ? p.name.trim()[0]!.toUpperCase() : (i + 1)}
+                </div>
+                <div className="jr-player-fields">
+                  <input
+                    className="jr-input"
+                    type="text"
+                    placeholder={p.isUser ? 'Your name' : 'Player name'}
+                    value={p.name}
+                    onChange={e => updatePlayer(i, 'name', e.target.value)}
+                    readOnly={p.isUser}
+                    style={p.isUser ? { opacity: 0.7, cursor: 'default' } : {}}
+                  />
+                  <input
+                    className="jr-input jr-hcp"
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    max={54}
+                    step={0.1}
+                    placeholder="HCP"
+                    value={p.handicapIndex}
+                    onChange={e => updatePlayer(i, 'handicapIndex', e.target.value)}
+                  />
+                </div>
+                {!p.isUser && (
+                  <button className="jr-remove" onClick={() => removePlayer(i)} aria-label="Remove player">×</button>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {players.length < 4 && (
+            <button className="jr-btn-add" onClick={addPlayer}>
+              <span className="jr-btn-add-icon">+</span> Add player
+            </button>
+          )}
+
+          {joinError && <p className="jr-error jr-error-bottom">{joinError}</p>}
+
+          <button
+            className="jr-btn-primary"
+            onClick={handleJoin}
+            disabled={isPending}
+          >
+            {isPending ? 'Joining…' : 'Start scoring →'}
+          </button>
+        </main>
+      </div>
+    </>
+  )
+}
+
+// ─── Icons ─────────────────────────────────────────────────────────────────────
+
+function BackIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
