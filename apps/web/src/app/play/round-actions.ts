@@ -3,6 +3,33 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
+// ─── markRoundComplete ─────────────────────────────────────────────────────────
+// Sets submitted_at on the user's scorecard when all holes are scored.
+// Called from ScoreEntryLive when roundComplete becomes true.
+
+export async function markRoundComplete(scorecardId: string): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+
+  const admin = createAdminClient()
+
+  const { data: sc } = await admin
+    .from('scorecards')
+    .select('id, event_players!inner(user_id)')
+    .eq('id', scorecardId)
+    .single()
+
+  const ep = sc?.event_players as unknown as { user_id: string | null } | null
+  if (!sc || ep?.user_id !== user.id) return
+
+  await admin
+    .from('scorecards')
+    .update({ submitted_at: new Date().toISOString() })
+    .eq('id', scorecardId)
+    .is('submitted_at', null)
+}
+
 // ─── deleteRound ───────────────────────────────────────────────────────────────
 // Deletes the user's scorecard + event_player. If no other players remain,
 // also deletes the parent event. Called from PlayDashboard (recent rounds list).

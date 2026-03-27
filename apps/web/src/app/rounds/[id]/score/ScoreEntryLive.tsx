@@ -5,7 +5,7 @@ import { createBrowserClient } from '@supabase/ssr'
 import { PLAYER_COLOURS } from '@/lib/player-colours'
 import type { ScoringHole, GroupPlayer } from './page'
 import { enqueueScore, getQueuedScores, deleteQueuedScore, migrateFromLocalStorage } from '@/lib/offline-queue'
-import { markRoundComplete } from '../actions'
+import { markRoundComplete } from '@/app/play/round-actions'
 
 // Prevents concurrent drain runs per scorecard.
 const draining = new Set<string>()

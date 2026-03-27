@@ -1,6 +1,6 @@
 'use client'
 import { useState, useTransition } from 'react'
-import { deleteRound } from './actions'
+import { deleteRound } from '@/app/play/round-actions'
 
 export default function DeleteRoundButton({ scorecardId }: { scorecardId: string }) {
   const [showConfirm, setShowConfirm] = useState(false)
