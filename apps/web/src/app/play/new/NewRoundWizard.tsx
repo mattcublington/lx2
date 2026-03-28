@@ -860,13 +860,19 @@ function PillBtn({ active, onClick, children }: { active: boolean; onClick: () =
 
 // ── Screen 4: Round Settings ───────────────────────────────────────────────────
 
-const BALL_COLOURS = [
-  { key: 'White', bg: '#FFFFFF', border: 'rgba(26,28,28,0.2)' },
-  { key: 'Yellow', bg: '#FCD34D', border: '#FCD34D' },
-  { key: 'Purple', bg: '#A78BFA', border: '#A78BFA' },
-  { key: 'Red', bg: '#EF4444', border: '#EF4444' },
-  { key: 'Black', bg: '#1a1a1a', border: '#1a1a1a' },
-]
+// Maps every tee name that can appear in Course.tees to a visual swatch.
+// Compound tees (Yellow/Purple, Red/Black) use a split-gradient circle.
+const TEE_COLOUR_MAP: Record<string, { bg: string; border: string }> = {
+  'Blue':          { bg: '#3B82F6', border: '#3B82F6' },
+  'Green':         { bg: '#22C55E', border: '#22C55E' },
+  'White':         { bg: '#FFFFFF', border: 'rgba(26,28,28,0.25)' },
+  'Yellow':        { bg: '#FCD34D', border: '#ca9f1a' },
+  'Yellow/Purple': { bg: 'linear-gradient(90deg,#FCD34D 50%,#A78BFA 50%)', border: 'rgba(26,28,28,0.15)' },
+  'Purple':        { bg: '#A78BFA', border: '#A78BFA' },
+  'Red':           { bg: '#EF4444', border: '#EF4444' },
+  'Red/Black':     { bg: 'linear-gradient(90deg,#EF4444 50%,#1a1a1a 50%)', border: 'rgba(26,28,28,0.15)' },
+  'Black':         { bg: '#1a1a1a', border: '#1a1a1a' },
+}
 
 function SettingsStep({
   state,
@@ -890,21 +896,17 @@ function SettingsStep({
   const anyHoles = course.holes.map(h => h.num)
   const toggle = (list: number[], hole: number) =>
     list.includes(hole) ? list.filter(h => h !== hole) : [...list, hole].sort((a, b) => a - b)
-  const toggleBall = (ball: string) => {
-    const balls = state.balls ?? ['White']
-    onUpdate({ balls: balls.includes(ball) ? balls.filter(b => b !== ball) : [...balls, ball] })
-  }
 
   const hasCourseRating = course.courseRating > 0 && course.slopeRating > 0
   const dbColour = TEE_TO_DB_COLOUR[state.tee] ?? state.tee
   const teeCrSlope = state.dbCombinationId
     ? combinationTees.find(t => t.combination_id === state.dbCombinationId && t.tee_colour === dbColour && t.gender === 'm')
     : undefined
-  const displayCR = teeCrSlope ? teeCrSlope.course_rating : course.courseRating
-  const displaySlope = teeCrSlope ? teeCrSlope.slope_rating : course.slopeRating
+  // Fallback chain: DB combination_tees → courses.ts teeRatings → courses.ts default (White)
+  const displayCR = teeCrSlope?.course_rating ?? course.teeRatings?.[state.tee]?.courseRating ?? course.courseRating
+  const displaySlope = teeCrSlope?.slope_rating ?? course.teeRatings?.[state.tee]?.slopeRating ?? course.slopeRating
 
   const activePlayers = state.players.filter((p, i) => i === 0 || p.name.trim() !== '')
-  const balls = state.balls ?? ['White']
 
   return (
     <>
@@ -932,41 +934,44 @@ function SettingsStep({
             </div>
           </div>
 
-          {/* Balls */}
-          <div style={{ marginBottom: '1.5rem' }}>
-            <SettingLabel>Balls</SettingLabel>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {BALL_COLOURS.map(ball => {
-                const checked = balls.includes(ball.key)
-                return (
-                  <label key={ball.key} onClick={() => toggleBall(ball.key)} style={{
-                    display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer',
-                  }}>
-                    <div style={{
-                      width: 24, height: 24, borderRadius: 6, flexShrink: 0,
-                      border: checked ? `2px solid ${FE.greenDark}` : '2px solid rgba(26,28,28,0.20)',
-                      background: checked ? FE.greenDark : 'transparent',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      transition: 'all 0.2s ease-in-out',
+          {/* Tee selector */}
+          {course.tees.length > 1 && (
+            <div style={{ marginBottom: '1.5rem' }}>
+              <SettingLabel>Tee</SettingLabel>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {course.tees.map(tee => {
+                  const swatch = TEE_COLOUR_MAP[tee] ?? { bg: '#ccc', border: '#ccc' }
+                  const selected = state.tee === tee
+                  return (
+                    <label key={tee} onClick={() => onUpdate({ tee })} style={{
+                      display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer',
                     }}>
-                      {checked && (
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                          <path d="M2 6L5 9L10 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      )}
-                    </div>
-                    <div style={{
-                      width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
-                      background: ball.bg, border: `2px solid ${ball.border}`,
-                    }} />
-                    <span style={{ fontFamily: font.body, fontSize: 15, color: FE.onPrimary, flex: 1 }}>
-                      {ball.key}
-                    </span>
-                  </label>
-                )
-              })}
+                      {/* Radio indicator */}
+                      <div style={{
+                        width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
+                        border: selected ? `2px solid ${FE.greenDark}` : '2px solid rgba(26,28,28,0.25)',
+                        background: 'transparent',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        transition: 'all 0.2s ease-in-out',
+                      }}>
+                        {selected && (
+                          <div style={{ width: 10, height: 10, borderRadius: '50%', background: FE.greenDark }} />
+                        )}
+                      </div>
+                      {/* Tee colour swatch */}
+                      <div style={{
+                        width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
+                        background: swatch.bg, border: `2px solid ${swatch.border}`,
+                      }} />
+                      <span style={{ fontFamily: font.body, fontSize: 15, color: FE.onPrimary, flex: 1 }}>
+                        {tee}
+                      </span>
+                    </label>
+                  )
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Handicap / Course Rating */}
           {hasCourseRating && (

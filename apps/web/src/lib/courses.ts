@@ -31,6 +31,9 @@ export interface Course {
   par: number
   tees: string[]
   defaultRatingTee: string  // which tee colour the slopeRating/courseRating apply to; '' if no WHS
+  // Per-tee ratings (men's). Used when combination_tees DB lookup is unavailable.
+  // Keys match entries in tees[]. Only include tees with known USGA ratings.
+  teeRatings?: Record<string, { slopeRating: number; courseRating: number }>
 }
 
 export const COURSES: Course[] = [
@@ -509,6 +512,7 @@ export const COURSES: Course[] = [
     slopeRating: 121, courseRating: 71.6, par: 72,
     tees: ['Blue', 'White', 'Red'],
     defaultRatingTee: 'White',
+    teeRatings: { Blue: { slopeRating: 123, courseRating: 73.1 }, White: { slopeRating: 121, courseRating: 71.6 } },
     holes: [
       { num: 1,  par: 5, si: 11, yards: 492, metres: 506 },
       { num: 2,  par: 4, si: 7,  yards: 343, metres: 355 },
@@ -543,6 +547,7 @@ export const COURSES: Course[] = [
     slopeRating: 127, courseRating: 71.8, par: 72,
     tees: ['Blue', 'White', 'Red'],
     defaultRatingTee: 'White',
+    teeRatings: { Blue: { slopeRating: 131, courseRating: 73.6 }, White: { slopeRating: 127, courseRating: 71.8 } },
     holes: [
       { num: 1,  par: 4, si: 0,  yards: 366, metres: 371 },  // SI missing from source
       { num: 2,  par: 4, si: 0,  yards: 341, metres: 352 },  // SI missing from source
@@ -576,6 +581,7 @@ export const COURSES: Course[] = [
     slopeRating: 127, courseRating: 71.0, par: 72,
     tees: ['Blue', 'White', 'Red'],
     defaultRatingTee: 'White',
+    teeRatings: { Blue: { slopeRating: 131, courseRating: 72.9 }, White: { slopeRating: 127, courseRating: 71.0 } },
     holes: [
       { num: 1,  par: 4, si: 5,  yards: 361, metres: 380 },
       { num: 2,  par: 3, si: 15, yards: 145, metres: 168 },
