@@ -166,9 +166,15 @@ Rules:
   return parsed
 }
 
-// ── Main action ──────────────────────────────────────────────────────────────
+// ── Main action (receives storage path, NOT the image file) ──────────────────
 
-export async function uploadScorecard(formData: FormData): Promise<ScorecardUploadResult> {
+export async function processScorecard(
+  storagePath: string,
+  contentType: string,
+  clubName: string,
+  courseName: string,
+  country: string,
+): Promise<ScorecardUploadResult> {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -180,63 +186,57 @@ export async function uploadScorecard(formData: FormData): Promise<ScorecardUplo
       return { success: false, error: `You can upload up to ${MAX_UPLOADS_PER_DAY} scorecards per day. Try again tomorrow.` }
     }
 
-    // Validate and read the image file
-    const file = formData.get('image') as File | null
-    if (!file || file.size === 0) return { success: false, error: 'No image provided' }
-    if (file.size > 10 * 1024 * 1024) return { success: false, error: 'Image must be under 10MB' }
+    // Sanitise user-provided text fields
+    const safeClubName = sanitiseUserInput(clubName)
+    const safeCourseName = sanitiseUserInput(courseName)
+    const safeCountry = sanitiseUserInput(country)
+    const continent = safeCountry ? continentForCountry(safeCountry) : ''
 
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp'] as const
-    type ValidType = typeof validTypes[number]
-    if (!validTypes.includes(file.type as ValidType)) {
+    // Validate storage path format (userId/timestamp.ext)
+    const pathPattern = /^[a-f0-9-]+\/\d+\.(jpg|png|webp)$/
+    if (!pathPattern.test(storagePath)) {
+      return { success: false, error: 'Invalid storage path' }
+    }
+
+    // Verify the file belongs to this user
+    if (!storagePath.startsWith(user.id + '/')) {
+      return { success: false, error: 'Unauthorized' }
+    }
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp']
+    if (!validTypes.includes(contentType)) {
       return { success: false, error: 'Image must be JPEG, PNG, or WebP' }
     }
 
-    // Sanitise user-provided text fields
-    const rawClubName = formData.get('clubName') as string | null
-    const rawCourseName = formData.get('courseName') as string | null
-    const rawCountry = formData.get('country') as string | null
-    const clubName = rawClubName ? sanitiseUserInput(rawClubName) : ''
-    const courseName = rawCourseName ? sanitiseUserInput(rawCourseName) : ''
-    const country = rawCountry ? sanitiseUserInput(rawCountry) : ''
-    const continent = country ? continentForCountry(country) : ''
-
-    // 1. Upload image to Supabase Storage
-    const buffer = await file.arrayBuffer()
-    const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg'
-    const storagePath = `${user.id}/${Date.now()}.${ext}`
-
+    // Download the image from storage for OCR
     const admin = createAdminClient()
-    const { error: uploadErr } = await admin.storage
+    const { data: fileData, error: downloadErr } = await admin.storage
       .from('scorecard-uploads')
-      .upload(storagePath, buffer, {
-        contentType: file.type,
-        upsert: false,
-      })
+      .download(storagePath)
 
-    if (uploadErr) throw new Error(`Image upload failed: ${uploadErr.message}`)
+    if (downloadErr || !fileData) {
+      throw new Error(`Failed to read uploaded image: ${downloadErr?.message ?? 'unknown'}`)
+    }
 
-    // Store the path, not a public URL — bucket is private.
-    // Use getSignedImageUrl() to generate a temporary viewing URL.
-    const imageUrl = storagePath
-
-    // 2. Run Claude Vision OCR
+    // Run Claude Vision OCR
+    const buffer = await fileData.arrayBuffer()
     const base64 = Buffer.from(buffer).toString('base64')
     const extracted = await extractScorecardData(
       base64,
-      file.type as 'image/jpeg' | 'image/png' | 'image/webp',
-      clubName,
-      courseName,
-      country,
+      contentType as 'image/jpeg' | 'image/png' | 'image/webp',
+      safeClubName,
+      safeCourseName,
+      safeCountry,
     )
 
-    // 3. Save the upload record
+    // Save the upload record
     const { data: upload, error: insertErr } = await admin
       .from('scorecard_uploads')
       .insert({
         uploaded_by: user.id,
-        image_url: imageUrl,
-        course_name: courseName || extracted.courseName,
-        country: country || null,
+        image_url: storagePath,
+        course_name: safeCourseName || extracted.courseName,
+        country: safeCountry || null,
         continent: continent || null,
         extracted_data: extracted,
         status: 'pending',

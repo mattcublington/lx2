@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { uploadScorecard } from '@/lib/scorecard-ocr'
+import { processScorecard } from '@/lib/scorecard-ocr'
 import type { ExtractedCourseData, ExtractedTee } from '@/lib/scorecard-ocr'
 import { COUNTRY_NAMES } from '@/lib/countries'
+import { createClient } from '@/lib/supabase/client'
 
 // ── Design tokens (match NewRoundWizard) ─────────────────────────────────────
 
@@ -65,14 +66,24 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
     setError('')
     setPhase('uploading')
 
-    const formData = new FormData()
-    formData.set('image', file)
-    formData.set('clubName', clubName)
-    formData.set('courseName', courseName)
-    formData.set('country', country)
-
     try {
-      const result = await uploadScorecard(formData)
+      // 1. Upload image directly to Supabase Storage from the client
+      //    (bypasses Vercel's 4.5MB serverless function body limit)
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setError('Not authenticated'); setPhase('form'); return }
+
+      const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg'
+      const storagePath = `${user.id}/${Date.now()}.${ext}`
+
+      const { error: uploadErr } = await supabase.storage
+        .from('scorecard-uploads')
+        .upload(storagePath, file, { contentType: file.type, upsert: false })
+
+      if (uploadErr) { setError(`Upload failed: ${uploadErr.message}`); setPhase('form'); return }
+
+      // 2. Call server action with just the path (tiny payload)
+      const result = await processScorecard(storagePath, file.type, clubName, courseName, country)
 
       if (!result.success || !result.extractedData || !result.uploadId) {
         setError(result.error ?? 'Upload failed')
