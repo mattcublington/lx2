@@ -236,7 +236,7 @@ export default async function ScorePage({ params, searchParams }: PageProps) {
     // Used for courses (e.g. Royal Canberra) that have no combination_id or loop_id.
     const { data: courseRow } = await supabase
       .from('courses')
-      .select('name')
+      .select('name, source')
       .eq('id', event.course_id)
       .single()
 
@@ -251,6 +251,47 @@ export default async function ScorePage({ params, searchParams }: PageProps) {
           siW: null,
           yards: hole.teeYards ?? { [course.defaultRatingTee]: hole.yards },
         })
+      }
+    } else if (courseRow?.source === 'ocr') {
+      // ── OCR-uploaded course: load hole data from scorecard_uploads ────────
+      // The extracted_data JSONB contains hole-by-hole data from the OCR scan.
+      // Match by the extracted courseName stored inside the JSONB.
+      const { data: uploads } = await supabase
+        .from('scorecard_uploads')
+        .select('extracted_data')
+        .not('extracted_data', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(20)
+
+      // Find the upload whose extracted courseName matches this course
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- JSONB from Supabase
+      const upload = uploads?.find((u: any) => {
+        const ed = u.extracted_data
+        return ed?.courseName === courseRow.name ||
+          `${ed?.courseName} — ${ed?.tees?.[0]?.teeName}` === courseRow.name
+      })
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- JSONB from Supabase, shape validated below
+      const extracted = upload?.extracted_data as any
+      if (extracted?.tees?.[0]?.holes?.length > 0) {
+        const tee = extracted.tees[0]
+        for (const h of tee.holes) {
+          const yardsForHole: Record<string, number> = {}
+          for (const t of extracted.tees) {
+            const match = t.holes?.find((th: { hole: number }) => th.hole === h.hole)
+            if (match?.yards) yardsForHole[t.teeName] = match.yards
+          }
+          holes.push({
+            holeInRound: h.hole,
+            loopHoleId: `ocr-${event.course_id}-h${h.hole}`,
+            par: h.par,
+            siM: h.si ?? null,
+            siW: null,
+            yards: yardsForHole,
+          })
+        }
+      } else {
+        courseDataUnavailable = true
       }
     } else {
       courseDataUnavailable = true
