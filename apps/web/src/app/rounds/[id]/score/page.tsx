@@ -335,6 +335,7 @@ export default async function ScorePage({ params, searchParams }: PageProps) {
     <ScoreEntryLive
       scorecardId={id}
       eventId={scorecard.event_id}
+      eventPlayerId={ep.id}
       playerName={ep.display_name}
       handicapIndex={Number(ep.handicap_index)}
       format={event.format}

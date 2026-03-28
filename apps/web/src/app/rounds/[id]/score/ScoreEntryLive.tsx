@@ -25,6 +25,7 @@ export interface Props {
   initialPickups: Record<number, boolean>
   ntpHoles: number[]
   ldHoles: number[]
+  eventPlayerId: string
   selectedTee: string
   eventName: string
   eventDate: string
@@ -958,7 +959,7 @@ const STYLES = `
 export default function ScoreEntryLive(props: Props) {
   const {
     scorecardId, eventId, playerName, handicapIndex, format, allowancePct,
-    holes, initialScores, initialPickups, ntpHoles, ldHoles,
+    holes, initialScores, initialPickups, ntpHoles, ldHoles, eventPlayerId,
     selectedTee, eventName, eventDate, groupPlayers, initialHole = 0,
     shareCode,
   } = props
@@ -1132,6 +1133,21 @@ export default function ScoreEntryLive(props: Props) {
     )
   }
 
+  async function persistContest(ct: 'ntp' | 'ld', holeNum: number, distYards: string) {
+    const cm = Math.round(parseFloat(distYards) * 91.44)
+    if (isNaN(cm) || cm <= 0) return
+    await sb.from('contest_entries').upsert(
+      {
+        event_id: eventId,
+        hole_number: holeNum,
+        type: ct,
+        event_player_id: eventPlayerId,
+        distance_cm: cm,
+      },
+      { onConflict: 'event_id,hole_number,type,event_player_id' },
+    )
+  }
+
   // ── Auto-advance ───────────────────────────────────────────────────────────
 
   function checkAutoAdvance(hir: number) {
@@ -1182,6 +1198,15 @@ export default function ScoreEntryLive(props: Props) {
       })
       if (nextUnscored) router.prefetch(`/rounds/${nextUnscored.scorecardId}/score?hole=${hole.holeInRound}`)
     }
+    // Contest holes: show overlay instead of auto-advancing.
+    // Do NOT add to autoAdvancedHoles here — that happens in skipContest/saveContest
+    // so re-scoring this hole (after navigating back) re-triggers the overlay.
+    if (isNTP || isLD) {
+      if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current)
+      setCDist('')
+      setShowContestOverlay(true)
+      return
+    }
     checkAutoAdvance(hole.holeInRound)
   }
 
@@ -1218,6 +1243,7 @@ export default function ScoreEntryLive(props: Props) {
   }
 
   function skipContest() {
+    autoAdvancedHoles.current.add(hole.holeInRound)
     setShowContestOverlay(false)
     d({ type: 'NEXT', maxIdx })
   }
@@ -1225,6 +1251,8 @@ export default function ScoreEntryLive(props: Props) {
   function saveContest() {
     if (!cDist) return
     const ct: 'ntp' | 'ld' = ntpHoles.includes(hole.holeInRound) ? 'ntp' : 'ld'
+    persistContest(ct, hole.holeInRound, cDist)
+    autoAdvancedHoles.current.add(hole.holeInRound)
     d({ type: 'SAVE_C', ct, holeNum: hole.holeInRound, dist: cDist, maxIdx })
     setCDist('')
     setShowContestOverlay(false)
@@ -1751,7 +1779,7 @@ export default function ScoreEntryLive(props: Props) {
                   className="sc-contest-input"
                   value={cDist}
                   onChange={e => setCDist(e.target.value)}
-                  placeholder="e.g. 3m 50cm"
+                  placeholder={isNTP ? 'e.g. 3.5 yards' : 'e.g. 285 yards'}
                   autoFocus
                 />
               </div>
