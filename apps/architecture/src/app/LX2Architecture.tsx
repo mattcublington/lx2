@@ -1107,6 +1107,16 @@ export default function LX2Architecture() {
   const done     = allMods.filter(m => m.status === 'done').length
   const building = allMods.filter(m => m.status === 'building').length
   const mvpDone  = mvpMods.filter(m => m.status === 'done').length
+  const mvpBuild = mvpMods.filter(m => m.status === 'building').length
+  const p2Mods   = allMods.filter(m => m.phase === 'soon')
+  const p2Done   = p2Mods.filter(m => m.status === 'done').length
+  const p2Build  = p2Mods.filter(m => m.status === 'building').length
+  const p3Mods   = allMods.filter(m => m.phase === 'later')
+  const p3Done   = p3Mods.filter(m => m.status === 'done').length
+  const p3Build  = p3Mods.filter(m => m.status === 'building').length
+  const p4Mods   = allMods.filter(m => m.phase === 'future')
+  const p4Done   = p4Mods.filter(m => m.status === 'done').length
+  const p4Build  = p4Mods.filter(m => m.status === 'building').length
 
   const currentJourney = journeys.find(j => j.id === activeJourney)!
 
@@ -1194,14 +1204,31 @@ export default function LX2Architecture() {
 
       {/* Progress */}
       <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 16, padding: '16px 20px', marginBottom: 20, boxShadow: '0 8px 24px rgba(26,28,28,0.06)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
-          <div style={{ fontSize: 12, fontWeight: 500, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>MVP progress</div>
-          <div style={{ fontSize: 12, color: '#9CA3AF' }}>{mvpDone} of {mvpMods.length} modules</div>
-        </div>
-        <div style={{ height: 6, borderRadius: 99, background: '#F3F4F6', overflow: 'hidden', marginBottom: 10 }}>
-          <div style={{ height: '100%', borderRadius: 99, background: 'linear-gradient(90deg, #0D631B, #2E7D32)', width: `${(mvpDone / mvpMods.length) * 100}%`, transition: 'width 0.4s' }} />
-        </div>
-        <div style={{ display: 'flex', gap: 16 }}>
+        <div style={{ fontSize: 12, fontWeight: 500, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 14 }}>Progress by phase</div>
+        {([
+          { label: 'P1 · MVP', mods: mvpMods, dCount: mvpDone, bCount: mvpBuild },
+          { label: 'P2',       mods: p2Mods,  dCount: p2Done,  bCount: p2Build  },
+          { label: 'P3',       mods: p3Mods,  dCount: p3Done,  bCount: p3Build  },
+          { label: 'P4',       mods: p4Mods,  dCount: p4Done,  bCount: p4Build  },
+        ] as const).map(({ label, mods, dCount, bCount }) => (
+          <div key={label} style={{ marginBottom: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 5 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#374151', letterSpacing: '0.02em' }}>{label}</div>
+              <div style={{ fontSize: 11, color: '#9CA3AF' }}>
+                {dCount > 0 && <span style={{ color: '#0D631B', fontWeight: 600 }}>{dCount}</span>}
+                {dCount > 0 && bCount > 0 && <span style={{ color: '#9CA3AF' }}> + </span>}
+                {bCount > 0 && <span style={{ color: '#B8660B', fontWeight: 600 }}>{bCount}</span>}
+                {(dCount > 0 || bCount > 0) && <span style={{ color: '#9CA3AF' }}> / </span>}
+                <span>{mods.length}</span>
+              </div>
+            </div>
+            <div style={{ height: 6, borderRadius: 99, background: '#F3F4F6', overflow: 'hidden', position: 'relative' }}>
+              <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', borderRadius: 99, background: 'linear-gradient(90deg, #0D631B, #2E7D32)', width: `${(dCount / mods.length) * 100}%`, transition: 'width 0.4s' }} />
+              <div style={{ position: 'absolute', left: `${(dCount / mods.length) * 100}%`, top: 0, height: '100%', background: '#F59E0B', width: `${(bCount / mods.length) * 100}%`, transition: 'all 0.4s' }} />
+            </div>
+          </div>
+        ))}
+        <div style={{ display: 'flex', gap: 16, marginTop: 8, paddingTop: 10, borderTop: '0.5px solid #F3F4F6' }}>
           {[{ l: 'Done', n: done, c: '#0D631B' }, { l: 'Building', n: building, c: '#B8660B' }, { l: 'Planned', n: allMods.length - done - building, c: '#9CA3AF' }].map(s => (
             <div key={s.l} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: s.c }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: s.c }} />
