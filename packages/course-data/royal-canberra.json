@@ -3,48 +3,75 @@
   "location": "Yarralumla, ACT",
   "country": "Australia",
   "continent": "Oceania",
-  "_comment": "27-hole facility. Three 9-hole loops: A (native holes 1–9), B (native holes 10–18), C (native holes 19–27). Three 18-hole courses: Westbourne (A+B), Yarralumla (B+C), Brindabella (C+A). Source: royal_canberra_scorecards (1).json (updated March 2026). USGA ratings (2016) via club records. SI values are combination-specific (B-loop SI missing from MiClub source when played as front 9 in Yarralumla). yards = White tee; metres = men's distances from club website.",
+  "_comment": "27-hole facility. Three 9-hole loops: A (native holes 1–9), B (native holes 10–18), C (native holes 19–27). Three 18-hole courses: Westbourne (A+B), Yarralumla (B+C), Brindabella (C+A). Source: royal_canberra_scorecards (2).json (updated March 2026). USGA ratings (2016). yards = White tee; metres = men's distances from club website. Tee colours: Blue (men), White (men, standard), Purple/Red (women — club also lists a Purple women's tee treated as equivalent per USGA notes).",
   "loops": {
     "a": {
-      "_comment": "Native holes 1–9. SI values below are from the Westbourne combination (A as front 9).",
+      "_comment": "Native holes 1–9. SI values are from Westbourne (A as front 9).",
       "holes": [
-        { "par": 5, "si": 11, "yards": 492, "metres": 506 },
-        { "par": 4, "si": 7,  "yards": 343, "metres": 355 },
-        { "par": 3, "si": 5,  "yards": 186, "metres": 200 },
-        { "par": 4, "si": 13, "yards": 460, "metres": 425 },
-        { "par": 4, "si": 9,  "yards": 338, "metres": 364 },
-        { "par": 5, "si": 1,  "yards": 422, "metres": 489 },
-        { "par": 4, "si": 15, "yards": 280, "metres": 289 },
-        { "par": 3, "si": 17, "yards": 138, "metres": 149 },
-        { "par": 4, "si": 3,  "yards": 375, "metres": 392 }
+        { "par": 5, "si": 11, "yards": 492, "metres": 506,
+          "teeYards": { "Blue": 505, "White": 492, "Purple/Red": 470 } },
+        { "par": 4, "si": 7,  "yards": 343, "metres": 355,
+          "teeYards": { "Blue": 351, "White": 343, "Purple/Red": 326 } },
+        { "par": 3, "si": 5,  "yards": 186, "metres": 200,
+          "teeYards": { "Blue": 192, "White": 186, "Purple/Red": 176 } },
+        { "par": 4, "si": 13, "yards": 460, "metres": 425,
+          "teeYards": { "Blue": 495, "White": 460, "Purple/Red": 407 } },
+        { "par": 4, "si": 9,  "yards": 338, "metres": 364,
+          "teeYards": { "Blue": 351, "White": 338, "Purple/Red": 271 } },
+        { "par": 5, "si": 1,  "yards": 422, "metres": 489,
+          "teeYards": { "Blue": 428, "White": 422, "Purple/Red": 410 } },
+        { "par": 4, "si": 15, "yards": 280, "metres": 289,
+          "teeYards": { "Blue": 297, "White": 280, "Purple/Red": 253 } },
+        { "par": 3, "si": 17, "yards": 138, "metres": 149,
+          "teeYards": { "Blue": 152, "White": 138, "Purple/Red": 119 } },
+        { "par": 4, "si": 3,  "yards": 375, "metres": 392,
+          "teeYards": { "Blue": 395, "White": 375, "Purple/Red": 314 } }
       ]
     },
     "b": {
-      "_comment": "Native holes 10–18. SI = 0 throughout: data missing from MiClub source for this loop.",
+      "_comment": "Native holes 10–18. SI = 0: missing from MiClub source.",
       "holes": [
-        { "par": 4, "si": 0, "yards": 366, "metres": 371 },
-        { "par": 4, "si": 0, "yards": 341, "metres": 352 },
-        { "par": 4, "si": 0, "yards": 370, "metres": 358 },
-        { "par": 3, "si": 0, "yards": 170, "metres": 173 },
-        { "par": 4, "si": 0, "yards": 380, "metres": 399 },
-        { "par": 5, "si": 0, "yards": 428, "metres": 449 },
-        { "par": 4, "si": 0, "yards": 387, "metres": 410 },
-        { "par": 3, "si": 0, "yards": 166, "metres": 217 },
-        { "par": 5, "si": 0, "yards": 485, "metres": 502 }
+        { "par": 4, "si": 0, "yards": 366, "metres": 371,
+          "teeYards": { "Blue": 371, "White": 366, "Purple/Red": 349 } },
+        { "par": 4, "si": 0, "yards": 341, "metres": 352,
+          "teeYards": { "Blue": 349, "White": 341, "Purple/Red": 335 } },
+        { "par": 4, "si": 0, "yards": 370, "metres": 358,
+          "teeYards": { "Blue": 384, "White": 370, "Purple/Red": 293 } },
+        { "par": 3, "si": 0, "yards": 170, "metres": 173,
+          "teeYards": { "Blue": 182, "White": 170, "Purple/Red": 141 } },
+        { "par": 4, "si": 0, "yards": 380, "metres": 399,
+          "teeYards": { "Blue": 406, "White": 380, "Purple/Red": 338 } },
+        { "par": 5, "si": 0, "yards": 428, "metres": 449,
+          "teeYards": { "Blue": 446, "White": 428, "Purple/Red": 422 } },
+        { "par": 4, "si": 0, "yards": 387, "metres": 410,
+          "teeYards": { "Blue": 410, "White": 387, "Purple/Red": 370 } },
+        { "par": 3, "si": 0, "yards": 166, "metres": 217,
+          "teeYards": { "Blue": 175, "White": 166, "Purple/Red": 155 } },
+        { "par": 5, "si": 0, "yards": 485, "metres": 502,
+          "teeYards": { "Blue": 507, "White": 485, "Purple/Red": 415 } }
       ]
     },
     "c": {
-      "_comment": "Native holes 19–27. SI values below are from the Yarralumla combination (C as back 9).",
+      "_comment": "Native holes 19–27. SI values are from Yarralumla (C as back 9) / Brindabella (C as front 9).",
       "holes": [
-        { "par": 4, "si": 7,  "yards": 361, "metres": 380 },
-        { "par": 3, "si": 15, "yards": 145, "metres": 168 },
-        { "par": 4, "si": 17, "yards": 273, "metres": 284 },
-        { "par": 4, "si": 3,  "yards": 338, "metres": 362 },
-        { "par": 4, "si": 1,  "yards": 381, "metres": 405 },
-        { "par": 5, "si": 11, "yards": 477, "metres": 506 },
-        { "par": 4, "si": 5,  "yards": 321, "metres": 361 },
-        { "par": 3, "si": 13, "yards": 152, "metres": 162 },
-        { "par": 5, "si": 9,  "yards": 465, "metres": 480 }
+        { "par": 4, "si": 7,  "yards": 361, "metres": 380,
+          "teeYards": { "Blue": 380, "White": 361, "Purple/Red": 349 } },
+        { "par": 3, "si": 15, "yards": 145, "metres": 168,
+          "teeYards": { "Blue": 168, "White": 145, "Purple/Red": 137 } },
+        { "par": 4, "si": 17, "yards": 273, "metres": 284,
+          "teeYards": { "Blue": 284, "White": 273, "Purple/Red": 253 } },
+        { "par": 4, "si": 3,  "yards": 338, "metres": 362,
+          "teeYards": { "Blue": 362, "White": 338, "Purple/Red": 322 } },
+        { "par": 4, "si": 1,  "yards": 381, "metres": 405,
+          "teeYards": { "Blue": 405, "White": 381, "Purple/Red": 343 } },
+        { "par": 5, "si": 11, "yards": 477, "metres": 506,
+          "teeYards": { "Blue": 506, "White": 477, "Purple/Red": 462 } },
+        { "par": 4, "si": 5,  "yards": 321, "metres": 361,
+          "teeYards": { "Blue": 361, "White": 321, "Purple/Red": 297 } },
+        { "par": 3, "si": 13, "yards": 152, "metres": 162,
+          "teeYards": { "Blue": 162, "White": 152, "Purple/Red": 152 } },
+        { "par": 5, "si": 9,  "yards": 465, "metres": 480,
+          "teeYards": { "Blue": 480, "White": 465, "Purple/Red": 416 } }
       ]
     }
   },
@@ -54,12 +81,13 @@
       "name": "Royal Canberra — Westbourne",
       "front": "a", "back": "b",
       "par": 72,
-      "tees": ["Blue", "White", "Red"],
+      "tees": ["Blue", "White", "Purple/Red"],
       "defaultRatingTee": "White",
       "slopeRating": 121, "courseRating": 71.6,
       "teeRatings": {
-        "Blue":  { "slopeRating": 123, "courseRating": 73.1 },
-        "White": { "slopeRating": 121, "courseRating": 71.6 }
+        "Blue":       { "slopeRating": 123, "courseRating": 73.1 },
+        "White":      { "slopeRating": 121, "courseRating": 71.6 },
+        "Purple/Red": { "slopeRating": 122, "courseRating": 74.0 }
       },
       "backSI": [8, 16, 2, 12, 4, 18, 6, 14, 10]
     },
@@ -69,26 +97,30 @@
       "_comment": "Front 9 (B loop) SI missing from MiClub source (si: 0).",
       "front": "b", "back": "c",
       "par": 72,
-      "tees": ["Blue", "White", "Red"],
+      "tees": ["Blue", "White", "Purple/Red"],
       "defaultRatingTee": "White",
       "slopeRating": 127, "courseRating": 71.8,
       "teeRatings": {
-        "Blue":  { "slopeRating": 131, "courseRating": 73.6 },
-        "White": { "slopeRating": 127, "courseRating": 71.8 }
-      }
+        "Blue":       { "slopeRating": 131, "courseRating": 73.6 },
+        "White":      { "slopeRating": 127, "courseRating": 71.8 },
+        "Purple/Red": { "slopeRating": 127, "courseRating": 74.6 }
+      },
+      "backSI": [7, 15, 1, 11, 3, 17, 5, 13, 9]
     },
     {
       "id": "royal-canberra-brindabella",
       "name": "Royal Canberra — Brindabella",
       "front": "c", "back": "a",
       "par": 72,
-      "tees": ["Blue", "White", "Red"],
+      "tees": ["Blue", "White", "Purple/Red"],
       "defaultRatingTee": "White",
       "slopeRating": 127, "courseRating": 71.0,
       "teeRatings": {
-        "Blue":  { "slopeRating": 131, "courseRating": 72.9 },
-        "White": { "slopeRating": 127, "courseRating": 71.0 }
+        "Blue":       { "slopeRating": 131, "courseRating": 72.9 },
+        "White":      { "slopeRating": 127, "courseRating": 71.0 },
+        "Purple/Red": { "slopeRating": 125, "courseRating": 73.8 }
       },
+      "frontSI": [5, 15, 17, 3, 1, 11, 7, 13, 9],
       "backSI": [12, 10, 8, 14, 6, 2, 18, 16, 4]
     }
   ]

@@ -5,8 +5,9 @@
 export interface LoopHole {
   par: number
   si: number      // stroke index within the 18-hole combination; 0 = missing data
-  yards: number
+  yards: number   // yards for the defaultRatingTee (or White/standard tee)
   metres?: number
+  teeYards?: Record<string, number>  // per-tee yardages: { Blue: 505, White: 492, 'Purple/Red': 470 }
 }
 
 export interface ClubLoop {

@@ -41,16 +41,18 @@ function buildHolesFromLoops(
   frontLoop.holes.forEach((hole, i) => {
     const si = combination.frontSI ? (combination.frontSI[i] ?? hole.si) : hole.si
     const metresPart = hole.metres !== undefined ? `, metres: ${hole.metres}` : ''
+    const teeYardsPart = hole.teeYards ? `, teeYards: ${JSON.stringify(hole.teeYards)}` : ''
     lines.push(
-      `      { num: ${String(i + 1).padStart(2)},  par: ${hole.par}, si: ${String(si).padStart(2)},  yards: ${hole.yards}${metresPart} },`
+      `      { num: ${String(i + 1).padStart(2)},  par: ${hole.par}, si: ${String(si).padStart(2)},  yards: ${hole.yards}${metresPart}${teeYardsPart} },`
     )
   })
 
   backLoop.holes.forEach((hole, i) => {
     const si = combination.backSI ? (combination.backSI[i] ?? hole.si) : hole.si
     const metresPart = hole.metres !== undefined ? `, metres: ${hole.metres}` : ''
+    const teeYardsPart = hole.teeYards ? `, teeYards: ${JSON.stringify(hole.teeYards)}` : ''
     lines.push(
-      `      { num: ${String(i + 10).padStart(2)}, par: ${hole.par}, si: ${String(si).padStart(2)},  yards: ${hole.yards}${metresPart} },`
+      `      { num: ${String(i + 10).padStart(2)}, par: ${hole.par}, si: ${String(si).padStart(2)},  yards: ${hole.yards}${metresPart}${teeYardsPart} },`
     )
   })
 
@@ -165,6 +167,7 @@ export interface CourseHole {
   si: number       // stroke index (men's where separate; 0 = missing data)
   yards: number    // White/standard tee yardage
   metres?: number  // White/standard tee metres; if absent, derive from yards
+  teeYards?: Record<string, number>  // per-tee yardages, e.g. { Blue: 505, White: 492, 'Purple/Red': 470 }
 }
 
 export interface Course {

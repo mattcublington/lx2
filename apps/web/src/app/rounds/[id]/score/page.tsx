@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import ScoreEntryLive from './ScoreEntryLive'
+import { COURSES } from '@/lib/courses'
 
 export interface ScoringHole {
   holeInRound: number
@@ -79,6 +80,7 @@ export default async function ScorePage({ params, searchParams }: PageProps) {
         ld_holes,
         handicap_allowance_pct,
         combination_id,
+        course_id,
         round_type,
         loop_id,
         name,
@@ -109,6 +111,7 @@ export default async function ScorePage({ params, searchParams }: PageProps) {
     // stored as numeric(3,2): e.g. 0.95 = 95%  or  1.00 = 100%
     handicap_allowance_pct: number
     combination_id: string | null
+    course_id: string | null
     round_type: string
     loop_id: string | null
     name: string
@@ -227,6 +230,30 @@ export default async function ScorePage({ params, searchParams }: PageProps) {
           yards: yardsMap[h.id] ?? {},
         })
       }
+    }
+  } else if (event.course_id) {
+    // ── Fallback: resolve holes from courses.ts static data ─────────────────
+    // Used for courses (e.g. Royal Canberra) that have no combination_id or loop_id.
+    const { data: courseRow } = await supabase
+      .from('courses')
+      .select('name')
+      .eq('id', event.course_id)
+      .single()
+
+    const course = courseRow ? COURSES.find(c => c.name === courseRow.name) : undefined
+    if (course) {
+      for (const hole of course.holes) {
+        holes.push({
+          holeInRound: hole.num,
+          loopHoleId: `${course.id}-h${hole.num}`,
+          par: hole.par,
+          siM: hole.si || null,
+          siW: null,
+          yards: hole.teeYards ?? { [course.defaultRatingTee]: hole.yards },
+        })
+      }
+    } else {
+      courseDataUnavailable = true
     }
   } else {
     courseDataUnavailable = true

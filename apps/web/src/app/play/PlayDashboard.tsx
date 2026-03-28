@@ -494,7 +494,9 @@ export default function PlayDashboard({
 
           {/* Hero */}
           <section className="fe-hero">
-            <h1 className="fe-name">{displayName}</h1>
+            <Link href="/profile" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <h1 className="fe-name">{displayName}</h1>
+            </Link>
             {handicapIndex != null && (
               <div className="fe-hcp-badge">
                 <FlagIcon size={14} />
