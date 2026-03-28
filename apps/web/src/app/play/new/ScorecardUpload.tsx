@@ -37,6 +37,35 @@ interface Props {
   onCancel: () => void
 }
 
+// ── Image compression (resize large phone photos for faster upload) ──────────
+
+function compressImage(file: File, maxDimension = 2400, quality = 0.85): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      let { width, height } = img
+      if (width > maxDimension || height > maxDimension) {
+        const scale = maxDimension / Math.max(width, height)
+        width = Math.round(width * scale)
+        height = Math.round(height * scale)
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d')
+      if (!ctx) { reject(new Error('Canvas not supported')); return }
+      ctx.drawImage(img, 0, 0, width, height)
+      canvas.toBlob(
+        blob => blob ? resolve(blob) : reject(new Error('Compression failed')),
+        'image/jpeg',
+        quality,
+      )
+    }
+    img.onerror = () => reject(new Error('Failed to load image'))
+    img.src = URL.createObjectURL(file)
+  })
+}
+
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function ScorecardUpload({ onDone, onCancel }: Props) {
@@ -67,23 +96,25 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
     setPhase('uploading')
 
     try {
-      // 1. Upload image directly to Supabase Storage from the client
+      // 1. Compress the image (phone photos are often 5-10MB, resize to ~1-2MB)
+      const compressed = await compressImage(file)
+
+      // 2. Upload compressed image directly to Supabase Storage from the client
       //    (bypasses Vercel's 4.5MB serverless function body limit)
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setError('Not authenticated'); setPhase('form'); return }
 
-      const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg'
-      const storagePath = `${user.id}/${Date.now()}.${ext}`
+      const storagePath = `${user.id}/${Date.now()}.jpg`
 
       const { error: uploadErr } = await supabase.storage
         .from('scorecard-uploads')
-        .upload(storagePath, file, { contentType: file.type, upsert: false })
+        .upload(storagePath, compressed, { contentType: 'image/jpeg', upsert: false })
 
       if (uploadErr) { setError(`Upload failed: ${uploadErr.message}`); setPhase('form'); return }
 
-      // 2. Call server action with just the path (tiny payload)
-      const result = await processScorecard(storagePath, file.type, clubName, courseName, country)
+      // 3. Call server action with just the path (tiny payload)
+      const result = await processScorecard(storagePath, 'image/jpeg', clubName, courseName, country)
 
       if (!result.success || !result.extractedData || !result.uploadId) {
         setError(result.error ?? 'Upload failed')
