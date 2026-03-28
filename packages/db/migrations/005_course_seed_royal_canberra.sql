@@ -12,6 +12,10 @@
 --            Cumberwell-specific loops / combinations tables are
 --            unchanged — they remain the source of truth for the
 --            Cumberwell tee sheet.
+--
+-- NOTE: Royal Canberra scorecard distances are in metres.
+--       yardages[] = converted to yards (metres × 1.09361, rounded).
+--       metres[]   = original metres from club website.
 -- ================================================================
 
 -- ================================================================
@@ -45,7 +49,7 @@ ON CONFLICT (name) DO UPDATE SET
 
 SELECT id INTO v_course_id FROM public.courses WHERE name = 'Royal Canberra — Westbourne';
 
--- holes
+-- holes (A loop front 9, B loop back 9 with Westbourne backSI)
 INSERT INTO public.course_holes (course_id, hole_number, par, stroke_index) VALUES
   (v_course_id,  1, 5, 11),
   (v_course_id,  2, 4,  7),
@@ -69,13 +73,13 @@ ON CONFLICT (course_id, hole_number) DO UPDATE SET
   par          = EXCLUDED.par,
   stroke_index = EXCLUDED.stroke_index;
 
--- tees: White (default)
+-- tees: White (default) — yards converted from metres
 INSERT INTO public.course_tees (course_id, tee_name, yardages, metres, total_yards, slope_rating, course_rating)
 VALUES (
   v_course_id, 'White',
-  ARRAY[492,343,186,460,338,422,280,138,375,366,341,370,170,380,428,387,166,485]::smallint[],
-  ARRAY[506,355,200,425,364,489,289,149,392,371,352,358,173,399,449,410,217,502]::smallint[],
-  6157, 121, 71.6
+  ARRAY[538,375,203,503,370,462,306,151,410, 400,373,405,186,416,468,423,182,530]::smallint[],
+  ARRAY[506,355,200,425,364,489,289,149,392, 371,352,358,173,399,449,410,217,502]::smallint[],
+  6701, 121, 71.6
 )
 ON CONFLICT (course_id, tee_name) DO UPDATE SET
   yardages     = EXCLUDED.yardages,
@@ -88,16 +92,35 @@ ON CONFLICT (course_id, tee_name) DO UPDATE SET
 INSERT INTO public.course_tees (course_id, tee_name, yardages, metres, total_yards, slope_rating, course_rating)
 VALUES (
   v_course_id, 'Blue',
-  ARRAY[492,343,186,460,338,422,280,138,375,366,341,370,170,380,428,387,166,485]::smallint[],
+  ARRAY[552,384,210,541,384,468,325,166,432, 406,382,420,199,444,488,448,191,554]::smallint[],
   NULL,
-  6157, 123, 73.1
+  6994, 123, 73.1
 )
 ON CONFLICT (course_id, tee_name) DO UPDATE SET
+  yardages     = EXCLUDED.yardages,
+  total_yards  = EXCLUDED.total_yards,
+  slope_rating = EXCLUDED.slope_rating,
+  course_rating= EXCLUDED.course_rating;
+
+-- tees: Purple/Red
+INSERT INTO public.course_tees (course_id, tee_name, yardages, metres, total_yards, slope_rating, course_rating)
+VALUES (
+  v_course_id, 'Purple/Red',
+  ARRAY[514,357,192,445,296,448,277,130,343, 382,366,320,154,370,462,405,170,454]::smallint[],
+  NULL,
+  6085, 122, 74.0
+)
+ON CONFLICT (course_id, tee_name) DO UPDATE SET
+  yardages     = EXCLUDED.yardages,
+  total_yards  = EXCLUDED.total_yards,
   slope_rating = EXCLUDED.slope_rating,
   course_rating= EXCLUDED.course_rating;
 
 
 -- ── Yarralumla ─────────────────────────────────────────────────
+-- NOTE: this course was inserted before the fixed UUID was applied;
+-- the DB has UUID 25f54d87-a49e-48b6-8942-69a6bf241e4f for Yarralumla.
+-- The ON CONFLICT (name) clause keeps the existing UUID on re-run.
 INSERT INTO public.courses (id, name, club, location, holes_count, slope_rating, course_rating, par, source, verified)
 VALUES (
   '11111111-0002-0000-0000-000000000001',
@@ -142,9 +165,9 @@ ON CONFLICT (course_id, hole_number) DO UPDATE SET
 INSERT INTO public.course_tees (course_id, tee_name, yardages, metres, total_yards, slope_rating, course_rating)
 VALUES (
   v_course_id, 'White',
-  ARRAY[366,341,370,170,380,428,387,166,485,361,145,273,338,381,477,321,152,465]::smallint[],
-  ARRAY[371,352,358,173,399,449,410,217,502,380,168,284,362,405,506,361,162,480]::smallint[],
-  6207, 127, 71.8
+  ARRAY[400,373,405,186,416,468,423,182,530, 395,159,299,370,417,522,351,166,509]::smallint[],
+  ARRAY[371,352,358,173,399,449,410,217,502, 380,168,284,362,405,506,361,162,480]::smallint[],
+  6571, 127, 71.8
 )
 ON CONFLICT (course_id, tee_name) DO UPDATE SET
   yardages     = EXCLUDED.yardages,
@@ -157,11 +180,27 @@ ON CONFLICT (course_id, tee_name) DO UPDATE SET
 INSERT INTO public.course_tees (course_id, tee_name, yardages, metres, total_yards, slope_rating, course_rating)
 VALUES (
   v_course_id, 'Blue',
-  ARRAY[366,341,370,170,380,428,387,166,485,361,145,273,338,381,477,321,152,465]::smallint[],
+  ARRAY[406,382,420,199,444,488,448,191,554, 416,184,311,396,443,553,395,177,525]::smallint[],
   NULL,
-  6207, 131, 73.6
+  6932, 131, 73.6
 )
 ON CONFLICT (course_id, tee_name) DO UPDATE SET
+  yardages     = EXCLUDED.yardages,
+  total_yards  = EXCLUDED.total_yards,
+  slope_rating = EXCLUDED.slope_rating,
+  course_rating= EXCLUDED.course_rating;
+
+-- tees: Purple/Red
+INSERT INTO public.course_tees (course_id, tee_name, yardages, metres, total_yards, slope_rating, course_rating)
+VALUES (
+  v_course_id, 'Purple/Red',
+  ARRAY[382,366,320,154,370,462,405,170,454, 382,150,277,352,375,505,325,166,455]::smallint[],
+  NULL,
+  6070, 127, 74.6
+)
+ON CONFLICT (course_id, tee_name) DO UPDATE SET
+  yardages     = EXCLUDED.yardages,
+  total_yards  = EXCLUDED.total_yards,
   slope_rating = EXCLUDED.slope_rating,
   course_rating= EXCLUDED.course_rating;
 
@@ -183,7 +222,7 @@ ON CONFLICT (name) DO UPDATE SET
 
 SELECT id INTO v_course_id FROM public.courses WHERE name = 'Royal Canberra — Brindabella';
 
--- holes (C loop front 9; A loop back 9 with Brindabella SI)
+-- holes (C loop front 9 with Brindabella frontSI; A loop back 9 with Brindabella backSI)
 INSERT INTO public.course_holes (course_id, hole_number, par, stroke_index) VALUES
   (v_course_id,  1, 4,  5),
   (v_course_id,  2, 3, 15),
@@ -211,9 +250,9 @@ ON CONFLICT (course_id, hole_number) DO UPDATE SET
 INSERT INTO public.course_tees (course_id, tee_name, yardages, metres, total_yards, slope_rating, course_rating)
 VALUES (
   v_course_id, 'White',
-  ARRAY[361,145,273,338,381,477,321,152,465,492,343,186,460,338,422,280,138,375]::smallint[],
-  ARRAY[380,168,284,362,405,506,361,162,480,506,355,200,425,364,489,289,149,392]::smallint[],
-  5947, 127, 71.0
+  ARRAY[395,159,299,370,417,522,351,166,509, 538,375,203,503,370,462,306,151,410]::smallint[],
+  ARRAY[380,168,284,362,405,506,361,162,480, 506,355,200,425,364,489,289,149,392]::smallint[],
+  6506, 127, 71.0
 )
 ON CONFLICT (course_id, tee_name) DO UPDATE SET
   yardages     = EXCLUDED.yardages,
@@ -226,11 +265,27 @@ ON CONFLICT (course_id, tee_name) DO UPDATE SET
 INSERT INTO public.course_tees (course_id, tee_name, yardages, metres, total_yards, slope_rating, course_rating)
 VALUES (
   v_course_id, 'Blue',
-  ARRAY[361,145,273,338,381,477,321,152,465,492,343,186,460,338,422,280,138,375]::smallint[],
+  ARRAY[416,184,311,396,443,553,395,177,525, 552,384,210,541,384,468,325,166,432]::smallint[],
   NULL,
-  5947, 131, 72.9
+  6862, 131, 72.9
 )
 ON CONFLICT (course_id, tee_name) DO UPDATE SET
+  yardages     = EXCLUDED.yardages,
+  total_yards  = EXCLUDED.total_yards,
+  slope_rating = EXCLUDED.slope_rating,
+  course_rating= EXCLUDED.course_rating;
+
+-- tees: Purple/Red
+INSERT INTO public.course_tees (course_id, tee_name, yardages, metres, total_yards, slope_rating, course_rating)
+VALUES (
+  v_course_id, 'Purple/Red',
+  ARRAY[382,150,277,352,375,505,325,166,455, 514,357,192,445,296,448,277,130,343]::smallint[],
+  NULL,
+  5989, 125, 73.8
+)
+ON CONFLICT (course_id, tee_name) DO UPDATE SET
+  yardages     = EXCLUDED.yardages,
+  total_yards  = EXCLUDED.total_yards,
   slope_rating = EXCLUDED.slope_rating,
   course_rating= EXCLUDED.course_rating;
 
