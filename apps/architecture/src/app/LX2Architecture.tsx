@@ -909,7 +909,7 @@ const journeys: Journey[] = [
       { id: 'live',    label: 'Live leaderboard panel',   sub: 'inline overlay · real-time group',   status: 'done',    moduleId: 'leaderboard_live',  x: 60,  y: 350 },
       { id: 'ntp',     label: 'NTP / LD capture',         sub: 'overlay after contest hole',         status: 'done',    moduleId: 'ntp_ld',            x: 420, y: 350 },
       { id: 'summary', label: 'Round summary',            sub: '/rounds/[id] · chart + scorecard',   status: 'done',    moduleId: 'round_summary',     x: 60,  y: 460 },
-      { id: 'results', label: 'Event results',            sub: 'permanent shareable page',           status: 'planned', moduleId: 'results',           x: 420, y: 460 },
+      { id: 'results', label: 'Event results',            sub: 'on round summary + OG leaderboard',  status: 'done',    moduleId: 'results',           x: 420, y: 460 },
     ],
     arrows: [
       { x1: 200, y1: 70,  x2: 280, y2: 130 },
@@ -928,10 +928,10 @@ const journeys: Journey[] = [
       { id: 'org_home',   label: '/play dashboard',       sub: 'signed-in organiser entry',           status: 'done',     moduleId: 'player_home',    x: 240, y: 20  },
       { id: 'org_create', label: 'New round wizard',       sub: 'venue → combo → players → format',   status: 'done',     moduleId: 'event_create',   x: 240, y: 120 },
       { id: 'org_invite', label: 'Invite link shared',     sub: 'WhatsApp · /events/[id] · anon join',status: 'done',     moduleId: 'invite',         x: 240, y: 220 },
-      { id: 'org_manage', label: 'Manage event',           sub: '/events/[id]/manage · confirm players',status: 'building', moduleId: 'org_dashboard', x: 60,  y: 330 },
+      { id: 'org_manage', label: 'Manage event',           sub: '/events/[id]/manage · DnD flights',   status: 'done',     moduleId: 'org_dashboard', x: 60,  y: 330 },
       { id: 'org_marker', label: 'Marker mode',            sub: 'score for any player via leaderboard',status: 'done',    moduleId: 'score_entry',    x: 420, y: 330 },
       { id: 'org_live',   label: 'Live leaderboard',       sub: '/events/[id]/leaderboard · TV mode',  status: 'done',    moduleId: 'leaderboard_live', x: 240, y: 440 },
-      { id: 'org_result', label: 'Results published',      sub: 'permanent · shareable URL',           status: 'planned', moduleId: 'results',        x: 240, y: 520 },
+      { id: 'org_result', label: 'Results published',      sub: 'OG leaderboard · shareable URL',      status: 'done',    moduleId: 'results',        x: 240, y: 520 },
     ],
     arrows: [
       { x1: 340, y1: 70,  x2: 340, y2: 120 },

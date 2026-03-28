@@ -1,7 +1,8 @@
 'use client'
 import { useState, useTransition } from 'react'
 import { confirmPlayer } from '@/app/events/manage-actions'
-import { finaliseEvent, unfinaliseEvent } from './actions'
+import { useRouter } from 'next/navigation'
+import { finaliseEvent, unfinaliseEvent, deleteEvent } from './actions'
 
 interface Props {
   eventUrl: string
@@ -255,5 +256,81 @@ export default function ManageActions({ eventUrl, eventName }: Props) {
         Share on WhatsApp
       </a>
     </div>
+  )
+}
+
+// ─── Delete event ─────────────────────────────────────────────────────────────
+
+export function DeleteEventButton({ eventId, eventName }: { eventId: string; eventName: string }) {
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
+  const [showConfirm, setShowConfirm] = useState(false)
+
+  function handleDelete() {
+    startTransition(async () => {
+      await deleteEvent(eventId)
+      router.push('/play')
+    })
+  }
+
+  if (showConfirm) {
+    return (
+      <div style={{
+        background: '#fff8f8', borderRadius: 12, border: '1px solid #fecaca',
+        padding: '16px 20px', textAlign: 'center',
+      }}>
+        <div style={{
+          fontSize: '0.875rem', fontWeight: 500, color: '#991b1b',
+          fontFamily: 'var(--font-dm-sans), sans-serif', marginBottom: 4,
+        }}>
+          Delete &ldquo;{eventName}&rdquo;?
+        </div>
+        <div style={{
+          fontSize: '0.8125rem', color: '#6B8C6B',
+          fontFamily: 'var(--font-dm-sans), sans-serif', marginBottom: 14, lineHeight: 1.4,
+        }}>
+          This permanently removes the event, all players, scorecards, and scores.
+        </div>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+          <button
+            onClick={() => setShowConfirm(false)}
+            disabled={isPending}
+            style={{
+              padding: '8px 18px', border: '1.5px solid #E0EBE0', borderRadius: 10,
+              background: '#fff', color: '#1A2E1A', fontSize: '0.8125rem', fontWeight: 500,
+              fontFamily: 'var(--font-dm-sans), sans-serif', cursor: 'pointer',
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={isPending}
+            style={{
+              padding: '8px 18px', border: 'none', borderRadius: 10,
+              background: '#DC2626', color: '#fff', fontSize: '0.8125rem', fontWeight: 600,
+              fontFamily: 'var(--font-dm-sans), sans-serif', cursor: 'pointer',
+              opacity: isPending ? 0.6 : 1,
+            }}
+          >
+            {isPending ? 'Deleting…' : 'Delete permanently'}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <button
+      onClick={() => setShowConfirm(true)}
+      style={{
+        padding: '9px 18px', border: '1.5px solid #fecaca', borderRadius: 10,
+        background: '#fff', color: '#DC2626', fontSize: '0.8125rem', fontWeight: 500,
+        fontFamily: 'var(--font-dm-sans), sans-serif', cursor: 'pointer',
+        transition: 'background 0.15s, border-color 0.15s',
+      }}
+    >
+      Delete event
+    </button>
   )
 }

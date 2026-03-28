@@ -1,27 +1,21 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { assertEventOrganiser } from '@/lib/assert-event-organiser'
 
 // ─── generateGroups ────────────────────────────────────────────────────────────
 // Auto-creates event_group rows and assigns confirmed players to them in order.
 // Wipes any existing groups and flight_number assignments before re-generating.
 
 export async function generateGroups(eventId: string): Promise<void> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not authenticated')
+  const { admin } = await assertEventOrganiser(eventId)
 
-  const admin = createAdminClient()
-
+  // Need group_size from the event
   const { data: event } = await admin
     .from('events')
-    .select('created_by, group_size')
+    .select('group_size')
     .eq('id', eventId)
     .single()
-
-  if (!event || event.created_by !== user.id) throw new Error('Not authorised')
 
   const { data: players } = await admin
     .from('event_players')
@@ -32,7 +26,7 @@ export async function generateGroups(eventId: string): Promise<void> {
 
   if (!players || players.length === 0) return
 
-  const groupSize = (event.group_size as number) ?? 4
+  const groupSize = (event?.group_size as number) ?? 4
   const numGroups = Math.ceil(players.length / groupSize)
 
   // Wipe existing groups and reset all flight_number assignments
@@ -69,19 +63,7 @@ export async function updateGroup(
   groupId: string,
   fields: { tee_time?: string | null; start_hole?: number; label?: string },
 ): Promise<void> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not authenticated')
-
-  const admin = createAdminClient()
-
-  const { data: event } = await admin
-    .from('events')
-    .select('created_by')
-    .eq('id', eventId)
-    .single()
-
-  if (!event || event.created_by !== user.id) throw new Error('Not authorised')
+  const { admin } = await assertEventOrganiser(eventId)
 
   await admin
     .from('event_groups')
@@ -100,19 +82,7 @@ export async function assignPlayerToGroup(
   playerId: string,
   flightNumber: number | null,
 ): Promise<void> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not authenticated')
-
-  const admin = createAdminClient()
-
-  const { data: event } = await admin
-    .from('events')
-    .select('created_by')
-    .eq('id', eventId)
-    .single()
-
-  if (!event || event.created_by !== user.id) throw new Error('Not authorised')
+  const { admin } = await assertEventOrganiser(eventId)
 
   await admin
     .from('event_players')
@@ -128,19 +98,7 @@ export async function assignPlayerToGroup(
 // Locks the event — no more scoring changes. Sets events.finalised = true.
 
 export async function finaliseEvent(eventId: string): Promise<void> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not authenticated')
-
-  const admin = createAdminClient()
-
-  const { data: event } = await admin
-    .from('events')
-    .select('created_by')
-    .eq('id', eventId)
-    .single()
-
-  if (!event || event.created_by !== user.id) throw new Error('Not authorised')
+  const { admin } = await assertEventOrganiser(eventId)
 
   await admin
     .from('events')
@@ -156,19 +114,7 @@ export async function finaliseEvent(eventId: string): Promise<void> {
 // Unlocks the event — allows scoring changes again.
 
 export async function unfinaliseEvent(eventId: string): Promise<void> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not authenticated')
-
-  const admin = createAdminClient()
-
-  const { data: event } = await admin
-    .from('events')
-    .select('created_by')
-    .eq('id', eventId)
-    .single()
-
-  if (!event || event.created_by !== user.id) throw new Error('Not authorised')
+  const { admin } = await assertEventOrganiser(eventId)
 
   await admin
     .from('events')
@@ -183,19 +129,7 @@ export async function unfinaliseEvent(eventId: string): Promise<void> {
 // ─── confirmPlayer ─────────────────────────────────────────────────────────────
 
 export async function confirmPlayer(eventId: string, playerId: string): Promise<void> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not authenticated')
-
-  // Verify the caller is the event organiser
-  const admin = createAdminClient()
-  const { data: event } = await admin
-    .from('events')
-    .select('created_by')
-    .eq('id', eventId)
-    .single()
-
-  if (!event || event.created_by !== user.id) throw new Error('Not authorised')
+  const { admin } = await assertEventOrganiser(eventId)
 
   await admin
     .from('event_players')
@@ -224,4 +158,18 @@ export async function confirmPlayer(eventId: string, playerId: string): Promise<
 
   revalidatePath(`/events/${eventId}/manage`)
   revalidatePath(`/events/${eventId}/leaderboard`)
+}
+
+// ─── deleteEvent ──────────────────────────────────────────────────────────────
+// Permanently deletes an event and all related data (players, scorecards,
+// hole_scores, groups, contest_entries — all cascade via FK). Organiser only.
+
+export async function deleteEvent(eventId: string): Promise<void> {
+  const { admin } = await assertEventOrganiser(eventId)
+
+  // FK cascades handle event_players, scorecards, hole_scores,
+  // event_groups, and contest_entries
+  await admin.from('events').delete().eq('id', eventId)
+
+  revalidatePath('/play')
 }
