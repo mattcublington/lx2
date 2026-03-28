@@ -49,6 +49,8 @@ interface WizardState {
   format: 'stableford' | 'strokeplay' | 'matchplay'
   tee: string
   roundType: '18' | '9'
+  ntpEnabled: boolean
+  ldEnabled: boolean
   ntpHoles: number[]
   ldHoles: number[]
   allowancePct: number
@@ -143,7 +145,8 @@ function defaultTee(courseId: string): string {
 function defaultNtpHoles(courseId: string): number[] {
   const course = getCourse(courseId)
   if (!course) return []
-  return course.holes.filter(h => h.par === 3).map(h => h.num).slice(0, 3)
+  const par3 = course.holes.find(h => h.par === 3)
+  return par3 ? [par3.num] : []
 }
 
 function defaultLdHoles(courseId: string): number[] {
@@ -1112,8 +1115,43 @@ function SettingsStep({
                 </div>
               </div>
 
-              {/* NTP holes */}
-              {par3Holes.length > 0 && (
+              {/* Side contests */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <div style={{ fontFamily: font.body, fontWeight: 500, fontSize: 12, textTransform: 'uppercase' as const, letterSpacing: '0.05em', color: FE.onTertiary, marginBottom: '0.75rem' }}>
+                  Side contests
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '0.5rem' }}>
+                  {par3Holes.length > 0 && (
+                    <PillBtn
+                      active={state.ntpEnabled}
+                      onClick={() => {
+                        if (state.ntpEnabled) {
+                          onUpdate({ ntpEnabled: false, ntpHoles: [] })
+                        } else {
+                          onUpdate({ ntpEnabled: true, ntpHoles: defaultNtpHoles(state.courseId) })
+                        }
+                      }}
+                    >
+                      🎯 Nearest the Pin
+                    </PillBtn>
+                  )}
+                  <PillBtn
+                    active={state.ldEnabled}
+                    onClick={() => {
+                      if (state.ldEnabled) {
+                        onUpdate({ ldEnabled: false, ldHoles: [] })
+                      } else {
+                        onUpdate({ ldEnabled: true, ldHoles: defaultLdHoles(state.courseId) })
+                      }
+                    }}
+                  >
+                    🏌️ Longest Drive
+                  </PillBtn>
+                </div>
+              </div>
+
+              {/* NTP holes — only when enabled */}
+              {state.ntpEnabled && par3Holes.length > 0 && (
                 <div style={{ marginBottom: '1.5rem' }}>
                   <div style={{ fontFamily: font.body, fontWeight: 500, fontSize: 14, color: FE.onPrimary, marginBottom: '0.75rem' }}>
                     Nearest the pin <span style={{ color: FE.onTertiary, fontWeight: 400 }}>(par 3s)</span>
@@ -1138,29 +1176,31 @@ function SettingsStep({
                 </div>
               )}
 
-              {/* Longest drive */}
-              <div>
-                <div style={{ fontFamily: font.body, fontWeight: 500, fontSize: 14, color: FE.onPrimary, marginBottom: '0.75rem' }}>
-                  Longest drive
+              {/* LD holes — only when enabled */}
+              {state.ldEnabled && (
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <div style={{ fontFamily: font.body, fontWeight: 500, fontSize: 14, color: FE.onPrimary, marginBottom: '0.75rem' }}>
+                    Longest drive
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '0.5rem' }}>
+                    {(par5Holes.length > 0 ? par5Holes : anyHoles).map(h => {
+                      const active = state.ldHoles.includes(h)
+                      return (
+                        <button key={h} onClick={() => onUpdate({ ldHoles: toggle(state.ldHoles, h) })} style={{
+                          width: 40, height: 40, borderRadius: 8,
+                          border: active ? `2px solid ${FE.greenDark}` : FE.borderGhost,
+                          background: active ? 'rgba(13,99,27,0.1)' : FE.white,
+                          color: active ? FE.greenDark : FE.onTertiary,
+                          fontFamily: font.body, fontSize: 14, fontWeight: active ? 700 : 400,
+                          cursor: 'pointer',
+                        }}>
+                          {h}
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '0.5rem' }}>
-                  {(par5Holes.length > 0 ? par5Holes : anyHoles).map(h => {
-                    const active = state.ldHoles.includes(h)
-                    return (
-                      <button key={h} onClick={() => onUpdate({ ldHoles: toggle(state.ldHoles, h) })} style={{
-                        width: 40, height: 40, borderRadius: 8,
-                        border: active ? `2px solid ${FE.greenDark}` : FE.borderGhost,
-                        background: active ? 'rgba(13,99,27,0.1)' : FE.white,
-                        color: active ? FE.greenDark : FE.onTertiary,
-                        fontFamily: font.body, fontSize: 14, fontWeight: active ? 700 : 400,
-                        cursor: 'pointer',
-                      }}>
-                        {h}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
+              )}
 
               {/* ── Event / society options ─────────────────────── */}
               <div style={{ height: 1, background: 'rgba(26,28,28,0.06)', margin: '1.5rem 0' }} />
@@ -1291,8 +1331,10 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
     format: 'stableford',
     tee: defaultTee(FIRST_COURSE),
     roundType: '18',
-    ntpHoles: defaultNtpHoles(FIRST_COURSE),
-    ldHoles: defaultLdHoles(FIRST_COURSE),
+    ntpEnabled: false,
+    ldEnabled: false,
+    ntpHoles: [],
+    ldHoles: [],
     allowancePct: 100,
     balls: ['White'],
     eventDate: today,
@@ -1319,11 +1361,16 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
   const proceedToCombination = () => update({ step: 'combination' })
 
   const selectCombination = (courseId: string, dbComboId: string | null) => {
+    const newNtpHoles = defaultNtpHoles(courseId)
+    const newLdHoles = defaultLdHoles(courseId)
+    const ntpEnabled = state.ntpEnabled && newNtpHoles.length > 0
     update({
       courseId, dbCombinationId: dbComboId,
       tee: defaultTee(courseId),
-      ntpHoles: defaultNtpHoles(courseId),
-      ldHoles: defaultLdHoles(courseId),
+      ntpEnabled,
+      ldEnabled: state.ldEnabled,
+      ntpHoles: ntpEnabled ? newNtpHoles : [],
+      ldHoles: state.ldEnabled ? newLdHoles : [],
       step: 'settings',
     })
   }
