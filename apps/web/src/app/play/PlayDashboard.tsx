@@ -302,13 +302,27 @@ export default function PlayDashboard({
 
         /* ── Section header ──────────────────────────────── */
         .fe-section-hd {
+          display: flex;
+          justify-content: space-between;
+          align-items: baseline;
+          margin-bottom: 1rem;
+        }
+        .fe-section-title {
           font-family: var(--font-manrope), sans-serif;
           font-weight: 700;
           font-size: 1.125rem;
           color: #1A2E1A;
-          margin-bottom: 1rem;
           letter-spacing: -0.01em;
         }
+        .fe-section-link {
+          font-family: var(--font-lexend), sans-serif;
+          font-size: 0.8125rem;
+          font-weight: 500;
+          color: #6B8C6B;
+          text-decoration: none;
+          transition: color 0.15s;
+        }
+        .fe-section-link:hover { color: #0D631B; }
 
         /* ── Rounds list ─────────────────────────────────── */
         .fe-rounds {
@@ -616,7 +630,12 @@ export default function PlayDashboard({
 
           {/* Recent rounds */}
           <section className="fe-rounds">
-            <h2 className="fe-section-hd">Recent Rounds</h2>
+            <div className="fe-section-hd">
+              <h2 className="fe-section-title">Recent Rounds</h2>
+              {rounds.length > 0 && (
+                <Link href="/rounds" className="fe-section-link">View all →</Link>
+              )}
+            </div>
             <div className="fe-rounds-list">
               {rounds.length === 0 ? (
                 <div className="fe-empty">
@@ -685,7 +704,10 @@ export default function PlayDashboard({
           {/* My Events — organiser */}
           {organisedEvents.length > 0 && (
             <section className="fe-my-events">
-              <h2 className="fe-section-hd">My Events</h2>
+              <div className="fe-section-hd">
+                <h2 className="fe-section-title">My Events</h2>
+                <Link href="/events" className="fe-section-link">View all →</Link>
+              </div>
               <div className="fe-my-events-list">
                 {organisedEvents.map(ev => {
                   const today = new Date().toISOString().slice(0, 10)
@@ -712,7 +734,10 @@ export default function PlayDashboard({
           {/* Upcoming event — optional */}
           {upcomingEvent && (
             <section className="fe-events">
-              <h2 className="fe-section-hd">Upcoming Events</h2>
+              <div className="fe-section-hd">
+                <h2 className="fe-section-title">Upcoming Events</h2>
+                <Link href="/events" className="fe-section-link">View all →</Link>
+              </div>
               <Link href={`/events/${upcomingEvent.id}`} className="fe-event-card">
                 <div className="fe-event-date-badge">
                   <CalendarIcon size={12} />

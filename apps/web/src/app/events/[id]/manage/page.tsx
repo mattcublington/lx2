@@ -80,15 +80,31 @@ export default async function ManagePage({ params }: PageProps) {
   return (
     <>
       <style>{`
-        .mg { min-height: 100dvh; background: #F2F5F0; }
+        .mg {
+          min-height: 100dvh; background: #F2F5F0;
+          font-family: var(--font-dm-sans), system-ui, sans-serif;
+          color: #1A2E1A;
+          padding-bottom: max(80px, calc(80px + env(safe-area-inset-bottom)));
+        }
 
         /* ── Header ── */
         .mg-hd {
-          background: #0a1f0a; padding: 0 24px; position: sticky; top: 0; z-index: 50;
+          background: #0a1f0a;
+          background-image:
+            radial-gradient(ellipse 80% 60% at 50% 0%, rgba(13,99,27,0.18) 0%, transparent 70%),
+            radial-gradient(ellipse 40% 50% at 80% 0%, rgba(13,99,27,0.10) 0%, transparent 60%);
+          position: sticky; top: 0; z-index: 50;
+          padding: 0 2rem;
+        }
+        .mg-hd::after {
+          content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+          background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
+          background-size: 3px 3px;
         }
         .mg-hd-inner {
-          max-width: 640px; margin: 0 auto; height: 56px;
+          max-width: 1200px; margin: 0 auto; height: 56px;
           display: flex; align-items: center; justify-content: space-between;
+          position: relative; z-index: 2;
         }
         .mg-hd-back {
           text-decoration: none; color: #6B8C6B;
@@ -98,10 +114,20 @@ export default async function ManagePage({ params }: PageProps) {
         .mg-hd-back:hover { color: #4ade80; }
 
         /* ── Body ── */
-        .mg-body { padding: 24px 24px 80px; }
+        .mg-body { padding: 1.5rem 2rem; }
         .mg-inner {
-          max-width: 640px; margin: 0 auto;
-          display: flex; flex-direction: column; gap: 14px;
+          max-width: 1200px; margin: 0 auto;
+          display: flex; flex-direction: column; gap: 1rem;
+        }
+
+        /* ── Two-column grid ── */
+        .mg-grid {
+          display: grid; gap: 1rem;
+          grid-template-columns: 1fr;
+        }
+        @media (min-width: 768px) {
+          .mg-grid { grid-template-columns: 1fr 1fr; }
+          .mg-grid-full { grid-column: 1 / -1; }
         }
 
         /* ── Page heading ── */
@@ -112,14 +138,19 @@ export default async function ManagePage({ params }: PageProps) {
         }
         .mg-title {
           font-family: var(--font-dm-serif), serif; font-weight: 400;
-          font-size: clamp(1.375rem, 4vw, 1.75rem); color: #1A2E1A;
-          margin: 0; letter-spacing: -0.02em; line-height: 1.2;
+          font-size: clamp(1.5rem, 4vw, 2rem); color: #1A2E1A;
+          margin: 0; letter-spacing: -0.02em; line-height: 1.1;
         }
 
         /* ── Card ── */
         .mg-card {
-          background: #fff; border-radius: 14px; border: 1px solid #E0EBE0;
-          padding: 20px; box-shadow: 0 2px 8px rgba(26,28,28,0.03);
+          background: #fff; border-radius: 16px; border: 1px solid #E0EBE0;
+          padding: 1.25rem; box-shadow: 0 4px 12px rgba(26,28,28,0.04);
+          transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .mg-card:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 16px rgba(26,28,28,0.08);
         }
         .mg-card-label {
           font-size: 0.6875rem; font-weight: 700; color: #6B8C6B;
@@ -134,7 +165,7 @@ export default async function ManagePage({ params }: PageProps) {
         /* ── Meta rows ── */
         .mg-meta-row {
           display: flex; justify-content: space-between; align-items: baseline;
-          padding: 7px 0; border-bottom: 1px solid #f0f4f0;
+          padding: 8px 0; border-bottom: 1px solid rgba(26,28,28,0.06);
           font-family: var(--font-dm-sans), sans-serif;
         }
         .mg-meta-row:last-child { border-bottom: none; }
@@ -144,14 +175,15 @@ export default async function ManagePage({ params }: PageProps) {
         /* ── Player rows ── */
         .mg-player-row {
           display: flex; align-items: center; justify-content: space-between;
-          padding: 9px 0; border-bottom: 1px solid #f0f4f0;
+          padding: 9px 0; border-bottom: 1px solid rgba(26,28,28,0.06);
           font-family: var(--font-dm-sans), sans-serif;
         }
         .mg-player-row:last-child { border-bottom: none; }
         .mg-player-num {
-          width: 26px; height: 26px; border-radius: 50%; background: #F2F5F0;
+          width: 28px; height: 28px; border-radius: 50%;
+          background: linear-gradient(135deg, rgba(13,99,27,0.1) 0%, rgba(61,107,26,0.1) 100%);
           display: flex; align-items: center; justify-content: center;
-          font-size: 0.6875rem; font-weight: 700; color: #6B8C6B; flex-shrink: 0;
+          font-size: 0.6875rem; font-weight: 700; color: #0D631B; flex-shrink: 0;
         }
         .mg-player-name {
           font-size: 0.875rem; font-weight: 500; color: #1A2E1A;
@@ -166,24 +198,34 @@ export default async function ManagePage({ params }: PageProps) {
 
         /* ── Quick links ── */
         .mg-links {
-          display: flex; gap: 8px; flex-wrap: wrap;
+          display: flex; gap: 10px; flex-wrap: wrap;
         }
         .mg-link {
-          padding: 9px 18px; border: 1.5px solid #E0EBE0; border-radius: 10px;
-          background: #fff; font-size: 0.8125rem; font-weight: 500;
+          padding: 0.75rem 1.25rem; border: 1.5px solid #E0EBE0; border-radius: 12px;
+          background: #fff; font-size: 0.875rem; font-weight: 500;
           font-family: var(--font-dm-sans), sans-serif; color: #1A2E1A;
-          text-decoration: none; transition: border-color 0.15s, background 0.15s;
+          text-decoration: none;
+          box-shadow: 0 2px 6px rgba(26,28,28,0.03);
+          transition: border-color 0.15s, background 0.15s, transform 0.15s, box-shadow 0.15s;
         }
-        .mg-link:hover { border-color: #0D631B; background: rgba(13,99,27,0.03); }
+        .mg-link:hover {
+          border-color: #0D631B; background: rgba(13,99,27,0.03);
+          transform: translateY(-1px); box-shadow: 0 4px 10px rgba(26,28,28,0.06);
+        }
         .mg-link.primary {
-          border: none; background: #0D631B; color: #fff; font-weight: 600;
+          border: none; background: linear-gradient(135deg, #0D631B 0%, #0a4f15 100%);
+          color: #fff; font-weight: 600;
+          box-shadow: 0 4px 12px rgba(13,99,27,0.2);
         }
-        .mg-link.primary:hover { background: #0a4f15; }
+        .mg-link.primary:hover {
+          background: linear-gradient(135deg, #0a4f15 0%, #083d10 100%);
+          box-shadow: 0 6px 16px rgba(13,99,27,0.28);
+        }
 
         /* ── Danger zone ── */
         .mg-danger {
-          margin-top: 16px; padding-top: 16px;
-          border-top: 1px solid #f0f4f0;
+          margin-top: 8px; padding-top: 16px;
+          border-top: 1px solid rgba(26,28,28,0.06);
         }
         .mg-danger-label {
           font-size: 0.6875rem; font-weight: 700; color: #9ca3af;
@@ -193,20 +235,18 @@ export default async function ManagePage({ params }: PageProps) {
 
         /* ── Animations ── */
         .mg-inner > * {
-          animation: mg-rise 0.4s cubic-bezier(0.2, 0, 0, 1) both;
+          animation: mg-rise 0.45s cubic-bezier(0.2, 0, 0, 1) both;
         }
         .mg-inner > :nth-child(1) { animation-delay: 0s; }
         .mg-inner > :nth-child(2) { animation-delay: 0.04s; }
-        .mg-inner > :nth-child(3) { animation-delay: 0.08s; }
-        .mg-inner > :nth-child(4) { animation-delay: 0.12s; }
-        .mg-inner > :nth-child(5) { animation-delay: 0.16s; }
-        .mg-inner > :nth-child(6) { animation-delay: 0.20s; }
-        .mg-inner > :nth-child(7) { animation-delay: 0.24s; }
-        .mg-inner > :nth-child(8) { animation-delay: 0.28s; }
-        .mg-inner > :nth-child(9) { animation-delay: 0.32s; }
-        .mg-inner > :nth-child(10) { animation-delay: 0.36s; }
+        .mg-inner > :nth-child(3) { animation-delay: 0.06s; }
+        .mg-inner > :nth-child(4) { animation-delay: 0.10s; }
+        .mg-inner > :nth-child(5) { animation-delay: 0.14s; }
+        .mg-inner > :nth-child(6) { animation-delay: 0.18s; }
+        .mg-inner > :nth-child(7) { animation-delay: 0.22s; }
+        .mg-inner > :nth-child(8) { animation-delay: 0.26s; }
         @keyframes mg-rise {
-          from { opacity: 0; transform: translateY(10px); }
+          from { opacity: 0; transform: translateY(14px); }
           to   { opacity: 1; transform: translateY(0); }
         }
       `}</style>
@@ -232,36 +272,41 @@ export default async function ManagePage({ params }: PageProps) {
               <h1 className="mg-title">{event.name}</h1>
             </div>
 
-            {/* ── Share card ── */}
-            <div className="mg-card">
-              <div className="mg-card-label">Invite link</div>
-              <p className="mg-card-desc">
-                Share this link with your group. Players tap it to join and confirm their details.
-              </p>
-              <ManageActions eventUrl={eventUrl} eventName={event.name} />
+            {/* ── Two-column grid ── */}
+            <div className="mg-grid">
+
+              {/* ── Share card ── */}
+              <div className="mg-card">
+                <div className="mg-card-label">Invite link</div>
+                <p className="mg-card-desc">
+                  Share this link with your group. Players tap it to join and confirm their details.
+                </p>
+                <ManageActions eventUrl={eventUrl} eventName={event.name} />
+              </div>
+
+              {/* ── Event details ── */}
+              <div className="mg-card">
+                <div className="mg-card-label">Event details</div>
+                {[
+                  ['Date',        formatDate(event.date)],
+                  ['Course',      comboName ?? '—'],
+                  ['Format',      `${FORMAT_LABEL[event.format] ?? event.format} · ${allowancePct}%`],
+                  ['Group size',  `${event.group_size}-ball`],
+                  ['Max players', event.max_players ? String(event.max_players) : 'No limit'],
+                  ['NTP holes',   ntpHoles.length ? ntpHoles.map(h => `H${h}`).join(', ') : 'None'],
+                  ['LD holes',    ldHoles.length  ? ldHoles.map(h  => `H${h}`).join(', ') : 'None'],
+                  ['Entry fee',   feeLabel],
+                ].map(([k, v]) => (
+                  <div key={k} className="mg-meta-row">
+                    <span className="mg-meta-key">{k}</span>
+                    <span className="mg-meta-val">{v}</span>
+                  </div>
+                ))}
+              </div>
+
             </div>
 
-            {/* ── Event details ── */}
-            <div className="mg-card">
-              <div className="mg-card-label">Event details</div>
-              {[
-                ['Date',        formatDate(event.date)],
-                ['Course',      comboName ?? '—'],
-                ['Format',      `${FORMAT_LABEL[event.format] ?? event.format} · ${allowancePct}%`],
-                ['Group size',  `${event.group_size}-ball`],
-                ['Max players', event.max_players ? String(event.max_players) : 'No limit'],
-                ['NTP holes',   ntpHoles.length ? ntpHoles.map(h => `H${h}`).join(', ') : 'None'],
-                ['LD holes',    ldHoles.length  ? ldHoles.map(h  => `H${h}`).join(', ') : 'None'],
-                ['Entry fee',   feeLabel],
-              ].map(([k, v]) => (
-                <div key={k} className="mg-meta-row">
-                  <span className="mg-meta-key">{k}</span>
-                  <span className="mg-meta-val">{v}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* ── Groups ── */}
+            {/* ── Groups (full-width) ── */}
             <GroupManager
               eventId={id}
               groups={(groups ?? []).map(g => ({
@@ -280,76 +325,84 @@ export default async function ManagePage({ params }: PageProps) {
               groupSize={event.group_size ?? 4}
             />
 
-            {/* ── Players card ── */}
-            <div className="mg-card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                <div className="mg-card-label" style={{ marginBottom: 0 }}>Players</div>
-                <span style={{ fontSize: '0.75rem', color: '#6B8C6B', fontFamily: 'var(--font-dm-sans), sans-serif' }}>
-                  {confirmed.length}{event.max_players ? ` / ${event.max_players}` : ''} confirmed
-                </span>
-              </div>
+            {/* ── Two-column: Players + Confirm/Finalise ── */}
+            <div className="mg-grid">
 
-              {confirmed.length === 0 ? (
-                <div style={{ fontSize: '0.8125rem', color: '#9ca3af', fontFamily: 'var(--font-dm-sans), sans-serif', padding: '6px 0' }}>
-                  No players yet. Share the invite link above.
+              {/* ── Players card ── */}
+              <div className="mg-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <div className="mg-card-label" style={{ marginBottom: 0 }}>Players</div>
+                  <span style={{ fontSize: '0.75rem', color: '#6B8C6B', fontFamily: 'var(--font-dm-sans), sans-serif' }}>
+                    {confirmed.length}{event.max_players ? ` / ${event.max_players}` : ''} confirmed
+                  </span>
                 </div>
-              ) : (
-                confirmed.map((p, i) => (
-                  <div key={p.id} className="mg-player-row">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span className="mg-player-num">{i + 1}</span>
-                      <div>
-                        <span className="mg-player-name">{p.display_name}</span>
-                        {p.user_id === event.created_by && (
-                          <span className="mg-player-tag">organiser</span>
-                        )}
-                      </div>
-                    </div>
-                    <span className="mg-player-hcp">{Number(p.handicap_index).toFixed(1)} hcp</span>
-                  </div>
-                ))
-              )}
 
-              {waitlisted.length > 0 && (
-                <>
-                  <div style={{ marginTop: 14, marginBottom: 6, fontSize: '0.6875rem', fontWeight: 700, color: '#9ca3af', fontFamily: 'var(--font-dm-sans), sans-serif', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                    Waitlist ({waitlisted.length})
+                {confirmed.length === 0 ? (
+                  <div style={{ fontSize: '0.8125rem', color: '#9ca3af', fontFamily: 'var(--font-dm-sans), sans-serif', padding: '6px 0' }}>
+                    No players yet. Share the invite link above.
                   </div>
-                  {waitlisted.map(p => (
-                    <div key={p.id} className="mg-player-row" style={{ opacity: 0.6 }}>
-                      <span className="mg-player-name">{p.display_name}</span>
+                ) : (
+                  confirmed.map((p, i) => (
+                    <div key={p.id} className="mg-player-row">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span className="mg-player-num">{i + 1}</span>
+                        <div>
+                          <span className="mg-player-name">{p.display_name}</span>
+                          {p.user_id === event.created_by && (
+                            <span className="mg-player-tag">organiser</span>
+                          )}
+                        </div>
+                      </div>
                       <span className="mg-player-hcp">{Number(p.handicap_index).toFixed(1)} hcp</span>
                     </div>
-                  ))}
-                </>
-              )}
-            </div>
+                  ))
+                )}
 
-            {/* ── Invited / awaiting confirmation ── */}
-            {invited.length > 0 && (
-              <ConfirmPlayers
-                eventId={id}
-                players={invited.map(p => ({
-                  id: p.id,
-                  displayName: p.display_name,
-                  handicapIndex: Number(p.handicap_index),
-                }))}
-              />
-            )}
+                {waitlisted.length > 0 && (
+                  <>
+                    <div style={{ marginTop: 14, marginBottom: 6, fontSize: '0.6875rem', fontWeight: 700, color: '#9ca3af', fontFamily: 'var(--font-dm-sans), sans-serif', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>
+                      Waitlist ({waitlisted.length})
+                    </div>
+                    {waitlisted.map(p => (
+                      <div key={p.id} className="mg-player-row" style={{ opacity: 0.6 }}>
+                        <span className="mg-player-name">{p.display_name}</span>
+                        <span className="mg-player-hcp">{Number(p.handicap_index).toFixed(1)} hcp</span>
+                      </div>
+                    ))}
+                  </>
+                )}
+              </div>
 
-            {/* ── Finalise ── */}
-            <FinaliseButton eventId={id} finalised={!!event.finalised} />
+              {/* ── Right column: Confirm + Finalise ── */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {/* ── Invited / awaiting confirmation ── */}
+                {invited.length > 0 && (
+                  <ConfirmPlayers
+                    eventId={id}
+                    players={invited.map(p => ({
+                      id: p.id,
+                      displayName: p.display_name,
+                      handicapIndex: Number(p.handicap_index),
+                    }))}
+                  />
+                )}
 
-            {/* ── Quick links ── */}
-            <div className="mg-links">
-              <Link href={`/events/${id}`} className="mg-link">← Event page</Link>
-              <Link href={`/events/${id}/leaderboard`} className="mg-link primary">Leaderboard →</Link>
-            </div>
+                {/* ── Finalise ── */}
+                <FinaliseButton eventId={id} finalised={!!event.finalised} />
 
-            {/* ── Danger zone ── */}
-            <div className="mg-danger">
-              <div className="mg-danger-label">Danger zone</div>
-              <DeleteEventButton eventId={id} eventName={event.name} />
+                {/* ── Quick links ── */}
+                <div className="mg-links">
+                  <Link href={`/events/${id}`} className="mg-link">← Event page</Link>
+                  <Link href={`/events/${id}/leaderboard`} className="mg-link primary">Leaderboard →</Link>
+                </div>
+
+                {/* ── Danger zone ── */}
+                <div className="mg-danger">
+                  <div className="mg-danger-label">Danger zone</div>
+                  <DeleteEventButton eventId={id} eventName={event.name} />
+                </div>
+              </div>
+
             </div>
 
           </div>
