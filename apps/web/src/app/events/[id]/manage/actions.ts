@@ -50,11 +50,11 @@ export async function generateGroups(eventId: string): Promise<void> {
   )
 
   // Assign players sequentially to groups
-  for (let i = 0; i < players.length; i++) {
+  for (const [i, player] of players.entries()) {
     await admin
       .from('event_players')
       .update({ flight_number: Math.floor(i / groupSize) + 1 })
-      .eq('id', players[i].id)
+      .eq('id', player.id)
   }
 
   revalidatePath(`/events/${eventId}/manage`)
