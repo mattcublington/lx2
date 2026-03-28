@@ -124,6 +124,62 @@ export async function assignPlayerToGroup(
   revalidatePath(`/events/${eventId}/leaderboard`)
 }
 
+// ─── finaliseEvent ──────────────────────────────────────────────────────────────
+// Locks the event — no more scoring changes. Sets events.finalised = true.
+
+export async function finaliseEvent(eventId: string): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const admin = createAdminClient()
+
+  const { data: event } = await admin
+    .from('events')
+    .select('created_by')
+    .eq('id', eventId)
+    .single()
+
+  if (!event || event.created_by !== user.id) throw new Error('Not authorised')
+
+  await admin
+    .from('events')
+    .update({ finalised: true })
+    .eq('id', eventId)
+
+  revalidatePath(`/events/${eventId}/manage`)
+  revalidatePath(`/events/${eventId}`)
+  revalidatePath(`/events/${eventId}/leaderboard`)
+}
+
+// ─── unfinaliseEvent ────────────────────────────────────────────────────────────
+// Unlocks the event — allows scoring changes again.
+
+export async function unfinaliseEvent(eventId: string): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const admin = createAdminClient()
+
+  const { data: event } = await admin
+    .from('events')
+    .select('created_by')
+    .eq('id', eventId)
+    .single()
+
+  if (!event || event.created_by !== user.id) throw new Error('Not authorised')
+
+  await admin
+    .from('events')
+    .update({ finalised: false })
+    .eq('id', eventId)
+
+  revalidatePath(`/events/${eventId}/manage`)
+  revalidatePath(`/events/${eventId}`)
+  revalidatePath(`/events/${eventId}/leaderboard`)
+}
+
 // ─── confirmPlayer ─────────────────────────────────────────────────────────────
 
 export async function confirmPlayer(eventId: string, playerId: string): Promise<void> {

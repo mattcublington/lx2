@@ -28,6 +28,16 @@ interface UpcomingEvent {
   playerCount?: number | null
 }
 
+interface OrganisedEvent {
+  id: string
+  name: string
+  date: string
+  format: string
+  finalised: boolean
+  courseName: string | null
+  playerCount: number
+}
+
 interface Props {
   userId: string
   displayName: string
@@ -40,6 +50,7 @@ interface Props {
   lastRoundScore?: number | null
   lastRoundCourse?: string | null
   upcomingEvent?: UpcomingEvent | null
+  organisedEvents?: OrganisedEvent[]
 }
 
 
@@ -63,6 +74,7 @@ export default function PlayDashboard({
   lastRoundScore,
   lastRoundCourse,
   upcomingEvent,
+  organisedEvents = [],
 }: Props) {
   const router = useRouter()
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
@@ -460,6 +472,71 @@ export default function PlayDashboard({
         }
         .fe-event-detail svg { color: #72786E; flex-shrink: 0; }
 
+        /* ── My Events (organiser) ─────────────────────────── */
+        .fe-my-events {
+          margin-bottom: 2rem;
+          animation: fe-rise 0.45s 0.16s cubic-bezier(0.2, 0, 0, 1) both;
+        }
+        .fe-my-events-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0.625rem;
+        }
+        .fe-org-card {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          background: #FFFFFF;
+          border-radius: 14px;
+          padding: 1rem 1.25rem;
+          box-shadow: 0 4px 12px rgba(26, 28, 28, 0.04);
+          text-decoration: none;
+          color: inherit;
+          transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .fe-org-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 20px rgba(26, 28, 28, 0.08);
+        }
+        .fe-org-info { flex: 1; min-width: 0; }
+        .fe-org-name {
+          font-family: var(--font-lexend), sans-serif;
+          font-weight: 500;
+          font-size: 0.9375rem;
+          color: #1A2E1A;
+          margin-bottom: 0.15rem;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .fe-org-meta {
+          font-family: var(--font-lexend), sans-serif;
+          font-size: 0.8125rem;
+          color: #72786E;
+        }
+        .fe-org-badge {
+          flex-shrink: 0;
+          margin-left: 0.75rem;
+          padding: 0.25rem 0.625rem;
+          border-radius: 8px;
+          font-family: var(--font-lexend), sans-serif;
+          font-size: 0.6875rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+        }
+        .fe-org-badge.finalised {
+          background: rgba(13, 99, 27, 0.1);
+          color: #0D631B;
+        }
+        .fe-org-badge.live {
+          background: rgba(234, 179, 8, 0.12);
+          color: #92400e;
+        }
+        .fe-org-badge.upcoming {
+          background: rgba(107, 140, 107, 0.12);
+          color: #6B8C6B;
+        }
 
         /* ── Animations ──────────────────────────────────── */
         @keyframes fe-rise {
@@ -604,6 +681,33 @@ export default function PlayDashboard({
               )}
             </div>
           </section>
+
+          {/* My Events — organiser */}
+          {organisedEvents.length > 0 && (
+            <section className="fe-my-events">
+              <h2 className="fe-section-hd">My Events</h2>
+              <div className="fe-my-events-list">
+                {organisedEvents.map(ev => {
+                  const today = new Date().toISOString().slice(0, 10)
+                  const status = ev.finalised ? 'finalised' : ev.date <= today ? 'live' : 'upcoming'
+                  const badgeLabel = status === 'finalised' ? 'Finalised' : status === 'live' ? 'In progress' : 'Upcoming'
+                  return (
+                    <Link key={ev.id} href={`/events/${ev.id}/manage`} className="fe-org-card">
+                      <div className="fe-org-info">
+                        <div className="fe-org-name">{ev.name}</div>
+                        <div className="fe-org-meta">
+                          {formatDate(ev.date)}
+                          {ev.courseName && ` · ${ev.courseName}`}
+                          {` · ${ev.playerCount} player${ev.playerCount !== 1 ? 's' : ''}`}
+                        </div>
+                      </div>
+                      <span className={`fe-org-badge ${status}`}>{badgeLabel}</span>
+                    </Link>
+                  )
+                })}
+              </div>
+            </section>
+          )}
 
           {/* Upcoming event — optional */}
           {upcomingEvent && (

@@ -18,6 +18,7 @@ export default async function PlayPage() {
     { count: roundsCount },
     { data: allScorecards },
     { data: activeRound },
+    { data: myEvents },
   ] = await Promise.all([
     supabase
       .from('users')
@@ -65,6 +66,16 @@ export default async function PlayPage() {
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle(),
+    supabase
+      .from('events')
+      .select(`
+        id, name, date, format, finalised,
+        course_combinations ( name ),
+        event_players ( id )
+      `)
+      .eq('created_by', user.id)
+      .order('date', { ascending: false })
+      .limit(5),
   ])
 
   const scorecardIds = (allScorecards ?? []).map(s => s.id)
@@ -136,6 +147,26 @@ export default async function PlayPage() {
     user.email?.split('@')[0] ??
     'Golfer'
 
+  type OrganisedEvent = {
+    id: string
+    name: string
+    date: string
+    format: string
+    finalised: boolean
+    courseName: string | null
+    playerCount: number
+  }
+
+  const organisedEvents: OrganisedEvent[] = (myEvents ?? []).map(e => ({
+    id: e.id,
+    name: e.name,
+    date: e.date,
+    format: e.format,
+    finalised: !!(e.finalised),
+    courseName: (e.course_combinations as unknown as { name: string } | null)?.name ?? null,
+    playerCount: Array.isArray(e.event_players) ? e.event_players.length : 0,
+  }))
+
   return (
     <PlayDashboard
       userId={user.id}
@@ -147,6 +178,7 @@ export default async function PlayPage() {
       lastRoundScore={lastRoundScore}
       lastRoundCourse={lastRoundCourse}
       activeRoundId={(activeRound as { id: string } | null)?.id ?? null}
+      organisedEvents={organisedEvents}
     />
   )
 }

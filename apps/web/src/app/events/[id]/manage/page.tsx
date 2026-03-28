@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import ManageActions, { ConfirmPlayers } from './ManageActions'
+import ManageActions, { ConfirmPlayers, FinaliseButton } from './ManageActions'
 import GroupManager from './GroupManager'
 
 interface PageProps {
@@ -33,7 +33,7 @@ export default async function ManagePage({ params }: PageProps) {
     .select(`
       id, name, date, format, handicap_allowance_pct,
       group_size, max_players, ntp_holes, ld_holes,
-      entry_fee_pence, created_by,
+      entry_fee_pence, created_by, finalised,
       course_combinations(name)
     `)
     .eq('id', id)
@@ -241,6 +241,9 @@ export default async function ManagePage({ params }: PageProps) {
             />
           )}
 
+          {/* ── Finalise ── */}
+          <FinaliseButton eventId={id} finalised={!!event.finalised} />
+
           {/* ── Quick links ── */}
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <Link href={`/events/${id}`} style={{
@@ -250,12 +253,12 @@ export default async function ManagePage({ params }: PageProps) {
             }}>
               ← Event page
             </Link>
-            <Link href={`/events/${id}/score`} style={{
+            <Link href={`/events/${id}/leaderboard`} style={{
               padding: '10px 20px', border: 'none', borderRadius: 10,
               background: '#0D631B', fontSize: '0.875rem', fontWeight: 600,
               fontFamily: 'var(--font-dm-sans), sans-serif', color: '#fff', textDecoration: 'none',
             }}>
-              Start scoring →
+              Leaderboard →
             </Link>
           </div>
 

@@ -1,6 +1,7 @@
 'use client'
 import { useState, useTransition } from 'react'
 import { confirmPlayer } from '@/app/events/manage-actions'
+import { finaliseEvent, unfinaliseEvent } from './actions'
 
 interface Props {
   eventUrl: string
@@ -76,6 +77,115 @@ export function ConfirmPlayers({ eventId, players }: ConfirmPlayersProps) {
         </div>
       ))}
     </div>
+  )
+}
+
+// ─── Finalise / unfinalise event ──────────────────────────────────────────────
+
+export function FinaliseButton({ eventId, finalised }: { eventId: string; finalised: boolean }) {
+  const [isPending, startTransition] = useTransition()
+  const [showConfirm, setShowConfirm] = useState(false)
+
+  function handleFinalise() {
+    startTransition(async () => {
+      await finaliseEvent(eventId)
+      setShowConfirm(false)
+    })
+  }
+
+  function handleUnfinalise() {
+    startTransition(async () => {
+      await unfinaliseEvent(eventId)
+    })
+  }
+
+  if (finalised) {
+    return (
+      <div style={{
+        background: '#fff', borderRadius: 16, border: '1px solid #E0EBE0', padding: '24px',
+        textAlign: 'center',
+      }}>
+        <div style={{
+          fontSize: '1rem', fontWeight: 600, color: '#0D631B',
+          fontFamily: 'var(--font-dm-sans), sans-serif', marginBottom: 4,
+        }}>
+          Event finalised
+        </div>
+        <div style={{
+          fontSize: '0.8125rem', color: '#6B8C6B',
+          fontFamily: 'var(--font-dm-sans), sans-serif', marginBottom: 16,
+        }}>
+          Results are locked. Share the leaderboard link with your group.
+        </div>
+        <button
+          onClick={handleUnfinalise}
+          disabled={isPending}
+          style={{
+            padding: '8px 18px', border: '1.5px solid #E0EBE0', borderRadius: 10,
+            background: '#fff', color: '#6B8C6B', fontSize: '0.8125rem', fontWeight: 500,
+            fontFamily: 'var(--font-dm-sans), sans-serif', cursor: 'pointer',
+            opacity: isPending ? 0.6 : 1,
+          }}
+        >
+          {isPending ? 'Reopening…' : 'Reopen event'}
+        </button>
+      </div>
+    )
+  }
+
+  if (showConfirm) {
+    return (
+      <div style={{
+        background: '#fff', borderRadius: 16, border: '1px solid #E0EBE0', padding: '24px',
+        textAlign: 'center',
+      }}>
+        <div style={{
+          fontSize: '0.9375rem', fontWeight: 500, color: '#1A2E1A',
+          fontFamily: 'var(--font-dm-sans), sans-serif', marginBottom: 16,
+        }}>
+          Finalise this event? This locks all scores.
+        </div>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+          <button
+            onClick={() => setShowConfirm(false)}
+            disabled={isPending}
+            style={{
+              padding: '9px 20px', border: '1.5px solid #E0EBE0', borderRadius: 10,
+              background: '#fff', color: '#1A2E1A', fontSize: '0.875rem', fontWeight: 500,
+              fontFamily: 'var(--font-dm-sans), sans-serif', cursor: 'pointer',
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleFinalise}
+            disabled={isPending}
+            style={{
+              padding: '9px 20px', border: 'none', borderRadius: 10,
+              background: '#0D631B', color: '#fff', fontSize: '0.875rem', fontWeight: 600,
+              fontFamily: 'var(--font-dm-sans), sans-serif', cursor: 'pointer',
+              opacity: isPending ? 0.6 : 1,
+            }}
+          >
+            {isPending ? 'Finalising…' : 'Finalise'}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <button
+      onClick={() => setShowConfirm(true)}
+      style={{
+        width: '100%', padding: '12px', border: '1.5px solid #E0EBE0', borderRadius: 12,
+        background: '#fff', color: '#1A2E1A', fontSize: '0.9375rem', fontWeight: 600,
+        fontFamily: 'var(--font-dm-sans), sans-serif', cursor: 'pointer',
+        transition: 'border-color 0.15s, background 0.15s',
+      }}
+    >
+      Finalise event
+    </button>
   )
 }
 

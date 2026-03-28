@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useRef } from 'react'
 import { generateGroups, updateGroup, assignPlayerToGroup } from './actions'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -42,6 +42,7 @@ const cardStyle: React.CSSProperties = {
   borderRadius: 16,
   border: '1px solid #E0EBE0',
   overflow: 'hidden',
+  transition: 'border-color 0.15s, box-shadow 0.15s',
 }
 
 const groupHeaderStyle: React.CSSProperties = {
@@ -85,6 +86,9 @@ const playerRowStyle: React.CSSProperties = {
   borderBottom: '1px solid #f0f4f0',
   gap: 10,
   fontFamily: font,
+  cursor: 'grab',
+  userSelect: 'none',
+  transition: 'background 0.12s, opacity 0.12s',
 }
 
 const primaryBtnStyle: React.CSSProperties = {
@@ -121,6 +125,8 @@ export default function GroupManager({ eventId, groups: initialGroups, players: 
   const [isPending, startTransition] = useTransition()
   const [groups, setGroups] = useState<Group[]>(initialGroups)
   const [players, setPlayers] = useState<Player[]>(initialPlayers)
+  const [dragOverTarget, setDragOverTarget] = useState<string | null>(null) // 'group-N' or 'unassigned'
+  const dragPlayerRef = useRef<string | null>(null)
 
   const numGroupsEstimate = Math.ceil(initialPlayers.length / groupSize)
   const hasGroups = groups.length > 0
@@ -130,9 +136,6 @@ export default function GroupManager({ eventId, groups: initialGroups, players: 
   function handleGenerate() {
     startTransition(async () => {
       await generateGroups(eventId)
-      // Server will revalidate and the page re-renders with fresh data from the server.
-      // Client state gets refreshed on next page load; no local optimistic update needed
-      // for generate since everything changes.
     })
   }
 
@@ -158,6 +161,49 @@ export default function GroupManager({ eventId, groups: initialGroups, players: 
     })
   }
 
+  // ── Drag & Drop handlers ───────────────────────────────────────────────────
+
+  function onDragStart(e: React.DragEvent, playerId: string) {
+    dragPlayerRef.current = playerId
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', playerId)
+    // Make the dragged row semi-transparent
+    const el = e.currentTarget as HTMLElement
+    requestAnimationFrame(() => { el.style.opacity = '0.4' })
+  }
+
+  function onDragEnd(e: React.DragEvent) {
+    dragPlayerRef.current = null
+    setDragOverTarget(null)
+    const el = e.currentTarget as HTMLElement
+    el.style.opacity = '1'
+  }
+
+  function onDragOver(e: React.DragEvent, target: string) {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    if (dragOverTarget !== target) setDragOverTarget(target)
+  }
+
+  function onDragLeave(e: React.DragEvent, target: string) {
+    // Only clear if leaving this specific container (not entering a child)
+    const related = e.relatedTarget as HTMLElement | null
+    const container = e.currentTarget as HTMLElement
+    if (!related || !container.contains(related)) {
+      if (dragOverTarget === target) setDragOverTarget(null)
+    }
+  }
+
+  function onDrop(e: React.DragEvent, flightNumber: number | null) {
+    e.preventDefault()
+    setDragOverTarget(null)
+    const playerId = dragPlayerRef.current ?? e.dataTransfer.getData('text/plain')
+    if (!playerId) return
+    const player = players.find(p => p.id === playerId)
+    if (!player || player.flight_number === flightNumber) return
+    handleAssign(playerId, flightNumber)
+  }
+
   const unassigned = players.filter(p => p.flight_number === null)
 
   // ── Empty state ────────────────────────────────────────────────────────────
@@ -176,7 +222,7 @@ export default function GroupManager({ eventId, groups: initialGroups, players: 
           ) : (
             <>
               <p style={{ margin: '0 0 16px', fontSize: '0.875rem', color: '#6B8C6B', fontFamily: font, lineHeight: 1.5 }}>
-                Generate groups to auto-sort your {initialPlayers.length} confirmed {initialPlayers.length === 1 ? 'player' : 'players'} into {numGroupsEstimate} {groupSize}-ball {numGroupsEstimate === 1 ? 'group' : 'groups'}. You can adjust tee times and move players between groups afterwards.
+                Generate groups to auto-sort your {initialPlayers.length} confirmed {initialPlayers.length === 1 ? 'player' : 'players'} into {numGroupsEstimate} {groupSize}-ball {numGroupsEstimate === 1 ? 'group' : 'groups'}. You can then drag players between groups to adjust.
               </p>
               <button
                 onClick={handleGenerate}
@@ -211,11 +257,28 @@ export default function GroupManager({ eventId, groups: initialGroups, players: 
         </button>
       </div>
 
+      <div style={{ fontSize: '0.75rem', color: '#6B8C6B', fontFamily: font, marginTop: -6 }}>
+        Drag players between groups to reassign
+      </div>
+
       {/* Group cards */}
       {groups.map(group => {
         const groupPlayers = players.filter(p => p.flight_number === group.flight_number)
+        const dropTarget = `group-${group.flight_number}`
+        const isOver = dragOverTarget === dropTarget
+
         return (
-          <div key={group.id} style={cardStyle}>
+          <div
+            key={group.id}
+            style={{
+              ...cardStyle,
+              borderColor: isOver ? '#0D631B' : '#E0EBE0',
+              boxShadow: isOver ? '0 0 0 2px rgba(13, 99, 27, 0.15)' : 'none',
+            }}
+            onDragOver={e => onDragOver(e, dropTarget)}
+            onDragLeave={e => onDragLeave(e, dropTarget)}
+            onDrop={e => onDrop(e, group.flight_number)}
+          >
 
             {/* Group header row */}
             <div style={groupHeaderStyle}>
@@ -254,18 +317,26 @@ export default function GroupManager({ eventId, groups: initialGroups, players: 
 
             {/* Player rows */}
             {groupPlayers.length === 0 ? (
-              <div style={{ padding: '12px 20px', fontSize: '0.8125rem', color: '#9ca3af', fontFamily: font }}>
-                No players assigned
+              <div style={{
+                padding: '16px 20px',
+                fontSize: '0.8125rem',
+                color: isOver ? '#0D631B' : '#9ca3af',
+                fontFamily: font,
+                textAlign: 'center',
+                background: isOver ? 'rgba(13, 99, 27, 0.04)' : 'transparent',
+                transition: 'background 0.12s, color 0.12s',
+              }}>
+                {isOver ? 'Drop here to assign' : 'No players assigned — drag here'}
               </div>
             ) : (
               groupPlayers.map((player, idx) => (
-                <PlayerRow
+                <DraggablePlayerRow
                   key={player.id}
                   player={player}
                   index={idx}
-                  groups={groups}
                   isLast={idx === groupPlayers.length - 1}
-                  onAssign={handleAssign}
+                  onDragStart={onDragStart}
+                  onDragEnd={onDragEnd}
                 />
               ))
             )}
@@ -275,20 +346,52 @@ export default function GroupManager({ eventId, groups: initialGroups, players: 
 
       {/* Unassigned players */}
       {unassigned.length > 0 && (
-        <div style={cardStyle}>
+        <div
+          style={{
+            ...cardStyle,
+            borderColor: dragOverTarget === 'unassigned' ? '#0D631B' : '#E0EBE0',
+            boxShadow: dragOverTarget === 'unassigned' ? '0 0 0 2px rgba(13, 99, 27, 0.15)' : 'none',
+          }}
+          onDragOver={e => onDragOver(e, 'unassigned')}
+          onDragLeave={e => onDragLeave(e, 'unassigned')}
+          onDrop={e => onDrop(e, null)}
+        >
           <div style={{ padding: '12px 20px 4px', fontSize: '0.8125rem', fontWeight: 600, color: '#9ca3af', fontFamily: font, textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: '1px solid #f0f4f0' }}>
             Unassigned ({unassigned.length})
           </div>
           {unassigned.map((player, idx) => (
-            <PlayerRow
+            <DraggablePlayerRow
               key={player.id}
               player={player}
               index={idx}
-              groups={groups}
               isLast={idx === unassigned.length - 1}
-              onAssign={handleAssign}
+              onDragStart={onDragStart}
+              onDragEnd={onDragEnd}
             />
           ))}
+        </div>
+      )}
+
+      {/* Drop zone to unassign when no unassigned section visible */}
+      {unassigned.length === 0 && dragPlayerRef.current && (
+        <div
+          style={{
+            ...cardStyle,
+            borderStyle: 'dashed',
+            borderColor: dragOverTarget === 'unassigned' ? '#0D631B' : '#C8D4C8',
+            background: dragOverTarget === 'unassigned' ? 'rgba(13, 99, 27, 0.04)' : '#fafcf9',
+            padding: '16px 20px',
+            textAlign: 'center',
+            fontSize: '0.8125rem',
+            color: dragOverTarget === 'unassigned' ? '#0D631B' : '#9ca3af',
+            fontFamily: font,
+            transition: 'border-color 0.12s, background 0.12s, color 0.12s',
+          }}
+          onDragOver={e => onDragOver(e, 'unassigned')}
+          onDragLeave={e => onDragLeave(e, 'unassigned')}
+          onDrop={e => onDrop(e, null)}
+        >
+          Drop here to unassign
         </div>
       )}
 
@@ -296,24 +399,38 @@ export default function GroupManager({ eventId, groups: initialGroups, players: 
   )
 }
 
-// ─── PlayerRow ────────────────────────────────────────────────────────────────
+// ─── DraggablePlayerRow ──────────────────────────────────────────────────────
 
-function PlayerRow({
+function DraggablePlayerRow({
   player,
   index,
-  groups,
   isLast,
-  onAssign,
+  onDragStart,
+  onDragEnd,
 }: {
   player: Player
   index: number
-  groups: Group[]
   isLast: boolean
-  onAssign: (playerId: string, flightNumber: number | null) => void
+  onDragStart: (e: React.DragEvent, playerId: string) => void
+  onDragEnd: (e: React.DragEvent) => void
 }) {
   return (
-    <div style={{ ...playerRowStyle, borderBottom: isLast ? 'none' : '1px solid #f0f4f0' }}>
+    <div
+      draggable
+      onDragStart={e => onDragStart(e, player.id)}
+      onDragEnd={onDragEnd}
+      style={{ ...playerRowStyle, borderBottom: isLast ? 'none' : '1px solid #f0f4f0' }}
+    >
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+        {/* Drag handle */}
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{ flexShrink: 0, color: '#C8D4C8' }}>
+          <circle cx="4.5" cy="3" r="1.25" fill="currentColor" />
+          <circle cx="9.5" cy="3" r="1.25" fill="currentColor" />
+          <circle cx="4.5" cy="7" r="1.25" fill="currentColor" />
+          <circle cx="9.5" cy="7" r="1.25" fill="currentColor" />
+          <circle cx="4.5" cy="11" r="1.25" fill="currentColor" />
+          <circle cx="9.5" cy="11" r="1.25" fill="currentColor" />
+        </svg>
         <span style={{
           width: 24, height: 24, borderRadius: '50%', background: '#F2F5F0', flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -328,20 +445,6 @@ function PlayerRow({
           {Number(player.handicap_index).toFixed(1)}
         </span>
       </div>
-
-      {/* Group assignment dropdown */}
-      <select
-        value={player.flight_number ?? ''}
-        onChange={e => onAssign(player.id, e.target.value ? Number(e.target.value) : null)}
-        style={{ ...selectStyle, fontSize: '0.8125rem', flexShrink: 0 }}
-      >
-        <option value="">— Unassigned</option>
-        {groups.map(g => (
-          <option key={g.flight_number} value={g.flight_number}>
-            {groupLabel(g)}
-          </option>
-        ))}
-      </select>
     </div>
   )
 }
