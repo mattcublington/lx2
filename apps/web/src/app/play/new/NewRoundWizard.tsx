@@ -106,11 +106,11 @@ const dropdownStyle: React.CSSProperties = {
 
 function getVenues() {
   const seen = new Set<string>()
-  const venues: { club: string; location: string; count: number }[] = []
+  const venues: { club: string; location: string; country: string; continent: string; count: number }[] = []
   for (const c of COURSES) {
     if (!seen.has(c.club)) {
       seen.add(c.club)
-      venues.push({ club: c.club, location: c.location, count: COURSES.filter(x => x.club === c.club).length })
+      venues.push({ club: c.club, location: c.location, country: c.country, continent: c.continent, count: COURSES.filter(x => x.club === c.club).length })
     }
   }
   return venues
@@ -331,11 +331,16 @@ function VenueStep({
   onNext: () => void
 }) {
   const [search, setSearch] = useState('')
+  const [continent, setContinent] = useState('')
   const venues = getVenues()
-  const filtered = venues.filter(v =>
-    !search || v.club.toLowerCase().includes(search.toLowerCase()) ||
-    v.location.toLowerCase().includes(search.toLowerCase())
-  )
+  const continents = [...new Set(venues.map(v => v.continent))].sort()
+  const filtered = venues.filter(v => {
+    if (continent && v.continent !== continent) return false
+    if (!search) return true
+    return v.club.toLowerCase().includes(search.toLowerCase()) ||
+      v.location.toLowerCase().includes(search.toLowerCase()) ||
+      v.country.toLowerCase().includes(search.toLowerCase())
+  })
 
   return (
     <>
@@ -349,7 +354,23 @@ function VenueStep({
           </p>
         </div>
 
-        <SearchInput value={search} onChange={setSearch} placeholder="Search clubs" />
+        {continents.length > 1 && (
+          <div style={{ marginBottom: '1rem' }}>
+            <select
+              value={continent}
+              onChange={e => setContinent(e.target.value)}
+              style={dropdownStyle}
+              aria-label="Filter by continent"
+            >
+              <option value="">All continents</option>
+              {continents.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <SearchInput value={search} onChange={setSearch} placeholder="Search clubs or country" />
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {filtered.map(venue => {
@@ -389,7 +410,7 @@ function VenueStep({
                     {venueDisplayName(venue.club)}
                   </div>
                   <div style={{ fontFamily: font.body, fontSize: 14, color: FE.onTertiary, lineHeight: 1.4 }}>
-                    {venue.location} · {venue.count} combinations
+                    {venue.location}, {venue.country} · {venue.count} {venue.count === 1 ? 'course' : 'courses'}
                   </div>
                 </div>
               </div>

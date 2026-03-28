@@ -3,7 +3,7 @@ import { useState, useTransition, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { updateProfile, updateAvatarUrl } from './actions'
+import { updateProfile, updateAvatarUrl, updateDistanceUnit } from './actions'
 import { createClient } from '@/lib/supabase/client'
 
 interface Props {
@@ -13,6 +13,7 @@ interface Props {
   handicapIndex: number | null
   memberSince: string | null
   avatarUrl: string | null
+  distanceUnit: 'yards' | 'metres'
 }
 
 function getInitials(name: string): string {
@@ -24,7 +25,7 @@ function getInitials(name: string): string {
 // Which field is being inline-edited
 type EditingField = 'name' | 'handicap' | null
 
-export default function ProfileClient({ userId, email, displayName, handicapIndex, avatarUrl: initialAvatarUrl }: Props) {
+export default function ProfileClient({ userId, email, displayName, handicapIndex, avatarUrl: initialAvatarUrl, distanceUnit: initialDistanceUnit }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -36,6 +37,7 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
   const [avatarUrl, setAvatarUrl] = useState<string | null>(initialAvatarUrl)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [avatarError, setAvatarError] = useState<string | null>(null)
+  const [distanceUnit, setDistanceUnit] = useState<'yards' | 'metres'>(initialDistanceUnit)
 
   const initials = getInitials(name || email)
 
@@ -58,6 +60,11 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
     setHcp(handicapIndex !== null ? String(handicapIndex) : '')
     setEditing(null)
     setErrorMsg(null)
+  }
+
+  const handleDistanceUnit = (unit: 'yards' | 'metres') => {
+    setDistanceUnit(unit)
+    startTransition(async () => { await updateDistanceUnit(unit) })
   }
 
   const handleSignOut = async () => {
@@ -431,6 +438,35 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
           margin-top: 6px;
         }
 
+        /* ── Distance toggle ── */
+        .pf-unit-toggle {
+          display: flex;
+          gap: 6px;
+          margin-top: 6px;
+        }
+        .pf-unit-btn {
+          flex: 1;
+          padding: 8px 0;
+          border-radius: 8px;
+          border: 1.5px solid #E0EBE0;
+          background: #fff;
+          font-family: var(--font-lexend, 'Lexend', sans-serif);
+          font-size: 14px;
+          font-weight: 500;
+          color: #72786E;
+          cursor: pointer;
+          transition: all 0.15s ease-in-out;
+        }
+        .pf-unit-btn.active {
+          background: #0D631B;
+          border-color: #0D631B;
+          color: #fff;
+        }
+        .pf-unit-btn:not(.active):hover {
+          border-color: #0D631B;
+          color: #0D631B;
+        }
+
         /* ── Bottom section ── */
         .pf-bottom {
           margin-top: 2rem;
@@ -650,6 +686,29 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
               )}
             </div>
             {editing !== 'handicap' && <ChevronIcon />}
+          </div>
+
+          {/* Distance unit field */}
+          <div className="pf-field" style={{ cursor: 'default' }} aria-label="Distance unit preference">
+            <div className="pf-field-content">
+              <span className="pf-field-label">Distance unit</span>
+              <div className="pf-unit-toggle" role="group" aria-label="Choose distance unit">
+                <button
+                  className={`pf-unit-btn${distanceUnit === 'yards' ? ' active' : ''}`}
+                  onClick={() => handleDistanceUnit('yards')}
+                  aria-pressed={distanceUnit === 'yards'}
+                >
+                  Yards
+                </button>
+                <button
+                  className={`pf-unit-btn${distanceUnit === 'metres' ? ' active' : ''}`}
+                  onClick={() => handleDistanceUnit('metres')}
+                  aria-pressed={distanceUnit === 'metres'}
+                >
+                  Metres
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Email field (read-only) */}

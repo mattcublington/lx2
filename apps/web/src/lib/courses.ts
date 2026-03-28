@@ -13,8 +13,9 @@
 export interface CourseHole {
   num: number
   par: number
-  si: number
-  yards: number
+  si: number       // stroke index (men's where separate; 0 = missing data)
+  yards: number    // White/standard tee yardage
+  metres?: number  // White/standard tee metres; if absent, derive from yards
 }
 
 export interface Course {
@@ -22,6 +23,8 @@ export interface Course {
   name: string
   club: string
   location: string
+  country: string
+  continent: string
   holes: CourseHole[]
   slopeRating: number
   courseRating: number
@@ -37,6 +40,8 @@ export const COURSES: Course[] = [
     name: 'Cumberwell Park — Red/Yellow',
     club: 'Cumberwell Park',
     location: 'Bradford-on-Avon, Wiltshire',
+    country: 'England',
+    continent: 'Europe',
     slopeRating: 126, courseRating: 71.0, par: 71,
     tees: ['Green', 'White', 'Yellow/Purple', 'Red/Black'],
     defaultRatingTee: 'Yellow/Purple',
@@ -67,6 +72,8 @@ export const COURSES: Course[] = [
     name: 'Cumberwell Park — Yellow/Red',
     club: 'Cumberwell Park',
     location: 'Bradford-on-Avon, Wiltshire',
+    country: 'England',
+    continent: 'Europe',
     slopeRating: 126, courseRating: 71.0, par: 71,
     tees: ['Green', 'White', 'Yellow/Purple', 'Red/Black'],
     defaultRatingTee: 'Yellow/Purple',
@@ -97,6 +104,8 @@ export const COURSES: Course[] = [
     name: 'Cumberwell Park — Blue/Orange',
     club: 'Cumberwell Park',
     location: 'Bradford-on-Avon, Wiltshire',
+    country: 'England',
+    continent: 'Europe',
     slopeRating: 125, courseRating: 71.5, par: 71,
     tees: ['Green', 'White', 'Yellow/Purple', 'Red/Black'],
     defaultRatingTee: 'Yellow/Purple',
@@ -127,6 +136,8 @@ export const COURSES: Course[] = [
     name: 'Cumberwell Park — Orange/Blue',
     club: 'Cumberwell Park',
     location: 'Bradford-on-Avon, Wiltshire',
+    country: 'England',
+    continent: 'Europe',
     slopeRating: 125, courseRating: 71.5, par: 71,
     tees: ['Green', 'White', 'Yellow/Purple', 'Red/Black'],
     defaultRatingTee: 'Yellow/Purple',
@@ -157,6 +168,8 @@ export const COURSES: Course[] = [
     name: 'Cumberwell Park — Red/Blue',
     club: 'Cumberwell Park',
     location: 'Bradford-on-Avon, Wiltshire',
+    country: 'England',
+    continent: 'Europe',
     slopeRating: 126, courseRating: 72.5, par: 71,
     tees: ['Green', 'White', 'Yellow/Purple', 'Red/Black'],
     defaultRatingTee: 'Yellow/Purple',
@@ -187,6 +200,8 @@ export const COURSES: Course[] = [
     name: 'Cumberwell Park — Blue/Red',
     club: 'Cumberwell Park',
     location: 'Bradford-on-Avon, Wiltshire',
+    country: 'England',
+    continent: 'Europe',
     slopeRating: 126, courseRating: 72.5, par: 71,
     tees: ['Green', 'White', 'Yellow/Purple', 'Red/Black'],
     defaultRatingTee: 'Yellow/Purple',
@@ -217,6 +232,8 @@ export const COURSES: Course[] = [
     name: 'Cumberwell Park — Blue/Yellow',
     club: 'Cumberwell Park',
     location: 'Bradford-on-Avon, Wiltshire',
+    country: 'England',
+    continent: 'Europe',
     slopeRating: 129, courseRating: 71.5, par: 72,
     tees: ['Green', 'White', 'Yellow/Purple', 'Red/Black'],
     defaultRatingTee: 'Yellow/Purple',
@@ -247,6 +264,8 @@ export const COURSES: Course[] = [
     name: 'Cumberwell Park — Yellow/Blue',
     club: 'Cumberwell Park',
     location: 'Bradford-on-Avon, Wiltshire',
+    country: 'England',
+    continent: 'Europe',
     slopeRating: 129, courseRating: 71.5, par: 72,
     tees: ['Green', 'White', 'Yellow/Purple', 'Red/Black'],
     defaultRatingTee: 'Yellow/Purple',
@@ -277,6 +296,8 @@ export const COURSES: Course[] = [
     name: 'Cumberwell Park — Orange/Yellow',
     club: 'Cumberwell Park',
     location: 'Bradford-on-Avon, Wiltshire',
+    country: 'England',
+    continent: 'Europe',
     slopeRating: 125, courseRating: 70.0, par: 71,
     tees: ['Green', 'White', 'Yellow/Purple', 'Red/Black'],
     defaultRatingTee: 'Yellow/Purple',
@@ -307,6 +328,8 @@ export const COURSES: Course[] = [
     name: 'Cumberwell Park — Yellow/Orange',
     club: 'Cumberwell Park',
     location: 'Bradford-on-Avon, Wiltshire',
+    country: 'England',
+    continent: 'Europe',
     slopeRating: 125, courseRating: 70.0, par: 71,
     tees: ['Green', 'White', 'Yellow/Purple', 'Red/Black'],
     defaultRatingTee: 'Yellow/Purple',
@@ -337,6 +360,8 @@ export const COURSES: Course[] = [
     name: 'Cumberwell Park — Red/Orange',
     club: 'Cumberwell Park',
     location: 'Bradford-on-Avon, Wiltshire',
+    country: 'England',
+    continent: 'Europe',
     slopeRating: 122, courseRating: 71.0, par: 71,
     tees: ['Green', 'White', 'Yellow/Purple', 'Red/Black'],
     defaultRatingTee: 'Yellow/Purple',
@@ -367,6 +392,8 @@ export const COURSES: Course[] = [
     name: 'Cumberwell Park — Orange/Red',
     club: 'Cumberwell Park',
     location: 'Bradford-on-Avon, Wiltshire',
+    country: 'England',
+    continent: 'Europe',
     slopeRating: 122, courseRating: 71.0, par: 71,
     tees: ['Green', 'White', 'Yellow/Purple', 'Red/Black'],
     defaultRatingTee: 'Yellow/Purple',
@@ -399,6 +426,8 @@ export const COURSES: Course[] = [
     name: 'Cumberwell Park — White/White',
     club: 'Cumberwell Park',
     location: 'Bradford-on-Avon, Wiltshire',
+    country: 'England',
+    continent: 'Europe',
     slopeRating: 111, courseRating: 68.2, par: 70,
     tees: ['Green', 'White', 'Yellow/Purple', 'Red/Black'],
     defaultRatingTee: 'Green',
@@ -431,6 +460,8 @@ export const COURSES: Course[] = [
     name: 'Cumberwell Park — Par 3/Par 3',
     club: 'Cumberwell Park',
     location: 'Bradford-on-Avon, Wiltshire',
+    country: 'England',
+    continent: 'Europe',
     slopeRating: 0, courseRating: 0, par: 54,
     tees: ['Purple', 'Orange', 'Blue'],
     defaultRatingTee: '',
@@ -453,6 +484,117 @@ export const COURSES: Course[] = [
       { num: 16, par: 3, si: 7,  yards: 172 },
       { num: 17, par: 3, si: 8,  yards: 144 },
       { num: 18, par: 3, si: 9,  yards: 150 },
+    ],
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════════
+  // ROYAL CANBERRA GOLF CLUB — Yarralumla, ACT, Australia
+  // Source: royal_canberra_scorecards (1).json (updated March 2026)
+  // 27-hole facility. Three loops: A (holes 1–9), B (holes 10–18), C (holes 19–27).
+  // Three 18-hole courses are combinations: Westbourne (A+B), Yarralumla (B+C), Brindabella (C+A).
+  // si uses si_men (USGA 2016); si: 0 = missing from MiClub source (Yarralumla front 9 / B loop).
+  // yards = White tee. metres = men's distance from club website.
+  // slopeRating/courseRating reflect White tees (Men) for the picker badge.
+  // USGA ratings (2016) also include Blue tees — stored in combination_tees in DB.
+  // ══════════════════════════════════════════════════════════════════════════════
+
+  // ── Westbourne Course (A + B) ─────────────────────────────────────────────
+  {
+    id: 'royal-canberra-westbourne',
+    name: 'Royal Canberra — Westbourne',
+    club: 'Royal Canberra Golf Club',
+    location: 'Yarralumla, ACT',
+    country: 'Australia',
+    continent: 'Oceania',
+    slopeRating: 121, courseRating: 71.6, par: 72,
+    tees: ['Blue', 'White', 'Red'],
+    defaultRatingTee: 'White',
+    holes: [
+      { num: 1,  par: 5, si: 11, yards: 492, metres: 506 },
+      { num: 2,  par: 4, si: 7,  yards: 343, metres: 355 },
+      { num: 3,  par: 3, si: 5,  yards: 186, metres: 200 },
+      { num: 4,  par: 4, si: 13, yards: 460, metres: 425 },
+      { num: 5,  par: 4, si: 9,  yards: 338, metres: 364 },
+      { num: 6,  par: 5, si: 1,  yards: 422, metres: 489 },
+      { num: 7,  par: 4, si: 15, yards: 280, metres: 289 },
+      { num: 8,  par: 3, si: 17, yards: 138, metres: 149 },
+      { num: 9,  par: 4, si: 3,  yards: 375, metres: 392 },
+      { num: 10, par: 4, si: 8,  yards: 366, metres: 371 },
+      { num: 11, par: 4, si: 16, yards: 341, metres: 352 },
+      { num: 12, par: 4, si: 2,  yards: 370, metres: 358 },
+      { num: 13, par: 3, si: 12, yards: 170, metres: 173 },
+      { num: 14, par: 4, si: 4,  yards: 380, metres: 399 },
+      { num: 15, par: 5, si: 18, yards: 428, metres: 449 },
+      { num: 16, par: 4, si: 6,  yards: 387, metres: 410 },
+      { num: 17, par: 3, si: 14, yards: 166, metres: 217 },
+      { num: 18, par: 5, si: 10, yards: 485, metres: 502 },
+    ],
+  },
+
+  // ── Yarralumla Course (B + C) ─────────────────────────────────────────────
+  // Front 9 (B loop) SI missing from MiClub source system.
+  {
+    id: 'royal-canberra-yarralumla',
+    name: 'Royal Canberra — Yarralumla',
+    club: 'Royal Canberra Golf Club',
+    location: 'Yarralumla, ACT',
+    country: 'Australia',
+    continent: 'Oceania',
+    slopeRating: 127, courseRating: 71.8, par: 72,
+    tees: ['Blue', 'White', 'Red'],
+    defaultRatingTee: 'White',
+    holes: [
+      { num: 1,  par: 4, si: 0,  yards: 366, metres: 371 },  // SI missing from source
+      { num: 2,  par: 4, si: 0,  yards: 341, metres: 352 },  // SI missing from source
+      { num: 3,  par: 4, si: 0,  yards: 370, metres: 358 },  // SI missing from source
+      { num: 4,  par: 3, si: 0,  yards: 170, metres: 173 },  // SI missing from source
+      { num: 5,  par: 4, si: 0,  yards: 380, metres: 399 },  // SI missing from source
+      { num: 6,  par: 5, si: 0,  yards: 428, metres: 449 },  // SI missing from source
+      { num: 7,  par: 4, si: 0,  yards: 387, metres: 410 },  // SI missing from source
+      { num: 8,  par: 3, si: 0,  yards: 166, metres: 217 },  // SI missing from source
+      { num: 9,  par: 5, si: 0,  yards: 485, metres: 502 },  // SI missing from source
+      { num: 10, par: 4, si: 7,  yards: 361, metres: 380 },
+      { num: 11, par: 3, si: 15, yards: 145, metres: 168 },
+      { num: 12, par: 4, si: 1,  yards: 370, metres: 284 },
+      { num: 13, par: 4, si: 11, yards: 338, metres: 362 },
+      { num: 14, par: 4, si: 3,  yards: 381, metres: 405 },
+      { num: 15, par: 5, si: 17, yards: 477, metres: 506 },
+      { num: 16, par: 4, si: 5,  yards: 321, metres: 361 },
+      { num: 17, par: 3, si: 13, yards: 152, metres: 162 },
+      { num: 18, par: 5, si: 9,  yards: 454, metres: 480 },
+    ],
+  },
+
+  // ── Brindabella Course (C + A) ────────────────────────────────────────────
+  {
+    id: 'royal-canberra-brindabella',
+    name: 'Royal Canberra — Brindabella',
+    club: 'Royal Canberra Golf Club',
+    location: 'Yarralumla, ACT',
+    country: 'Australia',
+    continent: 'Oceania',
+    slopeRating: 127, courseRating: 71.0, par: 72,
+    tees: ['Blue', 'White', 'Red'],
+    defaultRatingTee: 'White',
+    holes: [
+      { num: 1,  par: 4, si: 5,  yards: 361, metres: 380 },
+      { num: 2,  par: 3, si: 15, yards: 145, metres: 168 },
+      { num: 3,  par: 4, si: 17, yards: 273, metres: 284 },
+      { num: 4,  par: 4, si: 3,  yards: 338, metres: 362 },
+      { num: 5,  par: 4, si: 1,  yards: 381, metres: 405 },
+      { num: 6,  par: 5, si: 11, yards: 477, metres: 506 },
+      { num: 7,  par: 4, si: 7,  yards: 321, metres: 361 },
+      { num: 8,  par: 3, si: 13, yards: 152, metres: 162 },
+      { num: 9,  par: 5, si: 9,  yards: 465, metres: 480 },
+      { num: 10, par: 5, si: 12, yards: 492, metres: 506 },
+      { num: 11, par: 4, si: 10, yards: 343, metres: 355 },
+      { num: 12, par: 3, si: 8,  yards: 186, metres: 200 },
+      { num: 13, par: 4, si: 14, yards: 460, metres: 425 },
+      { num: 14, par: 4, si: 6,  yards: 338, metres: 364 },
+      { num: 15, par: 5, si: 2,  yards: 422, metres: 489 },
+      { num: 16, par: 4, si: 18, yards: 280, metres: 289 },
+      { num: 17, par: 3, si: 16, yards: 138, metres: 149 },
+      { num: 18, par: 4, si: 4,  yards: 375, metres: 392 },
     ],
   },
 ]
