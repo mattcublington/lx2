@@ -316,6 +316,8 @@ function SearchInput({
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         aria-label={placeholder}
+        enterKeyHint="done"
+        onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
         style={{
           width: '100%', padding: '0.875rem 1rem 0.875rem 3rem',
           background: FE.white, border: FE.borderGhost, borderRadius: 16,
@@ -536,6 +538,8 @@ function PlayerCard({
             id={`${playerId}-name`} type="text" value={players[playerIndex]?.name ?? ''}
             onChange={e => onUpdate(playerIndex, 'name', e.target.value)}
             placeholder="Enter name" style={inputFieldStyle}
+            enterKeyHint="next"
+            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById(`${playerId}-hcp`)?.focus() } }}
             onFocus={e => { e.currentTarget.style.borderColor = FE.greenDark; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(13, 99, 27, 0.08)' }}
             onBlur={e => { e.currentTarget.style.borderColor = 'rgba(26,28,28,0.12)'; e.currentTarget.style.boxShadow = 'none' }}
           />
@@ -546,6 +550,8 @@ function PlayerCard({
             id={`${playerId}-hcp`} type="number" value={players[playerIndex]?.handicapIndex ?? ''}
             onChange={e => onUpdate(playerIndex, 'handicapIndex', e.target.value)}
             placeholder="18" min={0} max={54} step={0.1} style={inputFieldStyle}
+            enterKeyHint="done"
+            onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
             onFocus={e => { e.currentTarget.style.borderColor = FE.greenDark; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(13, 99, 27, 0.08)' }}
             onBlur={e => { e.currentTarget.style.borderColor = 'rgba(26,28,28,0.12)'; e.currentTarget.style.boxShadow = 'none' }}
           />
@@ -557,6 +563,8 @@ function PlayerCard({
             type="text" value={searchQuery}
             onChange={e => onSearch(e.target.value)}
             placeholder="Search by name…" autoFocus
+            enterKeyHint="done"
+            onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
             style={{ ...inputFieldStyle, borderColor: FE.greenDark, boxShadow: '0 0 0 3px rgba(13,99,27,0.08)' }}
           />
           {searching && <div style={{ fontFamily: font.body, fontSize: 13, color: FE.onTertiary, padding: '6px 2px' }}>Searching…</div>}
@@ -1319,6 +1327,8 @@ function SettingsStep({
                     placeholder="0.00"
                     min={0}
                     step={0.5}
+                    enterKeyHint="done"
+                    onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
                     style={{ ...inputFieldStyle, width: 120 }}
                   />
                 </div>
