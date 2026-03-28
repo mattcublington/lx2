@@ -156,11 +156,27 @@ Rules:
     jsonStr = jsonStr.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
   }
 
-  const parsed = JSON.parse(jsonStr) as ExtractedCourseData
+  let parsed: ExtractedCourseData
+  try {
+    parsed = JSON.parse(jsonStr) as ExtractedCourseData
+  } catch {
+    console.error('[scorecard-ocr] JSON parse failed. Raw response:', jsonStr.slice(0, 500))
+    throw new Error('Could not read the scorecard. Please try again with a clearer photo.')
+  }
+
+  // Fall back to user-provided names if Claude returned empty strings
+  if (!parsed.courseName && userCourseName) parsed.courseName = userCourseName
+  if (!parsed.clubName && userClubName) parsed.clubName = userClubName
 
   // Basic validation
-  if (!parsed.courseName || !Array.isArray(parsed.tees) || parsed.tees.length === 0) {
-    throw new Error('Could not extract valid course data from the scorecard image')
+  if (!parsed.courseName && !parsed.clubName) {
+    console.error('[scorecard-ocr] Extraction empty. Parsed:', JSON.stringify(parsed).slice(0, 500))
+    throw new Error('Could not read the scorecard. Make sure the full card is visible and well-lit, then try again.')
+  }
+
+  if (!Array.isArray(parsed.tees) || parsed.tees.length === 0) {
+    console.error('[scorecard-ocr] No tees extracted. Parsed:', JSON.stringify(parsed).slice(0, 500))
+    throw new Error('Could not read hole data from the scorecard. Try a closer, straight-on photo with all holes visible.')
   }
 
   return parsed

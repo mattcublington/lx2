@@ -40,6 +40,10 @@ CREATE INDEX IF NOT EXISTS scorecard_uploads_status_idx
 CREATE INDEX IF NOT EXISTS scorecard_uploads_uploaded_by_idx
   ON public.scorecard_uploads (uploaded_by);
 
+-- Grant table-level access (RLS policies handle row-level filtering)
+GRANT SELECT, INSERT ON public.scorecard_uploads TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.scorecard_uploads TO service_role;
+
 ALTER TABLE public.scorecard_uploads ENABLE ROW LEVEL SECURITY;
 
 -- RLS: users can read their own uploads; admins can read all
