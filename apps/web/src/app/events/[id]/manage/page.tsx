@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import ManageActions, { ConfirmPlayers } from './ManageActions'
+import GroupManager from './GroupManager'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -50,9 +51,16 @@ export default async function ManagePage({ params }: PageProps) {
   // Full player list — organiser can see all via event_players_select RLS
   const { data: players } = await supabase
     .from('event_players')
-    .select('id, user_id, display_name, handicap_index, rsvp_status, created_at')
+    .select('id, user_id, display_name, handicap_index, rsvp_status, flight_number, created_at')
     .eq('event_id', id)
     .order('created_at')
+
+  // Groups for this event
+  const { data: groups } = await supabase
+    .from('event_groups')
+    .select('id, flight_number, tee_time, start_hole, label')
+    .eq('event_id', id)
+    .order('flight_number')
 
   const confirmed   = players?.filter(p => p.rsvp_status === 'confirmed') ?? []
   const invited     = players?.filter(p => p.rsvp_status === 'invited') ?? []
@@ -144,6 +152,25 @@ export default async function ManagePage({ params }: PageProps) {
               </div>
             ))}
           </div>
+
+          {/* ── Groups ── */}
+          <GroupManager
+            eventId={id}
+            groups={(groups ?? []).map(g => ({
+              id: g.id,
+              flight_number: g.flight_number as number,
+              tee_time: (g.tee_time as string | null) ?? null,
+              start_hole: (g.start_hole as number) ?? 1,
+              label: (g.label as string | null) ?? null,
+            }))}
+            players={confirmed.map(p => ({
+              id: p.id,
+              display_name: p.display_name,
+              handicap_index: Number(p.handicap_index),
+              flight_number: (p.flight_number as number | null) ?? null,
+            }))}
+            groupSize={event.group_size ?? 4}
+          />
 
           {/* ── Players card ── */}
           <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #E0EBE0', padding: '24px' }}>

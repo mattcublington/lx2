@@ -4,6 +4,128 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
+// ─── generateGroups ────────────────────────────────────────────────────────────
+// Auto-creates event_group rows and assigns confirmed players to them in order.
+// Wipes any existing groups and flight_number assignments before re-generating.
+
+export async function generateGroups(eventId: string): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const admin = createAdminClient()
+
+  const { data: event } = await admin
+    .from('events')
+    .select('created_by, group_size')
+    .eq('id', eventId)
+    .single()
+
+  if (!event || event.created_by !== user.id) throw new Error('Not authorised')
+
+  const { data: players } = await admin
+    .from('event_players')
+    .select('id')
+    .eq('event_id', eventId)
+    .eq('rsvp_status', 'confirmed')
+    .order('created_at')
+
+  if (!players || players.length === 0) return
+
+  const groupSize = (event.group_size as number) ?? 4
+  const numGroups = Math.ceil(players.length / groupSize)
+
+  // Wipe existing groups and reset all flight_number assignments
+  await admin.from('event_groups').delete().eq('event_id', eventId)
+  await admin.from('event_players').update({ flight_number: null }).eq('event_id', eventId)
+
+  // Create the group rows
+  await admin.from('event_groups').insert(
+    Array.from({ length: numGroups }, (_, i) => ({
+      event_id: eventId,
+      flight_number: i + 1,
+      label: `Group ${i + 1}`,
+      start_hole: 1,
+    }))
+  )
+
+  // Assign players sequentially to groups
+  for (let i = 0; i < players.length; i++) {
+    await admin
+      .from('event_players')
+      .update({ flight_number: Math.floor(i / groupSize) + 1 })
+      .eq('id', players[i].id)
+  }
+
+  revalidatePath(`/events/${eventId}/manage`)
+  revalidatePath(`/events/${eventId}/leaderboard`)
+}
+
+// ─── updateGroup ───────────────────────────────────────────────────────────────
+// Updates tee_time, start_hole, or label on a group. Organiser only.
+
+export async function updateGroup(
+  eventId: string,
+  groupId: string,
+  fields: { tee_time?: string | null; start_hole?: number; label?: string },
+): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const admin = createAdminClient()
+
+  const { data: event } = await admin
+    .from('events')
+    .select('created_by')
+    .eq('id', eventId)
+    .single()
+
+  if (!event || event.created_by !== user.id) throw new Error('Not authorised')
+
+  await admin
+    .from('event_groups')
+    .update(fields)
+    .eq('id', groupId)
+    .eq('event_id', eventId)
+
+  revalidatePath(`/events/${eventId}/manage`)
+}
+
+// ─── assignPlayerToGroup ───────────────────────────────────────────────────────
+// Sets flight_number on an event_player row. Pass null to unassign. Organiser only.
+
+export async function assignPlayerToGroup(
+  eventId: string,
+  playerId: string,
+  flightNumber: number | null,
+): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const admin = createAdminClient()
+
+  const { data: event } = await admin
+    .from('events')
+    .select('created_by')
+    .eq('id', eventId)
+    .single()
+
+  if (!event || event.created_by !== user.id) throw new Error('Not authorised')
+
+  await admin
+    .from('event_players')
+    .update({ flight_number: flightNumber })
+    .eq('id', playerId)
+    .eq('event_id', eventId)
+
+  revalidatePath(`/events/${eventId}/manage`)
+  revalidatePath(`/events/${eventId}/leaderboard`)
+}
+
+// ─── confirmPlayer ─────────────────────────────────────────────────────────────
+
 export async function confirmPlayer(eventId: string, playerId: string): Promise<void> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

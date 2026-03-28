@@ -277,3 +277,13 @@ export interface CombinationTee {
 
 // Extended event type with combination support
 export type RoundType = '18' | '9'
+
+export interface EventGroup {
+  id: string
+  event_id: string
+  flight_number: number     // 1-based; matches event_players.flight_number
+  tee_time: string | null   // "HH:MM" local time, or null
+  start_hole: number        // default 1
+  label: string | null      // e.g. "Group 1" or "Morning wave"
+  created_at: string
+}
