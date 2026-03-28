@@ -305,6 +305,96 @@ const STYLES = `
     color: #A0B09A;
   }
 
+  /* Event results */
+  .rs-event-card {
+    animation: rs-rise 0.4s 0.15s cubic-bezier(0.2, 0, 0, 1) both;
+  }
+  .rs-event-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem 0.75rem;
+    border-bottom: 1px solid rgba(26, 28, 28, 0.06);
+  }
+  .rs-event-title {
+    font-family: var(--font-dm-serif), serif;
+    font-weight: 400;
+    font-size: 1.0625rem;
+    color: #1A2E1A;
+    letter-spacing: -0.01em;
+  }
+  .rs-event-link {
+    font-family: var(--font-dm-sans), sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #0D631B;
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+  .rs-event-link:hover { opacity: 0.7; }
+  .rs-event-position {
+    padding: 0.875rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-bottom: 1px solid rgba(26, 28, 28, 0.06);
+  }
+  .rs-event-pos-num {
+    font-family: var(--font-manrope), sans-serif;
+    font-weight: 800;
+    font-size: 1.75rem;
+    color: #0D631B;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .rs-event-pos-label {
+    font-family: var(--font-dm-sans), sans-serif;
+    font-size: 0.8125rem;
+    color: #72786E;
+  }
+  .rs-contest-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid rgba(26, 28, 28, 0.04);
+  }
+  .rs-contest-row:last-child { border-bottom: none; }
+  .rs-contest-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8125rem;
+    flex-shrink: 0;
+  }
+  .rs-contest-icon.ntp { background: rgba(13, 99, 27, 0.1); }
+  .rs-contest-icon.ld { background: rgba(59, 130, 246, 0.1); }
+  .rs-contest-detail {
+    flex: 1;
+    min-width: 0;
+  }
+  .rs-contest-label {
+    font-family: var(--font-dm-sans), sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #72786E;
+  }
+  .rs-contest-winner {
+    font-family: var(--font-dm-sans), sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1A2E1A;
+  }
+  .rs-contest-dist {
+    font-family: var(--font-dm-sans), sans-serif;
+    font-size: 0.75rem;
+    color: #A0B09A;
+    flex-shrink: 0;
+  }
+
   @keyframes rs-rise {
     from { opacity: 0; transform: translateY(8px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -583,6 +673,8 @@ export default async function RoundSummaryPage({ params }: PageProps) {
     name: string
     date: string
     created_by: string
+    ntp_holes: number[] | null
+    ld_holes: number[] | null
     courses: { name: string } | null
     course_combinations: { name: string } | null
   }
@@ -678,20 +770,26 @@ export default async function RoundSummaryPage({ params }: PageProps) {
     scores[row.hole_number] = row.gross_strokes ?? null
   }
 
-  // ── 4. Group players (for leaderboard) ────────────────────────────────────
-  const { data: allPlayers } = await supabase
-    .from('event_players')
-    .select(`
-      id,
-      user_id,
-      display_name,
-      handicap_index,
-      scorecards (
+  // ── 4. Group players + contest entries (for leaderboard) ──────────────────
+  const [{ data: allPlayers }, { data: contestEntries }] = await Promise.all([
+    supabase
+      .from('event_players')
+      .select(`
         id,
-        hole_scores ( hole_number, gross_strokes )
-      )
-    `)
-    .eq('event_id', scorecard.event_id)
+        user_id,
+        display_name,
+        handicap_index,
+        scorecards (
+          id,
+          hole_scores ( hole_number, gross_strokes )
+        )
+      `)
+      .eq('event_id', scorecard.event_id),
+    supabase
+      .from('contest_entries')
+      .select('hole_number, type, event_player_id, distance_cm')
+      .eq('event_id', scorecard.event_id),
+  ])
 
   const groupPlayers: PlayerSummary[] = (allPlayers ?? []).map(p => {
     const scs = p.scorecards as unknown as { id: string; hole_scores: { hole_number: number; gross_strokes: number | null }[] }[] | null
@@ -743,7 +841,46 @@ export default async function RoundSummaryPage({ params }: PageProps) {
     })
     .sort((a, b) => format === 'stableford' ? b.pts - a.pts : a.gross - b.gross)
 
-  // ── 6. Formatted date ──────────────────────────────────────────────────────
+  // ── 6. Contest winners (NTP / LD) ──────────────────────────────────────────
+  const playerNameMap = new Map((allPlayers ?? []).map(p => [p.id, p.display_name ?? 'Player']))
+  const ntpHoles = (event.ntp_holes ?? []) as number[]
+  const ldHoles = (event.ld_holes ?? []) as number[]
+  const hasContests = ntpHoles.length > 0 || ldHoles.length > 0
+
+  interface ContestWinner { hole: number; type: 'ntp' | 'ld'; playerName: string; distanceCm: number | null }
+  const contestWinners: ContestWinner[] = []
+
+  if (hasContests && contestEntries) {
+    // Group entries by (type, hole) and pick the closest (smallest distance) for NTP, longest for LD
+    const grouped = new Map<string, typeof contestEntries>()
+    for (const entry of contestEntries) {
+      const key = `${entry.type}:${entry.hole_number}`
+      const list = grouped.get(key) ?? []
+      list.push(entry)
+      grouped.set(key, list)
+    }
+    for (const [, entries] of grouped) {
+      const withDistance = entries.filter(e => e.distance_cm != null)
+      if (withDistance.length === 0) continue
+      const type = entries[0]!.type as 'ntp' | 'ld'
+      const best = type === 'ntp'
+        ? withDistance.reduce((a, b) => (a.distance_cm! < b.distance_cm! ? a : b))
+        : withDistance.reduce((a, b) => (a.distance_cm! > b.distance_cm! ? a : b))
+      contestWinners.push({
+        hole: best.hole_number,
+        type,
+        playerName: playerNameMap.get(best.event_player_id) ?? 'Player',
+        distanceCm: best.distance_cm,
+      })
+    }
+    contestWinners.sort((a, b) => a.hole - b.hole)
+  }
+
+  // Player's position in leaderboard
+  const myPosition = leaderboard.findIndex(p => p.isCurrentUser) + 1
+  const isEventRound = leaderboard.length > 1
+
+  // ── 7. Formatted date ──────────────────────────────────────────────────────
   const dateLabel = new Date(event.date + 'T12:00:00').toLocaleDateString('en-GB', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   })
@@ -835,10 +972,73 @@ export default async function RoundSummaryPage({ params }: PageProps) {
             </section>
           )}
 
-          {/* Group leaderboard */}
+          {/* Event results — position + contest winners */}
+          {isEventRound && (hasContests || roundComplete) && (
+            <section className="rs-card rs-event-card">
+              <div className="rs-event-header">
+                <span className="rs-event-title">{event.name}</span>
+                <Link href={`/events/${scorecard.event_id}/leaderboard`} className="rs-event-link">
+                  Full leaderboard →
+                </Link>
+              </div>
+
+              {/* Position */}
+              {myPosition > 0 && (
+                <div className="rs-event-position">
+                  <span className="rs-event-pos-num">
+                    {myPosition}{myPosition === 1 ? 'st' : myPosition === 2 ? 'nd' : myPosition === 3 ? 'rd' : 'th'}
+                  </span>
+                  <span className="rs-event-pos-label">
+                    of {leaderboard.length} players
+                    {!roundComplete && ` · ${holesPlayed} holes played`}
+                  </span>
+                </div>
+              )}
+
+              {/* NTP / LD winners */}
+              {contestWinners.map(w => (
+                <div key={`${w.type}-${w.hole}`} className="rs-contest-row">
+                  <div className={`rs-contest-icon ${w.type}`}>
+                    {w.type === 'ntp' ? '🎯' : '💪'}
+                  </div>
+                  <div className="rs-contest-detail">
+                    <div className="rs-contest-label">
+                      {w.type === 'ntp' ? 'Nearest the Pin' : 'Longest Drive'} · Hole {w.hole}
+                    </div>
+                    <div className="rs-contest-winner">{w.playerName}</div>
+                  </div>
+                  {w.distanceCm != null && (
+                    <span className="rs-contest-dist">
+                      {w.type === 'ntp'
+                        ? w.distanceCm < 100
+                          ? `${w.distanceCm} cm`
+                          : `${(w.distanceCm / 100).toFixed(1)} m`
+                        : `${Math.round(w.distanceCm / 91.44)} yds`}
+                    </span>
+                  )}
+                </div>
+              ))}
+
+              {/* No entries yet for active contests */}
+              {hasContests && contestWinners.length === 0 && (
+                <div style={{
+                  padding: '0.875rem 1.25rem',
+                  fontFamily: 'var(--font-dm-sans), sans-serif',
+                  fontSize: '0.8125rem',
+                  color: '#A0B09A',
+                }}>
+                  No contest entries yet
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* Event leaderboard */}
           {leaderboard.length > 1 && (
             <section className="rs-card">
-              <div className="rs-card-hd">Group</div>
+              <div className="rs-card-hd">
+                {isEventRound ? 'Event Leaderboard' : 'Group'}
+              </div>
               <div className="rs-lb">
                 {leaderboard.map((p, i) => (
                   <div key={p.displayName} className={`rs-lb-row${p.isCurrentUser ? ' you' : ''}`}>

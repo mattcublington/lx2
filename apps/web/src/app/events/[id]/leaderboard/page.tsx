@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
@@ -18,6 +19,33 @@ function formatDate(d: string) {
   return new Date(d + 'T12:00:00').toLocaleDateString('en-GB', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   })
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params
+  const data = await fetchEventLeaderboardData(id)
+
+  if (!data) {
+    return { title: 'Leaderboard — LX2' }
+  }
+
+  const { event } = data
+  const subtitle = [
+    formatDate(event.date),
+    FORMAT_LABEL[event.format] ?? event.format,
+    event.courseName,
+  ].filter(Boolean).join(' · ')
+
+  return {
+    title: `${event.name} — Leaderboard — LX2`,
+    description: subtitle,
+    openGraph: {
+      title: `${event.name} — Live Leaderboard`,
+      description: subtitle,
+      siteName: 'LX2',
+      type: 'website',
+    },
+  }
 }
 
 export default async function LeaderboardPage({ params }: PageProps) {

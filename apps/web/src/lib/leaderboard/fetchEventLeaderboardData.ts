@@ -34,6 +34,7 @@ export async function fetchEventLeaderboardData(
     .select(`
       id, name, date, format, round_type, handicap_allowance_pct,
       ntp_holes, ld_holes, created_by, is_public,
+      courses(name),
       course_combinations(name, loop_1_id, loop_2_id)
     `)
     .eq('id', eventId)
@@ -164,7 +165,7 @@ export async function fetchEventLeaderboardData(
       ldHoles: (event.ld_holes as number[] | null) ?? [],
       isPublic: event.is_public,
       createdBy: event.created_by,
-      courseName: combo?.name ?? null,
+      courseName: (event.courses as unknown as { name: string } | null)?.name ?? combo?.name ?? null,
     },
     holeData,
     initialPlayers,
