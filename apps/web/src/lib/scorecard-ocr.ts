@@ -74,6 +74,7 @@ function sanitiseUserInput(input: string): string {
 async function extractScorecardData(
   imageBase64: string,
   mediaType: 'image/jpeg' | 'image/png' | 'image/webp',
+  userClubName: string,
   userCourseName: string,
   userCountry: string,
 ): Promise<ExtractedCourseData> {
@@ -102,6 +103,7 @@ async function extractScorecardData(
             text: `You are a golf scorecard data extractor. Extract structured data from this physical golf scorecard photograph.
 
 The uploader has suggested the following (use as hints only — trust what you read on the card):
+- Club name hint: "${userClubName}"
 - Course name hint: "${userCourseName}"
 - Country hint: "${userCountry}"
 
@@ -167,35 +169,37 @@ Rules:
 // ── Main action ──────────────────────────────────────────────────────────────
 
 export async function uploadScorecard(formData: FormData): Promise<ScorecardUploadResult> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, error: 'Not authenticated' }
-
-  // Rate limit check
-  const withinLimit = await checkRateLimit(user.id)
-  if (!withinLimit) {
-    return { success: false, error: `You can upload up to ${MAX_UPLOADS_PER_DAY} scorecards per day. Try again tomorrow.` }
-  }
-
-  // Validate and read the image file
-  const file = formData.get('image') as File | null
-  if (!file || file.size === 0) return { success: false, error: 'No image provided' }
-  if (file.size > 10 * 1024 * 1024) return { success: false, error: 'Image must be under 10MB' }
-
-  const validTypes = ['image/jpeg', 'image/png', 'image/webp'] as const
-  type ValidType = typeof validTypes[number]
-  if (!validTypes.includes(file.type as ValidType)) {
-    return { success: false, error: 'Image must be JPEG, PNG, or WebP' }
-  }
-
-  // Sanitise user-provided text fields
-  const rawCourseName = formData.get('courseName') as string | null
-  const rawCountry = formData.get('country') as string | null
-  const courseName = rawCourseName ? sanitiseUserInput(rawCourseName) : ''
-  const country = rawCountry ? sanitiseUserInput(rawCountry) : ''
-  const continent = country ? continentForCountry(country) : ''
-
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { success: false, error: 'Not authenticated' }
+
+    // Rate limit check
+    const withinLimit = await checkRateLimit(user.id)
+    if (!withinLimit) {
+      return { success: false, error: `You can upload up to ${MAX_UPLOADS_PER_DAY} scorecards per day. Try again tomorrow.` }
+    }
+
+    // Validate and read the image file
+    const file = formData.get('image') as File | null
+    if (!file || file.size === 0) return { success: false, error: 'No image provided' }
+    if (file.size > 10 * 1024 * 1024) return { success: false, error: 'Image must be under 10MB' }
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'] as const
+    type ValidType = typeof validTypes[number]
+    if (!validTypes.includes(file.type as ValidType)) {
+      return { success: false, error: 'Image must be JPEG, PNG, or WebP' }
+    }
+
+    // Sanitise user-provided text fields
+    const rawClubName = formData.get('clubName') as string | null
+    const rawCourseName = formData.get('courseName') as string | null
+    const rawCountry = formData.get('country') as string | null
+    const clubName = rawClubName ? sanitiseUserInput(rawClubName) : ''
+    const courseName = rawCourseName ? sanitiseUserInput(rawCourseName) : ''
+    const country = rawCountry ? sanitiseUserInput(rawCountry) : ''
+    const continent = country ? continentForCountry(country) : ''
+
     // 1. Upload image to Supabase Storage
     const buffer = await file.arrayBuffer()
     const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg'
@@ -220,6 +224,7 @@ export async function uploadScorecard(formData: FormData): Promise<ScorecardUplo
     const extracted = await extractScorecardData(
       base64,
       file.type as 'image/jpeg' | 'image/png' | 'image/webp',
+      clubName,
       courseName,
       country,
     )

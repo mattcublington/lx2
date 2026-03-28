@@ -40,6 +40,7 @@ interface Props {
 
 export default function ScorecardUpload({ onDone, onCancel }: Props) {
   const [phase, setPhase] = useState<Phase>('form')
+  const [clubName, setClubName] = useState('')
   const [courseName, setCourseName] = useState('')
   const [country, setCountry] = useState('England')
   const [file, setFile] = useState<File | null>(null)
@@ -66,20 +67,26 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
 
     const formData = new FormData()
     formData.set('image', file)
+    formData.set('clubName', clubName)
     formData.set('courseName', courseName)
     formData.set('country', country)
 
-    const result = await uploadScorecard(formData)
+    try {
+      const result = await uploadScorecard(formData)
 
-    if (!result.success || !result.extractedData || !result.uploadId) {
-      setError(result.error ?? 'Upload failed')
+      if (!result.success || !result.extractedData || !result.uploadId) {
+        setError(result.error ?? 'Upload failed')
+        setPhase('form')
+        return
+      }
+
+      setExtractedData(result.extractedData)
+      setUploadId(result.uploadId)
+      setPhase('review')
+    } catch {
+      setError('Something went wrong. Please try again.')
       setPhase('form')
-      return
     }
-
-    setExtractedData(result.extractedData)
-    setUploadId(result.uploadId)
-    setPhase('review')
   }
 
   // ── Form phase ─────────────────────────────────────────────────────────────
@@ -106,6 +113,26 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
           </div>
         </div>
 
+        {/* Club name */}
+        <label style={{ display: 'block', marginBottom: '1rem' }}>
+          <span style={{ fontFamily: font.body, fontSize: 14, fontWeight: 500, color: FE.onPrimary, display: 'block', marginBottom: '0.375rem' }}>
+            Club name
+          </span>
+          <input
+            type="text"
+            value={clubName}
+            onChange={e => setClubName(e.target.value)}
+            placeholder="e.g. Cumberwell Park Golf Club"
+            maxLength={100}
+            style={{
+              width: '100%', padding: '0.875rem 1rem',
+              background: FE.white, border: FE.borderGhost, borderRadius: 12,
+              fontFamily: font.body, fontSize: 16, color: FE.onPrimary,
+              outline: 'none', boxSizing: 'border-box',
+            }}
+          />
+        </label>
+
         {/* Course name */}
         <label style={{ display: 'block', marginBottom: '1rem' }}>
           <span style={{ fontFamily: font.body, fontSize: 14, fontWeight: 500, color: FE.onPrimary, display: 'block', marginBottom: '0.375rem' }}>
@@ -115,7 +142,7 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
             type="text"
             value={courseName}
             onChange={e => setCourseName(e.target.value)}
-            placeholder="e.g. Cumberwell Park"
+            placeholder="e.g. Red Course"
             maxLength={100}
             style={{
               width: '100%', padding: '0.875rem 1rem',
@@ -124,6 +151,9 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
               outline: 'none', boxSizing: 'border-box',
             }}
           />
+          <span style={{ fontFamily: font.body, fontSize: 12, color: FE.onTertiary, marginTop: '0.25rem', display: 'block' }}>
+            If the club has multiple courses
+          </span>
         </label>
 
         {/* Country */}
