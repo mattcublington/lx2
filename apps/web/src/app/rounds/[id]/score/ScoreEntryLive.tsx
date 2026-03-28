@@ -365,22 +365,16 @@ const STYLES = `
   }
   /* Unscored right */
   .sc-unscored-r { display: flex; flex-direction: column; align-items: flex-end; gap: 0.375rem; }
-  .sc-qpicks { display: flex; gap: 0.375rem; }
-  .sc-qbtn {
-    width: 36px; height: 36px;
-    border-radius: 10px;
-    border: 1.5px solid rgba(13,99,27,0.25);
-    background: rgba(240,244,236,0.5);
-    color: #0D631B;
+  .sc-enter-prompt { display: flex; flex-direction: column; align-items: flex-end; gap: 0.125rem; }
+  .sc-net-par-hint {
     font-family: var(--font-manrope), sans-serif;
     font-weight: 700; font-size: 0.9375rem;
-    cursor: pointer;
-    transition: all 0.12s;
-    display: flex; align-items: center; justify-content: center;
+    color: #1A2E1A;
   }
-  .sc-qbtn:hover { background: #0D631B; color: #FFFFFF; border-color: #0D631B; }
-  .sc-qbtn.par  { border-color: rgba(13,99,27,0.5); }
-  .sc-tap-hint  { font-family: var(--font-lexend), sans-serif; font-size: 0.6875rem; color: #72786E; }
+  .sc-tap-hint  {
+    font-family: var(--font-lexend), sans-serif;
+    font-size: 0.6875rem; color: #0D631B; font-weight: 500;
+  }
   /* Scored right */
   .sc-scored-r { display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem; }
   .sc-score-n {
@@ -415,6 +409,7 @@ const STYLES = `
   .sc-bottom-name {
     font-family: var(--font-manrope), sans-serif;
     font-weight: 700; font-size: 0.875rem; color: #1A2E1A; line-height: 1.2;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;
   }
   .sc-bottom-pts {
     font-family: var(--font-lexend), sans-serif;
@@ -1615,8 +1610,6 @@ export default function ScoreEntryLive(props: Props) {
               ? ptsLabel(ptsVal, playerScore, hole.par, playerHcOnHole)
               : null
 
-            const quickVals = [hole.par - 1, hole.par, hole.par + 1, hole.par + 2].filter(v => v >= 1)
-
             return (
               <div
                 key={p.scorecardId}
@@ -1650,21 +1643,12 @@ export default function ScoreEntryLive(props: Props) {
                   </div>
                 ) : (
                   <div className="sc-unscored-r">
-                    <div className="sc-qpicks" onClick={e => e.stopPropagation()}>
-                      {quickVals.map(v => (
-                        <button key={v}
-                          className={`sc-qbtn${v === hole.par ? ' par' : ''}`}
-                          onClick={e => {
-                            e.stopPropagation()
-                            if (isOwn) tapScore(v)
-                            else handleModalSave(p.scorecardId, v)
-                          }}
-                          aria-label={`Score ${v}`}>
-                          {v}
-                        </button>
-                      ))}
+                    <div className="sc-enter-prompt">
+                      {playerHcOnHole > 0
+                        ? <span className="sc-net-par-hint">Net par {hole.par + playerHcOnHole}</span>
+                        : <span className="sc-net-par-hint">Par {hole.par}</span>}
+                      <span className="sc-tap-hint">Tap to enter score</span>
                     </div>
-                    <span className="sc-tap-hint">or tap to enter</span>
                   </div>
                 )}
               </div>
