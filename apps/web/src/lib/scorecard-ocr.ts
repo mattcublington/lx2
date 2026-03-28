@@ -39,7 +39,7 @@ export interface ScorecardUploadResult {
 
 // ── Rate limiting ────────────────────────────────────────────────────────────
 
-const MAX_UPLOADS_PER_DAY = 5
+const MAX_UPLOADS_PER_DAY = 20
 
 async function checkRateLimit(userId: string): Promise<boolean> {
   const admin = createAdminClient()
