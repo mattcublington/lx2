@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import BottomNav from '@/components/BottomNav'
 import DeleteRoundButton from './DeleteRoundButton'
+import ChartSection from './ChartSection'
 
 // ─── Styles ────────────────────────────────────────────────────────────────────
 // Defined here (top of file) to avoid TDZ issues with webpack chunk-splitting in production.
@@ -137,6 +138,26 @@ const STYLES = `
     animation: rs-rise 0.4s 0.05s cubic-bezier(0.2, 0, 0, 1) both;
   }
   .rs-continue:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(13, 99, 27, 0.28); }
+
+  /* Profile CTA */
+  .rs-profile-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: #FFFFFF;
+    color: #0D631B;
+    border-radius: 14px;
+    font-family: var(--font-manrope), sans-serif;
+    font-weight: 700;
+    font-size: 0.9375rem;
+    text-decoration: none;
+    border: 1.5px solid #0D631B;
+    transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+    letter-spacing: -0.01em;
+    animation: rs-rise 0.4s 0.05s cubic-bezier(0.2, 0, 0, 1) both;
+  }
+  .rs-profile-link:hover { background: rgba(13, 99, 27, 0.05); transform: translateY(-1px); }
 
   /* Delete round */
   .rs-delete-btn {
@@ -335,183 +356,6 @@ function allocateStrokes(hc: number, holes: SummaryHole[]): Record<number, numbe
 function stablefordPts(gross: number, par: number, shots: number): number {
   const diff = (gross - shots) - par
   return diff >= 2 ? 0 : diff === 1 ? 1 : diff === 0 ? 2 : diff === -1 ? 3 : diff === -2 ? 4 : 5
-}
-
-function scoreName(gross: number, par: number): string {
-  const d = gross - par
-  if (d <= -3) return 'Albatross'
-  if (d === -2) return 'Eagle'
-  if (d === -1) return 'Birdie'
-  if (d === 0) return 'Par'
-  if (d === 1) return 'Bogey'
-  if (d === 2) return 'Double'
-  return `+${d}`
-}
-
-// ─── SVG Chart ────────────────────────────────────────────────────────────────
-// Pure server-side SVG — no client JS needed.
-
-function HoleChart({
-  holes,
-  scores,
-  allowancePct,
-}: {
-  holes: SummaryHole[]
-  scores: Record<number, number | null>
-  allowancePct: number
-}) {
-  const W = 320
-  const H = 128
-  const ML = 28  // left margin (y labels)
-  const MR = 8
-  const MT = 12
-  const MB = 24  // bottom margin (x labels)
-  const plotW = W - ML - MR
-  const plotH = H - MT - MB
-
-  const n = holes.length
-  if (n === 0) return null
-
-  // Compute relative-to-par values (null = pickup = skip line but show gap)
-  const relScores: (number | null)[] = holes.map(h => {
-    const g = scores[h.holeInRound]
-    if (g == null) return null
-    return g - h.par
-  })
-
-  // Y scale: find actual min/max, pad by 1, always include 0
-  const scored = relScores.filter((v): v is number => v !== null)
-  const rawMin = scored.length > 0 ? Math.min(...scored) : -1
-  const rawMax = scored.length > 0 ? Math.max(...scored) : 2
-  const yMin = Math.min(rawMin - 0.5, -1.5)
-  const yMax = Math.max(rawMax + 0.5, 2.5)
-  const yRange = yMax - yMin
-
-  // X/Y coordinate helpers
-  function xAt(i: number): number {
-    return ML + (i / (n - 1 || 1)) * plotW
-  }
-  function yAt(v: number): number {
-    return MT + plotH - ((v - yMin) / yRange) * plotH
-  }
-  const y0 = yAt(0)  // par line
-
-  // Build polyline segments (break at pickups)
-  const segments: { x: number; y: number }[][] = []
-  let current: { x: number; y: number }[] = []
-  for (let i = 0; i < n; i++) {
-    const v = relScores[i]
-    if (v !== null && v !== undefined) {
-      current.push({ x: xAt(i), y: yAt(v) })
-    } else {
-      if (current.length >= 2) segments.push(current)
-      current = []
-    }
-  }
-  if (current.length >= 2) segments.push(current)
-
-  // Y-axis tick values (rounded to integers that fit the range)
-  const yTicks: number[] = []
-  for (let t = Math.ceil(yMin); t <= Math.floor(yMax); t++) {
-    yTicks.push(t)
-  }
-
-  // X labels: show every 3rd hole for 18-hole, every other for 9
-  const xLabelEvery = n <= 9 ? 2 : 3
-
-  // Dot colour by score
-  function dotFill(v: number | null): string {
-    if (v === null) return 'none'
-    if (v <= -2) return '#F59E0B'  // eagle+ → amber/gold
-    if (v === -1) return '#0D631B'  // birdie → green
-    if (v === 0) return '#72786E'   // par → grey
-    if (v === 1) return '#B45309'   // bogey → amber
-    return '#DC2626'                // double+ → red
-  }
-
-  void allowancePct  // reserved for future net chart overlay
-
-  return (
-    <svg
-      viewBox={`0 0 ${W} ${H}`}
-      width="100%"
-      aria-label="Hole-by-hole score chart"
-      style={{ display: 'block', overflow: 'visible' }}
-    >
-      {/* Par line */}
-      <line
-        x1={ML} y1={y0} x2={W - MR} y2={y0}
-        stroke="rgba(26,28,28,0.15)" strokeWidth="1" strokeDasharray="3 3"
-      />
-
-      {/* Y axis ticks + labels */}
-      {yTicks.map(t => {
-        const y = yAt(t)
-        const label = t === 0 ? 'E' : t > 0 ? `+${t}` : `${t}`
-        const isZero = t === 0
-        return (
-          <g key={t}>
-            <line x1={ML - 4} y1={y} x2={ML} y2={y} stroke="rgba(26,28,28,0.2)" strokeWidth="1" />
-            <text
-              x={ML - 6} y={y + 4}
-              textAnchor="end"
-              fontSize="9"
-              fill={isZero ? 'rgba(26,28,28,0.5)' : 'rgba(26,28,28,0.35)'}
-              fontFamily="'Manrope', sans-serif"
-              fontWeight={isZero ? '700' : '400'}
-            >{label}</text>
-          </g>
-        )
-      })}
-
-      {/* X axis labels */}
-      {holes.map((h, i) => {
-        if (i % xLabelEvery !== 0 && i !== n - 1) return null
-        return (
-          <text
-            key={h.holeInRound}
-            x={xAt(i)}
-            y={H - 4}
-            textAnchor="middle"
-            fontSize="9"
-            fill="rgba(26,28,28,0.4)"
-            fontFamily="'Lexend', sans-serif"
-          >{h.holeInRound}</text>
-        )
-      })}
-
-      {/* Line segments */}
-      {segments.map((seg, si) => (
-        <polyline
-          key={si}
-          points={seg.map(p => `${p.x},${p.y}`).join(' ')}
-          fill="none"
-          stroke="#0D631B"
-          strokeWidth="2"
-          strokeLinejoin="round"
-          strokeLinecap="round"
-          opacity="0.7"
-        />
-      ))}
-
-      {/* Dots */}
-      {holes.map((h, i) => {
-        const v = relScores[i]
-        if (v == null) return null
-        const cx = xAt(i)
-        const cy = yAt(v)
-        return (
-          <circle
-            key={h.holeInRound}
-            cx={cx} cy={cy} r="4"
-            fill={dotFill(v)}
-            stroke="#FFFFFF"
-            strokeWidth="1.5"
-          />
-        )
-      })}
-    </svg>
-  )
 }
 
 // ─── Scorecard table ───────────────────────────────────────────────────────────
@@ -973,32 +817,7 @@ export default async function RoundSummaryPage({ params }: PageProps) {
           {/* Hole-by-hole chart */}
           {!courseDataUnavailable && holesPlayed > 0 && (
             <section className="rs-card rs-chart-card">
-              <div className="rs-card-hd">Score per hole vs par</div>
-              <div className="rs-chart-legend">
-                <span className="rs-legend-dot" style={{ background: '#0D631B' }} /> Birdie
-                <span className="rs-legend-dot" style={{ background: '#72786E', marginLeft: '0.75rem' }} /> Par
-                <span className="rs-legend-dot" style={{ background: '#B45309', marginLeft: '0.75rem' }} /> Bogey
-                <span className="rs-legend-dot" style={{ background: '#DC2626', marginLeft: '0.75rem' }} /> Double+
-              </div>
-              <HoleChart holes={holes} scores={scores} allowancePct={allowancePct} />
-              <div className="rs-chart-footer">
-                {holes.map(h => {
-                  const g = scores[h.holeInRound]
-                  if (g == null) return null
-                  const d = g - h.par
-                  if (d <= -1) return (
-                    <span key={h.holeInRound} className="rs-highlight-pill green">
-                      {scoreName(g, h.par)} (H{h.holeInRound})
-                    </span>
-                  )
-                  if (d >= 2) return (
-                    <span key={h.holeInRound} className="rs-highlight-pill red">
-                      {scoreName(g, h.par)} (H{h.holeInRound})
-                    </span>
-                  )
-                  return null
-                })}
-              </div>
+              <ChartSection holes={holes} scores={scores} hcStrokes={hcStrokes} />
             </section>
           )}
 
@@ -1040,6 +859,13 @@ export default async function RoundSummaryPage({ params }: PageProps) {
                 ))}
               </div>
             </section>
+          )}
+
+          {/* Back to profile — shown when round is complete */}
+          {roundComplete && (
+            <Link href="/profile" className="rs-profile-link">
+              Back to profile
+            </Link>
           )}
 
         </main>
