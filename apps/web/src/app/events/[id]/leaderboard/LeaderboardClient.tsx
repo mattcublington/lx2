@@ -80,8 +80,6 @@ const STYLES = `
   }
 
   .lb-wrap {
-    background: var(--green-faint);
-    min-height: 100dvh;
     font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
     padding-bottom: 48px;
   }
@@ -92,8 +90,6 @@ const STYLES = `
     align-items: center;
     justify-content: space-between;
     padding: 12px 20px 4px;
-    max-width: 640px;
-    margin: 0 auto;
   }
   .lb-live-pill {
     display: flex;
@@ -127,8 +123,6 @@ const STYLES = `
   /* ── Body ── */
   .lb-body {
     padding: 8px 16px 0;
-    max-width: 640px;
-    margin: 0 auto;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -188,8 +182,8 @@ const STYLES = `
     letter-spacing: 0.01em;
   }
   .lb-rank.r1 {
-    background: linear-gradient(135deg, rgba(13,99,27,0.18) 0%, rgba(61,107,26,0.18) 100%);
-    color: var(--green-dark);
+    background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+    color: #92400E;
   }
   .lb-rank.r2 { background: rgba(26,28,28,0.07); color: #44483E; }
   .lb-rank.r3 { background: rgba(26,28,28,0.07); color: #44483E; }

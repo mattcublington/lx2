@@ -91,85 +91,131 @@ export default async function LeaderboardPage({ params }: PageProps) {
           0%, 100% { opacity: 1; transform: scale(1); }
           50%       { opacity: 0.4; transform: scale(0.75); }
         }
+        .lb-page {
+          background: #F0F4EC;
+          min-height: 100dvh;
+          max-width: 640px;
+          margin: 0 auto;
+        }
+
+        /* ── Sticky header bar (matches scoring page) ── */
+        .lb-header {
+          background: #FFFFFF;
+          padding: 0.875rem 1.25rem;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          box-shadow: 0 2px 8px rgba(26,28,28,0.04);
+          position: sticky;
+          top: 0;
+          z-index: 50;
+        }
+        .lb-back-btn {
+          width: 40px; height: 40px;
+          border-radius: 12px;
+          border: none;
+          background: transparent;
+          color: #44483E;
+          cursor: pointer;
+          display: flex; align-items: center; justify-content: center;
+          transition: background 0.2s;
+          text-decoration: none;
+          flex-shrink: 0;
+        }
+        .lb-back-btn:hover { background: rgba(26,28,28,0.05); }
+        .lb-header-title {
+          font-family: var(--font-manrope), 'Manrope', sans-serif;
+          font-weight: 700;
+          font-size: 0.9375rem;
+          color: #1A2E1A;
+          letter-spacing: -0.01em;
+        }
+        .lb-tv-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.375rem;
+          padding: 0.375rem 0.75rem;
+          border-radius: 20px;
+          border: 1.5px solid rgba(13, 99, 27, 0.25);
+          background: rgba(13, 99, 27, 0.07);
+          color: #0D631B;
+          font-family: var(--font-manrope), 'Manrope', sans-serif;
+          font-weight: 700;
+          font-size: 0.75rem;
+          letter-spacing: 0.04em;
+          cursor: pointer;
+          transition: background 0.15s, border-color 0.15s;
+          text-decoration: none;
+          flex-shrink: 0;
+        }
+        .lb-tv-btn:hover { background: rgba(13, 99, 27, 0.12); border-color: rgba(13, 99, 27, 0.4); }
+
+        /* ── Event info card ── */
+        .lb-event-card {
+          background: #FFFFFF;
+          margin: 0.75rem 1rem 0;
+          border-radius: 14px;
+          padding: 1rem 1.25rem;
+          border: 1px solid #E0EBE0;
+          box-shadow: 0 2px 8px rgba(26,28,28,0.04);
+          animation: lb-in 0.28s ease both;
+        }
+        .lb-event-name {
+          font-family: var(--font-dm-serif), 'DM Serif Display', serif;
+          font-weight: 400;
+          font-size: 1.25rem;
+          color: #1A2E1A;
+          letter-spacing: -0.02em;
+          margin: 0 0 0.375rem;
+          line-height: 1.25;
+        }
+        .lb-event-meta {
+          font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+          font-size: 0.8125rem;
+          color: #6B8C6B;
+          line-height: 1.4;
+        }
       `}</style>
 
-      {/* Sticky header */}
-      <header style={{
-        background: '#0a1f0a',
-        padding: '0 24px',
-        position: 'sticky',
-        top: 0,
-        zIndex: 40,
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-      }}>
-        <div style={{
-          maxWidth: 1200, margin: '0 auto', height: 56,
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        }}>
-          <Link
-            href={`/events/${id}`}
-            style={{
-              textDecoration: 'none', color: '#6B8C6B',
-              fontSize: '0.8125rem', fontFamily: 'var(--font-dm-sans), sans-serif',
-            }}
-          >
-            ← Event
+      <div className="lb-page">
+        {/* Sticky header — matches scoring page */}
+        <header className="lb-header">
+          <Link href={`/events/${id}`} className="lb-back-btn" aria-label="Back to event">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </Link>
-          <span style={{
-            fontFamily: 'var(--font-dm-sans), sans-serif',
-            fontWeight: 700, color: '#fff', fontSize: '1rem', letterSpacing: '-0.02em',
-          }}>
-            LX<span style={{ color: '#4ade80' }}>2</span>
-          </span>
-          <Link
-            href={`/events/${id}/leaderboard/tv`}
-            style={{
-              textDecoration: 'none', color: '#6B8C6B',
-              fontSize: '0.8125rem', fontFamily: 'var(--font-dm-sans), sans-serif',
-              display: 'flex', alignItems: 'center', gap: 4,
-            }}
-          >
-            TV ↗
+          <span className="lb-header-title">Leaderboard</span>
+          <Link href={`/events/${id}/leaderboard/tv`} className="lb-tv-btn">
+            TV
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M3 9L9 3M9 3H4.5M9 3V7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </Link>
-        </div>
-      </header>
+        </header>
 
-      {/* Event sub-header */}
-      <div style={{ background: '#0a1f0a', padding: '12px 24px 20px' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <h1 style={{
-            fontFamily: 'var(--font-dm-serif), serif',
-            fontWeight: 400,
-            fontSize: 'clamp(1.25rem, 3vw, 1.75rem)',
-            color: '#fff',
-            margin: '0 0 4px',
-            letterSpacing: '-0.02em',
-          }}>
-            {event.name}
-          </h1>
-          <div style={{
-            fontSize: '0.8125rem',
-            color: '#6B8C6B',
-            fontFamily: 'var(--font-dm-sans), sans-serif',
-          }}>
+        {/* Event info card */}
+        <div className="lb-event-card">
+          <h1 className="lb-event-name">{event.name}</h1>
+          <div className="lb-event-meta">
             {formatDate(event.date)}
-            {'\u00a0\u00b7\u00a0'}
+            {' · '}
             {FORMAT_LABEL[event.format] ?? event.format}
-            {event.courseName ? `${'\u00a0\u00b7\u00a0'}${event.courseName}` : ''}
+            {event.courseName ? ` · ${event.courseName}` : ''}
           </div>
         </div>
-      </div>
 
-      <LeaderboardClient
-        eventId={id}
-        format={event.format}
-        roundType={event.roundType}
-        allowancePct={event.allowancePct}
-        holeData={holeData}
-        initialPlayers={initialPlayers}
-        ntpHoles={event.ntpHoles}
-        ldHoles={event.ldHoles}
-      />
+        <LeaderboardClient
+          eventId={id}
+          format={event.format}
+          roundType={event.roundType}
+          allowancePct={event.allowancePct}
+          holeData={holeData}
+          initialPlayers={initialPlayers}
+          ntpHoles={event.ntpHoles}
+          ldHoles={event.ldHoles}
+        />
+      </div>
     </>
   )
 }
@@ -180,21 +226,45 @@ function ErrorPage({ title, body }: { title: string; body: string }) {
   return (
     <div style={{
       minHeight: '100dvh',
-      background: '#F2F5F0',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: 24,
+      background: '#F0F4EC',
+      maxWidth: 640,
+      margin: '0 auto',
       fontFamily: 'var(--font-dm-sans), sans-serif',
     }}>
-      <div style={{ maxWidth: 360, textAlign: 'center' }}>
-        <div style={{ fontSize: '1.125rem', fontWeight: 700, color: '#1A2E1A', marginBottom: 8 }}>
-          {title}
+      <header style={{
+        background: '#FFFFFF',
+        padding: '0.875rem 1.25rem',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        boxShadow: '0 2px 8px rgba(26,28,28,0.04)',
+      }}>
+        <span style={{
+          fontFamily: 'var(--font-manrope), sans-serif',
+          fontWeight: 700,
+          fontSize: '0.9375rem',
+          color: '#1A2E1A',
+          letterSpacing: '-0.01em',
+        }}>
+          Leaderboard
+        </span>
+      </header>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 24,
+        minHeight: 'calc(100dvh - 56px)',
+      }}>
+        <div style={{ maxWidth: 360, textAlign: 'center' }}>
+          <div style={{ fontSize: '1.125rem', fontWeight: 700, color: '#1A2E1A', marginBottom: 8 }}>
+            {title}
+          </div>
+          <div
+            style={{ fontSize: '0.875rem', color: '#6B8C6B', lineHeight: 1.6 }}
+            dangerouslySetInnerHTML={{ __html: body }}
+          />
         </div>
-        <div
-          style={{ fontSize: '0.875rem', color: '#6B8C6B', lineHeight: 1.6 }}
-          dangerouslySetInnerHTML={{ __html: body }}
-        />
       </div>
     </div>
   )
