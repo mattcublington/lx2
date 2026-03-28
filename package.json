@@ -12,7 +12,8 @@
     "lint": "turbo lint",
     "test": "turbo test",
     "type-check": "turbo type-check",
-    "format": "prettier --write \"**/*.{ts,tsx,md,json}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "generate:courses": "npx tsx scripts/generate-courses.ts"
   },
   "devDependencies": {
     "prettier": "^3.3.3",

@@ -1,0 +1,95 @@
+{
+  "club": "Royal Canberra Golf Club",
+  "location": "Yarralumla, ACT",
+  "country": "Australia",
+  "continent": "Oceania",
+  "_comment": "27-hole facility. Three 9-hole loops: A (native holes 1–9), B (native holes 10–18), C (native holes 19–27). Three 18-hole courses: Westbourne (A+B), Yarralumla (B+C), Brindabella (C+A). Source: royal_canberra_scorecards (1).json (updated March 2026). USGA ratings (2016) via club records. SI values are combination-specific (B-loop SI missing from MiClub source when played as front 9 in Yarralumla). yards = White tee; metres = men's distances from club website.",
+  "loops": {
+    "a": {
+      "_comment": "Native holes 1–9. SI values below are from the Westbourne combination (A as front 9).",
+      "holes": [
+        { "par": 5, "si": 11, "yards": 492, "metres": 506 },
+        { "par": 4, "si": 7,  "yards": 343, "metres": 355 },
+        { "par": 3, "si": 5,  "yards": 186, "metres": 200 },
+        { "par": 4, "si": 13, "yards": 460, "metres": 425 },
+        { "par": 4, "si": 9,  "yards": 338, "metres": 364 },
+        { "par": 5, "si": 1,  "yards": 422, "metres": 489 },
+        { "par": 4, "si": 15, "yards": 280, "metres": 289 },
+        { "par": 3, "si": 17, "yards": 138, "metres": 149 },
+        { "par": 4, "si": 3,  "yards": 375, "metres": 392 }
+      ]
+    },
+    "b": {
+      "_comment": "Native holes 10–18. SI = 0 throughout: data missing from MiClub source for this loop.",
+      "holes": [
+        { "par": 4, "si": 0, "yards": 366, "metres": 371 },
+        { "par": 4, "si": 0, "yards": 341, "metres": 352 },
+        { "par": 4, "si": 0, "yards": 370, "metres": 358 },
+        { "par": 3, "si": 0, "yards": 170, "metres": 173 },
+        { "par": 4, "si": 0, "yards": 380, "metres": 399 },
+        { "par": 5, "si": 0, "yards": 428, "metres": 449 },
+        { "par": 4, "si": 0, "yards": 387, "metres": 410 },
+        { "par": 3, "si": 0, "yards": 166, "metres": 217 },
+        { "par": 5, "si": 0, "yards": 485, "metres": 502 }
+      ]
+    },
+    "c": {
+      "_comment": "Native holes 19–27. SI values below are from the Yarralumla combination (C as back 9).",
+      "holes": [
+        { "par": 4, "si": 7,  "yards": 361, "metres": 380 },
+        { "par": 3, "si": 15, "yards": 145, "metres": 168 },
+        { "par": 4, "si": 17, "yards": 273, "metres": 284 },
+        { "par": 4, "si": 3,  "yards": 338, "metres": 362 },
+        { "par": 4, "si": 1,  "yards": 381, "metres": 405 },
+        { "par": 5, "si": 11, "yards": 477, "metres": 506 },
+        { "par": 4, "si": 5,  "yards": 321, "metres": 361 },
+        { "par": 3, "si": 13, "yards": 152, "metres": 162 },
+        { "par": 5, "si": 9,  "yards": 465, "metres": 480 }
+      ]
+    }
+  },
+  "combinations": [
+    {
+      "id": "royal-canberra-westbourne",
+      "name": "Royal Canberra — Westbourne",
+      "front": "a", "back": "b",
+      "par": 72,
+      "tees": ["Blue", "White", "Red"],
+      "defaultRatingTee": "White",
+      "slopeRating": 121, "courseRating": 71.6,
+      "teeRatings": {
+        "Blue":  { "slopeRating": 123, "courseRating": 73.1 },
+        "White": { "slopeRating": 121, "courseRating": 71.6 }
+      },
+      "backSI": [8, 16, 2, 12, 4, 18, 6, 14, 10]
+    },
+    {
+      "id": "royal-canberra-yarralumla",
+      "name": "Royal Canberra — Yarralumla",
+      "_comment": "Front 9 (B loop) SI missing from MiClub source (si: 0).",
+      "front": "b", "back": "c",
+      "par": 72,
+      "tees": ["Blue", "White", "Red"],
+      "defaultRatingTee": "White",
+      "slopeRating": 127, "courseRating": 71.8,
+      "teeRatings": {
+        "Blue":  { "slopeRating": 131, "courseRating": 73.6 },
+        "White": { "slopeRating": 127, "courseRating": 71.8 }
+      }
+    },
+    {
+      "id": "royal-canberra-brindabella",
+      "name": "Royal Canberra — Brindabella",
+      "front": "c", "back": "a",
+      "par": 72,
+      "tees": ["Blue", "White", "Red"],
+      "defaultRatingTee": "White",
+      "slopeRating": 127, "courseRating": 71.0,
+      "teeRatings": {
+        "Blue":  { "slopeRating": 131, "courseRating": 72.9 },
+        "White": { "slopeRating": 127, "courseRating": 71.0 }
+      },
+      "backSI": [12, 10, 8, 14, 6, 2, 18, 16, 4]
+    }
+  ]
+}

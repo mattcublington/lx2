@@ -1,0 +1,219 @@
+{
+  "club": "Cumberwell Park",
+  "location": "Bradford-on-Avon, Wiltshire",
+  "country": "England",
+  "continent": "Europe",
+  "_comment": "27-hole facility with six 9-hole loops: Red, Blue, Orange, Yellow, White, Par3. Stroke indices are consistent per loop regardless of combination. Source: cumberwell_scorecards_v3.json (March 2026) + USGA NCRDB (CourseIDs 22312–22317).",
+  "loops": {
+    "red": {
+      "holes": [
+        { "par": 4, "si": 9,  "yards": 380 },
+        { "par": 4, "si": 5,  "yards": 432 },
+        { "par": 3, "si": 17, "yards": 142 },
+        { "par": 4, "si": 11, "yards": 376 },
+        { "par": 4, "si": 13, "yards": 318 },
+        { "par": 4, "si": 3,  "yards": 390 },
+        { "par": 3, "si": 15, "yards": 132 },
+        { "par": 4, "si": 1,  "yards": 397 },
+        { "par": 5, "si": 7,  "yards": 561 }
+      ]
+    },
+    "blue": {
+      "holes": [
+        { "par": 5, "si": 5,  "yards": 526 },
+        { "par": 4, "si": 1,  "yards": 396 },
+        { "par": 4, "si": 15, "yards": 331 },
+        { "par": 4, "si": 13, "yards": 306 },
+        { "par": 4, "si": 3,  "yards": 383 },
+        { "par": 3, "si": 17, "yards": 135 },
+        { "par": 4, "si": 7,  "yards": 391 },
+        { "par": 3, "si": 9,  "yards": 172 },
+        { "par": 5, "si": 11, "yards": 440 }
+      ]
+    },
+    "orange": {
+      "holes": [
+        { "par": 4, "si": 18, "yards": 285 },
+        { "par": 4, "si": 10, "yards": 380 },
+        { "par": 4, "si": 6,  "yards": 432 },
+        { "par": 3, "si": 16, "yards": 142 },
+        { "par": 4, "si": 12, "yards": 376 },
+        { "par": 4, "si": 14, "yards": 318 },
+        { "par": 4, "si": 4,  "yards": 390 },
+        { "par": 3, "si": 8,  "yards": 132 },
+        { "par": 5, "si": 2,  "yards": 397 }
+      ]
+    },
+    "yellow": {
+      "holes": [
+        { "par": 4, "si": 18, "yards": 285 },
+        { "par": 5, "si": 10, "yards": 478 },
+        { "par": 5, "si": 6,  "yards": 492 },
+        { "par": 3, "si": 16, "yards": 164 },
+        { "par": 4, "si": 4,  "yards": 356 },
+        { "par": 4, "si": 2,  "yards": 450 },
+        { "par": 3, "si": 12, "yards": 144 },
+        { "par": 4, "si": 14, "yards": 283 },
+        { "par": 4, "si": 8,  "yards": 343 }
+      ]
+    },
+    "white": {
+      "_comment": "Shorter loop. No Yellow tee — Green used as defaultRatingTee. WHS (Green/M): CR 68.2, Slope 111.",
+      "holes": [
+        { "par": 4, "si": 15, "yards": 267 },
+        { "par": 5, "si": 3,  "yards": 477 },
+        { "par": 4, "si": 7,  "yards": 380 },
+        { "par": 3, "si": 11, "yards": 179 },
+        { "par": 4, "si": 9,  "yards": 347 },
+        { "par": 4, "si": 1,  "yards": 465 },
+        { "par": 4, "si": 13, "yards": 306 },
+        { "par": 4, "si": 5,  "yards": 355 },
+        { "par": 3, "si": 17, "yards": 159 }
+      ]
+    },
+    "par3": {
+      "_comment": "All-par-3 loop. No WHS data. SI = hole number (sequential). Purple/Orange/Blue tees only.",
+      "holes": [
+        { "par": 3, "si": 1, "yards": 109 },
+        { "par": 3, "si": 2, "yards": 165 },
+        { "par": 3, "si": 3, "yards": 141 },
+        { "par": 3, "si": 4, "yards": 186 },
+        { "par": 3, "si": 5, "yards": 180 },
+        { "par": 3, "si": 6, "yards": 164 },
+        { "par": 3, "si": 7, "yards": 172 },
+        { "par": 3, "si": 8, "yards": 144 },
+        { "par": 3, "si": 9, "yards": 150 }
+      ]
+    }
+  },
+  "combinations": [
+    {
+      "id": "cumberwell-red-yellow",
+      "name": "Cumberwell Park — Red/Yellow",
+      "front": "red", "back": "yellow",
+      "par": 71,
+      "tees": ["Green", "White", "Yellow/Purple", "Red/Black"],
+      "defaultRatingTee": "Yellow/Purple",
+      "slopeRating": 126, "courseRating": 71.0
+    },
+    {
+      "id": "cumberwell-yellow-red",
+      "name": "Cumberwell Park — Yellow/Red",
+      "front": "yellow", "back": "red",
+      "par": 71,
+      "tees": ["Green", "White", "Yellow/Purple", "Red/Black"],
+      "defaultRatingTee": "Yellow/Purple",
+      "slopeRating": 126, "courseRating": 71.0
+    },
+    {
+      "id": "cumberwell-blue-orange",
+      "name": "Cumberwell Park — Blue/Orange",
+      "front": "blue", "back": "orange",
+      "par": 71,
+      "tees": ["Green", "White", "Yellow/Purple", "Red/Black"],
+      "defaultRatingTee": "Yellow/Purple",
+      "slopeRating": 125, "courseRating": 71.5
+    },
+    {
+      "id": "cumberwell-orange-blue",
+      "name": "Cumberwell Park — Orange/Blue",
+      "front": "orange", "back": "blue",
+      "par": 71,
+      "tees": ["Green", "White", "Yellow/Purple", "Red/Black"],
+      "defaultRatingTee": "Yellow/Purple",
+      "slopeRating": 125, "courseRating": 71.5
+    },
+    {
+      "id": "cumberwell-red-blue",
+      "name": "Cumberwell Park — Red/Blue",
+      "front": "red", "back": "blue",
+      "par": 71,
+      "tees": ["Green", "White", "Yellow/Purple", "Red/Black"],
+      "defaultRatingTee": "Yellow/Purple",
+      "slopeRating": 126, "courseRating": 72.5
+    },
+    {
+      "id": "cumberwell-blue-red",
+      "name": "Cumberwell Park — Blue/Red",
+      "front": "blue", "back": "red",
+      "par": 71,
+      "tees": ["Green", "White", "Yellow/Purple", "Red/Black"],
+      "defaultRatingTee": "Yellow/Purple",
+      "slopeRating": 126, "courseRating": 72.5
+    },
+    {
+      "id": "cumberwell-blue-yellow",
+      "name": "Cumberwell Park — Blue/Yellow",
+      "front": "blue", "back": "yellow",
+      "par": 72,
+      "tees": ["Green", "White", "Yellow/Purple", "Red/Black"],
+      "defaultRatingTee": "Yellow/Purple",
+      "slopeRating": 129, "courseRating": 71.5
+    },
+    {
+      "id": "cumberwell-yellow-blue",
+      "name": "Cumberwell Park — Yellow/Blue",
+      "front": "yellow", "back": "blue",
+      "par": 72,
+      "tees": ["Green", "White", "Yellow/Purple", "Red/Black"],
+      "defaultRatingTee": "Yellow/Purple",
+      "slopeRating": 129, "courseRating": 71.5
+    },
+    {
+      "id": "cumberwell-orange-yellow",
+      "name": "Cumberwell Park — Orange/Yellow",
+      "front": "orange", "back": "yellow",
+      "par": 71,
+      "tees": ["Green", "White", "Yellow/Purple", "Red/Black"],
+      "defaultRatingTee": "Yellow/Purple",
+      "slopeRating": 125, "courseRating": 70.0
+    },
+    {
+      "id": "cumberwell-yellow-orange",
+      "name": "Cumberwell Park — Yellow/Orange",
+      "front": "yellow", "back": "orange",
+      "par": 71,
+      "tees": ["Green", "White", "Yellow/Purple", "Red/Black"],
+      "defaultRatingTee": "Yellow/Purple",
+      "slopeRating": 125, "courseRating": 70.0
+    },
+    {
+      "id": "cumberwell-red-orange",
+      "name": "Cumberwell Park — Red/Orange",
+      "front": "red", "back": "orange",
+      "par": 71,
+      "tees": ["Green", "White", "Yellow/Purple", "Red/Black"],
+      "defaultRatingTee": "Yellow/Purple",
+      "slopeRating": 122, "courseRating": 71.0
+    },
+    {
+      "id": "cumberwell-orange-red",
+      "name": "Cumberwell Park — Orange/Red",
+      "front": "orange", "back": "red",
+      "par": 71,
+      "tees": ["Green", "White", "Yellow/Purple", "Red/Black"],
+      "defaultRatingTee": "Yellow/Purple",
+      "slopeRating": 122, "courseRating": 71.0
+    },
+    {
+      "id": "cumberwell-white-white",
+      "name": "Cumberwell Park — White/White",
+      "_comment": "White loop played twice. No Yellow tee available. WHS (Green/M): CR 68.2, Slope 111.",
+      "front": "white", "back": "white",
+      "par": 70,
+      "tees": ["Green", "White", "Yellow/Purple", "Red/Black"],
+      "defaultRatingTee": "Green",
+      "slopeRating": 111, "courseRating": 68.2
+    },
+    {
+      "id": "cumberwell-par3-par3",
+      "name": "Cumberwell Park — Par 3/Par 3",
+      "_comment": "Par 3 loop played twice. No WHS data. SI = hole number.",
+      "front": "par3", "back": "par3",
+      "par": 54,
+      "tees": ["Purple", "Orange", "Blue"],
+      "defaultRatingTee": "",
+      "slopeRating": 0, "courseRating": 0
+    }
+  ]
+}

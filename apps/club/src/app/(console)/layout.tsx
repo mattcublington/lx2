@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { href: '/teesheet',        label: 'Tee Sheet',     icon: '⛳' },
   { href: '/members',         label: 'Members',       icon: '👥' },
   { href: '/competitions',    label: 'Competitions',  icon: '🏆' },
+  { href: '/courses',         label: 'Courses',       icon: '🗺' },
   { href: '/teesheet/config', label: 'Sheet Config',  icon: '⚙' },
 ]
 
