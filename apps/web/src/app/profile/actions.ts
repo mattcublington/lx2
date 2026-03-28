@@ -12,12 +12,11 @@ export async function updateProfile(data: {
 
   const { error } = await supabase
     .from('users')
-    .upsert({
-      id: user.id,
-      email: user.email!,
+    .update({
       display_name: data.displayName.trim() || user.email!.split('@')[0],
       ...(data.handicapIndex !== null ? { handicap_index: data.handicapIndex } : {}),
-    }, { onConflict: 'id', ignoreDuplicates: false })
+    })
+    .eq('id', user.id)
 
   if (error) return { ok: false, error: error.message }
   revalidatePath('/play')
@@ -34,7 +33,8 @@ export async function updateDistanceUnit(
 
   const { error } = await supabase
     .from('users')
-    .upsert({ id: user.id, email: user.email!, distance_unit: distanceUnit }, { onConflict: 'id', ignoreDuplicates: false })
+    .update({ distance_unit: distanceUnit })
+    .eq('id', user.id)
 
   if (error) return { ok: false, error: error.message }
   revalidatePath('/profile')
@@ -50,7 +50,8 @@ export async function updateAvatarUrl(
 
   const { error } = await supabase
     .from('users')
-    .upsert({ id: user.id, email: user.email!, avatar_url: avatarUrl }, { onConflict: 'id', ignoreDuplicates: false })
+    .update({ avatar_url: avatarUrl })
+    .eq('id', user.id)
 
   if (error) return { ok: false, error: error.message }
   revalidatePath('/play')
