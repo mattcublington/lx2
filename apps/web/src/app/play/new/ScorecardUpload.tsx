@@ -92,6 +92,8 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
 
   const handleUpload = async () => {
     if (!file) return
+    if (!clubName.trim()) { setError('Please enter the club name'); return }
+    if (!courseName.trim()) { setError('Please enter the course name'); return }
     setError('')
     setPhase('uploading')
 
@@ -158,7 +160,7 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
         {/* Club name */}
         <label style={{ display: 'block', marginBottom: '1rem' }}>
           <span style={{ fontFamily: font.body, fontSize: 14, fontWeight: 500, color: FE.onPrimary, display: 'block', marginBottom: '0.375rem' }}>
-            Club name
+            Club name <span style={{ color: '#dc2626' }}>*</span>
           </span>
           <input
             type="text"
@@ -178,7 +180,7 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
         {/* Course name */}
         <label style={{ display: 'block', marginBottom: '1rem' }}>
           <span style={{ fontFamily: font.body, fontSize: 14, fontWeight: 500, color: FE.onPrimary, display: 'block', marginBottom: '0.375rem' }}>
-            Course name
+            Course name <span style={{ color: '#dc2626' }}>*</span>
           </span>
           <input
             type="text"
@@ -293,15 +295,15 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
 
         <button
           onClick={handleUpload}
-          disabled={!file}
+          disabled={!file || !clubName.trim() || !courseName.trim()}
           style={{
             width: '100%', padding: '1.125rem', marginTop: '1.5rem',
-            background: !file ? 'rgba(26,28,28,0.12)' : FE.gradientGreen,
-            color: !file ? FE.onTertiary : FE.white,
+            background: (!file || !clubName.trim() || !courseName.trim()) ? 'rgba(26,28,28,0.12)' : FE.gradientGreen,
+            color: (!file || !clubName.trim() || !courseName.trim()) ? FE.onTertiary : FE.white,
             border: 'none', borderRadius: 16,
             fontFamily: font.display, fontWeight: 700, fontSize: 16,
-            cursor: !file ? 'default' : 'pointer',
-            boxShadow: !file ? 'none' : '0 8px 24px rgba(13, 99, 27, 0.15)',
+            cursor: (!file || !clubName.trim() || !courseName.trim()) ? 'default' : 'pointer',
+            boxShadow: (!file || !clubName.trim() || !courseName.trim()) ? 'none' : '0 8px 24px rgba(13, 99, 27, 0.15)',
             transition: 'all 0.2s ease-in-out',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
           }}
