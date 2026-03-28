@@ -352,85 +352,154 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
     )
   }
 
-  // ── Review phase ───────────────────────────────────────────────────────────
+  // ── Review phase (editable) ────────────────────────────────────────────────
 
   if (!extractedData || !uploadId) return null
+
+  // Editing helpers — mutate extractedData in-place (state object)
+  const updateCourseName = (val: string) => {
+    setExtractedData({ ...extractedData, courseName: val.slice(0, 100) })
+  }
+  const updateClubName = (val: string) => {
+    setExtractedData({ ...extractedData, clubName: val.slice(0, 100) })
+  }
+  const updateTeeRating = (teeIdx: number, field: 'courseRating' | 'slopeRating', val: string) => {
+    const num = val === '' ? null : parseFloat(val)
+    if (num !== null && isNaN(num)) return
+    const tees = [...extractedData.tees]
+    tees[teeIdx] = { ...tees[teeIdx]!, [field]: num }
+    setExtractedData({ ...extractedData, tees })
+  }
+  const updateHole = (teeIdx: number, holeIdx: number, field: 'par' | 'si' | 'yards', val: string) => {
+    const num = parseInt(val, 10)
+    if (isNaN(num) || num < 0) return
+    // Clamp values to sensible ranges
+    const clamped = field === 'par' ? Math.min(num, 7)
+      : field === 'si' ? Math.min(num, 18)
+      : Math.min(num, 700)
+    const tees = [...extractedData.tees]
+    const holes = [...tees[teeIdx]!.holes]
+    holes[holeIdx] = { ...holes[holeIdx]!, [field]: clamped }
+    tees[teeIdx] = { ...tees[teeIdx]!, holes }
+    // Recalculate total par for this tee
+    tees[teeIdx] = { ...tees[teeIdx]!, par: holes.reduce((s, h) => s + h.par, 0) }
+    setExtractedData({ ...extractedData, tees })
+  }
+
+  const inputStyle = {
+    fontFamily: font.body, fontSize: 15, color: FE.onPrimary,
+    background: FE.sageBg, border: FE.borderGhost, borderRadius: 10,
+    padding: '0.625rem 0.75rem', width: '100%', outline: 'none',
+    boxSizing: 'border-box' as const,
+  }
+  const smallInputStyle = {
+    ...inputStyle, fontSize: 12, padding: '0.375rem 0.25rem',
+    textAlign: 'center' as const, width: '100%',
+  }
+  const labelStyle = {
+    fontFamily: font.body, fontSize: 12, fontWeight: 500 as const,
+    color: FE.onTertiary, display: 'block', marginBottom: '0.25rem',
+  }
 
   return (
     <div style={{ padding: '1.25rem', paddingBottom: 100 }}>
       <div style={{ marginBottom: '1.5rem' }}>
         <h2 style={{ margin: 0, fontFamily: font.display, fontWeight: 700, fontSize: 22, color: FE.forestPrimary, marginBottom: '0.25rem' }}>
-          Check the details
+          Check &amp; edit
         </h2>
         <p style={{ margin: 0, fontFamily: font.body, fontSize: 14, color: FE.onTertiary }}>
-          Review what we extracted from the scorecard
+          Tap any value to correct it
         </p>
       </div>
 
-      {/* Course summary card */}
+      {/* Editable course summary */}
       <div style={{
         background: FE.white, borderRadius: 16, padding: '1.25rem',
         boxShadow: FE.shadowFloat, marginBottom: '1rem',
         borderLeft: `4px solid ${FE.greenDark}`,
       }}>
-        <div style={{ fontFamily: font.display, fontWeight: 700, fontSize: 18, color: FE.onPrimary, marginBottom: '0.25rem' }}>
-          {extractedData.courseName}
-        </div>
-        <div style={{ fontFamily: font.body, fontSize: 14, color: FE.onTertiary }}>
-          {extractedData.clubName}
-          {extractedData.location ? ` \u00B7 ${extractedData.location}` : ''}
-        </div>
+        <label style={{ display: 'block', marginBottom: '0.75rem' }}>
+          <span style={labelStyle}>Course name</span>
+          <input type="text" value={extractedData.courseName} onChange={e => updateCourseName(e.target.value)}
+            maxLength={100} style={inputStyle} />
+        </label>
+        <label style={{ display: 'block' }}>
+          <span style={labelStyle}>Club name</span>
+          <input type="text" value={extractedData.clubName} onChange={e => updateClubName(e.target.value)}
+            maxLength={100} style={inputStyle} />
+        </label>
       </div>
 
-      {/* Tee details */}
-      {extractedData.tees.map((tee: ExtractedTee, i: number) => (
-        <div key={i} style={{
+      {/* Editable tee details */}
+      {extractedData.tees.map((tee: ExtractedTee, ti: number) => (
+        <div key={ti} style={{
           background: FE.white, borderRadius: 16, padding: '1rem',
           boxShadow: FE.shadowFloat, marginBottom: '0.75rem',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
             <TeeSwatch colour={tee.teeColour} />
-            <div>
+            <div style={{ flex: 1 }}>
               <div style={{ fontFamily: font.display, fontWeight: 600, fontSize: 16, color: FE.onPrimary }}>
                 {tee.teeName} tees
               </div>
               <div style={{ fontFamily: font.body, fontSize: 13, color: FE.onTertiary }}>
-                {tee.holes.length} holes
-                {tee.par ? ` \u00B7 Par ${tee.par}` : ''}
-                {tee.courseRating ? ` \u00B7 CR ${tee.courseRating}` : ''}
-                {tee.slopeRating ? ` \u00B7 Slope ${tee.slopeRating}` : ''}
+                {tee.holes.length} holes · Par {tee.par ?? '–'}
               </div>
             </div>
           </div>
 
-          {/* Compact hole grid */}
-          <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(9, 1fr)', gap: 2,
-            fontSize: 11, fontFamily: font.body, textAlign: 'center',
-          }}>
-            {tee.holes.slice(0, 9).map(h => (
-              <div key={h.hole} style={{ padding: '0.25rem 0' }}>
-                <div style={{ color: FE.onTertiary, fontWeight: 400 }}>{h.hole}</div>
-                <div style={{ color: FE.onPrimary, fontWeight: 600 }}>{h.par}</div>
-                <div style={{ color: FE.onTertiary }}>{h.yards}y</div>
-              </div>
-            ))}
+          {/* CR / Slope inline editors */}
+          <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem' }}>
+            <label style={{ flex: 1 }}>
+              <span style={labelStyle}>Course rating</span>
+              <input type="number" inputMode="decimal" step="0.1" min="50" max="90"
+                value={tee.courseRating ?? ''} onChange={e => updateTeeRating(ti, 'courseRating', e.target.value)}
+                placeholder="e.g. 71.2" style={inputStyle} />
+            </label>
+            <label style={{ flex: 1 }}>
+              <span style={labelStyle}>Slope rating</span>
+              <input type="number" inputMode="numeric" min="55" max="155"
+                value={tee.slopeRating ?? ''} onChange={e => updateTeeRating(ti, 'slopeRating', e.target.value)}
+                placeholder="e.g. 128" style={inputStyle} />
+            </label>
           </div>
-          {tee.holes.length > 9 && (
-            <div style={{
-              display: 'grid', gridTemplateColumns: 'repeat(9, 1fr)', gap: 2,
-              fontSize: 11, fontFamily: font.body, textAlign: 'center', marginTop: 4,
-              borderTop: FE.borderGhost, paddingTop: 4,
+
+          {/* Editable hole grid */}
+          {[tee.holes.slice(0, 9), tee.holes.slice(9, 18)].filter(g => g.length > 0).map((group, gi) => (
+            <div key={gi} style={{
+              display: 'grid', gridTemplateColumns: 'repeat(9, 1fr)', gap: 3,
+              fontSize: 11, fontFamily: font.body, textAlign: 'center',
+              ...(gi > 0 ? { marginTop: 6, borderTop: FE.borderGhost, paddingTop: 6 } : {}),
             }}>
-              {tee.holes.slice(9, 18).map(h => (
-                <div key={h.hole} style={{ padding: '0.25rem 0' }}>
-                  <div style={{ color: FE.onTertiary, fontWeight: 400 }}>{h.hole}</div>
-                  <div style={{ color: FE.onPrimary, fontWeight: 600 }}>{h.par}</div>
-                  <div style={{ color: FE.onTertiary }}>{h.yards}y</div>
-                </div>
-              ))}
+              {group.map((h, hi) => {
+                const holeIdx = gi * 9 + hi
+                return (
+                  <div key={h.hole}>
+                    <div style={{ color: FE.onTertiary, fontWeight: 400, marginBottom: 2 }}>{h.hole}</div>
+                    <input type="number" inputMode="numeric" min={3} max={7}
+                      value={h.par} onChange={e => updateHole(ti, holeIdx, 'par', e.target.value)}
+                      aria-label={`Hole ${h.hole} par`}
+                      style={{ ...smallInputStyle, fontWeight: 600 }} />
+                    <input type="number" inputMode="numeric" min={1} max={18}
+                      value={h.si} onChange={e => updateHole(ti, holeIdx, 'si', e.target.value)}
+                      aria-label={`Hole ${h.hole} stroke index`}
+                      style={{ ...smallInputStyle, color: FE.onTertiary, marginTop: 2 }} />
+                    <input type="number" inputMode="numeric" min={50} max={700}
+                      value={h.yards} onChange={e => updateHole(ti, holeIdx, 'yards', e.target.value)}
+                      aria-label={`Hole ${h.hole} yards`}
+                      style={{ ...smallInputStyle, color: FE.onTertiary, marginTop: 2 }} />
+                  </div>
+                )
+              })}
             </div>
-          )}
+          ))}
+
+          {/* Grid legend */}
+          <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', fontFamily: font.body, fontSize: 10, color: FE.onTertiary }}>
+            <span>Top = par</span>
+            <span>Middle = SI</span>
+            <span>Bottom = yards</span>
+          </div>
         </div>
       ))}
 
