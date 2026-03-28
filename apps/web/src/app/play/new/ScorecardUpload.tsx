@@ -79,6 +79,7 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
   const [extractedData, setExtractedData] = useState<ExtractedCourseData | null>(null)
   const [uploadId, setUploadId] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const courseNameRef = useRef<HTMLInputElement>(null)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]
@@ -168,6 +169,8 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
             onChange={e => setClubName(e.target.value)}
             placeholder="e.g. Cumberwell Park Golf Club"
             maxLength={100}
+            enterKeyHint="next"
+            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); courseNameRef.current?.focus() } }}
             style={{
               width: '100%', padding: '0.875rem 1rem',
               background: FE.white, border: FE.borderGhost, borderRadius: 12,
@@ -183,11 +186,14 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
             Course name <span style={{ color: '#dc2626' }}>*</span>
           </span>
           <input
+            ref={courseNameRef}
             type="text"
             value={courseName}
             onChange={e => setCourseName(e.target.value)}
             placeholder="e.g. Red Course"
             maxLength={100}
+            enterKeyHint="done"
+            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); (e.target as HTMLInputElement).blur() } }}
             style={{
               width: '100%', padding: '0.875rem 1rem',
               background: FE.white, border: FE.borderGhost, borderRadius: 12,
