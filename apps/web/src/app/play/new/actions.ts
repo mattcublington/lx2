@@ -19,6 +19,17 @@ interface StartRoundPlayer {
   isUser: boolean
 }
 
+// Data for OCR-uploaded courses (not in static courses.ts)
+interface UploadedCourseData {
+  name: string
+  club: string
+  location: string
+  par: number
+  slopeRating: number
+  courseRating: number
+  holesCount: number
+}
+
 interface StartRoundData {
   courseId: string           // courses.ts id, e.g. 'cumberwell-red-yellow'
   dbCombinationId: string | null
@@ -34,6 +45,8 @@ interface StartRoundData {
   inviteLink?: boolean       // open invite link mode
   groupSize?: number         // 2 | 3 | 4, default 4
   entryFeePence?: number | null
+  // OCR-uploaded course (when courseId starts with 'upload-')
+  uploadedCourse?: UploadedCourseData
 }
 
 export async function startRound(data: StartRoundData): Promise<string> {
@@ -43,9 +56,20 @@ export async function startRound(data: StartRoundData): Promise<string> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
 
-  // 2. Get course data from courses.ts (sync — no DB call)
-  const course = getCourse(data.courseId)
-  if (!course) throw new Error(`Course not found: ${data.courseId}`)
+  // 2. Resolve course — either from static courses.ts or from OCR upload
+  const isUploadedCourse = data.courseId.startsWith('upload-')
+  const course = isUploadedCourse ? null : getCourse(data.courseId)
+  if (!isUploadedCourse && !course) throw new Error(`Course not found: ${data.courseId}`)
+
+  const courseName = isUploadedCourse ? data.uploadedCourse?.name : course!.name
+  const courseClub = isUploadedCourse ? data.uploadedCourse?.club : course!.club
+  const courseLocation = isUploadedCourse ? (data.uploadedCourse?.location ?? '') : course!.location
+  const courseHolesCount = isUploadedCourse ? (data.uploadedCourse?.holesCount ?? 18) : course!.holes.length
+  const courseSlopeRating = isUploadedCourse ? (data.uploadedCourse?.slopeRating ?? 113) : course!.slopeRating
+  const courseCourseRating = isUploadedCourse ? (data.uploadedCourse?.courseRating ?? 72) : course!.courseRating
+  const coursePar = isUploadedCourse ? (data.uploadedCourse?.par ?? 72) : course!.par
+
+  if (!courseName) throw new Error('Course name is required')
 
   // 3. Parallelise: upsert user row + look up course DB id
   // Uses service_role: public.users has no INSERT policy (writes are
@@ -65,14 +89,12 @@ export async function startRound(data: StartRoundData): Promise<string> {
     supabase
       .from('courses')
       .select('id')
-      .eq('name', course.name)
+      .eq('name', courseName)
       .maybeSingle()
       .then(r => r.data),
   ])
 
   // 4. Create course row only if it doesn't exist yet
-  // INSERT uses the admin client — course records come from verified static
-  // data in courses.ts, so service_role is appropriate here server-side.
   let courseDbId: string
 
   if (existingCourse) {
@@ -81,15 +103,15 @@ export async function startRound(data: StartRoundData): Promise<string> {
     const { data: newCourse, error: courseErr } = await admin
       .from('courses')
       .insert({
-        name: course.name,
-        club: course.club,
-        location: course.location,
-        holes_count: course.holes.length,
-        slope_rating: course.slopeRating,
-        course_rating: course.courseRating,
-        par: course.par,
-        source: 'manual',
-        verified: true,
+        name: courseName,
+        club: courseClub,
+        location: courseLocation,
+        holes_count: courseHolesCount,
+        slope_rating: courseSlopeRating,
+        course_rating: courseCourseRating,
+        par: coursePar,
+        source: isUploadedCourse ? 'ocr' : 'manual',
+        verified: !isUploadedCourse,
       })
       .select('id')
       .single()
@@ -101,7 +123,7 @@ export async function startRound(data: StartRoundData): Promise<string> {
   }
 
   // 5. Auto-generate event name: "{combo} · {format} · {date}"
-  const shortCombo = course.name.split('—').pop()?.trim() ?? course.name
+  const shortCombo = courseName.split('—').pop()?.trim() ?? courseName
   const formatLabel =
     data.format === 'stableford' ? 'Stableford'
     : data.format === 'strokeplay' ? 'Stroke Play'

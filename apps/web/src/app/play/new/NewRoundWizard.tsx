@@ -1378,7 +1378,7 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
   })
 
   // Uploaded courses from scorecard OCR (temporary, session-only)
-  const [, setUploadedCourses] = useState<Course[]>([])
+  const [uploadedCourses, setUploadedCourses] = useState<Course[]>([])
 
   const update = (partial: Partial<WizardState>) => setState(s => ({ ...s, ...partial }))
 
@@ -1480,6 +1480,11 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
           ? Math.round(parseFloat(state.entryFeeStr) * 100)
           : null
 
+        // If this is an OCR-uploaded course, pass the course data to the server
+        const uploadedCourse = state.courseId.startsWith('upload-')
+          ? uploadedCourses.find(c => c.id === state.courseId)
+          : null
+
         const url = await startRound({
           courseId: state.courseId,
           dbCombinationId: state.dbCombinationId,
@@ -1494,6 +1499,17 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
           inviteLink: state.inviteLink,
           groupSize: state.groupSize,
           entryFeePence: entryFeePence && entryFeePence > 0 ? entryFeePence : null,
+          ...(uploadedCourse ? {
+            uploadedCourse: {
+              name: uploadedCourse.name,
+              club: uploadedCourse.club,
+              location: uploadedCourse.location,
+              par: uploadedCourse.par,
+              slopeRating: uploadedCourse.slopeRating,
+              courseRating: uploadedCourse.courseRating,
+              holesCount: uploadedCourse.holes.length,
+            },
+          } : {}),
         })
         router.push(url)
       } catch (err) {
