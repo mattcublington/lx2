@@ -2,7 +2,10 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { COURSES, getCourse } from '@/lib/courses'
+import type { Course, CourseHole } from '@/lib/courses'
 import { startRound, searchUsers } from './actions'
+import ScorecardUpload from './ScorecardUpload'
+import type { ExtractedCourseData } from '@/lib/scorecard-ocr'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -30,7 +33,7 @@ interface Props {
   combinationTees: CombinationTee[]
 }
 
-type Step = 'venue' | 'players' | 'combination' | 'settings'
+type Step = 'venue' | 'scorecard-upload' | 'players' | 'combination' | 'settings'
 
 interface Player {
   name: string
@@ -167,7 +170,7 @@ const FIRST_COURSE = COURSES[0]!.id
 
 // Step order for stepper: Course=0, Players=1, Settings=2
 function stepIndex(step: Step): number {
-  if (step === 'venue') return 0
+  if (step === 'venue' || step === 'scorecard-upload') return 0
   if (step === 'players') return 1
   return 2 // combination + settings both show as step 3
 }
@@ -333,10 +336,12 @@ function VenueStep({
   selectedClub,
   onSelect,
   onNext,
+  onAddCourse,
 }: {
   selectedClub: string | null
   onSelect: (club: string) => void
   onNext: () => void
+  onAddCourse: () => void
 }) {
   const [search, setSearch] = useState('')
   const [continent, setContinent] = useState('')
@@ -432,12 +437,41 @@ function VenueStep({
           )}
         </div>
 
-        <p style={{ fontFamily: font.body, fontSize: 14, color: FE.onTertiary, textAlign: 'center', lineHeight: 1.5 }}>
-          More courses coming soon. Got a course to add?{' '}
-          <a href="mailto:hello@lx2.golf" style={{ color: FE.greenDark, fontWeight: 500, textDecoration: 'none' }}>
-            Let us know
-          </a>
-        </p>
+        {/* Add a course via scorecard photo */}
+        <div
+          onClick={onAddCourse}
+          role="button"
+          tabIndex={0}
+          onKeyDown={e => e.key === 'Enter' && onAddCourse()}
+          style={{
+            display: 'flex', gap: '1rem', padding: '1.25rem',
+            background: FE.white, borderRadius: 16, cursor: 'pointer',
+            boxShadow: FE.shadowFloat, border: `1px dashed rgba(13, 99, 27, 0.3)`,
+            transition: 'all 0.2s ease-in-out',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.boxShadow = FE.shadowHover; e.currentTarget.style.borderColor = FE.greenDark }}
+          onMouseLeave={e => { e.currentTarget.style.boxShadow = FE.shadowFloat; e.currentTarget.style.borderColor = 'rgba(13, 99, 27, 0.3)' }}
+        >
+          <div style={{
+            width: 48, height: 48, borderRadius: 8, flexShrink: 0,
+            background: 'linear-gradient(135deg, rgba(13,99,27,0.1) 0%, rgba(61,107,26,0.1) 100%)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <rect x="3" y="6" width="18" height="13" rx="2" stroke={FE.greenDark} strokeWidth="1.5"/>
+              <circle cx="12" cy="12.5" r="3" stroke={FE.greenDark} strokeWidth="1.5"/>
+              <circle cx="17" cy="9" r="1" fill={FE.greenDark}/>
+            </svg>
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: font.display, fontWeight: 600, fontSize: 18, color: FE.greenDark, marginBottom: '0.25rem' }}>
+              Add a course
+            </div>
+            <div style={{ fontFamily: font.body, fontSize: 14, color: FE.onTertiary, lineHeight: 1.4 }}>
+              Photograph a scorecard and we&apos;ll extract the data
+            </div>
+          </div>
+        </div>
       </div>
 
       <BottomBar>
@@ -1343,11 +1377,15 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
     entryFeeStr: '',
   })
 
+  // Uploaded courses from scorecard OCR (temporary, session-only)
+  const [uploadedCourses, setUploadedCourses] = useState<Course[]>([])
+
   const update = (partial: Partial<WizardState>) => setState(s => ({ ...s, ...partial }))
 
   // Step order: venue → players → combination → settings
   const goBack = () => {
-    if (state.step === 'players') update({ step: 'venue' })
+    if (state.step === 'scorecard-upload') update({ step: 'venue' })
+    else if (state.step === 'players') update({ step: 'venue' })
     else if (state.step === 'combination') update({ step: 'players' })
     else if (state.step === 'settings') update({ step: 'combination' })
   }
@@ -1356,6 +1394,57 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
 
   const proceedToPlayers = () => {
     if (state.selectedClub) update({ step: 'players' })
+  }
+
+  const handleScorecardDone = (data: ExtractedCourseData, uploadId: string) => {
+    // Build a temporary Course object from the extracted data using the first tee
+    const primaryTee = data.tees[0]
+    if (!primaryTee) return
+
+    const tempId = `upload-${uploadId}`
+    const holes: CourseHole[] = primaryTee.holes.map(h => ({
+      num: h.hole, par: h.par, si: h.si, yards: h.yards,
+      teeYards: Object.fromEntries(
+        data.tees.map(t => {
+          const match = t.holes.find(th => th.hole === h.hole)
+          return [t.teeName, match?.yards ?? h.yards]
+        })
+      ),
+    }))
+
+    const tempCourse: Course = {
+      id: tempId,
+      name: `${data.courseName} — ${primaryTee.teeName}`,
+      club: data.clubName || data.courseName,
+      location: data.location ?? '',
+      country: '',
+      continent: '',
+      holes,
+      slopeRating: primaryTee.slopeRating ?? 113,
+      courseRating: primaryTee.courseRating ?? 72,
+      par: primaryTee.par ?? holes.reduce((sum, h) => sum + h.par, 0),
+      tees: data.tees.map(t => t.teeName),
+      defaultRatingTee: primaryTee.teeName,
+      teeRatings: Object.fromEntries(
+        data.tees
+          .filter(t => t.slopeRating && t.courseRating)
+          .map(t => [t.teeName, { slopeRating: t.slopeRating!, courseRating: t.courseRating! }])
+      ),
+    }
+
+    // Add to COURSES so the rest of the wizard can find it
+    if (!COURSES.find(c => c.id === tempId)) {
+      COURSES.push(tempCourse)
+    }
+    setUploadedCourses(prev => [...prev, tempCourse])
+
+    // Select this venue and jump to players
+    update({
+      selectedClub: tempCourse.club,
+      courseId: tempId,
+      tee: primaryTee.teeName,
+      step: 'players',
+    })
   }
 
   const proceedToCombination = () => update({ step: 'combination' })
@@ -1461,6 +1550,14 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
             selectedClub={state.selectedClub}
             onSelect={selectVenue}
             onNext={proceedToPlayers}
+            onAddCourse={() => update({ step: 'scorecard-upload' })}
+          />
+        )}
+
+        {state.step === 'scorecard-upload' && (
+          <ScorecardUpload
+            onDone={handleScorecardDone}
+            onCancel={() => update({ step: 'venue' })}
           />
         )}
 
