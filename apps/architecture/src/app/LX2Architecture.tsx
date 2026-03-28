@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Image from 'next/image'
+import BlueprintView from './BlueprintView'
 
 const GITHUB = 'https://github.com/mattcublington/lx2/blob/main'
 const APP    = 'https://lx2.golf'
@@ -125,11 +126,79 @@ const modules: Record<string, Module> = {
     features: ['Fairway Editorial layout: sage bg, white sticky header with sage gradient + dot/noise texture, Manrope/Lexend fonts', 'Hero: Manrope 800 display name + green handicap badge (inline-flex, tonal gradient)', 'Always-3 stat cards (Total rounds / Avg score 12mo / Best score) — rendered with "—" placeholder when no data, never hidden', 'Primary CTA: "Start a new round" / "Join ongoing round" (green gradient / white outline variant)', 'Secondary CTA: "Join a group\'s round" ghost button — shown only when no active round, links to /play/join', 'Editorial rounds list: white rounded container, course name + date, hover tint, tap-to-navigate to /rounds/[id] summary', 'Optional upcoming event card: berry date badge, event name, course + player count', 'Bottom nav 5 items wired: Home / Rounds / Events / Society / Profile — mobile only (hidden on desktop)', 'Desktop: sign-out link in sticky header', 'Optional props: roundsThisMonth, avgScore, bestScore, upcomingEvent — fully backward-compatible'],
     tech: 'Next.js server component (page.tsx fetches handicap_index + roundsCount) + client PlayDashboard. Manrope + Lexend (Fairway Editorial fonts via CSS vars). Supabase join: scorecards → events → courses + course_combinations. Inline SVG icons — no external icon lib.',
   },
+  account_settings: {
+    id: 'account_settings', name: 'Account settings (/profile)', phase: 'mvp', tier: 'player-web',
+    status: 'done', surface: 'player',
+    sub: 'Name, handicap, avatar, distance unit',
+    desc: 'Authenticated account settings page at /profile. Bottom-nav "Profile" tab destination. Inline editing of display name and handicap index (tap field to edit, save/cancel). Avatar upload to Supabase Storage with initials fallback. Distance unit preference (yards / metres) — controls yardage display throughout score entry and round summary. Distinct from player_profile (which is the future public stats page).',
+    deps: ['auth'],
+    data: ['users'],
+    liveUrl: `${APP}/profile`, prdUrl: null,
+    codeUrl: `${GITHUB}/apps/web/src/app/profile/ProfileClient.tsx`,
+    features: [
+      'Inline edit: display name — tap to edit, save via updateProfile server action',
+      'Inline edit: handicap index — tap to edit, validated float',
+      'Avatar upload: file input → Supabase Storage → users.avatar_url',
+      'Initials fallback avatar (two-letter, colour from player-colours palette)',
+      'Distance unit toggle: yards / metres — stored in users.distance_unit',
+      'updateDistanceUnit server action — revalidates /profile',
+      'updateAvatarUrl server action — revalidates /play + /profile',
+      'Email shown (read-only), member since date',
+    ],
+    tech: 'page.tsx: Next.js server component (auth + fetch). ProfileClient.tsx: client component with useTransition for optimistic saves. updateProfile / updateAvatarUrl / updateDistanceUnit server actions in actions.ts. Supabase browser client for avatar upload.',
+  },
+  rounds_list: {
+    id: 'rounds_list', name: 'Rounds list (/rounds)', phase: 'mvp', tier: 'player-web',
+    status: 'done', surface: 'player',
+    sub: 'All personal rounds — bottom nav "Rounds" tab',
+    desc: 'Chronological list of all rounds the authenticated player has played, at /rounds. Bottom-nav "Rounds" tab destination. Each row shows event name, course, combination, format, and date — taps through to /rounds/[id] summary. Auth-gated; filters scorecards via event_players.user_id.',
+    deps: ['auth', 'round_summary'],
+    data: ['scorecards', 'events', 'event_players'],
+    liveUrl: `${APP}/rounds`, prdUrl: null,
+    codeUrl: `${GITHUB}/apps/web/src/app/rounds/page.tsx`,
+    features: [
+      'All rounds for the authenticated player, descending by created_at',
+      'Each row: event name, course/combination name, format label, date',
+      'Taps to /rounds/[id] full summary',
+      'Empty state when no rounds yet',
+      'Bottom nav + sticky header, Fairway Editorial design',
+    ],
+    tech: 'Pure Next.js server component. Supabase join: scorecards → event_players (user_id filter) → events → courses + course_combinations.',
+  },
+  events_list: {
+    id: 'events_list', name: 'Events list (/events)', phase: 'mvp', tier: 'player-web',
+    status: 'done', surface: 'player',
+    sub: 'All played events — bottom nav "Events" tab',
+    desc: 'List of all events the authenticated player participated in (rsvp_status = confirmed), at /events. Bottom-nav "Events" tab destination. Each row links to the event landing page /events/[id] (leaderboard + manage access). Shows event name, course, format, date.',
+    deps: ['auth', 'event_landing', 'leaderboard_live'],
+    data: ['event_players', 'events'],
+    liveUrl: `${APP}/events`, prdUrl: null,
+    codeUrl: `${GITHUB}/apps/web/src/app/events/page.tsx`,
+    features: [
+      'All events where user is a confirmed event_player',
+      'Each row: event name, course/combination, format, date',
+      'Taps to /events/[id] (landing → leaderboard → manage)',
+      'Empty state, sticky header, Fairway Editorial design',
+    ],
+    tech: 'Pure Next.js server component. Supabase join: event_players (user_id + rsvp_status filter) → events → courses + course_combinations.',
+  },
+  society_stub: {
+    id: 'society_stub', name: 'Society page (/society)', phase: 'soon', tier: 'player-web',
+    status: 'building', surface: 'player',
+    sub: 'Bottom nav "Society" tab — placeholder',
+    desc: 'The /society route is the 4th bottom-nav tab. Currently a styled stub page with "Coming Soon" content — auth-gated, full Fairway Editorial shell (header, bottom nav), placeholder illustration. Will become the Society home: member list, private leaderboards, society history, invite flow.',
+    deps: ['auth', 'player_home'],
+    data: [],
+    liveUrl: `${APP}/society`, prdUrl: null,
+    codeUrl: `${GITHUB}/apps/web/src/app/society/page.tsx`,
+    features: ['Auth-gated stub', 'Fairway Editorial shell', '"Coming soon" placeholder', 'Bottom nav wired'],
+    tech: 'Next.js server component. Redirect to /auth/login if unauthenticated.',
+  },
   player_profile: {
-    id: 'player_profile', name: 'Player profile', phase: 'soon', tier: 'player-web',
+    id: 'player_profile', name: 'Player profile (public)', phase: 'soon', tier: 'player-web',
     status: 'planned', surface: 'player',
-    sub: 'Public stats page',
-    desc: 'Shareable public profile showing round history, stats, and handicap trend.',
+    sub: 'Shareable public stats page',
+    desc: 'Shareable public profile showing round history, stats, and handicap trend. Distinct from account_settings (/profile) which is the private account page.',
     deps: ['auth', 'player_home'],
     data: ['users', 'scorecards'],
     liveUrl: null, prdUrl: `${GITHUB}/docs/prd/player-profile.md`, codeUrl: null,
@@ -294,7 +363,7 @@ const modules: Record<string, Module> = {
     tech: 'Public Next.js server component + client join form. Supabase insert into event_players. join_token cookie for anonymous session continuity. Supabase Realtime for live player list.',
   },
   payments: {
-    id: 'payments', name: 'Payments', phase: 'mvp', tier: 'organiser',
+    id: 'payments', name: 'Payments', phase: 'soon', tier: 'organiser',
     status: 'planned', surface: 'organiser',
     sub: 'Stripe Checkout, live tracker',
     desc: 'Entry fee collection via Stripe. Organiser sees live payment status. Cash override available.',
@@ -306,14 +375,24 @@ const modules: Record<string, Module> = {
   },
   org_dashboard: {
     id: 'org_dashboard', name: 'Organiser dashboard', phase: 'mvp', tier: 'organiser',
-    status: 'planned', surface: 'organiser',
-    sub: 'Flights, payments, proxy scoring',
-    desc: 'Command centre for the day. Player list, flight management, live round overview, proxy score entry.',
-    deps: ['event_create', 'invite', 'payments', 'score_entry'],
+    status: 'building', surface: 'organiser',
+    sub: 'Manage page live — flights, payments, proxy scoring still to build',
+    desc: 'Organiser event management at /events/[id]/manage. Basic version live: player list with confirm action, scorecard creation on confirm. Full command-centre features still to build.\n\nManage page (live): shows all event_players with RSVP status, confirm button (confirmPlayer server action — updates rsvp_status to confirmed + creates scorecard if missing), links to each player\'s scorecard.\n\nStill to build: drag-and-drop flight management, payment status column, proxy score entry shortcut, finalise + publish results, print draw sheet.',
+    deps: ['event_create', 'invite', 'score_entry'],
     data: ['events', 'event_players', 'scorecards'],
-    liveUrl: null, prdUrl: `${GITHUB}/docs/prd/org-dashboard.md`, codeUrl: null,
-    features: ['Player list with RSVP + payment status', 'Drag-and-drop flight management', 'Auto-generate balanced flights', 'Proxy score entry for any player', 'Print draw sheet', 'Finalise and publish results'],
-    tech: 'Desktop-optimised Next.js page. Supabase Realtime for live status.',
+    liveUrl: null, prdUrl: `${GITHUB}/docs/prd/org-dashboard.md`,
+    codeUrl: `${GITHUB}/apps/web/src/app/events`,
+    features: [
+      '✅ LIVE: Player list with RSVP status at /events/[id]/manage',
+      '✅ LIVE: confirmPlayer — sets rsvp_status=confirmed, creates scorecard if missing',
+      '✅ LIVE: Link to each player\'s scorecard for proxy scoring',
+      '⬜ TODO: Drag-and-drop flight management',
+      '⬜ TODO: Payment status column (requires payments module)',
+      '⬜ TODO: Proxy score entry shortcut (marker mode already works via leaderboard panel)',
+      '⬜ TODO: Finalise + publish results',
+      '⬜ TODO: Print draw sheet PDF',
+    ],
+    tech: 'Next.js server component (/events/[id]/manage/page.tsx) + ManageActions client component. manage-actions.ts server actions (confirmPlayer, etc.). Admin client for organiser-scoped writes.',
   },
 
   // ── Scoring engines ─────────────────────────────────────────────────────────
@@ -408,23 +487,25 @@ const modules: Record<string, Module> = {
   course_db: {
     id: 'course_db', name: 'Course database', phase: 'mvp', tier: 'course',
     status: 'done', surface: 'shared',
-    sub: 'Par, SI, yardage — Cumberwell 6 loops, 14 combinations',
-    desc: 'Cumberwell Park fully seeded: 6 loops (Red, Yellow, Blue, Orange, White, Par 3), 14 named 18-hole combinations (all loop pairs, including White/White and Par3/Par3), per-hole par and stroke index, yardages for Yellow/Purple tee.\n\nSchema: loops → loop_holes → loop_hole_tees. Combinations: course_combinations links two loop IDs to a named course. The scoring page resolves hole data by fetching the combination\'s two loops and mapping holes 1–9 (loop_1) + 10–18 (loop_2).\n\nThe loops table uses fixed UUIDs (10000000-0000-0000-0000-00000000000X) so seed files are idempotent across environments. 30k UK courses via golfcourseapi.com is Phase 2.',
-    deps: [], data: ['courses', 'loops', 'loop_holes', 'loop_hole_tees', 'course_combinations'],
+    sub: 'Cumberwell (6 loops, 14 combos) + Royal Canberra — scalable JSON system',
+    desc: 'Two courses fully seeded. Scalable management via packages/course-data JSON source files.\n\nCumberwell Park: 6 loops (Red, Yellow, Blue, Orange, White, Par 3), 14 named 18-hole combinations, per-hole par + SI, yardages for Yellow/Purple tees. Schema: loops → loop_holes → loop_hole_tees. Combinations: course_combinations links two loop IDs. Fixed loop UUIDs for idempotent seeds.\n\nRoyal Canberra GC (Westbourne, A+B): 18-hole course seeded into the generic courses/course_holes/course_tees tables. Yardages in yards (converted from metres source). Purple/Red tee CR/slope ratings. Metres column added to course_tees for dual-unit display.\n\ncourse-data package: JSON source of truth (cumberwell-park.json, royal-canberra.json) with schema.ts type contract. Generate script produces SQL migrations from JSON — new courses added by editing JSON only. Admin UI for course management in architect app. Continent filter in venue picker.\n\nDistance unit: users.distance_unit (yards/metres) — controlled from /profile, read throughout score entry + round summary.',
+    deps: [], data: ['courses', 'loops', 'loop_holes', 'loop_hole_tees', 'course_combinations', 'course_holes', 'course_tees'],
     liveUrl: null,
     prdUrl: `${GITHUB}/docs/prd/course-db.md`,
-    codeUrl: `${GITHUB}/apps/web/src/lib/courses.ts`,
+    codeUrl: `${GITHUB}/packages/course-data`,
     features: [
-      '6 loops: Red, Yellow, Blue, Orange, White, Par 3',
-      '14 18-hole combinations (all meaningful loop pairs)',
-      'Per-hole: par, SI men (si_m), yards by tee colour',
-      'Tee colours seeded: Yellow/Purple (others to be added)',
-      'Fixed loop UUIDs — safe to re-run, stable across environments',
-      'Scoring page resolves holes via combination_id → loop_1 + loop_2',
-      'Fallback: events can also reference a single loop_id for 9-hole rounds',
+      'Cumberwell: 6 loops, 14 18-hole combinations, Yellow/Purple tees',
+      'Royal Canberra GC: Westbourne A+B, Purple + Red tees, CR/slope seeded',
+      'packages/course-data: JSON source (cumberwell-park.json, royal-canberra.json) + schema.ts',
+      'Generate script: JSON → SQL migration — new courses require only JSON edit',
+      'courses/course_holes/course_tees: generic schema for non-Cumberwell courses',
+      'course_tees.metres column for dual-unit yardage storage',
+      'users.distance_unit (yards/metres) — set in /profile, used everywhere',
+      'Continent filter in venue picker (groups courses by region)',
+      'Fixed loop UUIDs — idempotent re-seeding, stable across environments',
       '30k UK courses from golfcourseapi.com — Phase 2',
     ],
-    tech: 'packages/db/migrations/golfer/003_golfer_seed_cumberwell_loops.sql. Uses ON CONFLICT DO NOTHING throughout. apps/web/src/lib/courses.ts is the client-side reference (tee UI, default NTP/LD holes).',
+    tech: 'packages/course-data/schema.ts types, *.json sources. packages/db/migrations/golfer/003_golfer_seed_cumberwell_loops.sql + 005_course_seed_royal_canberra.sql. apps/web/src/lib/courses.ts: client-side tee UI reference.',
   },
   whs: {
     id: 'whs', name: 'WHS integration', phase: 'later', tier: 'course',
@@ -819,74 +900,99 @@ type Journey = { id: string; label: string; steps: JourneyStep[]; arrows: Journe
 
 const journeys: Journey[] = [
   {
-    id: 'player', label: 'Player — join a round', height: 500,
+    // Player receives a WhatsApp invite link, joins anonymously, scores, reviews
+    id: 'player', label: 'Player — join via invite link', height: 510,
     steps: [
-      { id: 'home',    label: 'lx2.golf home',      sub: 'entry point',              status: 'done',                                x: 240, y: 20  },
-      { id: 'landing', label: 'Event landing page',  sub: 'via WhatsApp invite link', status: 'done',     moduleId: 'event_landing',  x: 60,  y: 120 },
-      { id: 'auth',    label: 'Sign in',             sub: 'Google OAuth or email',    status: 'done',     moduleId: 'auth',            x: 420, y: 120 },
-      { id: 'score',   label: 'Score entry',         sub: 'hole-by-hole on PWA',      status: 'done',     moduleId: 'score_entry',     x: 240, y: 230 },
-      { id: 'ntp',     label: 'NTP / Longest Drive', sub: 'side contest entry',       status: 'planned',  moduleId: 'ntp_ld',          x: 60,  y: 340 },
-      { id: 'live',    label: 'Live leaderboard',    sub: 'real-time standings',      status: 'done',  moduleId: 'leaderboard_live',x: 420, y: 340 },
-      { id: 'results', label: 'Results',             sub: 'shareable scorecard',      status: 'planned',  moduleId: 'results',         x: 240, y: 440 },
+      { id: 'landing', label: 'Event landing page',      sub: '/events/[id] · via WhatsApp link',   status: 'done',    moduleId: 'event_landing',    x: 60,  y: 20  },
+      { id: 'auth',    label: 'Sign in (optional)',       sub: 'Google OAuth / email / stay anon',   status: 'done',    moduleId: 'auth',              x: 420, y: 20  },
+      { id: 'join',    label: 'Join form',                sub: 'name + handicap · no account needed',status: 'done',    moduleId: 'invite',            x: 240, y: 130 },
+      { id: 'score',   label: 'Score entry',              sub: '/rounds/[id]/score · hole-by-hole',  status: 'done',    moduleId: 'score_entry',       x: 240, y: 240 },
+      { id: 'live',    label: 'Live leaderboard panel',   sub: 'inline overlay · real-time group',   status: 'done',    moduleId: 'leaderboard_live',  x: 60,  y: 350 },
+      { id: 'ntp',     label: 'NTP / LD capture',         sub: 'overlay after contest hole',         status: 'planned', moduleId: 'ntp_ld',            x: 420, y: 350 },
+      { id: 'summary', label: 'Round summary',            sub: '/rounds/[id] · chart + scorecard',   status: 'done',    moduleId: 'round_summary',     x: 60,  y: 460 },
+      { id: 'results', label: 'Event results',            sub: 'permanent shareable page',           status: 'planned', moduleId: 'results',           x: 420, y: 460 },
     ],
     arrows: [
-      { x1: 300, y1: 70,  x2: 160, y2: 120 },
-      { x1: 380, y1: 70,  x2: 480, y2: 120 },
-      { x1: 160, y1: 170, x2: 300, y2: 230, dashed: true },
-      { x1: 520, y1: 170, x2: 380, y2: 230, dashed: true },
-      { x1: 280, y1: 280, x2: 160, y2: 340 },
-      { x1: 400, y1: 280, x2: 480, y2: 340 },
-      { x1: 160, y1: 390, x2: 300, y2: 440 },
-      { x1: 480, y1: 390, x2: 380, y2: 440 },
+      { x1: 200, y1: 70,  x2: 280, y2: 130 },
+      { x1: 480, y1: 70,  x2: 360, y2: 130 },
+      { x1: 340, y1: 180, x2: 340, y2: 240 },
+      { x1: 280, y1: 290, x2: 160, y2: 350 },
+      { x1: 400, y1: 290, x2: 480, y2: 350 },
+      { x1: 120, y1: 400, x2: 120, y2: 460 },
+      { x1: 480, y1: 400, x2: 480, y2: 460 },
     ],
   },
   {
-    id: 'organiser', label: 'Organiser — run an event', height: 560,
+    // Organiser creates an event, invites players, runs the round, manages on the day
+    id: 'organiser', label: 'Organiser — create & run an event', height: 530,
     steps: [
-      { id: 'org_home',   label: '/play page',          sub: 'organiser entry',        status: 'done',                                x: 240, y: 20  },
-      { id: 'org_auth',   label: 'Sign in',             sub: 'Google OAuth or email',  status: 'done',     moduleId: 'auth',           x: 240, y: 110 },
-      { id: 'org_create', label: 'New round wizard',    sub: 'venue → combo → players',status: 'done',     moduleId: 'event_create',   x: 240, y: 200 },
-      { id: 'org_invite', label: 'Invite & RSVP',       sub: 'players join via link',  status: 'planned',  moduleId: 'invite',         x: 240, y: 300 },
-      { id: 'org_pay',    label: 'Payments',            sub: 'Stripe checkout',        status: 'planned',  moduleId: 'payments',       x: 60,  y: 400 },
-      { id: 'org_dash',   label: 'Organiser dashboard', sub: 'flights, proxy scoring', status: 'planned',  moduleId: 'org_dashboard',  x: 420, y: 400 },
-      { id: 'org_result', label: 'Results published',   sub: 'permanent & shareable',  status: 'planned',  moduleId: 'results',        x: 240, y: 500 },
+      { id: 'org_home',   label: '/play dashboard',       sub: 'signed-in organiser entry',           status: 'done',     moduleId: 'player_home',    x: 240, y: 20  },
+      { id: 'org_create', label: 'New round wizard',       sub: 'venue → combo → players → format',   status: 'done',     moduleId: 'event_create',   x: 240, y: 120 },
+      { id: 'org_invite', label: 'Invite link shared',     sub: 'WhatsApp · /events/[id] · anon join',status: 'done',     moduleId: 'invite',         x: 240, y: 220 },
+      { id: 'org_manage', label: 'Manage event',           sub: '/events/[id]/manage · confirm players',status: 'building', moduleId: 'org_dashboard', x: 60,  y: 330 },
+      { id: 'org_marker', label: 'Marker mode',            sub: 'score for any player via leaderboard',status: 'done',    moduleId: 'score_entry',    x: 420, y: 330 },
+      { id: 'org_live',   label: 'Live leaderboard',       sub: '/events/[id]/leaderboard · TV mode',  status: 'done',    moduleId: 'leaderboard_live', x: 240, y: 440 },
+      { id: 'org_result', label: 'Results published',      sub: 'permanent · shareable URL',           status: 'planned', moduleId: 'results',        x: 240, y: 520 },
     ],
     arrows: [
-      { x1: 340, y1: 70,  x2: 340, y2: 110 },
-      { x1: 340, y1: 160, x2: 340, y2: 200 },
-      { x1: 340, y1: 250, x2: 340, y2: 300 },
-      { x1: 300, y1: 350, x2: 160, y2: 400 },
-      { x1: 380, y1: 350, x2: 480, y2: 400 },
-      { x1: 160, y1: 450, x2: 300, y2: 500 },
-      { x1: 480, y1: 450, x2: 380, y2: 500 },
+      { x1: 340, y1: 70,  x2: 340, y2: 120 },
+      { x1: 340, y1: 170, x2: 340, y2: 220 },
+      { x1: 280, y1: 270, x2: 160, y2: 330 },
+      { x1: 400, y1: 270, x2: 480, y2: 330 },
+      { x1: 160, y1: 380, x2: 300, y2: 440 },
+      { x1: 480, y1: 380, x2: 380, y2: 440 },
+      { x1: 340, y1: 490, x2: 340, y2: 520 },
     ],
   },
   {
-    id: 'solo', label: 'Solo scorer', height: 430,
+    // Solo player starts and finishes a round, then reviews their history
+    id: 'solo', label: 'Solo scorer — start round, review history', height: 470,
     steps: [
-      { id: 's_home',    label: '/play page',      sub: 'player entry',            status: 'done',                                x: 240, y: 20  },
-      { id: 's_auth',    label: 'Sign in',         sub: 'Google OAuth or email',   status: 'done',     moduleId: 'auth',           x: 240, y: 110 },
-      { id: 's_course',  label: 'New round wizard',sub: 'venue → combo → players', status: 'done',     moduleId: 'course_db',      x: 240, y: 200 },
-      { id: 's_score',   label: 'Score entry',     sub: 'hole-by-hole',            status: 'done',     moduleId: 'score_entry',    x: 240, y: 295 },
-      { id: 's_profile', label: 'Player profile',  sub: 'stats, handicap history', status: 'planned',  moduleId: 'player_profile', x: 240, y: 385 },
+      { id: 's_home',    label: '/play dashboard',       sub: 'signed-in player entry',             status: 'done', moduleId: 'player_home',      x: 240, y: 20  },
+      { id: 's_wizard',  label: 'New round wizard',      sub: 'venue → combo → tee → format',       status: 'done', moduleId: 'event_create',     x: 240, y: 120 },
+      { id: 's_score',   label: 'Score entry',           sub: '/rounds/[id]/score · hole-by-hole',  status: 'done', moduleId: 'score_entry',      x: 240, y: 220 },
+      { id: 's_summary', label: 'Round summary',         sub: '/rounds/[id] · chart + scorecard',   status: 'done', moduleId: 'round_summary',    x: 240, y: 320 },
+      { id: 's_rounds',  label: 'Rounds list',           sub: '/rounds · all rounds history',        status: 'done', moduleId: 'rounds_list',      x: 60,  y: 420 },
+      { id: 's_events',  label: 'Events list',           sub: '/events · all events played',         status: 'done', moduleId: 'events_list',      x: 420, y: 420 },
     ],
     arrows: [
-      { x1: 340, y1: 70,  x2: 340, y2: 110 },
-      { x1: 340, y1: 160, x2: 340, y2: 200 },
-      { x1: 340, y1: 250, x2: 340, y2: 295 },
-      { x1: 340, y1: 345, x2: 340, y2: 385 },
+      { x1: 340, y1: 70,  x2: 340, y2: 120 },
+      { x1: 340, y1: 170, x2: 340, y2: 220 },
+      { x1: 340, y1: 270, x2: 340, y2: 320 },
+      { x1: 280, y1: 370, x2: 160, y2: 420 },
+      { x1: 400, y1: 370, x2: 480, y2: 420 },
     ],
   },
   {
-    id: 'club_member', label: 'Club member — book, play, score', height: 560,
+    // A second group of players joins an in-progress event via share code
+    id: 'group_join', label: 'Second group — join via share code', height: 470,
     steps: [
-      { id: 'cm_home',    label: 'lx2.golf — My Club',     sub: 'member home',               status: 'planned', moduleId: 'my_club_dashboard',        x: 240, y: 20  },
-      { id: 'cm_book',    label: 'Book tee time',           sub: 'loop selection, Realtime',  status: 'planned', moduleId: 'tee_booking',              x: 60,  y: 120 },
-      { id: 'cm_enter',   label: 'Enter competition',       sub: 'monthly medal, pay online', status: 'planned', moduleId: 'club_competition_entry',   x: 420, y: 120 },
-      { id: 'cm_score',   label: 'Score on the day',        sub: 'lx2.golf, hole-by-hole',    status: 'planned', moduleId: 'score_entry',              x: 240, y: 230 },
-      { id: 'cm_live',    label: 'Live leaderboard',        sub: 'real-time standings',       status: 'done', moduleId: 'leaderboard_live',         x: 240, y: 330 },
-      { id: 'cm_results', label: 'Results in profile',      sub: 'handicap + history update', status: 'planned', moduleId: 'player_profile',           x: 60,  y: 440 },
-      { id: 'cm_club',    label: 'Club admin sees same',    sub: 'club.lx2.golf dashboard',   status: 'planned', moduleId: 'club_admin_dashboard',     x: 420, y: 440 },
+      { id: 'g_score',   label: 'Group 1 scoring',       sub: 'share code chip visible in header',  status: 'done', moduleId: 'score_entry',    x: 240, y: 20  },
+      { id: 'g_copy',    label: 'Tap chip → code copied', sub: '6-char code · ✓ Copied feedback',   status: 'done', moduleId: 'group_joining',  x: 240, y: 115 },
+      { id: 'g_join',    label: '/play/join',             sub: 'Group 2 enters the share code',      status: 'done', moduleId: 'group_joining',  x: 240, y: 210 },
+      { id: 'g_preview', label: 'Event preview',          sub: 'course, format, existing players',   status: 'done', moduleId: 'group_joining',  x: 240, y: 305 },
+      { id: 'g_players', label: 'Add Group 2 players',   sub: 'names + handicaps · own scorecards',  status: 'done', moduleId: 'group_joining',  x: 60,  y: 400 },
+      { id: 'g_board',   label: 'Live leaderboard',       sub: 'all 8 players · no extra config',    status: 'done', moduleId: 'leaderboard_live', x: 420, y: 400 },
+    ],
+    arrows: [
+      { x1: 340, y1: 70,  x2: 340, y2: 115 },
+      { x1: 340, y1: 165, x2: 340, y2: 210 },
+      { x1: 340, y1: 260, x2: 340, y2: 305 },
+      { x1: 280, y1: 355, x2: 160, y2: 400 },
+      { x1: 400, y1: 355, x2: 480, y2: 400 },
+    ],
+  },
+  {
+    // Future: club member books, enters competition, and scores via lx2.golf
+    id: 'club_member', label: 'Club member — book, compete, score (P2)', height: 560,
+    steps: [
+      { id: 'cm_home',    label: 'lx2.golf — My Club',    sub: 'member home',               status: 'planned', moduleId: 'my_club_dashboard',      x: 240, y: 20  },
+      { id: 'cm_book',    label: 'Book tee time',          sub: 'loop selection, Realtime',  status: 'planned', moduleId: 'tee_booking',            x: 60,  y: 120 },
+      { id: 'cm_enter',   label: 'Enter competition',      sub: 'monthly medal, pay online', status: 'planned', moduleId: 'club_competition_entry', x: 420, y: 120 },
+      { id: 'cm_score',   label: 'Score on the day',       sub: 'lx2.golf, hole-by-hole',   status: 'planned', moduleId: 'score_entry',            x: 240, y: 230 },
+      { id: 'cm_live',    label: 'Live leaderboard',       sub: 'real-time standings',       status: 'done',    moduleId: 'leaderboard_live',       x: 240, y: 330 },
+      { id: 'cm_results', label: 'Results in history',     sub: 'rounds list + event list',  status: 'done',    moduleId: 'rounds_list',            x: 60,  y: 440 },
+      { id: 'cm_club',    label: 'Club admin sees same',   sub: 'club.lx2.golf dashboard',   status: 'planned', moduleId: 'club_admin_dashboard',   x: 420, y: 440 },
     ],
     arrows: [
       { x1: 300, y1: 70,  x2: 160, y2: 120 },
@@ -986,7 +1092,7 @@ function JourneyFlow({ journey, onSelectModule }: { journey: Journey; onSelectMo
 
 export default function LX2Architecture() {
   const [selected, setSelected] = useState<string | null>(null)
-  const [view, setView] = useState<'modules' | 'surfaces' | 'deps' | 'journeys' | 'tests' | 'stack' | 'claude'>('modules')
+  const [view, setView] = useState<'modules' | 'surfaces' | 'deps' | 'journeys' | 'blueprints' | 'tests' | 'stack' | 'claude'>('modules')
   const [activeJourney, setActiveJourney] = useState<string>('player')
   const mod = selected ? modules[selected] : null
 
@@ -1107,9 +1213,9 @@ export default function LX2Architecture() {
 
       {/* View tabs */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
-        {(['modules', 'surfaces', 'deps', 'journeys', 'tests', 'stack', 'claude'] as const).map(v => (
+        {(['modules', 'surfaces', 'deps', 'journeys', 'blueprints', 'tests', 'stack', 'claude'] as const).map(v => (
           <button key={v} onClick={() => setView(v)} style={{ fontSize: 12, padding: '6px 14px', borderRadius: 99, border: 'none', background: view === v ? '#1A2E1A' : '#F3F4F6', color: view === v ? '#fff' : '#6B7280', cursor: 'pointer', fontFamily: "'Lexend', sans-serif", fontWeight: view === v ? 500 : 400, transition: 'all 0.15s' }}>
-            {v === 'modules' ? 'All modules' : v === 'surfaces' ? 'App map' : v === 'deps' ? 'Dependencies' : v === 'journeys' ? 'Journeys' : v === 'tests' ? 'Test strategy' : v === 'stack' ? 'Tech stack' : 'Claude setup'}
+            {v === 'modules' ? 'All modules' : v === 'surfaces' ? 'App map' : v === 'deps' ? 'Dependencies' : v === 'journeys' ? 'Journeys' : v === 'blueprints' ? 'Service blueprints' : v === 'tests' ? 'Test strategy' : v === 'stack' ? 'Tech stack' : 'Claude setup'}
           </button>
         ))}
       </div>
@@ -1155,6 +1261,9 @@ export default function LX2Architecture() {
           </div>
         </div>
       )}
+
+      {/* ── Blueprints view ── */}
+      {view === 'blueprints' && <BlueprintView />}
 
       {/* ── Surfaces view ── */}
       {view === 'surfaces' && (
