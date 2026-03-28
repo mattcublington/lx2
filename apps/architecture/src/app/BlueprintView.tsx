@@ -131,8 +131,8 @@ function BlueprintTable({ blueprint }: { blueprint: ServiceBlueprint }) {
 }
 
 export default function BlueprintView() {
-  const [activeId, setActiveId] = useState(blueprints[0].id)
-  const active = blueprints.find(b => b.id === activeId) ?? blueprints[0]
+  const [activeId, setActiveId] = useState(blueprints[0]!.id)
+  const active = (blueprints.find(b => b.id === activeId) ?? blueprints[0])!
 
   return (
     <div style={{ marginBottom: 32 }}>
