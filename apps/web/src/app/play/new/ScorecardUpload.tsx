@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import { uploadScorecard } from '@/lib/scorecard-ocr'
 import type { ExtractedCourseData, ExtractedTee } from '@/lib/scorecard-ocr'
+import { COUNTRY_NAMES } from '@/lib/countries'
 
 // ── Design tokens (match NewRoundWizard) ─────────────────────────────────────
 
@@ -25,20 +26,6 @@ const font = {
   display: "'Manrope', sans-serif",
   body: "'Lexend', sans-serif",
 } as const
-
-// ── Country list ─────────────────────────────────────────────────────────────
-
-const COUNTRIES = [
-  'England', 'Scotland', 'Wales', 'Northern Ireland', 'Ireland',
-  'France', 'Spain', 'Portugal', 'Germany', 'Italy', 'Netherlands',
-  'Belgium', 'Sweden', 'Norway', 'Denmark', 'Finland', 'Iceland',
-  'Czech Republic', 'Austria', 'Switzerland', 'Turkey', 'Greece', 'Croatia',
-  'USA', 'Canada', 'Mexico',
-  'Australia', 'New Zealand',
-  'Japan', 'South Korea', 'Thailand', 'Vietnam', 'Malaysia', 'Singapore',
-  'UAE', 'South Africa', 'Morocco',
-  'Argentina', 'Brazil',
-]
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -156,7 +143,7 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
               cursor: 'pointer', outline: 'none',
             }}
           >
-            {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+            {COUNTRY_NAMES.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </label>
 

@@ -3,6 +3,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { continentForCountry } from '@/lib/countries'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -52,31 +53,6 @@ async function checkRateLimit(userId: string): Promise<boolean> {
     .gte('created_at', todayStart.toISOString())
 
   return (count ?? 0) < MAX_UPLOADS_PER_DAY
-}
-
-// ── Country → continent mapping ──────────────────────────────────────────────
-
-const COUNTRY_TO_CONTINENT: Record<string, string> = {
-  'England': 'Europe', 'Scotland': 'Europe', 'Wales': 'Europe',
-  'Northern Ireland': 'Europe', 'Ireland': 'Europe',
-  'France': 'Europe', 'Spain': 'Europe', 'Portugal': 'Europe',
-  'Germany': 'Europe', 'Italy': 'Europe', 'Netherlands': 'Europe',
-  'Belgium': 'Europe', 'Sweden': 'Europe', 'Norway': 'Europe',
-  'Denmark': 'Europe', 'Finland': 'Europe', 'Iceland': 'Europe',
-  'Czech Republic': 'Europe', 'Austria': 'Europe', 'Switzerland': 'Europe',
-  'Turkey': 'Europe', 'Greece': 'Europe', 'Croatia': 'Europe',
-  'USA': 'North America', 'United States': 'North America',
-  'Canada': 'North America', 'Mexico': 'North America',
-  'Australia': 'Oceania', 'New Zealand': 'Oceania',
-  'Japan': 'Asia', 'South Korea': 'Asia', 'China': 'Asia',
-  'Thailand': 'Asia', 'Vietnam': 'Asia', 'Malaysia': 'Asia',
-  'Singapore': 'Asia', 'India': 'Asia', 'UAE': 'Asia',
-  'South Africa': 'Africa', 'Kenya': 'Africa', 'Morocco': 'Africa',
-  'Argentina': 'South America', 'Brazil': 'South America',
-}
-
-function continentForCountry(country: string): string {
-  return COUNTRY_TO_CONTINENT[country] ?? 'Unknown'
 }
 
 // ── Input sanitisation (prompt injection prevention) ─────────────────────────
