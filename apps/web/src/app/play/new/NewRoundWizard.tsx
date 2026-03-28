@@ -53,6 +53,11 @@ interface WizardState {
   ldHoles: number[]
   allowancePct: number
   balls: string[]
+  // Event / advanced options
+  eventDate: string          // YYYY-MM-DD, default today
+  inviteLink: boolean        // open registration via shared link
+  groupSize: 2 | 3 | 4      // players per group
+  entryFeeStr: string        // raw input string, parsed on submit
 }
 
 // ── Design tokens ──────────────────────────────────────────────────────────────
@@ -555,9 +560,6 @@ function PlayersStep({
   onChange: (players: Player[]) => void
   onNext: () => void
 }) {
-  const [showP2, setShowP2] = useState(true)
-  const [showP3, setShowP3] = useState(false)
-  const [showP4, setShowP4] = useState(false)
   const [searchIdx, setSearchIdx] = useState<number | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<{ id: string; displayName: string; handicapIndex: number | null }[]>([])
@@ -578,11 +580,22 @@ function PlayersStep({
     setSearching(false)
   }
 
+  const addPlayer = () => {
+    onChange([...players, { name: '', handicapIndex: '', isUser: false, gender: 'm', teeOverride: null }])
+  }
+
+  const removePlayer = (index: number) => {
+    onChange(players.filter((_, i) => i !== index))
+  }
+
   const canProceed = () => {
     const you = players[0]
     if (!you?.name.trim()) return false
     return true
   }
+
+  // Non-user players (index 1+)
+  const otherPlayers = players.slice(1)
 
   return (
     <>
@@ -592,7 +605,7 @@ function PlayersStep({
             Who&rsquo;s playing?
           </h1>
           <p style={{ margin: 0, fontFamily: font.body, fontSize: 16, color: FE.onSecondary, lineHeight: 1.5 }}>
-            Add up to 4 players
+            Add your playing partners
           </p>
         </div>
 
@@ -618,73 +631,34 @@ function PlayersStep({
           </div>
         </div>
 
-        {/* Player 2 */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <SectionLabel>PLAYER 2</SectionLabel>
-          {showP2 ? (
-            <PlayerCard
-              playerId="p2" playerIndex={1} players={players}
-              searchIdx={searchIdx} searchQuery={searchQuery} searchResults={searchResults} searching={searching}
-              onUpdate={update} onSearch={handleSearch}
-              onSetSearchIdx={setSearchIdx} onClearSearch={() => { setSearchIdx(null); setSearchQuery(''); setSearchResults([]) }}
-              onRemove={() => {
-                const next = [...players]
-                next[1] = { name: '', handicapIndex: '', isUser: false, gender: 'm', teeOverride: null }
-                onChange(next)
-                setShowP2(false)
-                setShowP3(false)
-                setShowP4(false)
-              }}
-            />
-          ) : (
-            <AddPlayerButton label="Add player 2" onClick={() => setShowP2(true)} />
-          )}
-        </div>
-
-        {/* Player 3 */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <SectionLabel>PLAYER 3</SectionLabel>
-          {showP3 ? (
-            <PlayerCard
-              playerId="p3" playerIndex={2} players={players}
-              searchIdx={searchIdx} searchQuery={searchQuery} searchResults={searchResults} searching={searching}
-              onUpdate={update} onSearch={handleSearch}
-              onSetSearchIdx={setSearchIdx} onClearSearch={() => { setSearchIdx(null); setSearchQuery(''); setSearchResults([]) }}
-              onRemove={() => {
-                const next = [...players]
-                next[2] = { name: '', handicapIndex: '', isUser: false, gender: 'm', teeOverride: null }
-                onChange(next)
-                setShowP3(false)
-                setShowP4(false)
-              }}
-            />
-          ) : (
-            <AddPlayerButton label="Add player 3" onClick={() => setShowP3(true)} />
-          )}
-        </div>
-
-        {/* Player 4 — only show option once P3 is added */}
-        {showP3 && (
-          <div style={{ marginBottom: '1.5rem' }}>
-            <SectionLabel>PLAYER 4</SectionLabel>
-            {showP4 ? (
+        {/* Dynamic player list */}
+        {otherPlayers.map((_, idx) => {
+          const realIndex = idx + 1
+          return (
+            <div key={realIndex} style={{ marginBottom: '1.5rem' }}>
+              <SectionLabel>{`PLAYER ${realIndex + 1}`}</SectionLabel>
               <PlayerCard
-                playerId="p4" playerIndex={3} players={players}
-                searchIdx={searchIdx} searchQuery={searchQuery} searchResults={searchResults} searching={searching}
-                onUpdate={update} onSearch={handleSearch}
-                onSetSearchIdx={setSearchIdx} onClearSearch={() => { setSearchIdx(null); setSearchQuery(''); setSearchResults([]) }}
-                onRemove={() => {
-                  const next = [...players]
-                  next[3] = { name: '', handicapIndex: '', isUser: false, gender: 'm', teeOverride: null }
-                  onChange(next)
-                  setShowP4(false)
-                }}
+                playerId={`p${realIndex + 1}`}
+                playerIndex={realIndex}
+                players={players}
+                searchIdx={searchIdx}
+                searchQuery={searchQuery}
+                searchResults={searchResults}
+                searching={searching}
+                onUpdate={update}
+                onSearch={handleSearch}
+                onSetSearchIdx={setSearchIdx}
+                onClearSearch={() => { setSearchIdx(null); setSearchQuery(''); setSearchResults([]) }}
+                onRemove={() => removePlayer(realIndex)}
               />
-            ) : (
-              <AddPlayerButton label="Add player 4" onClick={() => setShowP4(true)} />
-            )}
-          </div>
-        )}
+            </div>
+          )
+        })}
+
+        {/* Add player */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <AddPlayerButton label={`Add player ${players.length + 1}`} onClick={addPlayer} />
+        </div>
       </div>
 
       <BottomBar>
@@ -1187,6 +1161,97 @@ function SettingsStep({
                   })}
                 </div>
               </div>
+
+              {/* ── Event / society options ─────────────────────── */}
+              <div style={{ height: 1, background: 'rgba(26,28,28,0.06)', margin: '1.5rem 0' }} />
+
+              <div style={{ fontFamily: font.display, fontWeight: 700, fontSize: 14, color: FE.onPrimary, marginBottom: '1rem', letterSpacing: '-0.01em' }}>
+                Society &amp; event options
+              </div>
+
+              {/* Date */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <div style={{ fontFamily: font.body, fontWeight: 500, fontSize: 14, color: FE.onPrimary, marginBottom: '0.5rem' }}>
+                  Date
+                </div>
+                <input
+                  type="date"
+                  value={state.eventDate}
+                  onChange={e => onUpdate({ eventDate: e.target.value })}
+                  style={inputFieldStyle}
+                />
+                <div style={{ fontFamily: font.body, fontSize: 12, color: FE.onTertiary, marginTop: 4 }}>
+                  Default: today. Set a future date for planned events.
+                </div>
+              </div>
+
+              {/* Invite link toggle */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <span style={{ fontFamily: font.body, fontWeight: 500, fontSize: 14, color: FE.onPrimary }}>
+                    Open invite link
+                  </span>
+                  <button
+                    onClick={() => onUpdate({ inviteLink: !state.inviteLink })}
+                    aria-label="Toggle invite link"
+                    style={{
+                      width: 48, height: 28, borderRadius: 14, border: 'none',
+                      background: state.inviteLink ? FE.greenDark : 'rgba(26,28,28,0.15)',
+                      cursor: 'pointer', position: 'relative' as const, transition: 'background 0.2s',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <div style={{
+                      width: 22, height: 22, borderRadius: '50%', background: '#fff',
+                      position: 'absolute' as const, top: 3,
+                      left: state.inviteLink ? 23 : 3,
+                      transition: 'left 0.2s',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                    }} />
+                  </button>
+                </div>
+                <div style={{ fontFamily: font.body, fontSize: 12, color: FE.onTertiary, lineHeight: 1.4 }}>
+                  Players join by sharing a link — perfect for society days. You&rsquo;ll manage groups and tee times from the organiser page.
+                </div>
+              </div>
+
+              {/* Group size — show when more than 1 group worth of players or invite link on */}
+              {(activePlayers.length > 4 || state.inviteLink) && (
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <div style={{ fontFamily: font.body, fontWeight: 500, fontSize: 14, color: FE.onPrimary, marginBottom: '0.75rem' }}>
+                    Group size
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    {([2, 3, 4] as const).map(n => (
+                      <PillBtn key={n} active={state.groupSize === n} onClick={() => onUpdate({ groupSize: n })}>
+                        {n}-ball
+                      </PillBtn>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Entry fee */}
+              <div>
+                <div style={{ fontFamily: font.body, fontWeight: 500, fontSize: 14, color: FE.onPrimary, marginBottom: '0.5rem' }}>
+                  Entry fee
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ fontFamily: font.body, fontSize: 16, color: FE.onTertiary }}>£</span>
+                  <input
+                    type="number"
+                    value={state.entryFeeStr}
+                    onChange={e => onUpdate({ entryFeeStr: e.target.value })}
+                    placeholder="0.00"
+                    min={0}
+                    step={0.5}
+                    style={{ ...inputFieldStyle, width: 120 }}
+                  />
+                </div>
+                <div style={{ fontFamily: font.body, fontSize: 12, color: FE.onTertiary, marginTop: 4 }}>
+                  Leave blank for free entry
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1194,7 +1259,11 @@ function SettingsStep({
 
       <BottomBar>
         <PrimaryButton onClick={onSubmit} disabled={submitting}>
-          {submitting ? 'Creating round…' : 'Start round'}
+          {submitting
+            ? 'Creating…'
+            : state.inviteLink
+              ? 'Create event'
+              : 'Start round'}
         </PrimaryButton>
       </BottomBar>
     </>
@@ -1208,6 +1277,8 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
+  const today = new Date().toISOString().split('T')[0]!
+
   const [state, setState] = useState<WizardState>({
     step: 'venue',
     selectedClub: null,
@@ -1215,8 +1286,6 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
     dbCombinationId: null,
     players: [
       { name: displayName, handicapIndex: handicapIndex?.toString() ?? '', isUser: true, gender: 'm', teeOverride: null },
-      { name: '', handicapIndex: '', isUser: false, gender: 'm', teeOverride: null },
-      { name: '', handicapIndex: '', isUser: false, gender: 'm', teeOverride: null },
       { name: '', handicapIndex: '', isUser: false, gender: 'm', teeOverride: null },
     ],
     format: 'stableford',
@@ -1226,6 +1295,10 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
     ldHoles: defaultLdHoles(FIRST_COURSE),
     allowancePct: 100,
     balls: ['White'],
+    eventDate: today,
+    inviteLink: false,
+    groupSize: 4,
+    entryFeeStr: '',
   })
 
   const update = (partial: Partial<WizardState>) => setState(s => ({ ...s, ...partial }))
@@ -1267,6 +1340,10 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
             isUser: p.isUser,
           }))
 
+        const entryFeePence = state.entryFeeStr
+          ? Math.round(parseFloat(state.entryFeeStr) * 100)
+          : null
+
         const url = await startRound({
           courseId: state.courseId,
           dbCombinationId: state.dbCombinationId,
@@ -1277,6 +1354,10 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
           ntpHoles: state.ntpHoles,
           ldHoles: state.ldHoles,
           allowancePct: state.allowancePct,
+          eventDate: state.eventDate,
+          inviteLink: state.inviteLink,
+          groupSize: state.groupSize,
+          entryFeePence: entryFeePence && entryFeePence > 0 ? entryFeePence : null,
         })
         router.push(url)
       } catch (err) {

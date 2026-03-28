@@ -29,6 +29,11 @@ interface StartRoundData {
   ntpHoles: number[]
   ldHoles: number[]
   allowancePct: number       // e.g. 95 (percent)
+  // Event / advanced fields (all optional — backwards-compatible)
+  eventDate?: string         // YYYY-MM-DD, default today
+  inviteLink?: boolean       // open invite link mode
+  groupSize?: number         // 2 | 3 | 4, default 4
+  entryFeePence?: number | null
 }
 
 export async function startRound(data: StartRoundData): Promise<string> {
@@ -108,6 +113,8 @@ export async function startRound(data: StartRoundData): Promise<string> {
 
   // 6. Create events row (with share code for group joining)
   const shareCode = generateShareCode()
+  const eventDate = data.eventDate ?? todayIso
+  const groupSize = data.groupSize ?? 4
   const { data: event, error: eventErr } = await supabase
     .from('events')
     .insert({
@@ -115,15 +122,17 @@ export async function startRound(data: StartRoundData): Promise<string> {
       course_id: courseDbId,
       combination_id: data.dbCombinationId ?? null,
       name: eventName,
-      date: todayIso,
+      date: eventDate,
       format: data.format,
       round_type: data.roundType,
       handicap_allowance_pct: data.allowancePct / 100,
       ntp_holes: data.ntpHoles,
       ld_holes: data.ldHoles,
-      is_public: false,
+      is_public: data.inviteLink ?? false,
       finalised: false,
       share_code: shareCode,
+      group_size: groupSize,
+      entry_fee_pence: data.entryFeePence ?? null,
     })
     .select('id')
     .single()
@@ -161,7 +170,30 @@ export async function startRound(data: StartRoundData): Promise<string> {
     throw new Error(`Failed to create scorecards: ${scsErr?.message ?? 'unknown error'}`)
   }
 
-  // 9. Find the current user's scorecard by matching player index
+  // 9. Auto-generate groups if players exceed group size
+  if (eps.length > groupSize) {
+    const numGroups = Math.ceil(eps.length / groupSize)
+    await admin.from('event_groups').insert(
+      Array.from({ length: numGroups }, (_, i) => ({
+        event_id: event.id,
+        flight_number: i + 1,
+        label: `Group ${i + 1}`,
+        start_hole: 1,
+      }))
+    )
+    for (const [i, ep] of eps.entries()) {
+      await admin
+        .from('event_players')
+        .update({ flight_number: Math.floor(i / groupSize) + 1 })
+        .eq('id', ep.id)
+    }
+  }
+
+  // 10. Route: invite-link mode → manage page; otherwise → scoring
+  if (data.inviteLink) {
+    return `/events/${event.id}/manage`
+  }
+
   const userIdx = data.players.findIndex(p => p.isUser)
   const userScorecardId = scs[userIdx]?.id
 
