@@ -159,6 +159,7 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
           }}
         >
           {preview ? (
+            // eslint-disable-next-line @next/next/no-img-element -- blob URL preview, not optimisable by next/image
             <img
               src={preview}
               alt="Scorecard preview"

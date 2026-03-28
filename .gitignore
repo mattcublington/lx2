@@ -43,6 +43,9 @@ supabase/.branches
 supabase/.temp
 .superpowers/
 
+# Claude Code session plans
+docs/superpowers/
+
 # Git worktrees
 .worktrees/
 

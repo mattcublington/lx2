@@ -2,6 +2,7 @@
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { rateLimit } from '@/lib/rate-limit'
 
 // ── Cookie name helper ───────────────────────────────────────────────────────
 // Stored as HttpOnly so the score page can redirect anon players to their card.
@@ -19,6 +20,10 @@ export async function joinEvent(
   displayName: string,
   handicapIndex: number,
 ): Promise<{ scorecardId: string }> {
+  const trimmed = displayName.trim()
+  if (!trimmed || trimmed.length > 50) throw new Error('Display name must be 1–50 characters')
+  if (!Number.isFinite(handicapIndex) || handicapIndex < 0 || handicapIndex > 54) throw new Error('Handicap must be 0–54')
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
@@ -72,7 +77,7 @@ export async function joinEvent(
       {
         id: user.id,
         email: user.email!,
-        display_name: displayName,
+        display_name: displayName.trim(),
         ...(handicapIndex > 0 ? { handicap_index: handicapIndex } : {}),
       },
       { onConflict: 'id', ignoreDuplicates: false },
@@ -116,6 +121,13 @@ export async function joinEventAnon(
   displayName: string,
   handicapIndex: number,
 ): Promise<void> {
+  // 5 anonymous joins per IP per minute
+  await rateLimit(5)
+
+  const trimmed = displayName.trim()
+  if (!trimmed || trimmed.length > 50) throw new Error('Display name must be 1–50 characters')
+  if (!Number.isFinite(handicapIndex) || handicapIndex < 0 || handicapIndex > 54) throw new Error('Handicap must be 0–54')
+
   const admin      = createAdminClient()
   const cookieStore = await cookies()
 

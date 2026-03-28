@@ -1,23 +1,10 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { assertEventOrganiser } from '@/lib/assert-event-organiser'
 
 export async function confirmPlayer(eventId: string, playerId: string): Promise<void> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not authenticated')
-
-  // Verify the caller is the event organiser
-  const admin = createAdminClient()
-  const { data: event } = await admin
-    .from('events')
-    .select('created_by')
-    .eq('id', eventId)
-    .single()
-
-  if (!event || event.created_by !== user.id) throw new Error('Not authorised')
+  const { admin } = await assertEventOrganiser(eventId)
 
   await admin
     .from('event_players')

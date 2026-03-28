@@ -76,7 +76,6 @@ export async function importCourseJson(jsonText: string): Promise<ImportResult> 
 
   let data: ClubData
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- reviver strips _comment fields
     data = JSON.parse(jsonText, (key, value) => key === '_comment' ? undefined : value) as ClubData
   } catch {
     return { success: false, message: 'Invalid JSON — could not parse file.' }

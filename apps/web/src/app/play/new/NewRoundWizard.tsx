@@ -1378,7 +1378,7 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
   })
 
   // Uploaded courses from scorecard OCR (temporary, session-only)
-  const [uploadedCourses, setUploadedCourses] = useState<Course[]>([])
+  const [, setUploadedCourses] = useState<Course[]>([])
 
   const update = (partial: Partial<WizardState>) => setState(s => ({ ...s, ...partial }))
 

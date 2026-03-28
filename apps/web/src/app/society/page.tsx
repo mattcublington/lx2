@@ -90,7 +90,7 @@ export default async function SocietyPage() {
         </main>
       </div>
 
-      <BottomNav active="society" />
+      <BottomNav active="home" />
     </>
   )
 }
