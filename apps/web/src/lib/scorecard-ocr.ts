@@ -135,9 +135,14 @@ Respond with ONLY valid JSON matching this exact schema (no markdown, no explana
 
 Rules:
 - Extract EVERY tee colour visible (there are often 3-5 tees on a scorecard)
-- If course rating or slope rating is not visible for a tee, use null
+- IMPORTANT: Look carefully for Course Rating (CR) and Slope Rating (SR/Slope) for each tee.
+  They are often printed in a summary row or footer section of the scorecard, sometimes labelled
+  "CR", "SSS", "CSS", "Course Rating", "Standard Scratch", "Slope", "SR", or in a separate
+  ratings table. Check the top, bottom, and margins of the card. These are critical numbers.
+- If course rating or slope rating is genuinely not visible anywhere on the card, use null
 - If yardage is in metres, convert to yards (multiply by 1.094 and round)
 - Stroke index is sometimes labelled "SI", "S.I.", "Index", or "Hcp"
+- Total yardage for each tee is sometimes shown in "Out", "In", "Total" rows — ignore those rows for hole data but use them to verify your extraction
 - Return ONLY the JSON object, no other text`,
           },
         ],
