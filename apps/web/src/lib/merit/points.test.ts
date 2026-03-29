@@ -31,16 +31,15 @@ describe('computeMeritStandings', () => {
 
   it('awards points based on position and sums across events', () => {
     const standings = computeMeritStandings(events, config)
-    expect(standings[0].total).toBe(45)
-    expect(standings[1].total).toBe(45)
-    expect(standings[2].total).toBe(16)
+    expect(standings[0]!.total).toBe(45)
+    expect(standings[1]!.total).toBe(45)
+    expect(standings[2]!.total).toBe(16)
   })
 
   it('tie-break: number of wins then alphabetical', () => {
     const standings = computeMeritStandings(events, config)
-    // Both Alice and Bob have 45 pts, both have 1 win → alphabetical
-    expect(standings[0].displayName).toBe('Alice')
-    expect(standings[1].displayName).toBe('Bob')
+    expect(standings[0]!.displayName).toBe('Alice')
+    expect(standings[1]!.displayName).toBe('Bob')
   })
 
   it('applies multiplier to position points only', () => {
@@ -54,8 +53,7 @@ describe('computeMeritStandings', () => {
       },
     ]
     const standings = computeMeritStandings(majorEvents, config)
-    // Math.round(25 * 1.5) + 0 = 38
-    expect(standings[0].total).toBe(38)
+    expect(standings[0]!.total).toBe(38)
   })
 
   it('adds participation points without multiplier', () => {
@@ -71,18 +69,15 @@ describe('computeMeritStandings', () => {
       },
     ]
     const standings = computeMeritStandings(singleEvent, withParticipation)
-    // Alice: Math.round(25 * 1.0) + 5 = 30
-    // Bob: Math.round(20 * 1.0) + 5 = 25
-    expect(standings[0].total).toBe(30)
-    expect(standings[1].total).toBe(25)
+    expect(standings[0]!.total).toBe(30)
+    expect(standings[1]!.total).toBe(25)
   })
 
   it('best_of: only counts top N results', () => {
     const bestOfConfig = { ...config, bestOf: 1 }
     const standings = computeMeritStandings(events, bestOfConfig)
-    // Alice: best is 25, Bob: best is 25
-    expect(standings[0].total).toBe(25)
-    expect(standings[1].total).toBe(25)
+    expect(standings[0]!.total).toBe(25)
+    expect(standings[1]!.total).toBe(25)
   })
 
   it('default points for positions beyond template', () => {
@@ -97,7 +92,7 @@ describe('computeMeritStandings', () => {
       },
     ]
     const standings = computeMeritStandings(singleEvent, config)
-    expect(standings[1].total).toBe(2)
+    expect(standings[1]!.total).toBe(2)
   })
 
   it('returns empty array for no events', () => {

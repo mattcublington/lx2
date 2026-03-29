@@ -27,8 +27,8 @@ export interface MeritStanding {
 
 function lookupPoints(template: Record<string, number>, position: number): number {
   const key = String(position)
-  if (key in template) return template[key]
-  if ('default' in template) return template['default']
+  if (key in template) return template[key]!
+  if ('default' in template) return template['default']!
   return 0
 }
 
