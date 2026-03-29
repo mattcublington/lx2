@@ -52,6 +52,7 @@ export default async function EventPage({ params }: PageProps) {
       id, name, date, format, handicap_allowance_pct,
       group_size, max_players, ntp_holes, ld_holes,
       entry_fee_pence, created_by, combination_id, is_public,
+      tournament_id, round_number,
       course_combinations(name)
     `)
     .eq('id', id)
@@ -121,6 +122,24 @@ export default async function EventPage({ params }: PageProps) {
   }
 
   const isOrganiser = user?.id === event.created_by
+
+  // ── Tournament info (if event belongs to a tournament) ────────────────────
+  let tournamentName = ''
+  let roundCount = 0
+  if (event.tournament_id) {
+    const { data: tourn } = await admin
+      .from('tournaments')
+      .select('name')
+      .eq('id', event.tournament_id)
+      .single()
+    tournamentName = tourn?.name ?? ''
+
+    const { count } = await admin
+      .from('events')
+      .select('id', { count: 'exact', head: true })
+      .eq('tournament_id', event.tournament_id)
+    roundCount = count ?? 0
+  }
 
   // ── Full player list (admin — shows all regardless of auth state) ─────────
   const { data: players } = await admin
@@ -238,6 +257,22 @@ export default async function EventPage({ params }: PageProps) {
 
           {/* ── Event card ── */}
           <div className="ep-card" style={{ background: '#fff', borderRadius: 16, border: '1px solid #E0EBE0', padding: '28px' }}>
+
+            {/* Tournament badge */}
+            {event.tournament_id && tournamentName && (
+              <Link href={`/tournaments/${event.tournament_id}`} style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '6px 12px', borderRadius: 8,
+                background: 'rgba(13, 99, 27, 0.08)', color: '#0D631B',
+                fontFamily: 'var(--font-dm-sans), sans-serif', fontSize: '0.8125rem',
+                fontWeight: 600, textDecoration: 'none', marginBottom: 16,
+              }}>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M7 1L9 5L13 5.5L10 8.5L11 13L7 11L3 13L4 8.5L1 5.5L5 5L7 1Z" fill="currentColor"/>
+                </svg>
+                Round {event.round_number} of {roundCount} &mdash; {tournamentName}
+              </Link>
+            )}
 
             {/* Format badge */}
             <div style={{ marginBottom: 12 }}>

@@ -45,7 +45,7 @@ export default function BottomNav({ active }: { active: Tab }) {
         <Link href="/rounds"   className={`bnav-item${active === 'rounds'   ? ' active' : ''}`} aria-label="Rounds">
           <ClipboardIcon /><span>Rounds</span>
         </Link>
-        <Link href="/events"   className={`bnav-item${active === 'events'   ? ' active' : ''}`} aria-label="Tournaments">
+        <Link href="/tournaments"   className={`bnav-item${active === 'events'   ? ' active' : ''}`} aria-label="Tournaments">
           <TrophyIcon /><span>Tournaments</span>
         </Link>
         <Link href="/analysis" className={`bnav-item${active === 'analysis' ? ' active' : ''}`} aria-label="Analysis">

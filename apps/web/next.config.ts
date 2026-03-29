@@ -1,6 +1,15 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      {
+        source: '/events',
+        destination: '/tournaments',
+        permanent: false,
+      },
+    ]
+  },
   serverExternalPackages: [],
   transpilePackages: ['@lx2/scoring', '@lx2/db', '@lx2/ui', '@lx2/config'],
   images: {
