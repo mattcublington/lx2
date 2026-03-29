@@ -424,115 +424,110 @@ export default function PlayDashboard({
 
         /* ── Action cards (Start / Organise) ────────────── */
         .fe-actions {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
+          display: flex;
+          flex-direction: column;
           gap: 0.75rem;
           margin-bottom: 1.25rem;
           animation: fe-rise 0.45s 0.1s cubic-bezier(0.2, 0, 0, 1) both;
         }
         .fe-action-card {
           display: flex;
-          flex-direction: column;
+          flex-direction: row;
           align-items: center;
-          gap: 0.625rem;
-          padding: 1.375rem 0.75rem 1.25rem;
+          gap: 1rem;
+          padding: 1.25rem 1.25rem;
           background: #FFFFFF;
-          border-radius: 16px;
-          box-shadow: 0 4px 12px rgba(26, 28, 28, 0.04);
+          border-radius: 18px;
+          box-shadow: 0 2px 8px rgba(26, 28, 28, 0.06);
           text-decoration: none;
           color: inherit;
           transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
           cursor: pointer;
-          border: 1.5px solid transparent;
+          border: 1.5px solid #E0EBE0;
           position: relative;
           overflow: hidden;
         }
         .fe-action-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 24px rgba(26, 28, 28, 0.08);
+          transform: translateY(-1px);
+          box-shadow: 0 6px 20px rgba(26, 28, 28, 0.08);
         }
         .fe-action-card:active { transform: translateY(0); }
         .fe-action-card.primary {
           background: linear-gradient(135deg, #0D631B 0%, #0a4f15 100%);
           color: #FFFFFF;
-          box-shadow: 0 8px 24px rgba(13, 99, 27, 0.2);
+          border-color: transparent;
+          box-shadow: 0 6px 20px rgba(13, 99, 27, 0.2);
         }
         .fe-action-card.primary:hover {
-          box-shadow: 0 12px 32px rgba(13, 99, 27, 0.28);
+          box-shadow: 0 10px 28px rgba(13, 99, 27, 0.28);
         }
         .fe-action-icon {
-          width: 40px;
-          height: 40px;
-          border-radius: 12px;
+          width: 46px;
+          height: 46px;
+          border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
+          flex-shrink: 0;
         }
         .fe-action-card.primary .fe-action-icon {
-          background: rgba(255, 255, 255, 0.15);
+          background: rgba(255, 255, 255, 0.18);
         }
         .fe-action-card.secondary .fe-action-icon {
           background: rgba(13, 99, 27, 0.08);
           color: #0D631B;
         }
+        .fe-action-text {
+          display: flex;
+          flex-direction: column;
+          gap: 0.2rem;
+        }
         .fe-action-title {
-          font-family: var(--font-manrope), sans-serif;
+          font-family: var(--font-dm-sans), sans-serif;
           font-weight: 700;
-          font-size: 0.9375rem;
+          font-size: 1.0625rem;
           letter-spacing: -0.01em;
-          text-align: center;
+          text-align: left;
           line-height: 1.2;
         }
         .fe-action-sub {
-          font-family: var(--font-lexend), sans-serif;
-          font-size: 0.6875rem;
+          font-family: var(--font-dm-sans), sans-serif;
+          font-size: 0.8125rem;
           font-weight: 400;
-          text-align: center;
+          text-align: left;
           line-height: 1.4;
-          opacity: 0.7;
+          opacity: 0.65;
         }
-        .fe-action-card.primary .fe-action-sub { opacity: 0.8; }
-        .fe-action-badge {
-          position: absolute;
-          top: 0.5rem;
-          right: 0.5rem;
-          padding: 0.15rem 0.5rem;
-          border-radius: 6px;
-          font-family: var(--font-lexend), sans-serif;
-          font-size: 0.5625rem;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
-          background: rgba(255, 255, 255, 0.2);
-          color: rgba(255, 255, 255, 0.9);
-        }
+        .fe-action-card.primary .fe-action-sub { opacity: 0.75; }
 
         /* Join-group secondary link (below action cards) */
         .fe-cta-secondary {
           display: flex;
           align-items: center;
-          justify-content: center;
-          gap: 0.5rem;
+          gap: 0.625rem;
           width: 100%;
-          padding: 0.875rem;
-          background: transparent;
-          color: #6B8C6B;
-          border: 1.5px solid rgba(107, 140, 107, 0.35);
+          padding: 0.9375rem 1.25rem;
+          background: rgba(13, 99, 27, 0.06);
+          color: #1A2E1A;
+          border: none;
           border-radius: 14px;
-          font-family: var(--font-lexend), sans-serif;
-          font-weight: 500;
-          font-size: 0.9375rem;
+          font-family: var(--font-dm-sans), sans-serif;
+          font-weight: 600;
+          font-size: 0.8125rem;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
           cursor: pointer;
-          transition: border-color 0.15s, color 0.15s, background 0.15s;
+          transition: background 0.15s;
           margin-bottom: 2rem;
           text-decoration: none;
-          letter-spacing: 0;
           animation: fe-rise 0.45s 0.15s cubic-bezier(0.2, 0, 0, 1) both;
         }
+        .fe-cta-secondary .fe-join-chevron {
+          margin-left: auto;
+          color: #6B8C6B;
+        }
         .fe-cta-secondary:hover {
-          color: #0D631B;
-          border-color: rgba(13, 99, 27, 0.4);
-          background: rgba(13, 99, 27, 0.04);
+          background: rgba(13, 99, 27, 0.1);
         }
 
         /* ── Section header ──────────────────────────────── */
@@ -769,9 +764,8 @@ export default function PlayDashboard({
             max-width: 560px;
             padding: 2rem 2rem;
           }
-          .fe-banner { height: 180px; }
-          .fe-name { font-size: 1.375rem; }
-          .fe-avatar, .fe-avatar-placeholder { width: 52px; height: 52px; }
+          .fe-name { font-size: 1.625rem; }
+          .fe-avatar, .fe-avatar-placeholder { width: 80px; height: 80px; }
           .fe { padding-bottom: 0; }
         }
       `}</style>
@@ -828,15 +822,18 @@ export default function PlayDashboard({
           ) : (
             <div className="fe-actions">
               <Link href="/play/new" className="fe-action-card primary">
-                <div className="fe-action-icon"><PlusIcon /></div>
-                <div className="fe-action-title">Start a round</div>
-                <div className="fe-action-sub">Quick round with your group</div>
+                <div className="fe-action-icon"><PlayIcon /></div>
+                <div className="fe-action-text">
+                  <div className="fe-action-title">Start a round</div>
+                  <div className="fe-action-sub">Begin a new 18-hole scorecard</div>
+                </div>
               </Link>
               <Link href="/play/new?mode=tournament" className="fe-action-card secondary">
-                <span className="fe-action-badge">Pro</span>
                 <div className="fe-action-icon"><TournamentIcon /></div>
-                <div className="fe-action-title">Organise a tournament</div>
-                <div className="fe-action-sub">Leaderboards, betting &amp; more</div>
+                <div className="fe-action-text">
+                  <div className="fe-action-title">Organise a tournament</div>
+                  <div className="fe-action-sub">Create and manage competitions</div>
+                </div>
               </Link>
             </div>
           )}
@@ -846,6 +843,7 @@ export default function PlayDashboard({
             <Link href="/play/join" className="fe-cta-secondary">
               <PeopleIcon />
               Join a group&apos;s round
+              <span className="fe-join-chevron">›</span>
             </Link>
           )}
 
