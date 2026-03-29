@@ -123,7 +123,7 @@ export default function PlayDashboard({
         .fe-banner {
           position: relative;
           width: 100%;
-          height: 220px;
+          height: 160px;
           overflow: hidden;
         }
         .fe-banner-img {
@@ -138,9 +138,9 @@ export default function PlayDashboard({
           inset: 0;
           background: linear-gradient(
             180deg,
-            rgba(10, 31, 10, 0.15) 0%,
-            rgba(10, 31, 10, 0.3) 50%,
-            rgba(10, 31, 10, 0.7) 100%
+            rgba(10, 31, 10, 0.55) 0%,
+            rgba(10, 31, 10, 0.25) 50%,
+            rgba(10, 31, 10, 0.15) 100%
           );
           z-index: 1;
         }
@@ -172,18 +172,18 @@ export default function PlayDashboard({
         .fe-so-hd:hover { color: #fff; }
         .fe-banner-profile {
           position: absolute;
-          bottom: 1.25rem;
+          top: 1rem;
           left: 1.25rem;
           z-index: 3;
           display: flex;
           align-items: center;
-          gap: 0.875rem;
+          gap: 0.75rem;
           text-decoration: none;
           color: #fff;
         }
         .fe-avatar {
-          width: 56px;
-          height: 56px;
+          width: 48px;
+          height: 48px;
           border-radius: 50%;
           border: 2.5px solid rgba(255,255,255,0.85);
           box-shadow: 0 2px 8px rgba(0,0,0,0.25);
@@ -192,8 +192,8 @@ export default function PlayDashboard({
           background: #E0EBE0;
         }
         .fe-avatar-placeholder {
-          width: 56px;
-          height: 56px;
+          width: 48px;
+          height: 48px;
           border-radius: 50%;
           border: 2.5px solid rgba(255,255,255,0.85);
           box-shadow: 0 2px 8px rgba(0,0,0,0.25);
@@ -205,13 +205,13 @@ export default function PlayDashboard({
           color: #fff;
           font-family: var(--font-manrope), sans-serif;
           font-weight: 800;
-          font-size: 1.25rem;
+          font-size: 1.125rem;
         }
         .fe-banner-info { display: flex; flex-direction: column; gap: 0.2rem; }
         .fe-name {
           font-family: var(--font-manrope), sans-serif;
           font-weight: 800;
-          font-size: 1.375rem;
+          font-size: 1.1875rem;
           color: #fff;
           letter-spacing: -0.02em;
           line-height: 1.1;
@@ -619,9 +619,9 @@ export default function PlayDashboard({
             max-width: 560px;
             padding: 2rem 2rem;
           }
-          .fe-banner { height: 260px; }
-          .fe-name { font-size: 1.75rem; }
-          .fe-avatar, .fe-avatar-placeholder { width: 64px; height: 64px; }
+          .fe-banner { height: 180px; }
+          .fe-name { font-size: 1.375rem; }
+          .fe-avatar, .fe-avatar-placeholder { width: 52px; height: 52px; }
           .fe-so-hd { display: block; }
           .fe { padding-bottom: 0; }
         }
@@ -646,7 +646,7 @@ export default function PlayDashboard({
           </div>
           <Link href="/profile" className="fe-banner-profile">
             {avatarUrl ? (
-              <Image src={avatarUrl} alt={displayName} width={56} height={56} className="fe-avatar" />
+              <Image src={avatarUrl} alt={displayName} width={48} height={48} className="fe-avatar" />
             ) : (
               <div className="fe-avatar-placeholder">
                 {displayName.charAt(0).toUpperCase()}
