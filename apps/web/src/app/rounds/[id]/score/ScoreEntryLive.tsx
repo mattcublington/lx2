@@ -363,8 +363,17 @@ const STYLES = `
     font-family: var(--font-lexend), sans-serif;
     font-size: 0.6875rem; color: #72786E;
   }
+  /* Unscored card accent */
+  .sc-pcard.unscored {
+    border-left: 3px solid #0D631B;
+    animation: sc-rise 0.35s ease both, sc-pulse-border 2s ease-in-out 1s 3;
+  }
+  @keyframes sc-pulse-border {
+    0%, 100% { border-left-color: #0D631B; }
+    50%      { border-left-color: #4ade80; }
+  }
   /* Unscored right */
-  .sc-unscored-r { display: flex; flex-direction: column; align-items: flex-end; gap: 0.375rem; }
+  .sc-unscored-r { display: flex; align-items: center; gap: 0.5rem; }
   .sc-enter-prompt { display: flex; flex-direction: column; align-items: flex-end; gap: 0.125rem; }
   .sc-net-par-hint {
     font-family: var(--font-manrope), sans-serif;
@@ -374,6 +383,10 @@ const STYLES = `
   .sc-tap-hint  {
     font-family: var(--font-lexend), sans-serif;
     font-size: 0.6875rem; color: #0D631B; font-weight: 500;
+  }
+  .sc-chevron {
+    color: #0D631B; opacity: 0.5; flex-shrink: 0;
+    width: 18px; height: 18px;
   }
   /* Scored right */
   .sc-scored-r { display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem; }
@@ -435,6 +448,21 @@ const STYLES = `
     border-color: rgba(26,28,28,0.3);
     transform: translateY(-1px);
   }
+  .sc-act-finish {
+    background: linear-gradient(135deg, #0D631B 0%, #0a4f15 100%);
+    color: #ffffff;
+    font-family: var(--font-lexend), sans-serif;
+    font-weight: 600; font-size: 0.875rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: 12px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex; align-items: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(13,99,27,0.2);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .sc-act-finish:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(13,99,27,0.3); }
 
   /* ── Finish round banner ───────────────────────────────── */
   .sc-finish {
@@ -1610,10 +1638,12 @@ export default function ScoreEntryLive(props: Props) {
               ? ptsLabel(ptsVal, playerScore, hole.par, playerHcOnHole)
               : null
 
+            const isUnscored = !playerPickup && playerScore === null
+
             return (
               <div
                 key={p.scorecardId}
-                className="sc-pcard"
+                className={`sc-pcard${isUnscored ? ' unscored' : ''}`}
                 style={{ animationDelay: `${colorIdx * 0.06}s` }}
                 onClick={() => setScoreModalId(p.scorecardId)}
                 role="button"
@@ -1649,6 +1679,7 @@ export default function ScoreEntryLive(props: Props) {
                         : <span className="sc-net-par-hint">Par {hole.par}</span>}
                       <span className="sc-tap-hint">Tap to enter score</span>
                     </div>
+                    <svg className="sc-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
                   </div>
                 )}
               </div>
@@ -1660,14 +1691,14 @@ export default function ScoreEntryLive(props: Props) {
         {roundComplete && (
           <div className="sc-finish">
             <div className="sc-finish-text">
-              <div className="sc-finish-h">Round complete 🏌️</div>
+              <div className="sc-finish-h">All holes scored ✓</div>
               <div className="sc-finish-s">
                 {format === 'stableford'
                   ? `${totalPts} pts total`
                   : `${totalStrokes} strokes total`}
               </div>
             </div>
-            <a href={`/rounds/${scorecardId}`} className="sc-finish-btn">View summary →</a>
+            <a href={`/rounds/${scorecardId}`} className="sc-finish-btn">Finish round →</a>
           </div>
         )}
 
@@ -1692,12 +1723,20 @@ export default function ScoreEntryLive(props: Props) {
               </div>
             </div>
           </div>
-          <button className="sc-act-btn" onClick={() => d({ type: 'TOGGLE_CARD' })}>
-            Scorecard
-          </button>
-          <button className="sc-act-btn" onClick={() => setShowLeaderboard(true)}>
-            Leaderboard
-          </button>
+          {roundComplete ? (
+            <a href={`/rounds/${scorecardId}`} className="sc-act-finish">
+              Finish round →
+            </a>
+          ) : (
+            <>
+              <button className="sc-act-btn" onClick={() => d({ type: 'TOGGLE_CARD' })}>
+                Scorecard
+              </button>
+              <button className="sc-act-btn" onClick={() => setShowLeaderboard(true)}>
+                Leaderboard
+              </button>
+            </>
+          )}
         </div>
 
         {/* ── Score entry modal ── */}

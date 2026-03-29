@@ -12,6 +12,7 @@ export interface CreateEventData {
   ntpHoles: number[]
   ldHoles: number[]
   entryFeePence: number | null   // null = free
+  organiserHandicap: number | null  // override profile handicap for this event
 }
 
 export async function createEvent(data: CreateEventData): Promise<string> {
@@ -76,7 +77,7 @@ export async function createEvent(data: CreateEventData): Promise<string> {
       event_id:      event.id,
       user_id:       user.id,
       display_name:  profile?.display_name ?? user.email!.split('@')[0],
-      handicap_index: profile?.handicap_index ?? 0,
+      handicap_index: data.organiserHandicap ?? profile?.handicap_index ?? 0,
       rsvp_status:   'confirmed',
     })
     .select('id')

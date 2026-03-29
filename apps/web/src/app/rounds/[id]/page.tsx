@@ -119,6 +119,35 @@ const STYLES = `
     margin-top: 0.25rem;
   }
 
+  /* Round complete banner */
+  .rs-complete-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.875rem 1.125rem;
+    background: rgba(13, 99, 27, 0.08);
+    border: 1.5px solid rgba(13, 99, 27, 0.2);
+    border-radius: 14px;
+    font-family: var(--font-lexend), sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #0D631B;
+    animation: rs-rise 0.4s cubic-bezier(0.2, 0, 0, 1) both;
+  }
+  .rs-complete-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #0D631B;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
   /* Continue CTA */
   .rs-continue {
     display: flex;
@@ -941,8 +970,13 @@ export default async function RoundSummaryPage({ params }: PageProps) {
             )}
           </section>
 
-          {/* Continue scoring CTA if in progress */}
-          {!roundComplete && (
+          {/* Round status */}
+          {roundComplete ? (
+            <div className="rs-complete-banner">
+              <span className="rs-complete-icon">✓</span>
+              <span>Round complete — score submitted</span>
+            </div>
+          ) : (
             <>
               <Link href={`/rounds/${id}/score`} className="rs-continue">
                 {holesPlayed === 0 ? 'Start scoring →' : `Continue scoring · hole ${holesPlayed + 1} →`}

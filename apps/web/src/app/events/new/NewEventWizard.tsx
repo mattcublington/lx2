@@ -34,6 +34,8 @@ interface Props {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function NewEventWizard({
+  displayName,
+  handicapIndex,
   combinations,
   combinationTees,
   combinationHoles,
@@ -57,6 +59,7 @@ export default function NewEventWizard({
   const [ldHoles, setLdHoles]             = useState<number[]>([])
   const [entryFeeEnabled, setEntryFeeEnabled] = useState(false)
   const [entryFeeStr, setEntryFeeStr]     = useState('')
+  const [myHcpStr, setMyHcpStr]           = useState(handicapIndex !== null ? String(handicapIndex) : '')
   const [error, setError]                 = useState('')
 
   // Auto-generate event name from combination + format + date
@@ -112,6 +115,7 @@ export default function NewEventWizard({
           entryFeePence:        entryFeeEnabled && entryFeeStr
                                   ? Math.round(parseFloat(entryFeeStr) * 100)
                                   : null,
+          organiserHandicap:    myHcpStr ? parseFloat(myHcpStr) : null,
         })
         router.push(`/events/${eventId}/manage`)
       } catch (e) {
@@ -413,6 +417,26 @@ export default function NewEventWizard({
                   style={{ width: 140 }}
                 />
               </div>
+
+              <div>
+                <label className="wiz-label">Your handicap index</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <input
+                    className="wiz-input"
+                    type="number"
+                    min={0}
+                    max={54}
+                    step={0.1}
+                    value={myHcpStr}
+                    placeholder="e.g. 18.4"
+                    onChange={e => setMyHcpStr(e.target.value)}
+                    style={{ width: 120 }}
+                  />
+                  <span style={{ fontSize: '0.8125rem', color: '#6B8C6B', fontFamily: 'var(--font-dm-sans), sans-serif' }}>
+                    {handicapIndex !== null ? `Profile: ${handicapIndex}` : 'Not set in profile'}
+                  </span>
+                </div>
+              </div>
             </div>
           )}
 
@@ -555,6 +579,7 @@ export default function NewEventWizard({
                   ['Max players', maxPlayersStr || 'No limit'],
                   ['NTP holes',  ntpLabel],
                   ['LD holes',   ldLabel],
+                  ['Your HCP',   myHcpStr ? myHcpStr : 'Not set'],
                   ['Entry fee',  feeLabel],
                 ].map(([k, v]) => (
                   <div key={k} className="summary-row">
