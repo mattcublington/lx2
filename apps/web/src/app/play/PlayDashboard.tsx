@@ -1,11 +1,9 @@
 'use client'
-import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import BottomNav from '@/components/BottomNav'
-import { deleteRound } from './round-actions'
 
 type RoundRow = {
   id: string
@@ -81,8 +79,6 @@ export default function PlayDashboard({
   recentScores = [],
 }: Props) {
   const router = useRouter()
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
-  const [isPending, startTransition] = useTransition()
 
   const handleSignOut = async () => {
     const supabase = createClient()
@@ -610,36 +606,6 @@ export default function PlayDashboard({
           transform: translateX(2px);
           color: #0D631B;
         }
-        .fe-round-del-btn {
-          flex-shrink: 0;
-          padding: 0.75rem 1rem;
-          background: none;
-          border: none;
-          color: #C8D4C8;
-          font-size: 0.8rem;
-          cursor: pointer;
-          transition: color 0.15s;
-          line-height: 1;
-        }
-        .fe-round-del-btn:hover { color: #DC2626; }
-        /* Confirming state */
-        .fe-round-deleting { background: #fff8f8; padding: 1rem 1.25rem; }
-        .fe-round-deleting .fe-course { color: #DC2626; }
-        .fe-round-del-btns { display: flex; gap: 6px; flex-shrink: 0; }
-        .fe-del-cancel, .fe-del-confirm {
-          padding: 6px 14px;
-          border-radius: 8px;
-          font-family: var(--font-dm-sans);
-          font-size: 0.8rem;
-          font-weight: 600;
-          cursor: pointer;
-          border: none;
-          white-space: nowrap;
-        }
-        .fe-del-cancel { background: #F2F5F0; color: #1A2E1A; }
-        .fe-del-confirm { background: #DC2626; color: #fff; }
-        .fe-del-cancel:disabled, .fe-del-confirm:disabled { opacity: 0.6; cursor: not-allowed; }
-
         /* Empty state */
         .fe-empty {
           padding: 3rem 1.5rem;
@@ -909,34 +875,6 @@ export default function PlayDashboard({
                   const displayCourse = comboName ? `${courseName} · ${comboName}` : courseName
                   const date = formatDate(event?.date ?? round.created_at)
 
-                  const isConfirming = confirmDeleteId === round.id
-                  const isDeleting = isPending && confirmDeleteId === round.id
-
-                  if (isConfirming) {
-                    return (
-                      <div key={round.id} className="fe-round-row fe-round-deleting">
-                        <div className="fe-round-info">
-                          <div className="fe-course">{displayCourse}</div>
-                          <div className="fe-round-date">Delete this round?</div>
-                        </div>
-                        <div className="fe-round-del-btns">
-                          <button
-                            className="fe-del-cancel"
-                            onClick={() => setConfirmDeleteId(null)}
-                            disabled={isDeleting}
-                          >Cancel</button>
-                          <button
-                            className="fe-del-confirm"
-                            disabled={isDeleting}
-                            onClick={() => startTransition(async () => {
-                              await deleteRound(round.id)
-                            })}
-                          >{isDeleting ? '…' : 'Delete'}</button>
-                        </div>
-                      </div>
-                    )
-                  }
-
                   return (
                     <div key={round.id} className="fe-round-row">
                       <Link href={`/rounds/${round.id}`} className="fe-round-link">
@@ -946,11 +884,6 @@ export default function PlayDashboard({
                         </div>
                         <div className="fe-round-chev">›</div>
                       </Link>
-                      <button
-                        className="fe-round-del-btn"
-                        onClick={() => setConfirmDeleteId(round.id)}
-                        aria-label="Delete round"
-                      >✕</button>
                     </div>
                   )
                 })

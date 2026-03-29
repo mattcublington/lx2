@@ -399,7 +399,7 @@ export default async function ManagePage({ params }: PageProps) {
                 {/* ── Danger zone ── */}
                 <div className="mg-danger">
                   <div className="mg-danger-label">Danger zone</div>
-                  <DeleteEventButton eventId={id} eventName={event.name} />
+                  <DeleteEventButton eventId={id} eventName={event.name} finalised={!!event.finalised} />
                 </div>
               </div>
 

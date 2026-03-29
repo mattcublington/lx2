@@ -45,6 +45,7 @@ export default async function EventsPage() {
     `)
     .eq('user_id', user.id)
     .eq('rsvp_status', 'confirmed')
+    .is('events.archived_at', null)
 
   type RawPlayer = {
     event_id: string

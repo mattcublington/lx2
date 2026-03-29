@@ -74,6 +74,7 @@ export default async function PlayPage() {
         event_players ( id )
       `)
       .eq('created_by', user.id)
+      .is('archived_at', null)
       .order('date', { ascending: false })
       .limit(5),
   ])

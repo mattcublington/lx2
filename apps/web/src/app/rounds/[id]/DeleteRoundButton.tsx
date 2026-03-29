@@ -5,10 +5,16 @@ import { deleteRound } from '@/app/play/round-actions'
 export default function DeleteRoundButton({ scorecardId }: { scorecardId: string }) {
   const [showConfirm, setShowConfirm] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   function handleDelete() {
+    setErrorMsg(null)
     startTransition(async () => {
-      await deleteRound(scorecardId)
+      const result = await deleteRound(scorecardId)
+      if (result?.error) {
+        setErrorMsg(result.error)
+      }
+      // If no error, deleteRound redirects to /play via redirect()
     })
   }
 
@@ -22,14 +28,20 @@ export default function DeleteRoundButton({ scorecardId }: { scorecardId: string
 
   return (
     <div className="rs-delete-confirm">
-      <p className="rs-delete-confirm-text">Delete this round? This cannot be undone.</p>
+      {errorMsg ? (
+        <p className="rs-delete-confirm-text" style={{ color: '#DC2626' }}>{errorMsg}</p>
+      ) : (
+        <p className="rs-delete-confirm-text">Delete this round? This cannot be undone.</p>
+      )}
       <div className="rs-delete-confirm-btns">
-        <button className="rs-delete-cancel" onClick={() => setShowConfirm(false)} disabled={isPending}>
+        <button className="rs-delete-cancel" onClick={() => { setShowConfirm(false); setErrorMsg(null) }} disabled={isPending}>
           Cancel
         </button>
-        <button className="rs-delete-confirm-btn" onClick={handleDelete} disabled={isPending}>
-          {isPending ? 'Deleting…' : 'Yes, delete'}
-        </button>
+        {!errorMsg && (
+          <button className="rs-delete-confirm-btn" onClick={handleDelete} disabled={isPending}>
+            {isPending ? 'Deleting…' : 'Yes, delete'}
+          </button>
+        )}
       </div>
     </div>
   )

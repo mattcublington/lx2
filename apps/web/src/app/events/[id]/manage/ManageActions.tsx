@@ -261,16 +261,35 @@ export default function ManageActions({ eventUrl, eventName }: Props) {
 
 // ─── Delete event ─────────────────────────────────────────────────────────────
 
-export function DeleteEventButton({ eventId, eventName }: { eventId: string; eventName: string }) {
+export function DeleteEventButton({ eventId, eventName, finalised }: { eventId: string; eventName: string; finalised: boolean }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [showConfirm, setShowConfirm] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   function handleDelete() {
+    setErrorMsg(null)
     startTransition(async () => {
-      await deleteEvent(eventId)
+      const result = await deleteEvent(eventId)
+      if (result?.error) {
+        setErrorMsg(result.error)
+        return
+      }
       router.push('/play')
     })
+  }
+
+  // Finalised events: show disabled state with explanation
+  if (finalised) {
+    return (
+      <div style={{
+        padding: '9px 18px', border: '1.5px solid #E0EBE0', borderRadius: 10,
+        background: '#F2F5F0', color: '#6B8C6B', fontSize: '0.8125rem', fontWeight: 500,
+        fontFamily: 'var(--font-dm-sans), sans-serif', textAlign: 'center', lineHeight: 1.4,
+      }}>
+        Finalised tournaments cannot be deleted. Reopen the event first.
+      </div>
+    )
   }
 
   if (showConfirm) {
@@ -289,7 +308,9 @@ export function DeleteEventButton({ eventId, eventName }: { eventId: string; eve
           fontSize: '0.8125rem', color: '#6B8C6B',
           fontFamily: 'var(--font-dm-sans), sans-serif', marginBottom: 14, lineHeight: 1.4,
         }}>
-          This permanently removes the event, all players, scorecards, and scores.
+          {errorMsg
+            ? <span style={{ color: '#DC2626' }}>{errorMsg}</span>
+            : 'This removes the event from all lists. If scores have been submitted, the data is archived (not permanently deleted).'}
         </div>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
           <button

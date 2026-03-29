@@ -161,15 +161,46 @@ export async function confirmPlayer(eventId: string, playerId: string): Promise<
 }
 
 // ─── deleteEvent ──────────────────────────────────────────────────────────────
-// Permanently deletes an event and all related data (players, scorecards,
-// hole_scores, groups, contest_entries — all cascade via FK). Organiser only.
+// Deletes a tournament/event. Safety guards:
+// - Finalised events cannot be deleted (must unfinalise first)
+// - Events with submitted scores are soft-deleted (archived_at timestamp)
+// - Empty events (no scores) are hard-deleted
+// Organiser only.
 
-export async function deleteEvent(eventId: string): Promise<void> {
+export async function deleteEvent(eventId: string): Promise<{ error?: string }> {
   const { admin } = await assertEventOrganiser(eventId)
 
-  // FK cascades handle event_players, scorecards, hole_scores,
-  // event_groups, and contest_entries
-  await admin.from('events').delete().eq('id', eventId)
+  // Check if finalised — block deletion of locked tournaments
+  const { data: event } = await admin
+    .from('events')
+    .select('finalised')
+    .eq('id', eventId)
+    .single()
+
+  if (event?.finalised) {
+    return { error: 'This tournament is finalised. Unfinalise it first before deleting.' }
+  }
+
+  // Check if any scorecards have been submitted (have scores)
+  const { count: scoredCount } = await admin
+    .from('scorecards')
+    .select('id', { count: 'exact', head: true })
+    .eq('event_id', eventId)
+    .not('submitted_at', 'is', null)
+
+  if ((scoredCount ?? 0) > 0) {
+    // Soft delete — preserve scored data, just hide the event
+    await admin
+      .from('events')
+      .update({ archived_at: new Date().toISOString() })
+      .eq('id', eventId)
+  } else {
+    // No scores submitted — safe to hard delete
+    // FK cascades handle event_players, scorecards, hole_scores,
+    // event_groups, and contest_entries
+    await admin.from('events').delete().eq('id', eventId)
+  }
 
   revalidatePath('/play')
+  return {}
 }
