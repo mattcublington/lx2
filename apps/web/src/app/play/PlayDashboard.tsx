@@ -416,7 +416,92 @@ export default function PlayDashboard({
           box-shadow: 0 8px 20px rgba(26, 28, 28, 0.1);
         }
 
-        /* Join-group secondary link (below primary CTA) */
+        /* ── Action cards (Start / Organise) ────────────── */
+        .fe-actions {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 0.75rem;
+          margin-bottom: 1.25rem;
+          animation: fe-rise 0.45s 0.1s cubic-bezier(0.2, 0, 0, 1) both;
+        }
+        .fe-action-card {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.625rem;
+          padding: 1.375rem 0.75rem 1.25rem;
+          background: #FFFFFF;
+          border-radius: 16px;
+          box-shadow: 0 4px 12px rgba(26, 28, 28, 0.04);
+          text-decoration: none;
+          color: inherit;
+          transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+          cursor: pointer;
+          border: 1.5px solid transparent;
+          position: relative;
+          overflow: hidden;
+        }
+        .fe-action-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(26, 28, 28, 0.08);
+        }
+        .fe-action-card:active { transform: translateY(0); }
+        .fe-action-card.primary {
+          background: linear-gradient(135deg, #0D631B 0%, #0a4f15 100%);
+          color: #FFFFFF;
+          box-shadow: 0 8px 24px rgba(13, 99, 27, 0.2);
+        }
+        .fe-action-card.primary:hover {
+          box-shadow: 0 12px 32px rgba(13, 99, 27, 0.28);
+        }
+        .fe-action-icon {
+          width: 40px;
+          height: 40px;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .fe-action-card.primary .fe-action-icon {
+          background: rgba(255, 255, 255, 0.15);
+        }
+        .fe-action-card.secondary .fe-action-icon {
+          background: rgba(13, 99, 27, 0.08);
+          color: #0D631B;
+        }
+        .fe-action-title {
+          font-family: var(--font-manrope), sans-serif;
+          font-weight: 700;
+          font-size: 0.9375rem;
+          letter-spacing: -0.01em;
+          text-align: center;
+          line-height: 1.2;
+        }
+        .fe-action-sub {
+          font-family: var(--font-lexend), sans-serif;
+          font-size: 0.6875rem;
+          font-weight: 400;
+          text-align: center;
+          line-height: 1.4;
+          opacity: 0.7;
+        }
+        .fe-action-card.primary .fe-action-sub { opacity: 0.8; }
+        .fe-action-badge {
+          position: absolute;
+          top: 0.5rem;
+          right: 0.5rem;
+          padding: 0.15rem 0.5rem;
+          border-radius: 6px;
+          font-family: var(--font-lexend), sans-serif;
+          font-size: 0.5625rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          background: rgba(255, 255, 255, 0.2);
+          color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Join-group secondary link (below action cards) */
         .fe-cta-secondary {
           display: flex;
           align-items: center;
@@ -759,17 +844,26 @@ export default function PlayDashboard({
           {/* Golf Form Pulse — sparkline of recent scores */}
           {recentScores.length >= 2 && <FormPulse recentScores={recentScores} />}
 
-          {/* Primary CTA */}
+          {/* Primary CTA — active round or action cards */}
           {activeRoundId ? (
             <Link href={`/rounds/${activeRoundId}/score`} className="fe-cta join">
               <PlayIcon />
               Join ongoing round
             </Link>
           ) : (
-            <Link href="/play/new" className="fe-cta">
-              <PlusIcon />
-              Start a new round
-            </Link>
+            <div className="fe-actions">
+              <Link href="/play/new" className="fe-action-card primary">
+                <div className="fe-action-icon"><PlusIcon /></div>
+                <div className="fe-action-title">Start a round</div>
+                <div className="fe-action-sub">Quick round with your group</div>
+              </Link>
+              <Link href="/play/new?mode=tournament" className="fe-action-card secondary">
+                <span className="fe-action-badge">Pro</span>
+                <div className="fe-action-icon"><TournamentIcon /></div>
+                <div className="fe-action-title">Organise a tournament</div>
+                <div className="fe-action-sub">Leaderboards, betting &amp; more</div>
+              </Link>
+            </div>
           )}
 
           {/* Secondary CTA — join another group's round */}
@@ -864,11 +958,11 @@ export default function PlayDashboard({
             </div>
           </section>
 
-          {/* My Events — organiser */}
+          {/* My Tournaments — organiser */}
           {organisedEvents.length > 0 && (
             <section className="fe-my-events">
               <div className="fe-section-hd">
-                <h2 className="fe-section-title">My Events</h2>
+                <h2 className="fe-section-title">My Tournaments</h2>
                 <Link href="/events" className="fe-section-link">View all →</Link>
               </div>
               <div className="fe-my-events-list">
@@ -986,6 +1080,17 @@ function PlayIcon() {
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.75"/>
       <path d="M10 8l6 4-6 4V8z" fill="currentColor"/>
+    </svg>
+  )
+}
+
+function TournamentIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M8 21h8M12 17v4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
+      <path d="M6 3h12l-1 8H7L6 3z" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M7 11c0 2.8 2.2 6 5 6s5-3.2 5-6" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
+      <path d="M18 5h2a1 1 0 011 1v1a3 3 0 01-3 3M6 5H4a1 1 0 00-1 1v1a3 3 0 003 3" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
     </svg>
   )
 }
