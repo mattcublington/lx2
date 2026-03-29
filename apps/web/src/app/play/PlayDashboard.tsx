@@ -52,6 +52,7 @@ interface Props {
   lastRoundCourse?: string | null
   upcomingEvent?: UpcomingEvent | null
   organisedEvents?: OrganisedEvent[]
+  recentScores?: Array<{ date: string; score: number }>
 }
 
 
@@ -77,6 +78,7 @@ export default function PlayDashboard({
   lastRoundCourse,
   upcomingEvent,
   organisedEvents = [],
+  recentScores = [],
 }: Props) {
   const router = useRouter()
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
@@ -146,34 +148,39 @@ export default function PlayDashboard({
         }
         .fe-banner-logo {
           position: absolute;
-          top: 1rem;
-          right: 1.25rem;
+          top: 0.875rem;
+          right: 6.5rem;
           z-index: 3;
-          opacity: 0.95;
+          opacity: 0.7;
           filter: brightness(0) invert(1);
         }
-        /* Desktop: sign-out link in header */
+        /* Sign-out link in header — always visible */
         .fe-so-hd {
-          display: none;
+          display: block;
           position: absolute;
-          top: 1rem;
-          right: 5.5rem;
-          z-index: 3;
-          background: none;
-          border: none;
+          top: 0.875rem;
+          right: 1.25rem;
+          z-index: 4;
+          background: rgba(255,255,255,0.12);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          border: 1px solid rgba(255,255,255,0.18);
+          border-radius: 8px;
           font-family: var(--font-lexend), sans-serif;
-          font-size: 0.8125rem;
-          color: rgba(255,255,255,0.7);
+          font-size: 0.75rem;
+          font-weight: 500;
+          color: rgba(255,255,255,0.85);
           cursor: pointer;
-          padding: 8px 4px;
+          padding: 6px 12px;
           letter-spacing: 0.01em;
-          transition: color 0.15s;
+          transition: background 0.15s, color 0.15s;
         }
-        .fe-so-hd:hover { color: #fff; }
+        .fe-so-hd:hover { background: rgba(255,255,255,0.22); color: #fff; }
         .fe-banner-profile {
           position: absolute;
-          top: 1rem;
+          top: 50%;
           left: 1.25rem;
+          transform: translateY(-50%);
           z-index: 3;
           display: flex;
           align-items: center;
@@ -235,14 +242,94 @@ export default function PlayDashboard({
           margin: 0 auto;
         }
 
-        /* ── Stat cards ──────────────────────────────────── */
-        .fe-stats {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 0.75rem;
+        /* ── Golf Form Pulse ────────────────────────────── */
+        .fe-pulse {
+          background: #FFFFFF;
+          border-radius: 16px;
+          padding: 1.25rem;
+          box-shadow: 0 4px 12px rgba(26, 28, 28, 0.04);
           margin-bottom: 1.5rem;
+          animation: fe-rise 0.45s 0.03s cubic-bezier(0.2, 0, 0, 1) both;
+        }
+        .fe-pulse-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 0.875rem;
+        }
+        .fe-pulse-title {
+          font-family: var(--font-lexend), sans-serif;
+          font-size: 0.6875rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: #72786E;
+        }
+        .fe-pulse-trend {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.3rem;
+          font-family: var(--font-lexend), sans-serif;
+          font-size: 0.8125rem;
+          font-weight: 500;
+          padding: 0.2rem 0.5rem;
+          border-radius: 6px;
+        }
+        .fe-pulse-trend.improving { color: #0D631B; background: rgba(13, 99, 27, 0.08); }
+        .fe-pulse-trend.declining { color: #b91c1c; background: rgba(185, 28, 28, 0.06); }
+        .fe-pulse-trend.steady { color: #72786E; background: rgba(114, 120, 110, 0.08); }
+        .fe-pulse-sparkline {
+          width: 100%;
+          height: 56px;
+          margin-bottom: 0.75rem;
+        }
+        .fe-pulse-scores {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 0.875rem;
+        }
+        .fe-pulse-score {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.15rem;
+        }
+        .fe-pulse-score-val {
+          font-family: var(--font-manrope), sans-serif;
+          font-weight: 700;
+          font-size: 0.6875rem;
+          color: #1A2E1A;
+        }
+        .fe-pulse-score-val.latest {
+          color: #0D631B;
+          font-size: 0.75rem;
+        }
+        .fe-pulse-score-date {
+          font-family: var(--font-lexend), sans-serif;
+          font-size: 0.5625rem;
+          color: #72786E;
+        }
+        .fe-pulse-footer {
+          display: flex;
+          gap: 1.5rem;
+          font-family: var(--font-lexend), sans-serif;
+          font-size: 0.8125rem;
+          color: #72786E;
+        }
+
+        /* ── Stat cards (2-across, scrollable) ─────────── */
+        .fe-stats {
+          display: flex;
+          gap: 0.75rem;
+          overflow-x: auto;
+          scroll-snap-type: x mandatory;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+          margin-bottom: 1.5rem;
+          padding-bottom: 0.25rem;
           animation: fe-rise 0.45s 0.06s cubic-bezier(0.2, 0, 0, 1) both;
         }
+        .fe-stats::-webkit-scrollbar { display: none; }
         .fe-stat {
           background: #FFFFFF;
           border-radius: 16px;
@@ -250,7 +337,9 @@ export default function PlayDashboard({
           text-align: center;
           box-shadow: 0 4px 12px rgba(26, 28, 28, 0.04);
           transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-          min-width: 0;
+          min-width: calc(50% - 0.375rem);
+          flex-shrink: 0;
+          scroll-snap-align: start;
           overflow: hidden;
         }
         .fe-stat:hover {
@@ -622,7 +711,6 @@ export default function PlayDashboard({
           .fe-banner { height: 180px; }
           .fe-name { font-size: 1.375rem; }
           .fe-avatar, .fe-avatar-placeholder { width: 52px; height: 52px; }
-          .fe-so-hd { display: block; }
           .fe { padding-bottom: 0; }
         }
       `}</style>
@@ -668,16 +756,8 @@ export default function PlayDashboard({
         {/* ── Main ── */}
         <main className="fe-main">
 
-          {/* Quick stats — always 3 cards */}
-          <div className="fe-stats">
-            {stats.map((s, i) => (
-              <div className="fe-stat" key={i}>
-                <div className="fe-stat-icon">{s.icon}</div>
-                <div className="fe-stat-val">{s.value}</div>
-                <div className="fe-stat-label">{s.label}</div>
-              </div>
-            ))}
-          </div>
+          {/* Golf Form Pulse — sparkline of recent scores */}
+          {recentScores.length >= 2 && <FormPulse recentScores={recentScores} />}
 
           {/* Primary CTA */}
           {activeRoundId ? (
@@ -699,6 +779,17 @@ export default function PlayDashboard({
               Join a group&apos;s round
             </Link>
           )}
+
+          {/* Quick stats — 2 across, swipe for more */}
+          <div className="fe-stats">
+            {stats.map((s, i) => (
+              <div className="fe-stat" key={i}>
+                <div className="fe-stat-icon">{s.icon}</div>
+                <div className="fe-stat-val">{s.value}</div>
+                <div className="fe-stat-label">{s.label}</div>
+              </div>
+            ))}
+          </div>
 
           {/* Recent rounds */}
           <section className="fe-rounds">
@@ -934,5 +1025,85 @@ function UsersIcon({ size = 12 }: { size?: number }) {
       <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="1.75"/>
       <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
     </svg>
+  )
+}
+
+/* ── Golf Form Pulse ──────────────────────────────────────────── */
+
+function FormPulse({ recentScores }: { recentScores: Array<{ date: string; score: number }> }) {
+  const scores = recentScores.map(s => s.score)
+  const half = Math.floor(scores.length / 2)
+  const recentAvg = scores.slice(-half).reduce((a, b) => a + b, 0) / half
+  const olderAvg = scores.slice(0, half).reduce((a, b) => a + b, 0) / half
+  const diff = olderAvg - recentAvg // positive = improving (lower golf scores)
+  const trend = diff > 1 ? 'improving' : diff < -1 ? 'declining' : 'steady'
+  const trendLabel = trend === 'improving' ? 'Improving' : trend === 'declining' ? 'Needs work' : 'Steady'
+  const trendArrow = trend === 'improving' ? '\u2197' : trend === 'declining' ? '\u2198' : '\u2192'
+
+  const lastEntry = recentScores[recentScores.length - 1]!
+  const lastDate = new Date(lastEntry.date + 'T12:00:00')
+  const daysSince = Math.floor((Date.now() - lastDate.getTime()) / 86400000)
+  const daysLabel = daysSince === 0 ? 'Played today' : daysSince === 1 ? 'Last played yesterday' : `Last played ${daysSince} days ago`
+
+  // Sparkline geometry
+  const min = Math.min(...scores)
+  const max = Math.max(...scores)
+  const range = max - min || 1
+  const pad = 8
+  const w = 300
+  const h = 56
+  const iw = w - pad * 2
+  const ih = h - pad * 2
+
+  const pts = scores.map((s, i) => ({
+    x: pad + (i / (scores.length - 1)) * iw,
+    y: pad + ((s - min) / range) * ih, // lower score = top of chart
+  }))
+  const polyline = pts.map(p => `${p.x},${p.y}`).join(' ')
+  const first = pts[0]!
+  const last = pts[pts.length - 1]!
+  const fillPts = `${first.x},${h} ${polyline} ${last.x},${h}`
+
+  const shortDate = (d: string) => {
+    const dt = new Date(d + 'T12:00:00')
+    return dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+  }
+
+  return (
+    <div className="fe-pulse">
+      <div className="fe-pulse-header">
+        <span className="fe-pulse-title">Your Form</span>
+        <span className={`fe-pulse-trend ${trend}`}>
+          {trendArrow} {trendLabel}
+        </span>
+      </div>
+      <svg className="fe-pulse-sparkline" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="pulse-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#0D631B" stopOpacity="0.15" />
+            <stop offset="100%" stopColor="#0D631B" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <polygon points={fillPts} fill="url(#pulse-fill)" />
+        <polyline points={polyline} fill="none" stroke="#0D631B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx={last.x} cy={last.y} r="4" fill="#0D631B" />
+        <circle cx={last.x} cy={last.y} r="8" fill="none" stroke="#0D631B" strokeWidth="1.5" opacity="0.25">
+          <animate attributeName="r" from="4" to="12" dur="2s" repeatCount="indefinite" />
+          <animate attributeName="opacity" from="0.3" to="0" dur="2s" repeatCount="indefinite" />
+        </circle>
+      </svg>
+      <div className="fe-pulse-scores">
+        {recentScores.map((s, i) => (
+          <div className="fe-pulse-score" key={s.date}>
+            <span className={`fe-pulse-score-val${i === recentScores.length - 1 ? ' latest' : ''}`}>{s.score}</span>
+            <span className="fe-pulse-score-date">{shortDate(s.date)}</span>
+          </div>
+        ))}
+      </div>
+      <div className="fe-pulse-footer">
+        <span>{daysLabel}</span>
+        <span>{scores.length} rounds tracked</span>
+      </div>
+    </div>
   )
 }

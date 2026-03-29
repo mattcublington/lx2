@@ -126,6 +126,16 @@ export default async function PlayPage() {
     ?? lastRound?.events?.name
     ?? null
 
+  // Recent scores for form sparkline (oldest→newest, min 9 holes scored)
+  const recentScoresData: Array<{ date: string; score: number }> = (allScorecards ?? [])
+    .filter(s => scorecardTotals.has(s.id) && (scorecardTotals.get(s.id) ?? 0) >= 27)
+    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+    .slice(-8)
+    .map(s => ({
+      date: s.created_at.slice(0, 10),
+      score: scorecardTotals.get(s.id)!,
+    }))
+
   type RoundRow = {
     id: string
     created_at: string
@@ -180,6 +190,7 @@ export default async function PlayPage() {
       lastRoundCourse={lastRoundCourse}
       activeRoundId={(activeRound as { id: string } | null)?.id ?? null}
       organisedEvents={organisedEvents}
+      recentScores={recentScoresData}
     />
   )
 }
