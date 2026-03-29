@@ -6,7 +6,7 @@ import {
   Lexend,
 } from 'next/font/google'
 import './globals.css'
-import { SpeedInsights } from '@vercel/speed-insights/next'
+// import { SpeedInsights } from '@vercel/speed-insights/next'
 import ServiceWorkerRegistration from '@/components/pwa/ServiceWorkerRegistration'
 import OfflineBanner from '@/components/pwa/OfflineBanner'
 
@@ -75,7 +75,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ServiceWorkerRegistration />
         <OfflineBanner />
         {children}
-        <SpeedInsights />
+        {/* <SpeedInsights /> */}
       </body>
     </html>
   )

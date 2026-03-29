@@ -131,28 +131,55 @@ export default async function EventsPage() {
           color: #1A2E1A;
           padding-bottom: max(80px, calc(80px + env(safe-area-inset-bottom)));
         }
-        .ep-hd {
-          background: #F0F4EC;
-          padding: 1rem 1.25rem;
-          display: flex;
-          justify-content: flex-end;
-          align-items: center;
-          position: sticky;
-          top: 0;
-          z-index: 50;
+        .ep-hero {
+          position: relative;
+          width: 100%;
+          padding: 3rem 2rem 2rem;
+          overflow: hidden;
+        }
+        .ep-hero-img {
+          position: absolute;
+          inset: 0;
+          object-fit: cover;
+          width: 100%;
+          height: 100%;
+        }
+        .ep-hero-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            180deg,
+            rgba(10, 31, 10, 0.6) 0%,
+            rgba(10, 31, 10, 0.45) 50%,
+            rgba(10, 31, 10, 0.35) 100%
+          );
+          z-index: 1;
+        }
+        .ep-hero-inner {
+          max-width: 1200px;
+          margin: 0 auto;
+          position: relative;
+          z-index: 2;
+        }
+        .ep-title {
+          font-family: var(--font-dm-serif), serif;
+          font-weight: 400;
+          font-size: 1.75rem;
+          color: #FFFFFF;
+          letter-spacing: -0.01em;
+          margin: 0;
+          text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+        }
+        .ep-subtitle {
+          font-size: 0.875rem;
+          color: rgba(255, 255, 255, 0.7);
+          margin-top: 0.35rem;
+          text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
         .ep-main {
           padding: 1.5rem 2rem;
           max-width: 1200px;
           margin: 0 auto;
-        }
-        .ep-title {
-          font-family: var(--font-manrope), sans-serif;
-          font-weight: 800;
-          font-size: 1.75rem;
-          color: #1A2E1A;
-          margin-bottom: 1.5rem;
-          letter-spacing: -0.02em;
         }
         .ep-section-hd {
           font-family: var(--font-manrope), sans-serif;
@@ -271,18 +298,23 @@ export default async function EventsPage() {
           box-shadow: 0 8px 22px rgba(13, 99, 27, 0.25);
         }
         @media (min-width: 768px) {
+          .ep-hero { padding: 3rem 2rem 2.25rem; }
           .ep-main { max-width: 560px; padding: 2rem; }
           .ep { padding-bottom: 0; }
         }
       `}</style>
 
       <div className="ep">
-        <header className="ep-hd">
-          <Image src="/lx2-logo.svg" alt="LX2" width={72} height={36} priority />
-        </header>
+        <div className="ep-hero">
+          <Image src="/hero.jpg" alt="" fill className="ep-hero-img" priority />
+          <div className="ep-hero-overlay" />
+          <div className="ep-hero-inner">
+            <h1 className="ep-title">Events</h1>
+            <p className="ep-subtitle">Tournaments &amp; competitions</p>
+          </div>
+        </div>
 
         <main className="ep-main">
-          <h1 className="ep-title">Events</h1>
 
           <Link href="/events/new" className="ep-create">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">

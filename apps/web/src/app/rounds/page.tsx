@@ -61,28 +61,55 @@ export default async function RoundsPage() {
           color: #1A2E1A;
           padding-bottom: max(80px, calc(80px + env(safe-area-inset-bottom)));
         }
-        .rp-hd {
-          background: #F0F4EC;
-          padding: 1rem 1.25rem;
-          display: flex;
-          justify-content: flex-end;
-          align-items: center;
-          position: sticky;
-          top: 0;
-          z-index: 50;
+        .rp-hero {
+          position: relative;
+          width: 100%;
+          padding: 3rem 2rem 2rem;
+          overflow: hidden;
+        }
+        .rp-hero-img {
+          position: absolute;
+          inset: 0;
+          object-fit: cover;
+          width: 100%;
+          height: 100%;
+        }
+        .rp-hero-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            180deg,
+            rgba(10, 31, 10, 0.6) 0%,
+            rgba(10, 31, 10, 0.45) 50%,
+            rgba(10, 31, 10, 0.35) 100%
+          );
+          z-index: 1;
+        }
+        .rp-hero-inner {
+          max-width: 1200px;
+          margin: 0 auto;
+          position: relative;
+          z-index: 2;
+        }
+        .rp-title {
+          font-family: var(--font-dm-serif), serif;
+          font-weight: 400;
+          font-size: 1.75rem;
+          color: #FFFFFF;
+          letter-spacing: -0.01em;
+          margin: 0;
+          text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+        }
+        .rp-subtitle {
+          font-size: 0.875rem;
+          color: rgba(255, 255, 255, 0.7);
+          margin-top: 0.35rem;
+          text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
         .rp-main {
           padding: 1.5rem 2rem;
           max-width: 1200px;
           margin: 0 auto;
-        }
-        .rp-title {
-          font-family: var(--font-manrope), sans-serif;
-          font-weight: 800;
-          font-size: 1.75rem;
-          color: #1A2E1A;
-          margin-bottom: 1.25rem;
-          letter-spacing: -0.02em;
         }
         .rp-list {
           background: #FFFFFF;
@@ -172,18 +199,23 @@ export default async function RoundsPage() {
         }
         .rp-cta:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(13, 99, 27, 0.28); }
         @media (min-width: 768px) {
+          .rp-hero { padding: 3rem 2rem 2.25rem; }
           .rp-main { max-width: 560px; padding: 2rem; }
           .rp { padding-bottom: 0; }
         }
       `}</style>
 
       <div className="rp">
-        <header className="rp-hd">
-          <Image src="/lx2-logo.svg" alt="LX2" width={72} height={36} priority />
-        </header>
+        <div className="rp-hero">
+          <Image src="/hero.jpg" alt="" fill className="rp-hero-img" priority />
+          <div className="rp-hero-overlay" />
+          <div className="rp-hero-inner">
+            <h1 className="rp-title">My Rounds</h1>
+            <p className="rp-subtitle">Your scorecard history</p>
+          </div>
+        </div>
 
         <main className="rp-main">
-          <h1 className="rp-title">My Rounds</h1>
 
           <Link href="/play/new" className="rp-cta">
             + Start a new round
