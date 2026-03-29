@@ -2,8 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { assertEventOrganiser } from '@/lib/assert-event-organiser'
-import { createAdminClient } from '@/lib/supabase/admin'
-import { settleAllMarkets, refreshMarkets } from '../predictions/actions'
+import { settleAllMarkets } from '../predictions/actions'
 
 // ─── generateGroups ────────────────────────────────────────────────────────────
 // Auto-creates event_group rows and assigns confirmed players to them in order.

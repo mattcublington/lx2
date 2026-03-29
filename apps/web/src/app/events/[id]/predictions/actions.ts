@@ -92,10 +92,6 @@ export async function refreshMarkets(eventId: string): Promise<void> {
     .select('id, event_player_id')
     .eq('event_id', eventId)
 
-  const scorecardMap = new Map(
-    (scorecards ?? []).map(sc => [sc.event_player_id, sc.id])
-  )
-
   // Fetch all hole_scores for this event's scorecards
   const scIds = (scorecards ?? []).map(sc => sc.id)
   const { data: allScores } = scIds.length > 0

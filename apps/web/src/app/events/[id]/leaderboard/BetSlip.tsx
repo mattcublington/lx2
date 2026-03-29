@@ -43,10 +43,6 @@ function formatOdds(num: number, den: number): string {
   return `${num}/${den}`
 }
 
-function formatDecimalOdds(num: number, den: number): string {
-  return (num / den + 1).toFixed(2)
-}
-
 const MARKET_ORDER = ['outright', 'head_to_head', 'top_3', 'group_winner', 'last_place', 'over_under']
 
 const MARKET_ICON: Record<string, string> = {
