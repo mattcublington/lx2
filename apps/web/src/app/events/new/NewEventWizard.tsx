@@ -343,48 +343,70 @@ export default function NewEventWizard({
         <div style={{ maxWidth: 640, margin: '0 auto' }}>
 
           {/* Step indicator */}
-          <div style={{ display: 'flex', gap: 8, marginBottom: 32, alignItems: 'center' }}>
+          <div style={{
+            display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+            position: 'relative', marginBottom: 32,
+          }}>
+            {/* Background progress line */}
+            <div style={{
+              position: 'absolute', top: 16, left: 16, right: 16,
+              height: 2, background: 'rgba(26, 28, 28, 0.12)', zIndex: 0,
+            }} />
+            {/* Filled progress line */}
+            <div style={{
+              position: 'absolute', top: 16, left: 16,
+              height: 2, background: '#0D631B', zIndex: 1,
+              transition: 'width 0.3s ease-in-out',
+              width: step >= 4
+                ? 'calc(100% - 32px)'
+                : `${((step - 1) / (STEP_LABELS.length - 1)) * 100}%`,
+            }} />
+
             {STEP_LABELS.map((label, i) => {
               const n = (i + 1) as 1 | 2 | 3 | 4
-              const isActive   = n === step
               const isComplete = n < step
+              const isActive   = n === step
               return (
-                <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <button
-                    onClick={() => isComplete ? setStep(n) : undefined}
-                    disabled={!isComplete}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 6,
-                      background: 'none', border: 'none', cursor: isComplete ? 'pointer' : 'default',
-                      padding: 0, fontFamily: 'var(--font-dm-sans), sans-serif',
-                    }}
-                  >
-                    <span style={{
-                      width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '0.75rem', fontWeight: 700,
-                      background: isActive ? '#0D631B' : isComplete ? '#E0EBE0' : '#E0EBE0',
-                      color: isActive ? '#fff' : isComplete ? '#0D631B' : '#9ca3af',
-                      transition: 'all 0.15s',
-                    }}>
-                      {isComplete ? '✓' : n}
-                    </span>
-                    <span style={{
-                      fontSize: '0.8125rem', fontWeight: isActive ? 600 : 400,
-                      color: isActive ? '#1A2E1A' : '#6B8C6B',
-                      display: 'none',
-                    }}
-                      className="step-label"
-                    >
-                      {label}
-                    </span>
-                  </button>
-                  {i < 3 && <div style={{ width: 24, height: 1, background: '#E0EBE0' }} />}
-                </div>
+                <button
+                  key={n}
+                  onClick={() => isComplete ? setStep(n) : undefined}
+                  disabled={!isComplete}
+                  style={{
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem',
+                    zIndex: 2, flex: 1, background: 'none', border: 'none', padding: 0,
+                    cursor: isComplete ? 'pointer' : 'default',
+                  }}
+                >
+                  <div style={{
+                    width: 32, height: 32, borderRadius: '50%', display: 'flex',
+                    alignItems: 'center', justifyContent: 'center',
+                    background: isComplete || isActive ? 'linear-gradient(135deg, #0D631B 0%, #0a4f15 100%)' : '#FFFFFF',
+                    border: isComplete || isActive ? 'none' : '2px solid rgba(26, 28, 28, 0.12)',
+                    boxShadow: isActive ? '0 0 0 4px rgba(13, 99, 27, 0.1)' : 'none',
+                    transition: 'all 0.2s ease-in-out',
+                  }}>
+                    {isComplete ? (
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <path d="M2.5 7L5.5 10L11.5 4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    ) : isActive ? (
+                      <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#FFFFFF' }} />
+                    ) : (
+                      <span style={{ fontFamily: 'var(--font-manrope), sans-serif', fontWeight: 600, fontSize: 14, color: '#72786E' }}>
+                        {n}
+                      </span>
+                    )}
+                  </div>
+                  <span style={{
+                    fontFamily: 'var(--font-dm-sans), sans-serif', fontSize: 11, fontWeight: 500,
+                    color: isComplete || isActive ? '#0D631B' : '#72786E',
+                    transition: 'color 0.2s',
+                  }}>
+                    {label}
+                  </span>
+                </button>
               )
             })}
-            <span style={{ marginLeft: 8, fontSize: '0.8125rem', color: '#6B8C6B', fontFamily: 'var(--font-dm-sans), sans-serif' }}>
-              {STEP_LABELS[step - 1]}
-            </span>
           </div>
 
           {/* ─────────────── STEP 1: Course & date ─────────────── */}

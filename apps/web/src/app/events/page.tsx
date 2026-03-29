@@ -162,8 +162,8 @@ export default async function EventsPage() {
           z-index: 2;
         }
         .ep-title {
-          font-family: var(--font-dm-serif), serif;
-          font-weight: 400;
+          font-family: var(--font-manrope), sans-serif;
+          font-weight: 800;
           font-size: 1.75rem;
           color: #FFFFFF;
           letter-spacing: -0.01em;
