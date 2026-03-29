@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light only">
+  <meta name="supported-color-schemes" content="light only">
+  <title>Confirm your LX2 account</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #F0F4EC; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color-scheme: light only; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;">
+  <!-- Outer wrapper -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #F0F4EC;">
+    <tr>
+      <td align="center" style="padding: 40px 16px;">
+
+        <!-- Email card -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 480px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+
+          <!-- Hero header with background image -->
+          <tr>
+            <td style="padding: 0; height: 160px; background-image: url('{{ .SiteURL }}/hero.jpg'); background-size: cover; background-position: center; text-align: center; vertical-align: middle;">
+              <!--[if gte mso 9]>
+              <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:480px;height:160px;">
+              <v:fill type="frame" src="{{ .SiteURL }}/hero.jpg" />
+              <v:textbox inset="0,0,0,0" style="mso-fit-shape-to-text:true">
+              <![endif]-->
+              <div style="background: linear-gradient(180deg, rgba(10,31,10,0.6) 0%, rgba(10,31,10,0.45) 50%, rgba(10,31,10,0.35) 100%); padding: 48px 40px;">
+                <img src="{{ .SiteURL }}/lx2-logo.svg" alt="LX2" width="120" style="display: inline-block; height: auto;" />
+              </div>
+              <!--[if gte mso 9]>
+              </v:textbox>
+              </v:rect>
+              <![endif]-->
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding: 40px 40px 16px;">
+              <h1 style="margin: 0 0 8px; font-size: 24px; font-weight: 700; color: #1A2E1A; line-height: 1.3;">
+                Welcome to LX2
+              </h1>
+              <p style="margin: 0 0 28px; font-size: 16px; color: #44483E; line-height: 1.6;">
+                You&apos;re one tap away from tracking your game, competing in events, and playing with friends.
+              </p>
+              <p style="margin: 0 0 28px; font-size: 15px; color: #6B8C6B; line-height: 1.6;">
+                Confirm your email address to activate your account:
+              </p>
+
+              <!-- CTA button -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center" style="padding: 0 0 32px;">
+                    <a href="{{ .ConfirmationURL }}"
+                       target="_blank"
+                       style="display: inline-block; padding: 16px 40px; background-color: #0D631B; color: #ffffff; font-size: 16px; font-weight: 700; text-decoration: none; border-radius: 9999px; line-height: 1;">
+                      Confirm my email
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Fallback link -->
+              <p style="margin: 0 0 8px; font-size: 13px; color: #6B8C6B; line-height: 1.5;">
+                Button not working? Copy and paste this link into your browser:
+              </p>
+              <p style="margin: 0 0 32px; font-size: 13px; color: #0D631B; line-height: 1.5; word-break: break-all;">
+                {{ .ConfirmationURL }}
+              </p>
+            </td>
+          </tr>
+
+          <!-- Divider -->
+          <tr>
+            <td style="padding: 0 40px;">
+              <div style="border-top: 1px solid #E0EBE0;"></div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 24px 40px 32px;">
+              <p style="margin: 0 0 4px; font-size: 13px; color: #6B8C6B; line-height: 1.5;">
+                If you didn&apos;t create an LX2 account, you can safely ignore this email.
+              </p>
+              <p style="margin: 0; font-size: 13px; color: #6B8C6B; line-height: 1.5;">
+                This link expires in 24 hours.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+        <!-- /Email card -->
+
+        <!-- Sub-footer -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 480px;">
+          <tr>
+            <td style="padding: 24px 40px 0; text-align: center;">
+              <p style="margin: 0; font-size: 12px; color: #6B8C6B; line-height: 1.5;">
+                LX2 Golf &mdash; Score. Compete. Improve.
+              </p>
+              <p style="margin: 4px 0 0; font-size: 12px; color: #6B8C6B; line-height: 1.5;">
+                <a href="{{ .SiteURL }}" style="color: #0D631B; text-decoration: none;">lx2.golf</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
