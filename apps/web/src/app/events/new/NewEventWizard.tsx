@@ -192,8 +192,8 @@ export default function NewEventWizard({
         }
         .nev-back:hover { background: rgba(255,255,255,0.15); color: #fff; }
         .nev-banner-title {
-          font-family: var(--font-dm-serif), serif;
-          font-weight: 400;
+          font-family: var(--font-manrope), sans-serif;
+          font-weight: 800;
           font-size: clamp(1.75rem, 4vw, 2.25rem);
           color: #fff;
           margin: 0;

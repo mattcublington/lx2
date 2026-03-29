@@ -153,7 +153,7 @@ export default async function ManagePage({ params }: PageProps) {
           font-family: var(--font-dm-sans), sans-serif; margin-bottom: 2px;
         }
         .mg-title {
-          font-family: var(--font-dm-serif), serif; font-weight: 400;
+          font-family: var(--font-manrope), sans-serif; font-weight: 800;
           font-size: clamp(1.5rem, 4vw, 2rem); color: #1A2E1A;
           margin: 0; letter-spacing: -0.02em; line-height: 1.1;
         }

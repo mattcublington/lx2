@@ -102,6 +102,9 @@ export async function createEvent(data: CreateEventData): Promise<string> {
       event_id: event.id,
       enabled: true,
       starting_credits: data.startingCredits ?? 1000,
+      max_bet_pct: 20,
+      overround_pct: 115,
+      h2h_overround_pct: 108,
     })
   }
 

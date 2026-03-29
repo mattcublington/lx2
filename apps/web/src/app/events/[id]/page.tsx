@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import JoinForm from './JoinForm'
@@ -168,43 +169,71 @@ export default async function EventPage({ params }: PageProps) {
         }
         .ep-card:nth-child(2) { animation-delay: 0.06s; }
         .ep-card:nth-child(3) { animation-delay: 0.12s; }
+        .evd-hero {
+          position: relative; width: 100%; height: 160px; overflow: hidden;
+        }
+        .evd-hero-img {
+          object-fit: cover;
+        }
+        .evd-hero-overlay {
+          position: absolute; inset: 0;
+          background: linear-gradient(to bottom, rgba(10,31,10,0.45) 0%, rgba(10,31,10,0.75) 100%);
+          z-index: 1;
+        }
+        .evd-hero-inner {
+          position: absolute; bottom: 0; left: 0; right: 0;
+          padding: 1.25rem 2rem; z-index: 2;
+          max-width: 1200px; margin: 0 auto;
+        }
+        .evd-hero-back {
+          display: inline-flex; align-items: center; gap: 6px;
+          color: rgba(255,255,255,0.7); text-decoration: none;
+          font-family: var(--font-dm-sans), sans-serif;
+          font-size: 0.875rem; font-weight: 500;
+          padding: 6px 10px; border-radius: 8px;
+          transition: background 0.15s, color 0.15s;
+          margin-bottom: 8px;
+        }
+        .evd-hero-back:hover { background: rgba(255,255,255,0.15); color: #fff; }
+        .evd-hero-title {
+          font-family: var(--font-manrope), sans-serif;
+          font-weight: 800;
+          font-size: clamp(1.5rem, 4vw, 2rem);
+          color: #fff; margin: 0;
+          letter-spacing: -0.02em;
+          text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .evd-hero-sub {
+          font-size: 0.875rem; color: rgba(255,255,255,0.7);
+          margin-top: 0.25rem;
+          text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+          font-family: var(--font-dm-sans), sans-serif;
+        }
+        @media (min-width: 768px) {
+          .evd-hero { height: 180px; }
+        }
       `}</style>
 
-      {/* ── Header ── */}
-      <header style={{ background: '#0a1f0a', padding: '0 32px' }}>
-        <div style={{
-          maxWidth: 1200, margin: '0 auto', height: 60,
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        }}>
-          <Link
-            href="/play"
-            style={{ textDecoration: 'none', color: '#6B8C6B', fontSize: '0.8125rem', fontFamily: 'var(--font-dm-sans), sans-serif' }}
-          >
-            ← Back
+      {/* ── Hero Banner ── */}
+      <div className="evd-hero">
+        <Image src="/hero.jpg" alt="Golf course" fill priority className="evd-hero-img" sizes="100vw" quality={90} />
+        <div className="evd-hero-overlay" />
+        <div className="evd-hero-inner">
+          <Link href="/events" className="evd-hero-back">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M12 4L6 10L12 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Back
           </Link>
-          <span style={{ fontFamily: 'var(--font-dm-sans), sans-serif', fontWeight: 700, color: '#fff', fontSize: '1rem', letterSpacing: '-0.02em' }}>
-            LX<span style={{ color: '#4ade80' }}>2</span>
-          </span>
-          {user ? (
-            <Link
-              href="/play"
-              style={{ fontSize: '0.8125rem', color: '#6B8C6B', fontFamily: 'var(--font-dm-sans), sans-serif', textDecoration: 'none' }}
-            >
-              My rounds
-            </Link>
-          ) : (
-            <Link
-              href={`/auth/login?redirect=/events/${id}`}
-              style={{ fontSize: '0.8125rem', color: '#6B8C6B', fontFamily: 'var(--font-dm-sans), sans-serif', textDecoration: 'none' }}
-            >
-              Sign in
-            </Link>
-          )}
+          <h1 className="evd-hero-title">{event.name}</h1>
+          <div className="evd-hero-sub">
+            {formatDate(event.date)}{comboName ? ` · ${comboName}` : ''}
+          </div>
         </div>
-      </header>
+      </div>
 
       {/* ── Body ── */}
-      <main style={{ background: '#F2F5F0', minHeight: 'calc(100dvh - 60px)', padding: '32px 32px max(100px, calc(80px + env(safe-area-inset-bottom)))' }}>
+      <main style={{ background: '#F2F5F0', minHeight: 'calc(100dvh - 160px)', padding: '32px 32px max(100px, calc(80px + env(safe-area-inset-bottom)))' }}>
         <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
           {/* ── Event card ── */}
@@ -225,9 +254,9 @@ export default async function EventPage({ params }: PageProps) {
 
             {/* Event name */}
             <h1 style={{
-              fontFamily: 'var(--font-dm-serif), serif',
-              fontWeight: 400,
-              fontSize: 'clamp(1.5rem, 4vw, 2rem)',
+              fontFamily: 'var(--font-manrope), sans-serif',
+              fontWeight: 800,
+              fontSize: 'clamp(1.25rem, 3.5vw, 1.5rem)',
               color: '#1A2E1A',
               margin: '0 0 8px',
               letterSpacing: '-0.02em',
