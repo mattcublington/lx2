@@ -176,13 +176,59 @@ export default async function EventsPage() {
           transition: transform 0.15s, color 0.15s;
         }
         .ep-row:hover .ep-chev { transform: translateX(2px); color: #0D631B; }
+        .ep-create {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.6rem;
+          width: 100%;
+          padding: 1rem;
+          background: linear-gradient(135deg, #0D631B 0%, #0a4f15 100%);
+          color: #FFFFFF;
+          border: none;
+          border-radius: 14px;
+          font-family: var(--font-dm-sans), sans-serif;
+          font-weight: 600;
+          font-size: 0.9375rem;
+          cursor: pointer;
+          box-shadow: 0 6px 20px rgba(13, 99, 27, 0.18);
+          transition: transform 0.15s, box-shadow 0.15s;
+          margin-bottom: 1.75rem;
+          text-decoration: none;
+          letter-spacing: -0.01em;
+        }
+        .ep-create:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 10px 28px rgba(13, 99, 27, 0.25);
+        }
         .ep-empty {
-          padding: 2rem 1.5rem;
+          padding: 2.5rem 1.5rem;
           text-align: center;
           background: #FFFFFF;
           border-radius: 16px;
           font-size: 0.875rem;
           color: #72786E;
+          line-height: 1.6;
+        }
+        .ep-empty-cta {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          margin-top: 1.25rem;
+          padding: 0.75rem 1.5rem;
+          background: linear-gradient(135deg, #0D631B 0%, #0a4f15 100%);
+          color: #FFFFFF;
+          border-radius: 12px;
+          font-family: var(--font-dm-sans), sans-serif;
+          font-weight: 600;
+          font-size: 0.875rem;
+          text-decoration: none;
+          box-shadow: 0 4px 14px rgba(13, 99, 27, 0.18);
+          transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .ep-empty-cta:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 8px 22px rgba(13, 99, 27, 0.25);
         }
         @media (min-width: 768px) {
           .ep-main { max-width: 560px; padding: 2rem; }
@@ -198,10 +244,18 @@ export default async function EventsPage() {
         <main className="ep-main">
           <h1 className="ep-title">Events</h1>
 
+          <Link href="/events/new" className="ep-create">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.75"/>
+              <path d="M12 8v8M8 12h8" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
+            </svg>
+            Create Tournament
+          </Link>
+
           {events.length === 0 ? (
             <div className="ep-empty">
               You haven&apos;t joined any events yet.<br />
-              Ask your organiser for an event link to join.
+              Create a tournament or ask your organiser for a link to join.
             </div>
           ) : (
             <>
