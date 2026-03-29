@@ -1284,7 +1284,14 @@ export default function ScoreEntryLive(props: Props) {
   // ── Derivations for render ─────────────────────────────────────────────────
 
   const { totalPts, totalStrokes, holesPlayed } = getRunningTotal()
-  const roundComplete = holesPlayed === holes.length
+  const myRoundComplete = holesPlayed === holes.length
+  const allPlayersComplete = myRoundComplete && groupPlayers
+    .filter(p => p.scorecardId && p.scorecardId !== scorecardId)
+    .every(p => {
+      const pScores = liveScores[p.scorecardId] ?? {}
+      return holes.every(h => h.holeInRound in pScores)
+    })
+  const roundComplete = allPlayersComplete
   const myInitials = playerName.split(' ').filter(Boolean).map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?'
 
   // 4-hole navigation window
@@ -1640,6 +1647,26 @@ export default function ScoreEntryLive(props: Props) {
 
             const isUnscored = !playerPickup && playerScore === null
 
+            // Running Stableford total for this player
+            let playerTotalPts = 0
+            let playerHolesPlayed = 0
+            if (format === 'stableford') {
+              const pScores = isOwn ? s.scores : (liveScores[p.scorecardId] ?? p.initialScores ?? {})
+              const pPickups = isOwn ? s.pickups : {}
+              const pStrokes = isOwn
+                ? strokesPerHole
+                : allocateStrokes(Math.round(p.handicapIndex * allowancePct), holes)
+              for (const h of holes) {
+                const sc = pScores[h.holeInRound]
+                const pu = isOwn ? (pPickups[h.holeInRound] ?? false) : false
+                if (pu) { playerHolesPlayed++; continue }
+                if (sc != null) {
+                  playerHolesPlayed++
+                  playerTotalPts += pts(sc, h.par, pStrokes[h.holeInRound] ?? 0)
+                }
+              }
+            }
+
             return (
               <div
                 key={p.scorecardId}
@@ -1656,7 +1683,11 @@ export default function ScoreEntryLive(props: Props) {
                   </div>
                   <div style={{ minWidth: 0, overflow: 'hidden' }}>
                     <div className="sc-player-name">{p.displayName.split(' ')[0]}</div>
-                    {isOwn && <div className="sc-player-you">you</div>}
+                    <div className="sc-player-you">
+                      {format === 'stableford' && playerHolesPlayed > 0
+                        ? `${playerTotalPts}pts thru ${playerHolesPlayed}`
+                        : isOwn ? 'you' : ''}
+                    </div>
                   </div>
                 </div>
 
