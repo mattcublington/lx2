@@ -2,8 +2,10 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import ManageActions, { ConfirmPlayers, FinaliseButton, DeleteEventButton } from './ManageActions'
 import GroupManager from './GroupManager'
+import PredictionsToggle from './PredictionsToggle'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -71,6 +73,19 @@ export default async function ManagePage({ params }: PageProps) {
   const ntpHoles    = (event.ntp_holes as number[] | null) ?? []
   const ldHoles     = (event.ld_holes  as number[] | null) ?? []
   const feeLabel    = event.entry_fee_pence ? `£${(event.entry_fee_pence / 100).toFixed(2)}` : 'Free'
+
+  // Predictions config
+  const admin = createAdminClient()
+  const { data: predConfig } = await admin
+    .from('prediction_configs')
+    .select('enabled, starting_credits')
+    .eq('event_id', id)
+    .single()
+
+  const { count: marketsCount } = await admin
+    .from('prediction_markets')
+    .select('id', { count: 'exact', head: true })
+    .eq('event_id', id)
 
   // Build the shareable URL. The app URL is always lx2.golf in production.
   // process.env.NEXT_PUBLIC_APP_URL is set in CI and prod; fall back to a relative path label.
@@ -386,6 +401,16 @@ export default async function ManagePage({ params }: PageProps) {
                     }))}
                   />
                 )}
+
+                {/* ── Predictions ── */}
+                <PredictionsToggle
+                  eventId={id}
+                  enabled={!!predConfig?.enabled}
+                  startingCredits={predConfig?.starting_credits ?? 1000}
+                  marketsCount={marketsCount ?? 0}
+                  playerCount={confirmed.length}
+                  finalised={!!event.finalised}
+                />
 
                 {/* ── Finalise ── */}
                 <FinaliseButton eventId={id} finalised={!!event.finalised} />

@@ -16,6 +16,7 @@
     "@anthropic-ai/sdk": "^0.80.0",
     "@lx2/db": "*",
     "@lx2/leaderboard": "*",
+    "@lx2/predictions": "*",
     "@lx2/scoring": "*",
     "@lx2/ui": "*",
     "@supabase/ssr": "^0.5.2",

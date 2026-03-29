@@ -1,5 +1,6 @@
 'use server'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export interface CreateEventData {
   eventName: string
@@ -13,6 +14,8 @@ export interface CreateEventData {
   ldHoles: number[]
   entryFeePence: number | null   // null = free
   organiserHandicap: number | null  // override profile handicap for this event
+  predictionsEnabled?: boolean
+  startingCredits?: number
 }
 
 export async function createEvent(data: CreateEventData): Promise<string> {
@@ -91,6 +94,16 @@ export async function createEvent(data: CreateEventData): Promise<string> {
     .insert({ event_id: event.id, event_player_id: ep.id, round_type: '18' })
 
   if (scErr) throw new Error(`Failed to create scorecard: ${scErr.message}`)
+
+  // Create predictions config if enabled (uses admin client to bypass RLS)
+  if (data.predictionsEnabled) {
+    const admin = createAdminClient()
+    await admin.from('prediction_configs').insert({
+      event_id: event.id,
+      enabled: true,
+      starting_credits: data.startingCredits ?? 1000,
+    })
+  }
 
   return event.id
 }

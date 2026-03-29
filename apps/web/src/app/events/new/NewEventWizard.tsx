@@ -60,6 +60,8 @@ export default function NewEventWizard({
   const [entryFeeEnabled, setEntryFeeEnabled] = useState(false)
   const [entryFeeStr, setEntryFeeStr]     = useState('')
   const [myHcpStr, setMyHcpStr]           = useState(handicapIndex !== null ? String(handicapIndex) : '')
+  const [predictionsEnabled, setPredictionsEnabled] = useState(false)
+  const [startingCreditsStr, setStartingCreditsStr] = useState('1000')
   const [error, setError]                 = useState('')
 
   // Auto-generate event name from combination + format + date
@@ -116,6 +118,8 @@ export default function NewEventWizard({
                                   ? Math.round(parseFloat(entryFeeStr) * 100)
                                   : null,
           organiserHandicap:    myHcpStr ? parseFloat(myHcpStr) : null,
+          predictionsEnabled:   predictionsEnabled,
+          startingCredits:      startingCreditsStr ? parseInt(startingCreditsStr, 10) : 1000,
         })
         router.push(`/events/${eventId}/manage`)
       } catch (e) {
@@ -129,6 +133,7 @@ export default function NewEventWizard({
   const feeLabel      = entryFeeEnabled && entryFeeStr ? `£${parseFloat(entryFeeStr).toFixed(2)}` : 'Free'
   const ntpLabel      = ntpHoles.length ? ntpHoles.map(h => `Hole ${h}`).join(', ') : 'None'
   const ldLabel       = ldHoles.length  ? ldHoles.map(h => `Hole ${h}`).join(', ')  : 'None'
+  const predLabel     = predictionsEnabled ? `On · ${startingCreditsStr || '1000'} credits` : 'Off'
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
@@ -558,6 +563,58 @@ export default function NewEventWizard({
                   </div>
                 )}
               </div>
+
+              {/* Predictions betting */}
+              <div>
+                <label className="wiz-label" style={{ marginBottom: 4 }}>
+                  Predictions &amp; betting
+                  <span style={{
+                    marginLeft: 8, padding: '2px 8px', borderRadius: 6,
+                    background: '#0D631B', color: '#fff', fontSize: '0.6875rem',
+                    fontWeight: 700, letterSpacing: '0.04em', verticalAlign: 'middle',
+                  }}>
+                    PRO
+                  </span>
+                </label>
+                <p style={{ margin: '0 0 12px', fontSize: '0.8125rem', color: '#6B8C6B', fontFamily: 'var(--font-dm-sans), sans-serif', lineHeight: 1.5 }}>
+                  AI bookie sets live odds. Players bet virtual credits on outright winner, head-to-heads, over/unders, and more.
+                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                  <button
+                    className={`format-chip${!predictionsEnabled ? ' selected' : ''}`}
+                    style={{ flex: 'none', width: 80 }}
+                    onClick={() => setPredictionsEnabled(false)}
+                  >
+                    Off
+                  </button>
+                  <button
+                    className={`format-chip${predictionsEnabled ? ' selected' : ''}`}
+                    style={{ flex: 'none', width: 80 }}
+                    onClick={() => setPredictionsEnabled(true)}
+                  >
+                    On
+                  </button>
+                </div>
+                {predictionsEnabled && (
+                  <div style={{ background: '#F0F9F1', borderRadius: 12, padding: '16px 18px', border: '1px solid #E0EBE0' }}>
+                    <label className="wiz-label">Starting credits per player</label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <input
+                        className="wiz-input"
+                        type="number"
+                        min={100} max={10000} step={100}
+                        value={startingCreditsStr}
+                        onChange={e => setStartingCreditsStr(e.target.value)}
+                        style={{ width: 120 }}
+                      />
+                      <span style={{ fontSize: '0.8125rem', color: '#6B8C6B', fontFamily: 'var(--font-dm-sans), sans-serif' }}>credits</span>
+                    </div>
+                    <p style={{ margin: '8px 0 0', fontSize: '0.75rem', color: '#6B8C6B', fontFamily: 'var(--font-dm-sans), sans-serif', lineHeight: 1.4 }}>
+                      Max bet: 20% of bankroll. Markets auto-generated from the field. Settled on finalisation.
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -581,6 +638,7 @@ export default function NewEventWizard({
                   ['LD holes',   ldLabel],
                   ['Your HCP',   myHcpStr ? myHcpStr : 'Not set'],
                   ['Entry fee',  feeLabel],
+                  ['Predictions', predLabel],
                 ].map(([k, v]) => (
                   <div key={k} className="summary-row">
                     <span style={{ fontSize: '0.875rem', color: '#6B8C6B' }}>{k}</span>

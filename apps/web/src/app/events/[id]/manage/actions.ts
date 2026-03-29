@@ -2,6 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import { assertEventOrganiser } from '@/lib/assert-event-organiser'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { settleAllMarkets, refreshMarkets } from '../predictions/actions'
 
 // ─── generateGroups ────────────────────────────────────────────────────────────
 // Auto-creates event_group rows and assigns confirmed players to them in order.
@@ -104,6 +106,19 @@ export async function finaliseEvent(eventId: string): Promise<void> {
     .from('events')
     .update({ finalised: true })
     .eq('id', eventId)
+
+  // Settle all prediction markets
+  try {
+    await settleAllMarkets(eventId)
+  } catch {
+    // Settlement failure shouldn't block finalisation
+  }
+
+  // Close any open markets
+  await admin.from('prediction_markets')
+    .update({ status: 'closed' })
+    .eq('event_id', eventId)
+    .eq('status', 'open')
 
   revalidatePath(`/events/${eventId}/manage`)
   revalidatePath(`/events/${eventId}`)

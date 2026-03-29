@@ -2,8 +2,10 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { fetchEventLeaderboardData } from '@/lib/leaderboard/fetchEventLeaderboardData'
 import LeaderboardClient from './LeaderboardClient'
+import BetSlip from './BetSlip'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -78,6 +80,70 @@ export default async function LeaderboardPage({ params }: PageProps) {
         body="Match play events use head-to-head results — there&apos;s no ranked leaderboard."
       />
     )
+  }
+
+  // Fetch prediction markets if enabled
+  const admin = createAdminClient()
+  const { data: predConfig } = await admin
+    .from('prediction_configs')
+    .select('enabled, starting_credits, max_bet_pct')
+    .eq('event_id', id)
+    .single()
+
+  let predictionData: {
+    markets: { id: string; market_type: string; title: string; status: string; selections: { id: string; label: string; odds_numerator: number; odds_denominator: number; event_player_id: string | null }[] }[]
+    userCredits: number | null
+    userBets: { id: string; selection_id: string; stake: number; odds_numerator: number; odds_denominator: number; potential_payout: number; status: string }[]
+    maxBetPct: number
+  } | null = null
+
+  if (predConfig?.enabled) {
+    const { data: markets } = await admin
+      .from('prediction_markets')
+      .select('id, market_type, title, status')
+      .eq('event_id', id)
+      .order('created_at')
+
+    // Fetch selections for all markets
+    const marketIds = (markets ?? []).map(m => m.id)
+    const { data: selections } = marketIds.length > 0
+      ? await admin
+          .from('prediction_selections')
+          .select('id, market_id, label, odds_numerator, odds_denominator, event_player_id, sort_order')
+          .in('market_id', marketIds)
+          .order('sort_order')
+      : { data: [] as { id: string; market_id: string; label: string; odds_numerator: number; odds_denominator: number; event_player_id: string | null; sort_order: number }[] }
+
+    // User-specific data
+    let userCredits: number | null = null
+    let userBets: { id: string; selection_id: string; stake: number; odds_numerator: number; odds_denominator: number; potential_payout: number; status: string }[] = []
+
+    if (user) {
+      const [{ data: bankroll }, { data: bets }] = await Promise.all([
+        admin.from('prediction_bankrolls')
+          .select('credits')
+          .eq('event_id', id)
+          .eq('user_id', user.id)
+          .single(),
+        admin.from('prediction_bets')
+          .select('id, selection_id, stake, odds_numerator, odds_denominator, potential_payout, status')
+          .eq('event_id', id)
+          .eq('user_id', user.id)
+          .order('placed_at', { ascending: false }),
+      ])
+      userCredits = bankroll?.credits ?? predConfig.starting_credits
+      userBets = bets ?? []
+    }
+
+    predictionData = {
+      markets: (markets ?? []).map(m => ({
+        ...m,
+        selections: (selections ?? []).filter(s => s.market_id === m.id),
+      })),
+      userCredits,
+      userBets,
+      maxBetPct: predConfig.max_bet_pct,
+    }
   }
 
   return (
@@ -215,6 +281,17 @@ export default async function LeaderboardPage({ params }: PageProps) {
           ntpHoles={event.ntpHoles}
           ldHoles={event.ldHoles}
         />
+
+        {predictionData && predictionData.markets.length > 0 && (
+          <BetSlip
+            eventId={id}
+            markets={predictionData.markets}
+            userCredits={predictionData.userCredits}
+            userBets={predictionData.userBets}
+            maxBetPct={predictionData.maxBetPct}
+            isLoggedIn={!!user}
+          />
+        )}
       </div>
     </>
   )

@@ -287,3 +287,69 @@ export interface EventGroup {
   label: string | null      // e.g. "Group 1" or "Morning wave"
   created_at: string
 }
+
+// ─── Predictions engine types ────────────────────────────────────────────────
+
+export type PredictionMarketType = 'outright' | 'head_to_head' | 'top_3' | 'over_under' | 'group_winner' | 'last_place'
+export type PredictionMarketStatus = 'open' | 'suspended' | 'closed' | 'settled'
+export type PredictionBetStatus = 'placed' | 'won' | 'lost' | 'void'
+
+export interface PredictionConfig {
+  id: string
+  event_id: string
+  enabled: boolean
+  starting_credits: number
+  max_bet_pct: number
+  overround_pct: number
+  h2h_overround_pct: number
+  created_at: string
+}
+
+export interface PredictionBankroll {
+  id: string
+  event_id: string
+  user_id: string
+  credits: number
+  created_at: string
+}
+
+export interface PredictionMarket {
+  id: string
+  event_id: string
+  market_type: PredictionMarketType
+  status: PredictionMarketStatus
+  title: string
+  description: string | null
+  metadata: Record<string, unknown>
+  created_at: string
+  settled_at: string | null
+}
+
+export interface PredictionSelection {
+  id: string
+  market_id: string
+  event_player_id: string | null
+  label: string
+  odds_numerator: number
+  odds_denominator: number
+  is_winner: boolean | null
+  dead_heat_divisor: number
+  sort_order: number
+  created_at: string
+}
+
+export interface PredictionBet {
+  id: string
+  market_id: string
+  selection_id: string
+  user_id: string
+  event_id: string
+  stake: number
+  odds_numerator: number
+  odds_denominator: number
+  potential_payout: number
+  status: PredictionBetStatus
+  payout: number
+  placed_at: string
+  settled_at: string | null
+}
