@@ -169,18 +169,17 @@ const FIRST_COURSE = COURSES[0]!.id
 
 // ── Shared components ──────────────────────────────────────────────────────────
 
-// Step order for stepper: Course=0, Players=1, [Groups=2], Settings=2|3
-function stepIndex(step: Step, needsGroups: boolean): number {
+// Step order for stepper: Course=0, Players=1, Settings=2
+function stepIndex(step: Step): number {
   if (step === 'venue' || step === 'scorecard-upload') return 0
   if (step === 'players') return 1
-  if (step === 'groups') return 2
-  return needsGroups ? 3 : 2 // combination + settings both show as last step
+  return 2 // combination + settings both show as last step
 }
 
-function StepBar({ step, needsGroups }: { step: Step; needsGroups: boolean }) {
-  const current = stepIndex(step, needsGroups)
+function StepBar({ step }: { step: Step }) {
+  const current = stepIndex(step)
   const isAllDone = step === 'settings'
-  const steps = needsGroups ? ['Course', 'Players', 'Groups', 'Settings'] : ['Course', 'Players', 'Settings']
+  const steps = ['Course', 'Players', 'Settings']
 
   return (
     <div style={{
@@ -336,6 +335,19 @@ function SearchInput({
 
 // ── Screen 1: Course Selection ─────────────────────────────────────────────────
 
+// Auto-detect user's likely continent from timezone
+function guessUserContinent(): string {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+    if (tz.startsWith('Europe/')) return 'Europe'
+    if (tz.startsWith('Australia/') || tz.startsWith('Pacific/')) return 'Oceania'
+    if (tz.startsWith('America/')) return 'North America'
+    if (tz.startsWith('Asia/')) return 'Asia'
+    if (tz.startsWith('Africa/')) return 'Africa'
+  } catch { /* ignore */ }
+  return ''
+}
+
 function VenueStep({
   selectedClub,
   onSelect,
@@ -347,12 +359,27 @@ function VenueStep({
   onNext: () => void
   onAddCourse: () => void
 }) {
-  const [search, setSearch] = useState('')
-  const [continent, setContinent] = useState('')
   const venues = getVenues()
   const continents = [...new Set(venues.map(v => v.continent))].sort()
+
+  // Auto-detect continent from timezone on mount
+  const [continent, setContinent] = useState(() => {
+    const guess = guessUserContinent()
+    return continents.includes(guess) ? guess : ''
+  })
+  const [country, setCountry] = useState('')
+  const [search, setSearch] = useState('')
+
+  // Derive countries from venues in selected continent
+  const countries = [...new Set(
+    venues
+      .filter(v => !continent || v.continent === continent)
+      .map(v => v.country)
+  )].sort()
+
   const filtered = venues.filter(v => {
     if (continent && v.continent !== continent) return false
+    if (country && v.country !== country) return false
     if (!search) return true
     return v.club.toLowerCase().includes(search.toLowerCase()) ||
       v.location.toLowerCase().includes(search.toLowerCase()) ||
@@ -371,11 +398,11 @@ function VenueStep({
           </p>
         </div>
 
-        {continents.length > 1 && (
-          <div style={{ marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
+          <div style={{ flex: 1 }}>
             <select
               value={continent}
-              onChange={e => setContinent(e.target.value)}
+              onChange={e => { setContinent(e.target.value); setCountry('') }}
               style={dropdownStyle}
               aria-label="Filter by continent"
             >
@@ -385,7 +412,22 @@ function VenueStep({
               ))}
             </select>
           </div>
-        )}
+          {countries.length > 1 && (
+            <div style={{ flex: 1 }}>
+              <select
+                value={country}
+                onChange={e => setCountry(e.target.value)}
+                style={dropdownStyle}
+                aria-label="Filter by country"
+              >
+                <option value="">All countries</option>
+                {countries.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
 
         <SearchInput value={search} onChange={setSearch} placeholder="Search clubs or country" />
 
@@ -490,132 +532,77 @@ function VenueStep({
   )
 }
 
-// ── Player sub-components ───────────────────────────────────────────────────────
-
-function AddPlayerButton({ label, onClick }: { label: string; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem', background: FE.white, border: 'none', borderRadius: 16, cursor: 'pointer', boxShadow: FE.shadowFloat, transition: 'all 0.2s ease-in-out' }}
-      onMouseEnter={e => { e.currentTarget.style.boxShadow = FE.shadowHover; e.currentTarget.style.transform = 'translateY(-1px)' }}
-      onMouseLeave={e => { e.currentTarget.style.boxShadow = FE.shadowFloat; e.currentTarget.style.transform = 'translateY(0)' }}
-    >
-      <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(240, 244, 236, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4V16M4 10H16" stroke={FE.greenDark} strokeWidth="2" strokeLinecap="round"/></svg>
-      </div>
-      <span style={{ fontFamily: font.body, fontWeight: 500, fontSize: 15, color: FE.onPrimary }}>{label}</span>
-    </button>
-  )
-}
-
-function PlayerCard({
-  playerId, playerIndex, players, searchIdx, searchQuery, searchResults, searching,
-  onUpdate, onSearch, onSetSearchIdx, onClearSearch, onRemove,
-}: {
-  playerId: string
-  playerIndex: number
-  players: Player[]
-  searchIdx: number | null
-  searchQuery: string
-  searchResults: { id: string; displayName: string; handicapIndex: number | null }[]
-  searching: boolean
-  onUpdate: (index: number, field: keyof Player, value: string) => void
-  onSearch: (q: string) => void
-  onSetSearchIdx: (idx: number) => void
-  onClearSearch: () => void
-  onRemove: () => void
-}) {
-  return (
-    <div style={{ background: FE.white, borderRadius: 16, padding: '1rem', boxShadow: FE.shadowFloat }}>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}>
-        <button onClick={onRemove} style={{ fontFamily: font.body, fontSize: 13, color: FE.onTertiary, background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2L10 10M10 2L2 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-          Remove
-        </button>
-      </div>
-      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem' }}>
-        <div style={{ flex: 1 }}>
-          <label htmlFor={`${playerId}-name`} style={{ display: 'block', fontFamily: font.body, fontWeight: 500, fontSize: 14, color: FE.onPrimary, marginBottom: '0.5rem' }}>Name</label>
-          <input
-            id={`${playerId}-name`} type="text" value={players[playerIndex]?.name ?? ''}
-            onChange={e => onUpdate(playerIndex, 'name', e.target.value)}
-            placeholder="Enter name" style={inputFieldStyle}
-            enterKeyHint="next"
-            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById(`${playerId}-hcp`)?.focus() } }}
-            onFocus={e => { e.currentTarget.style.borderColor = FE.greenDark; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(13, 99, 27, 0.08)' }}
-            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(26,28,28,0.12)'; e.currentTarget.style.boxShadow = 'none' }}
-          />
-        </div>
-        <div style={{ width: 80 }}>
-          <label htmlFor={`${playerId}-hcp`} style={{ display: 'block', fontFamily: font.body, fontWeight: 500, fontSize: 14, color: FE.onPrimary, marginBottom: '0.5rem' }}>HCP</label>
-          <input
-            id={`${playerId}-hcp`} type="number" value={players[playerIndex]?.handicapIndex ?? ''}
-            onChange={e => onUpdate(playerIndex, 'handicapIndex', e.target.value)}
-            placeholder="18" min={0} max={54} step={0.1} style={inputFieldStyle}
-            enterKeyHint="done"
-            onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
-            onFocus={e => { e.currentTarget.style.borderColor = FE.greenDark; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(13, 99, 27, 0.08)' }}
-            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(26,28,28,0.12)'; e.currentTarget.style.boxShadow = 'none' }}
-          />
-        </div>
-      </div>
-      {searchIdx === playerIndex ? (
-        <div>
-          <input
-            type="text" value={searchQuery}
-            onChange={e => onSearch(e.target.value)}
-            placeholder="Search by name…" autoFocus
-            enterKeyHint="done"
-            onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
-            style={{ ...inputFieldStyle, borderColor: FE.greenDark, boxShadow: '0 0 0 3px rgba(13,99,27,0.08)' }}
-          />
-          {searching && <div style={{ fontFamily: font.body, fontSize: 13, color: FE.onTertiary, padding: '6px 2px' }}>Searching…</div>}
-          {searchResults.length > 0 && (
-            <div style={{ border: FE.borderGhost, borderRadius: 8, marginTop: 4, overflow: 'hidden' }}>
-              {searchResults.map(u => (
-                <button key={u.id} onClick={() => {
-                  onUpdate(playerIndex, 'name', u.displayName)
-                  onUpdate(playerIndex, 'handicapIndex', u.handicapIndex?.toString() ?? '')
-                  onClearSearch()
-                }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '10px 12px', background: FE.white, border: 'none', borderBottom: `1px solid rgba(26,28,28,0.06)`, cursor: 'pointer', fontFamily: font.body }}>
-                  <span style={{ fontWeight: 500, fontSize: 14, color: FE.onPrimary }}>{u.displayName}</span>
-                  {u.handicapIndex !== null && <span style={{ fontSize: 13, color: FE.onTertiary }}>HCP {u.handicapIndex}</span>}
-                </button>
-              ))}
-            </div>
-          )}
-          <button onClick={onClearSearch} style={{ fontFamily: font.body, fontSize: 13, color: FE.onTertiary, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', marginTop: 4 }}>Cancel</button>
-        </div>
-      ) : (
-        <button onClick={() => onSetSearchIdx(playerIndex)} style={{ fontFamily: font.body, fontWeight: 500, fontSize: 14, color: FE.berryTertiary, background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="5" cy="5" r="3.5" stroke="currentColor" strokeWidth="1.2"/><path d="M8 8L10.5 10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
-          Search existing players
-        </button>
-      )}
-    </div>
-  )
-}
-
-// ── Screen 2: Player Management ────────────────────────────────────────────────
+// ── Screen 2: Player Management (GolfGameBook-style groups) ─────────────────
 
 function PlayersStep({
   players,
+  groupSize,
+  groupAssignments,
   onChange,
+  onGroupAssignmentsChange,
   onNext,
 }: {
   players: Player[]
+  groupSize: 2 | 3 | 4
+  groupAssignments: number[][]
   onChange: (players: Player[]) => void
+  onGroupAssignmentsChange: (assignments: number[][]) => void
   onNext: () => void
 }) {
-  const [searchIdx, setSearchIdx] = useState<number | null>(null)
+  const [editingGroup, setEditingGroup] = useState<number | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editHcp, setEditHcp] = useState('')
+  const [showSearch, setShowSearch] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<{ id: string; displayName: string; handicapIndex: number | null }[]>([])
   const [searching, setSearching] = useState(false)
+  const nameRef = useRef<HTMLInputElement>(null)
 
-  const update = (index: number, field: keyof Player, value: string) => {
-    const next = [...players]
-    next[index] = { ...next[index]!, [field]: value }
-    onChange(next)
+  // Initialize groups: put user (index 0) in group 1
+  useEffect(() => {
+    if (groupAssignments.length === 0) {
+      onGroupAssignmentsChange([[0]])
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Focus name input when editing starts
+  useEffect(() => {
+    if (editingGroup !== null) {
+      requestAnimationFrame(() => nameRef.current?.focus())
+    }
+  }, [editingGroup])
+
+  const cancelEditing = () => {
+    setEditingGroup(null)
+    setEditName('')
+    setEditHcp('')
+    setShowSearch(false)
+    setSearchQuery('')
+    setSearchResults([])
+  }
+
+  const confirmAdd = (groupIdx: number, name: string, hcp: string) => {
+    if (!name.trim()) return
+    const newPlayer: Player = { name: name.trim(), handicapIndex: hcp, isUser: false, gender: 'm', teeOverride: null }
+    const newPlayers = [...players, newPlayer]
+    const newIdx = newPlayers.length - 1
+    const newGroups = groupAssignments.map(g => [...g])
+    if (!newGroups[groupIdx]) newGroups[groupIdx] = []
+    newGroups[groupIdx]!.push(newIdx)
+    onChange(newPlayers)
+    onGroupAssignmentsChange(newGroups)
+    cancelEditing()
+  }
+
+  const removeFromGroup = (groupIdx: number, playerIdx: number) => {
+    if (players[playerIdx]?.isUser) return
+    const newGroups = groupAssignments.map(g => [...g])
+    newGroups[groupIdx] = newGroups[groupIdx]!.filter(i => i !== playerIdx)
+    onGroupAssignmentsChange(newGroups)
+  }
+
+  const addGroup = () => {
+    onGroupAssignmentsChange([...groupAssignments, []])
   }
 
   const handleSearch = async (q: string) => {
@@ -627,89 +614,276 @@ function PlayersStep({
     setSearching(false)
   }
 
-  const addPlayer = () => {
-    onChange([...players, { name: '', handicapIndex: '', isUser: false, gender: 'm', teeOverride: null }])
+  const selectSearchResult = (groupIdx: number, user: { displayName: string; handicapIndex: number | null }) => {
+    confirmAdd(groupIdx, user.displayName, user.handicapIndex?.toString() ?? '')
   }
 
-  const removePlayer = (index: number) => {
-    onChange(players.filter((_, i) => i !== index))
-  }
+  const canProceed = players[0]?.name.trim() !== ''
 
-  const canProceed = () => {
-    const you = players[0]
-    if (!you?.name.trim()) return false
-    return true
-  }
-
-  // Non-user players (index 1+)
-  const otherPlayers = players.slice(1)
+  const compactInput: React.CSSProperties = { ...inputFieldStyle, padding: '8px 10px', fontSize: 14, borderRadius: 10 }
 
   return (
     <>
       <div style={{ padding: '0 1.25rem', paddingBottom: 100 }}>
-        <div style={{ marginBottom: '2rem' }}>
+        <div style={{ marginBottom: '1.5rem' }}>
           <h1 style={{ margin: 0, fontFamily: font.display, fontWeight: 700, fontSize: 24, color: FE.forestPrimary, letterSpacing: '-0.01em', marginBottom: '0.5rem' }}>
             Who&rsquo;s playing?
           </h1>
           <p style={{ margin: 0, fontFamily: font.body, fontSize: 16, color: FE.onSecondary, lineHeight: 1.5 }}>
-            Add your playing partners
+            Add players to your groups
           </p>
         </div>
 
-        {/* You — read-only */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <SectionLabel>YOU</SectionLabel>
-          <div style={{ background: FE.white, borderRadius: 16, padding: '1rem', boxShadow: FE.shadowFloat }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        {/* Group cards */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {groupAssignments.map((playerIndices, gIdx) => {
+            const emptySlots = Math.max(0, groupSize - playerIndices.length - (editingGroup === gIdx ? 1 : 0))
+            return (
+              <div key={gIdx} style={{ borderRadius: 16, overflow: 'hidden', boxShadow: FE.shadowFloat }}>
+                {/* Green gradient header */}
                 <div style={{
-                  width: 44, height: 44, borderRadius: '50%',
-                  background: 'linear-gradient(135deg, rgba(13,99,27,0.1) 0%, rgba(61,107,26,0.1) 100%)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontFamily: font.display, fontWeight: 700, fontSize: 16, color: FE.greenDark,
+                  background: FE.gradientGreen,
+                  padding: '12px 16px',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 }}>
-                  {initials(players[0]?.name || 'You')}
+                  <span style={{ color: '#fff', fontWeight: 700, fontFamily: font.display, fontSize: 15, letterSpacing: '0.02em' }}>
+                    Group&nbsp;&nbsp;{gIdx + 1}
+                  </span>
+                  {groupAssignments.length > 1 && playerIndices.every(i => !players[i]?.isUser) && (
+                    <button
+                      onClick={() => {
+                        const newGroups = groupAssignments.filter((_, i) => i !== gIdx)
+                        onGroupAssignmentsChange(newGroups)
+                      }}
+                      aria-label="Remove group"
+                      style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontFamily: font.body, fontSize: 12, color: 'rgba(255,255,255,0.8)' }}
+                    >
+                      Remove
+                    </button>
+                  )}
                 </div>
-                <div style={{ fontFamily: font.body, fontWeight: 500, fontSize: 15, color: FE.onPrimary }}>
-                  {players[0]?.name || 'You'}
+
+                {/* 2-column grid of player slots */}
+                <div style={{
+                  background: FE.white,
+                  padding: '12px',
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '10px',
+                }}>
+                  {/* Filled player cards */}
+                  {playerIndices.map(pIdx => {
+                    const player = players[pIdx]
+                    if (!player) return null
+                    return (
+                      <div key={pIdx} style={{
+                        border: '1px solid #E0EBE0',
+                        borderRadius: 12,
+                        padding: '12px',
+                        position: 'relative',
+                        minHeight: 100,
+                      }}>
+                        {!player.isUser && (
+                          <button
+                            onClick={() => removeFromGroup(gIdx, pIdx)}
+                            aria-label="Remove player"
+                            style={{
+                              position: 'absolute', top: 6, right: 6,
+                              width: 22, height: 22, borderRadius: '50%',
+                              background: 'rgba(0,0,0,0.06)', border: 'none',
+                              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              color: '#72786E', padding: 0,
+                            }}
+                          >
+                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                              <path d="M2 2L8 8M8 2L2 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                            </svg>
+                          </button>
+                        )}
+                        <div style={{
+                          width: 40, height: 40, borderRadius: '50%',
+                          background: player.isUser
+                            ? 'linear-gradient(135deg, #0D631B 0%, #1a5c1a 100%)'
+                            : 'linear-gradient(135deg, rgba(13,99,27,0.15) 0%, rgba(61,107,26,0.1) 100%)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontFamily: font.display, fontWeight: 700, fontSize: 14,
+                          color: player.isUser ? '#fff' : FE.greenDark,
+                          marginBottom: 8,
+                        }}>
+                          {initials(player.name || 'P')}
+                        </div>
+                        <div style={{
+                          fontFamily: font.display, fontWeight: 600, fontSize: 14, color: FE.onPrimary,
+                          marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                        }}>
+                          {player.name}
+                        </div>
+                        <div style={{ fontFamily: font.body, fontSize: 12, color: '#6B8C6B' }}>
+                          PHCP: <strong style={{ color: FE.onPrimary }}>{player.handicapIndex || '\u2014'}</strong>
+                        </div>
+                      </div>
+                    )
+                  })}
+
+                  {/* Inline add-player form */}
+                  {editingGroup === gIdx && (
+                    <div style={{
+                      border: `2px solid ${FE.greenDark}`,
+                      borderRadius: 12, padding: '10px',
+                      display: 'flex', flexDirection: 'column', gap: '8px',
+                    }}>
+                      {showSearch ? (
+                        <>
+                          <input
+                            type="text" value={searchQuery}
+                            onChange={e => handleSearch(e.target.value)}
+                            placeholder="Search by name\u2026" autoFocus
+                            enterKeyHint="done"
+                            onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
+                            style={compactInput}
+                          />
+                          {searching && <div style={{ fontFamily: font.body, fontSize: 12, color: FE.onTertiary }}>Searching\u2026</div>}
+                          {searchResults.length > 0 && (
+                            <div style={{ border: FE.borderGhost, borderRadius: 8, overflow: 'hidden' }}>
+                              {searchResults.map(u => (
+                                <button key={u.id} onClick={() => selectSearchResult(gIdx, u)} style={{
+                                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                  width: '100%', padding: '8px 10px', background: FE.white, border: 'none',
+                                  borderBottom: '1px solid rgba(26,28,28,0.06)', cursor: 'pointer', fontFamily: font.body,
+                                }}>
+                                  <span style={{ fontWeight: 500, fontSize: 13, color: FE.onPrimary }}>{u.displayName}</span>
+                                  {u.handicapIndex !== null && <span style={{ fontSize: 12, color: FE.onTertiary }}>{u.handicapIndex}</span>}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                          <button onClick={() => setShowSearch(false)} style={{ fontFamily: font.body, fontSize: 12, color: FE.onTertiary, background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}>
+                            &larr; Manual entry
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <input
+                            ref={nameRef}
+                            type="text" value={editName}
+                            onChange={e => setEditName(e.target.value)}
+                            placeholder="Name"
+                            enterKeyHint="next"
+                            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById(`edit-hcp-${gIdx}`)?.focus() } }}
+                            style={compactInput}
+                          />
+                          <input
+                            id={`edit-hcp-${gIdx}`}
+                            type="number" value={editHcp}
+                            onChange={e => setEditHcp(e.target.value)}
+                            placeholder="HCP" min={0} max={54} step={0.1}
+                            enterKeyHint="done"
+                            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); confirmAdd(gIdx, editName, editHcp) } }}
+                            style={compactInput}
+                          />
+                          <div style={{ display: 'flex', gap: '6px' }}>
+                            <button onClick={() => { setShowSearch(true); setSearchQuery('') }} style={{
+                              flex: 1, padding: '6px', borderRadius: 8, border: FE.borderGhost,
+                              background: 'transparent', fontFamily: font.body, fontSize: 12,
+                              color: FE.berryTertiary, cursor: 'pointer',
+                            }}>
+                              Search
+                            </button>
+                            <button onClick={cancelEditing} style={{
+                              flex: 1, padding: '6px', borderRadius: 8, border: FE.borderGhost,
+                              background: 'transparent', fontFamily: font.body, fontSize: 12,
+                              color: FE.onTertiary, cursor: 'pointer',
+                            }}>
+                              Cancel
+                            </button>
+                            <button
+                              onClick={() => confirmAdd(gIdx, editName, editHcp)}
+                              disabled={!editName.trim()}
+                              style={{
+                                flex: 1, padding: '6px', borderRadius: 8, border: 'none',
+                                background: editName.trim() ? FE.greenDark : 'rgba(26,28,28,0.12)',
+                                fontFamily: font.body, fontSize: 12, fontWeight: 600,
+                                color: editName.trim() ? '#fff' : FE.onTertiary,
+                                cursor: editName.trim() ? 'pointer' : 'default',
+                              }}
+                            >
+                              Add
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Empty add-player slots */}
+                  {Array.from({ length: emptySlots }).map((_, i) => (
+                    <div
+                      key={`empty-${gIdx}-${i}`}
+                      onClick={() => { cancelEditing(); setEditingGroup(gIdx) }}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={e => e.key === 'Enter' && (() => { cancelEditing(); setEditingGroup(gIdx) })()}
+                      style={{
+                        border: '1.5px dashed rgba(13, 99, 27, 0.25)',
+                        borderRadius: 12, padding: '12px', cursor: 'pointer',
+                        display: 'flex', flexDirection: 'column',
+                        alignItems: 'center', justifyContent: 'center',
+                        minHeight: 100, transition: 'all 0.15s',
+                        background: 'rgba(240, 244, 236, 0.3)',
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(13,99,27,0.5)'; e.currentTarget.style.background = 'rgba(240,244,236,0.6)' }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(13,99,27,0.25)'; e.currentTarget.style.background = 'rgba(240,244,236,0.3)' }}
+                    >
+                      <div style={{
+                        width: 32, height: 32, borderRadius: '50%',
+                        background: 'rgba(13,99,27,0.08)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        marginBottom: 8,
+                      }}>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                          <path d="M8 3V13M3 8H13" stroke="#0D631B" strokeWidth="2" strokeLinecap="round"/>
+                        </svg>
+                      </div>
+                      <span style={{ fontFamily: font.body, fontSize: 13, fontWeight: 500, color: FE.greenDark }}>
+                        Add Player
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
+            )
+          })}
+        </div>
+
+        {/* Add Group button */}
+        <button
+          onClick={addGroup}
+          style={{
+            width: '100%', marginTop: '1rem',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+            padding: '14px', background: FE.white, borderRadius: 16,
+            border: '1px dashed rgba(13, 99, 27, 0.3)',
+            fontFamily: font.body, fontWeight: 500, fontSize: 15,
+            color: FE.greenDark, cursor: 'pointer',
+            boxShadow: FE.shadowFloat, transition: 'all 0.15s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = FE.greenDark; e.currentTarget.style.boxShadow = FE.shadowHover }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(13, 99, 27, 0.3)'; e.currentTarget.style.boxShadow = FE.shadowFloat }}
+        >
+          <div style={{
+            width: 28, height: 28, borderRadius: '50%', background: 'rgba(13,99,27,0.1)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M7 2V12M2 7H12" stroke="#0D631B" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
           </div>
-        </div>
-
-        {/* Dynamic player list */}
-        {otherPlayers.map((_, idx) => {
-          const realIndex = idx + 1
-          return (
-            <div key={realIndex} style={{ marginBottom: '1.5rem' }}>
-              <SectionLabel>{`PLAYER ${realIndex + 1}`}</SectionLabel>
-              <PlayerCard
-                playerId={`p${realIndex + 1}`}
-                playerIndex={realIndex}
-                players={players}
-                searchIdx={searchIdx}
-                searchQuery={searchQuery}
-                searchResults={searchResults}
-                searching={searching}
-                onUpdate={update}
-                onSearch={handleSearch}
-                onSetSearchIdx={setSearchIdx}
-                onClearSearch={() => { setSearchIdx(null); setSearchQuery(''); setSearchResults([]) }}
-                onRemove={() => removePlayer(realIndex)}
-              />
-            </div>
-          )
-        })}
-
-        {/* Add player */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <AddPlayerButton label={`Add player ${players.length + 1}`} onClick={addPlayer} />
-        </div>
+          Add Group
+        </button>
       </div>
 
       <BottomBar>
-        <PrimaryButton onClick={onNext} disabled={!canProceed()}>
+        <PrimaryButton onClick={onNext} disabled={!canProceed}>
           Next: Settings
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -1617,7 +1791,6 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
     dbCombinationId: null,
     players: [
       { name: displayName, handicapIndex: handicapIndex?.toString() ?? '', isUser: true, gender: 'm', teeOverride: null },
-      { name: '', handicapIndex: '', isUser: false, gender: 'm', teeOverride: null },
     ],
     format: 'stableford',
     tee: defaultTee(FIRST_COURSE),
@@ -1640,16 +1813,11 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
 
   const update = (partial: Partial<WizardState>) => setState(s => ({ ...s, ...partial }))
 
-  // Compute whether groups step is needed
-  const activePlayerCount = state.players.filter(p => p.isUser || (p.name.trim() !== '' && p.handicapIndex !== '')).length
-  const needsGroups = activePlayerCount > state.groupSize
-
-  // Step order: venue → players → [groups] → combination → settings
+  // Step order: venue → players → combination → settings
   const goBack = () => {
     if (state.step === 'scorecard-upload') update({ step: 'venue' })
     else if (state.step === 'players') update({ step: 'venue' })
-    else if (state.step === 'groups') update({ step: 'players' })
-    else if (state.step === 'combination') update({ step: needsGroups ? 'groups' : 'players' })
+    else if (state.step === 'combination') update({ step: 'players' })
     else if (state.step === 'settings') update({ step: 'combination' })
   }
 
@@ -1711,14 +1879,8 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
   }
 
   const proceedFromPlayers = () => {
-    if (needsGroups) {
-      update({ step: 'groups' })
-    } else {
-      update({ step: 'combination', groupAssignments: [] })
-    }
+    update({ step: 'combination' })
   }
-
-  const proceedFromGroups = () => update({ step: 'combination' })
 
   const selectCombination = (courseId: string, dbComboId: string | null) => {
     const newNtpHoles = defaultNtpHoles(courseId)
@@ -1756,6 +1918,18 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
           ? uploadedCourses.find(c => c.id === state.courseId)
           : null
 
+        // Convert raw-index groupAssignments to active-player-index groupAssignments
+        const rawToActive = new Map<number, number>()
+        let activeIdx = 0
+        state.players.forEach((p, rawIdx) => {
+          if (p.isUser || (p.name.trim() !== '' && p.handicapIndex !== '')) {
+            rawToActive.set(rawIdx, activeIdx++)
+          }
+        })
+        const convertedAssignments = state.groupAssignments
+          .map(group => group.map(rawIdx => rawToActive.get(rawIdx)).filter((i): i is number => i !== undefined))
+          .filter(group => group.length > 0)
+
         const url = await startRound({
           courseId: state.courseId,
           dbCombinationId: state.dbCombinationId,
@@ -1770,7 +1944,7 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
           inviteLink: state.inviteLink,
           groupSize: state.groupSize,
           entryFeePence: entryFeePence && entryFeePence > 0 ? entryFeePence : null,
-          groupAssignments: state.groupAssignments.length > 0 ? state.groupAssignments : [],
+          groupAssignments: convertedAssignments,
           ...(uploadedCourse ? {
             uploadedCourse: {
               name: uploadedCourse.name,
@@ -1818,7 +1992,7 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
         </div>
 
         {/* Step bar */}
-        <StepBar step={state.step} needsGroups={needsGroups} />
+        <StepBar step={state.step} />
 
         {/* Error */}
         {error && (
@@ -1852,19 +2026,11 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
         {state.step === 'players' && (
           <PlayersStep
             players={state.players}
-            onChange={players => update({ players })}
-            onNext={proceedFromPlayers}
-          />
-        )}
-
-        {state.step === 'groups' && (
-          <GroupsStep
-            players={state.players}
             groupSize={state.groupSize}
             groupAssignments={state.groupAssignments}
-            onGroupSizeChange={size => update({ groupSize: size, groupAssignments: [] })}
+            onChange={players => update({ players })}
             onGroupAssignmentsChange={groupAssignments => update({ groupAssignments })}
-            onNext={proceedFromGroups}
+            onNext={proceedFromPlayers}
           />
         )}
 
