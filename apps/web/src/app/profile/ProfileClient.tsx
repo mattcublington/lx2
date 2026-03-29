@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { updateProfile, updateAvatarUrl, updateDistanceUnit } from './actions'
 import { createClient } from '@/lib/supabase/client'
+import BottomNav from '@/components/BottomNav'
 
 interface Props {
   userId: string
@@ -185,10 +186,22 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
         .pf-hero {
           background: #FFFFFF;
           border-radius: 16px;
-          padding: 2rem 1.5rem;
           box-shadow: 0 4px 12px rgba(26, 28, 28, 0.04);
           text-align: center;
           margin-bottom: 2rem;
+          overflow: hidden;
+        }
+
+        .pf-hero-banner {
+          width: 100%;
+          height: 120px;
+          object-fit: cover;
+          display: block;
+        }
+
+        .pf-hero-body {
+          padding: 0 1.5rem 2rem;
+          margin-top: -40px;
         }
 
         .pf-avatar-wrap {
@@ -505,41 +518,6 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
         }
         .pf-signout-btn:hover { opacity: 0.8; }
 
-        /* ── Bottom nav ── */
-        .pf-bnav {
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          background: #FFFFFF;
-          display: grid;
-          grid-template-columns: repeat(5, 1fr);
-          box-shadow: 0 -2px 8px rgba(26, 28, 28, 0.06);
-          z-index: 100;
-          padding-bottom: env(safe-area-inset-bottom);
-        }
-
-        .pf-bnav-item {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          padding: 0.75rem 0;
-          gap: 0.25rem;
-          text-decoration: none;
-          color: #72786E;
-          font-family: var(--font-lexend, 'Lexend', sans-serif);
-          font-size: 0.6875rem;
-          font-weight: 500;
-          background: none;
-          border: none;
-          cursor: pointer;
-          transition: color 0.2s ease-in-out;
-        }
-        .pf-bnav-item svg { transition: transform 0.2s ease-in-out; }
-        .pf-bnav-item.active { color: #0D631B; }
-        .pf-bnav-item:hover { color: #0D631B; }
-        .pf-bnav-item:hover svg { transform: translateY(-2px); }
       `}</style>
 
       {/* Hidden file input */}
@@ -573,6 +551,15 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
 
           {/* Hero */}
           <div className="pf-hero">
+            <Image
+              src="/hero.jpg"
+              alt=""
+              width={430}
+              height={120}
+              className="pf-hero-banner"
+              priority
+            />
+            <div className="pf-hero-body">
             <div className="pf-avatar-wrap">
               <div className="pf-avatar-ring" onClick={handleAvatarClick} role="button" tabIndex={0} aria-label="Change profile photo" onKeyDown={e => e.key === 'Enter' && handleAvatarClick()}>
                 {avatarUrl ? (
@@ -616,6 +603,7 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
             >
               Edit profile
             </button>
+            </div>
           </div>
 
           {/* Profile details */}
@@ -734,29 +722,7 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
 
         </main>
 
-        {/* ── Bottom nav ── */}
-        <nav className="pf-bnav">
-          <Link href="/play" className="pf-bnav-item" aria-label="Home">
-            <HomeIcon />
-            <span>Home</span>
-          </Link>
-          <button className="pf-bnav-item" aria-label="Rounds">
-            <ClipboardIcon />
-            <span>Rounds</span>
-          </button>
-          <button className="pf-bnav-item" aria-label="Events">
-            <TrophyIcon />
-            <span>Events</span>
-          </button>
-          <button className="pf-bnav-item" aria-label="Society">
-            <UsersIcon />
-            <span>Society</span>
-          </button>
-          <button className="pf-bnav-item active" aria-label="Profile">
-            <UserIcon />
-            <span>Profile</span>
-          </button>
-        </nav>
+        <BottomNav active="profile" />
 
       </div>
     </>
@@ -807,48 +773,3 @@ function ArrowRightIcon() {
   )
 }
 
-function HomeIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-      <polyline points="9 22 9 12 15 12 15 22" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  )
-}
-
-function ClipboardIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.75"/>
-      <path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z" stroke="currentColor" strokeWidth="1.75"/>
-    </svg>
-  )
-}
-
-function TrophyIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M8 21h8M12 17v4M17 3H7l1 9a4 4 0 0 0 8 0l1-9z" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M7 3H4a1 1 0 0 0-1 1v2a4 4 0 0 0 4 4M17 3h3a1 1 0 0 1 1 1v2a4 4 0 0 1-4 4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  )
-}
-
-function UsersIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-      <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="1.75"/>
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  )
-}
-
-function UserIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-      <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="1.75"/>
-    </svg>
-  )
-}
