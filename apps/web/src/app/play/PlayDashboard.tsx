@@ -123,30 +123,33 @@ export default function PlayDashboard({
         .fe-banner {
           position: relative;
           width: 100%;
-          height: 180px;
-          background: linear-gradient(135deg, #0a1f0a 0%, #1A2E1A 40%, #0D631B 100%);
+          height: 220px;
           overflow: hidden;
         }
-        .fe-banner::before {
-          content: '';
+        .fe-banner-img {
           position: absolute;
           inset: 0;
-          background: radial-gradient(ellipse 80% 60% at 70% 30%, rgba(13, 99, 27, 0.4) 0%, transparent 70%),
-                      radial-gradient(ellipse 50% 50% at 20% 80%, rgba(13, 99, 27, 0.25) 0%, transparent 60%);
+          object-fit: cover;
+          width: 100%;
+          height: 100%;
         }
-        .fe-banner::after {
-          content: '';
+        .fe-banner-overlay {
           position: absolute;
           inset: 0;
-          background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.07) 1px, transparent 0);
-          background-size: 20px 20px;
+          background: linear-gradient(
+            180deg,
+            rgba(10, 31, 10, 0.15) 0%,
+            rgba(10, 31, 10, 0.3) 50%,
+            rgba(10, 31, 10, 0.7) 100%
+          );
+          z-index: 1;
         }
         .fe-banner-logo {
           position: absolute;
           top: 1rem;
           right: 1.25rem;
-          z-index: 2;
-          opacity: 0.9;
+          z-index: 3;
+          opacity: 0.95;
           filter: brightness(0) invert(1);
         }
         /* Desktop: sign-out link in header */
@@ -155,54 +158,45 @@ export default function PlayDashboard({
           position: absolute;
           top: 1rem;
           right: 5.5rem;
-          z-index: 2;
+          z-index: 3;
           background: none;
           border: none;
           font-family: var(--font-lexend), sans-serif;
           font-size: 0.8125rem;
-          color: rgba(255,255,255,0.6);
+          color: rgba(255,255,255,0.7);
           cursor: pointer;
           padding: 8px 4px;
           letter-spacing: 0.01em;
           transition: color 0.15s;
         }
         .fe-so-hd:hover { color: #fff; }
-
-        /* ── Main content ────────────────────────────────── */
-        .fe-main {
-          padding: 1.5rem 2rem;
-          max-width: 1200px;
-          margin: 0 auto;
-        }
-
-        /* ── Hero identity ──────────────────────────────── */
-        .fe-hero {
-          margin-top: -2.5rem;
-          margin-bottom: 1.75rem;
-          animation: fe-rise 0.45s cubic-bezier(0.2, 0, 0, 1) both;
-        }
-        .fe-identity {
+        .fe-banner-profile {
+          position: absolute;
+          bottom: 1.25rem;
+          left: 1.25rem;
+          z-index: 3;
           display: flex;
-          align-items: flex-end;
-          gap: 1rem;
-          margin-bottom: 0.75rem;
+          align-items: center;
+          gap: 0.875rem;
+          text-decoration: none;
+          color: #fff;
         }
         .fe-avatar {
-          width: 72px;
-          height: 72px;
+          width: 56px;
+          height: 56px;
           border-radius: 50%;
-          border: 3px solid #F0F4EC;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+          border: 2.5px solid rgba(255,255,255,0.85);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.25);
           object-fit: cover;
           flex-shrink: 0;
           background: #E0EBE0;
         }
         .fe-avatar-placeholder {
-          width: 72px;
-          height: 72px;
+          width: 56px;
+          height: 56px;
           border-radius: 50%;
-          border: 3px solid #F0F4EC;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+          border: 2.5px solid rgba(255,255,255,0.85);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.25);
           flex-shrink: 0;
           background: linear-gradient(135deg, #0D631B, #0a4f15);
           display: flex;
@@ -211,28 +205,34 @@ export default function PlayDashboard({
           color: #fff;
           font-family: var(--font-manrope), sans-serif;
           font-weight: 800;
-          font-size: 1.5rem;
+          font-size: 1.25rem;
         }
+        .fe-banner-info { display: flex; flex-direction: column; gap: 0.2rem; }
         .fe-name {
           font-family: var(--font-manrope), sans-serif;
           font-weight: 800;
-          font-size: 1.75rem;
-          color: #1A2E1A;
+          font-size: 1.375rem;
+          color: #fff;
           letter-spacing: -0.02em;
           line-height: 1.1;
-          padding-bottom: 0.25rem;
+          text-shadow: 0 1px 4px rgba(0,0,0,0.3);
         }
         .fe-hcp-badge {
           display: inline-flex;
           align-items: center;
-          gap: 0.4rem;
-          background: linear-gradient(135deg, rgba(13, 99, 27, 0.1) 0%, rgba(61, 107, 26, 0.1) 100%);
-          padding: 0.5rem 1rem;
-          border-radius: 24px;
+          gap: 0.3rem;
           font-family: var(--font-lexend), sans-serif;
-          font-size: 0.875rem;
+          font-size: 0.8125rem;
           font-weight: 500;
-          color: #0D631B;
+          color: rgba(255,255,255,0.9);
+          text-shadow: 0 1px 3px rgba(0,0,0,0.25);
+        }
+
+        /* ── Main content ────────────────────────────────── */
+        .fe-main {
+          padding: 1.5rem 2rem;
+          max-width: 1200px;
+          margin: 0 auto;
         }
 
         /* ── Stat cards ──────────────────────────────────── */
@@ -619,9 +619,9 @@ export default function PlayDashboard({
             max-width: 560px;
             padding: 2rem 2rem;
           }
-          .fe-banner { height: 220px; }
-          .fe-name { font-size: 2.5rem; }
-          .fe-avatar, .fe-avatar-placeholder { width: 88px; height: 88px; }
+          .fe-banner { height: 260px; }
+          .fe-name { font-size: 1.75rem; }
+          .fe-avatar, .fe-avatar-placeholder { width: 64px; height: 64px; }
           .fe-so-hd { display: block; }
           .fe { padding-bottom: 0; }
         }
@@ -629,38 +629,43 @@ export default function PlayDashboard({
 
       <div className="fe">
 
-        {/* ── Hero banner ── */}
+        {/* ── Hero banner with photo ── */}
         <div className="fe-banner">
+          <Image
+            src="/hero.jpg"
+            alt="Golf course"
+            fill
+            priority
+            className="fe-banner-img"
+            sizes="100vw"
+          />
+          <div className="fe-banner-overlay" />
           <button className="fe-so-hd" onClick={handleSignOut}>Sign out</button>
           <div className="fe-banner-logo">
             <Image src="/lx2-logo.svg" alt="LX2" width={64} height={32} style={{ width: 'auto', height: 'auto' }} priority />
           </div>
+          <Link href="/profile" className="fe-banner-profile">
+            {avatarUrl ? (
+              <Image src={avatarUrl} alt={displayName} width={56} height={56} className="fe-avatar" />
+            ) : (
+              <div className="fe-avatar-placeholder">
+                {displayName.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div className="fe-banner-info">
+              <h1 className="fe-name">{displayName}</h1>
+              {handicapIndex != null && (
+                <div className="fe-hcp-badge">
+                  <FlagIcon size={12} />
+                  <span>{handicapIndex % 1 === 0 ? handicapIndex.toFixed(1) : handicapIndex} HCP</span>
+                </div>
+              )}
+            </div>
+          </Link>
         </div>
 
         {/* ── Main ── */}
         <main className="fe-main">
-
-          {/* Identity — avatar + name */}
-          <section className="fe-hero">
-            <Link href="/profile" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <div className="fe-identity">
-                {avatarUrl ? (
-                  <Image src={avatarUrl} alt={displayName} width={72} height={72} className="fe-avatar" />
-                ) : (
-                  <div className="fe-avatar-placeholder">
-                    {displayName.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <h1 className="fe-name">{displayName}</h1>
-              </div>
-            </Link>
-            {handicapIndex != null && (
-              <div className="fe-hcp-badge">
-                <FlagIcon size={14} />
-                <span>{handicapIndex % 1 === 0 ? handicapIndex.toFixed(1) : handicapIndex} HCP</span>
-              </div>
-            )}
-          </section>
 
           {/* Quick stats — always 3 cards */}
           <div className="fe-stats">
