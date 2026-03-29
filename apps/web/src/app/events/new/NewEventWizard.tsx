@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { createEvent } from './actions'
 import type { WizardCombo, CombinationTee, ComboHole } from './page'
+import BottomNav from '@/components/BottomNav'
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -172,7 +173,7 @@ export default function NewEventWizard({
           inset: 0;
           z-index: 2;
           display: flex;
-          align-items: flex-start;
+          flex-direction: column;
           justify-content: space-between;
           padding: 1rem 1.25rem;
         }
@@ -190,10 +191,14 @@ export default function NewEventWizard({
           transition: background 0.15s, color 0.15s;
         }
         .nev-back:hover { background: rgba(255,255,255,0.15); color: #fff; }
-        .nev-banner-logo {
-          width: auto;
-          height: auto;
-          opacity: 0.7;
+        .nev-banner-title {
+          font-family: var(--font-dm-serif), serif;
+          font-weight: 400;
+          font-size: clamp(1.75rem, 4vw, 2.25rem);
+          color: #fff;
+          margin: 0;
+          letter-spacing: -0.02em;
+          text-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
         @media (min-width: 768px) {
           .nev-banner { height: 180px; }
@@ -329,22 +334,13 @@ export default function NewEventWizard({
             </svg>
             Back
           </Link>
-          <Image src="/lx2-logo.svg" alt="LX2" width={64} height={32} className="nev-banner-logo" priority />
+          <h1 className="nev-banner-title">New event</h1>
         </div>
       </div>
 
       {/* ── Body ── */}
-      <main style={{ background: '#F2F5F0', minHeight: 'calc(100dvh - 160px)', padding: '32px 32px 80px' }}>
+      <main style={{ background: '#F2F5F0', minHeight: 'calc(100dvh - 160px)', padding: '32px 32px 120px' }}>
         <div style={{ maxWidth: 640, margin: '0 auto' }}>
-
-          {/* Page title */}
-          <h1 style={{
-            fontFamily: 'var(--font-dm-serif), serif', fontWeight: 400,
-            fontSize: 'clamp(1.75rem, 4vw, 2.25rem)', color: '#1A2E1A',
-            margin: '0 0 8px', letterSpacing: '-0.02em',
-          }}>
-            New event
-          </h1>
 
           {/* Step indicator */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 32, alignItems: 'center' }}>
@@ -393,32 +389,40 @@ export default function NewEventWizard({
 
           {/* ─────────────── STEP 1: Course & date ─────────────── */}
           {step === 1 && (
-            <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #E0EBE0', padding: '28px 28px 24px' }}>
-              <div className="row-field">
-                <label className="wiz-label">Event name</label>
-                <input
-                  className="wiz-input"
-                  type="text"
-                  value={eventName}
-                  placeholder="e.g. Sunday Stableford · 20 Apr"
-                  onChange={e => { setEventName(e.target.value); setNameEdited(true) }}
-                />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Event details card */}
+              <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #E0EBE0', padding: '28px 28px 24px' }}>
+                <div className="row-field">
+                  <label className="wiz-label">Event name</label>
+                  <input
+                    className="wiz-input"
+                    type="text"
+                    value={eventName}
+                    placeholder="e.g. Sunday Stableford · 20 Apr"
+                    onChange={e => { setEventName(e.target.value); setNameEdited(true) }}
+                  />
+                </div>
+                <div className="row-field" style={{ marginBottom: 0 }}>
+                  <label className="wiz-label">Date</label>
+                  <input
+                    className="wiz-input"
+                    type="date"
+                    value={date}
+                    min={today}
+                    onChange={e => setDate(e.target.value)}
+                    style={{ width: 'auto', minWidth: 180 }}
+                  />
+                </div>
               </div>
 
-              <div className="row-field">
-                <label className="wiz-label">Date</label>
-                <input
-                  className="wiz-input"
-                  type="date"
-                  value={date}
-                  min={today}
-                  onChange={e => setDate(e.target.value)}
-                  style={{ width: 'auto', minWidth: 180 }}
-                />
-              </div>
-
-              <div className="row-field" style={{ marginBottom: 0 }}>
-                <label className="wiz-label">Course</label>
+              {/* Course selection */}
+              <div>
+                <h2 style={{
+                  fontFamily: 'var(--font-dm-serif), serif', fontWeight: 400,
+                  fontSize: '1.25rem', color: '#1A2E1A', margin: '0 0 12px',
+                }}>
+                  Select course
+                </h2>
                 {combinations.length === 0 ? (
                   <div style={{ padding: '20px', borderRadius: 12, background: '#fff7ed', border: '1px solid #fed7aa', fontSize: '0.875rem', color: '#92400e', fontFamily: 'var(--font-dm-sans), sans-serif' }}>
                     No courses found in the database. Please contact support to add courses.
@@ -440,7 +444,7 @@ export default function NewEventWizard({
                         />
                       </div>
                     )}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {combinations
                         .filter(c => {
                           if (!courseSearch) return true
@@ -500,42 +504,42 @@ export default function NewEventWizard({
                     </div>
                   </>
                 )}
-              </div>
 
-              {/* Tee selector — shown once a combination is selected */}
-              {combinationId && availableTees.length > 0 && (
-                <div className="row-field" style={{ marginTop: 20, marginBottom: 0 }}>
-                  <label className="wiz-label">Tees (informational)</label>
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
-                    {availableTees.map(t => {
-                      const sw = TEE_SWATCH[t.tee_colour] ?? { bg: '#6b7280', text: '#fff' }
-                      return (
-                        <div
-                          key={t.tee_colour}
-                          style={{
-                            display: 'flex', alignItems: 'center', gap: 8,
-                            padding: '8px 12px', borderRadius: 10,
-                            border: '1.5px solid #E0EBE0', background: '#fff',
-                            fontFamily: 'var(--font-dm-sans), sans-serif', fontSize: '0.8125rem',
-                          }}
-                        >
-                          <span style={{
-                            width: 14, height: 14, borderRadius: '50%',
-                            background: sw.bg, border: sw.border ? `1px solid ${sw.border}` : undefined,
-                            flexShrink: 0,
-                          }} />
-                          <span style={{ fontWeight: 500, color: '#1A2E1A' }}>{t.tee_colour}</span>
-                          {t.slope_rating && (
-                            <span style={{ color: '#6B8C6B' }}>
-                              SR {t.slope_rating} / CR {t.course_rating}
-                            </span>
-                          )}
-                        </div>
-                      )
-                    })}
+                {/* Tee info — shown once a combination is selected */}
+                {combinationId && availableTees.length > 0 && (
+                  <div style={{ marginTop: 16 }}>
+                    <label className="wiz-label">Available tees</label>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
+                      {availableTees.map(t => {
+                        const sw = TEE_SWATCH[t.tee_colour] ?? { bg: '#6b7280', text: '#fff' }
+                        return (
+                          <div
+                            key={t.tee_colour}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 8,
+                              padding: '8px 12px', borderRadius: 10,
+                              border: '1.5px solid #E0EBE0', background: '#fff',
+                              fontFamily: 'var(--font-dm-sans), sans-serif', fontSize: '0.8125rem',
+                            }}
+                          >
+                            <span style={{
+                              width: 14, height: 14, borderRadius: '50%',
+                              background: sw.bg, border: sw.border ? `1px solid ${sw.border}` : undefined,
+                              flexShrink: 0,
+                            }} />
+                            <span style={{ fontWeight: 500, color: '#1A2E1A' }}>{t.tee_colour}</span>
+                            {t.slope_rating && (
+                              <span style={{ color: '#6B8C6B' }}>
+                                SR {t.slope_rating} / CR {t.course_rating}
+                              </span>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           )}
 
@@ -886,6 +890,8 @@ export default function NewEventWizard({
 
         </div>
       </main>
+
+      <BottomNav active="events" />
     </>
   )
 }

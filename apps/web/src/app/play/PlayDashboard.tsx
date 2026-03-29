@@ -827,7 +827,7 @@ export default function PlayDashboard({
                   <div className="fe-action-sub">Begin a new 18-hole scorecard</div>
                 </div>
               </Link>
-              <Link href="/play/new?mode=tournament" className="fe-action-card secondary">
+              <Link href="/events/new" className="fe-action-card secondary">
                 <div className="fe-action-icon"><TournamentIcon /></div>
                 <div className="fe-action-text">
                   <div className="fe-action-title">Organise a tournament</div>
