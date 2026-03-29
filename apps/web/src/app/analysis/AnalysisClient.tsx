@@ -105,7 +105,7 @@ export default function AnalysisClient({ displayName, handicapIndex, rounds }: P
           background: #F0F4EC;
           padding: 1rem 1.25rem;
           display: flex;
-          justify-content: space-between;
+          justify-content: flex-end;
           align-items: center;
           position: sticky;
           top: 0;
@@ -423,7 +423,7 @@ export default function AnalysisClient({ displayName, handicapIndex, rounds }: P
 
       <div className="an">
         <header className="an-hd">
-          <Image src="/lx2-logo.svg" alt="LX2" width={72} height={36} style={{ width: 'auto', height: 'auto' }} priority />
+          <Image src="/lx2-logo.svg" alt="LX2" width={72} height={36} priority />
         </header>
 
         <main className="an-main">

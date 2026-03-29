@@ -94,7 +94,7 @@ export default async function EventsPage() {
           background: #F0F4EC;
           padding: 1rem 1.25rem;
           display: flex;
-          justify-content: space-between;
+          justify-content: flex-end;
           align-items: center;
           position: sticky;
           top: 0;
