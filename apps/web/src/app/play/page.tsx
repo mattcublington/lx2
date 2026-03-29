@@ -22,7 +22,7 @@ export default async function PlayPage() {
   ] = await Promise.all([
     supabase
       .from('users')
-      .select('display_name, email, handicap_index')
+      .select('display_name, email, handicap_index, avatar_url')
       .eq('id', user.id)
       .single(),
     supabase
@@ -171,6 +171,7 @@ export default async function PlayPage() {
     <PlayDashboard
       userId={user.id}
       displayName={displayName}
+      avatarUrl={profile?.avatar_url ?? null}
       rounds={rounds}
       handicapIndex={profile?.handicap_index ?? null}
       roundsCount={roundsCount ?? 0}

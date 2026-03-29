@@ -1,6 +1,6 @@
 import Link from 'next/link'
 
-type Tab = 'home' | 'rounds' | 'events' | 'profile'
+type Tab = 'home' | 'rounds' | 'events' | 'analysis' | 'profile'
 
 export default function BottomNav({ active }: { active: Tab }) {
   return (
@@ -13,7 +13,7 @@ export default function BottomNav({ active }: { active: Tab }) {
           right: 0;
           background: #FFFFFF;
           display: grid;
-          grid-template-columns: repeat(4, 1fr);
+          grid-template-columns: repeat(5, 1fr);
           box-shadow: 0 -2px 8px rgba(26, 28, 28, 0.06);
           z-index: 100;
           padding-bottom: env(safe-area-inset-bottom);
@@ -28,7 +28,7 @@ export default function BottomNav({ active }: { active: Tab }) {
           text-decoration: none;
           color: #72786E;
           font-family: var(--font-lexend), sans-serif;
-          font-size: 0.6875rem;
+          font-size: 0.625rem;
           font-weight: 500;
           transition: color 0.2s ease-in-out;
         }
@@ -39,16 +39,19 @@ export default function BottomNav({ active }: { active: Tab }) {
         @media (min-width: 768px) { .bnav { display: none; } }
       `}</style>
       <nav className="bnav">
-        <Link href="/play"    className={`bnav-item${active === 'home'    ? ' active' : ''}`} aria-label="Home">
+        <Link href="/play"     className={`bnav-item${active === 'home'     ? ' active' : ''}`} aria-label="Home">
           <HomeIcon /><span>Home</span>
         </Link>
-        <Link href="/rounds"  className={`bnav-item${active === 'rounds'  ? ' active' : ''}`} aria-label="Rounds">
+        <Link href="/rounds"   className={`bnav-item${active === 'rounds'   ? ' active' : ''}`} aria-label="Rounds">
           <ClipboardIcon /><span>Rounds</span>
         </Link>
-        <Link href="/events"  className={`bnav-item${active === 'events'  ? ' active' : ''}`} aria-label="Events">
+        <Link href="/events"   className={`bnav-item${active === 'events'   ? ' active' : ''}`} aria-label="Events">
           <TrophyIcon /><span>Events</span>
         </Link>
-        <Link href="/profile" className={`bnav-item${active === 'profile' ? ' active' : ''}`} aria-label="Profile">
+        <Link href="/analysis" className={`bnav-item${active === 'analysis' ? ' active' : ''}`} aria-label="Analysis">
+          <AnalysisIcon /><span>Analysis</span>
+        </Link>
+        <Link href="/profile"  className={`bnav-item${active === 'profile'  ? ' active' : ''}`} aria-label="Profile">
           <UserIcon /><span>Profile</span>
         </Link>
       </nav>
@@ -80,6 +83,15 @@ function TrophyIcon() {
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M8 21h8M12 17v4M12 17c-4.4 0-8-3.6-8-8V5h16v4c0 4.4-3.6 8-8 8z" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
       <path d="M4 9H2a1 1 0 01-1-1V7a1 1 0 011-1h2M20 9h2a1 1 0 001-1V7a1 1 0 00-1-1h-2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
+function AnalysisIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M3 17l4-8 4 4 4-6 4 4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M3 21h18" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
     </svg>
   )
 }

@@ -41,6 +41,7 @@ interface OrganisedEvent {
 interface Props {
   userId: string
   displayName: string
+  avatarUrl?: string | null
   rounds: RoundRow[]
   handicapIndex?: number | null
   roundsCount?: number
@@ -66,6 +67,7 @@ function formatDate(dateStr: string): string {
 
 export default function PlayDashboard({
   displayName,
+  avatarUrl,
   rounds,
   handicapIndex,
   roundsCount = 0,
@@ -117,36 +119,54 @@ export default function PlayDashboard({
           padding-bottom: max(80px, calc(80px + env(safe-area-inset-bottom)));
         }
 
-        /* ── Header ──────────────────────────────────────── */
-        .fe-hd {
-          background: #F0F4EC;
-          padding: 1rem 1.25rem;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          position: sticky;
-          top: 0;
-          z-index: 50;
+        /* ── Hero banner ─────────────────────────────────── */
+        .fe-banner {
+          position: relative;
+          width: 100%;
+          height: 180px;
+          background: linear-gradient(135deg, #0a1f0a 0%, #1A2E1A 40%, #0D631B 100%);
+          overflow: hidden;
         }
-        .fe-hd-r {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
+        .fe-banner::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(ellipse 80% 60% at 70% 30%, rgba(13, 99, 27, 0.4) 0%, transparent 70%),
+                      radial-gradient(ellipse 50% 50% at 20% 80%, rgba(13, 99, 27, 0.25) 0%, transparent 60%);
+        }
+        .fe-banner::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.07) 1px, transparent 0);
+          background-size: 20px 20px;
+        }
+        .fe-banner-logo {
+          position: absolute;
+          top: 1rem;
+          right: 1.25rem;
+          z-index: 2;
+          opacity: 0.9;
+          filter: brightness(0) invert(1);
         }
         /* Desktop: sign-out link in header */
         .fe-so-hd {
           display: none;
+          position: absolute;
+          top: 1rem;
+          right: 5.5rem;
+          z-index: 2;
           background: none;
           border: none;
           font-family: var(--font-lexend), sans-serif;
           font-size: 0.8125rem;
-          color: #72786E;
+          color: rgba(255,255,255,0.6);
           cursor: pointer;
           padding: 8px 4px;
           letter-spacing: 0.01em;
           transition: color 0.15s;
         }
-        .fe-so-hd:hover { color: #0D631B; }
+        .fe-so-hd:hover { color: #fff; }
 
         /* ── Main content ────────────────────────────────── */
         .fe-main {
@@ -155,19 +175,52 @@ export default function PlayDashboard({
           margin: 0 auto;
         }
 
-        /* ── Hero ────────────────────────────────────────── */
+        /* ── Hero identity ──────────────────────────────── */
         .fe-hero {
+          margin-top: -2.5rem;
           margin-bottom: 1.75rem;
           animation: fe-rise 0.45s cubic-bezier(0.2, 0, 0, 1) both;
+        }
+        .fe-identity {
+          display: flex;
+          align-items: flex-end;
+          gap: 1rem;
+          margin-bottom: 0.75rem;
+        }
+        .fe-avatar {
+          width: 72px;
+          height: 72px;
+          border-radius: 50%;
+          border: 3px solid #F0F4EC;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+          object-fit: cover;
+          flex-shrink: 0;
+          background: #E0EBE0;
+        }
+        .fe-avatar-placeholder {
+          width: 72px;
+          height: 72px;
+          border-radius: 50%;
+          border: 3px solid #F0F4EC;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+          flex-shrink: 0;
+          background: linear-gradient(135deg, #0D631B, #0a4f15);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #fff;
+          font-family: var(--font-manrope), sans-serif;
+          font-weight: 800;
+          font-size: 1.5rem;
         }
         .fe-name {
           font-family: var(--font-manrope), sans-serif;
           font-weight: 800;
-          font-size: 2rem;
+          font-size: 1.75rem;
           color: #1A2E1A;
-          margin-bottom: 0.75rem;
           letter-spacing: -0.02em;
           line-height: 1.1;
+          padding-bottom: 0.25rem;
         }
         .fe-hcp-badge {
           display: inline-flex;
@@ -193,10 +246,12 @@ export default function PlayDashboard({
         .fe-stat {
           background: #FFFFFF;
           border-radius: 16px;
-          padding: 1.25rem 0.75rem;
+          padding: 1.25rem 0.5rem;
           text-align: center;
           box-shadow: 0 4px 12px rgba(26, 28, 28, 0.04);
           transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+          min-width: 0;
+          overflow: hidden;
         }
         .fe-stat:hover {
           transform: translateY(-2px);
@@ -564,7 +619,9 @@ export default function PlayDashboard({
             max-width: 560px;
             padding: 2rem 2rem;
           }
+          .fe-banner { height: 220px; }
           .fe-name { font-size: 2.5rem; }
+          .fe-avatar, .fe-avatar-placeholder { width: 88px; height: 88px; }
           .fe-so-hd { display: block; }
           .fe { padding-bottom: 0; }
         }
@@ -572,21 +629,30 @@ export default function PlayDashboard({
 
       <div className="fe">
 
-        {/* ── Header ── */}
-        <header className="fe-hd">
-          <Image src="/lx2-logo.svg" alt="LX2" width={72} height={36} priority />
-          <div className="fe-hd-r">
-            <button className="fe-so-hd" onClick={handleSignOut}>Sign out</button>
+        {/* ── Hero banner ── */}
+        <div className="fe-banner">
+          <button className="fe-so-hd" onClick={handleSignOut}>Sign out</button>
+          <div className="fe-banner-logo">
+            <Image src="/lx2-logo.svg" alt="LX2" width={64} height={32} style={{ width: 'auto', height: 'auto' }} priority />
           </div>
-        </header>
+        </div>
 
         {/* ── Main ── */}
         <main className="fe-main">
 
-          {/* Hero */}
+          {/* Identity — avatar + name */}
           <section className="fe-hero">
             <Link href="/profile" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <h1 className="fe-name">{displayName}</h1>
+              <div className="fe-identity">
+                {avatarUrl ? (
+                  <Image src={avatarUrl} alt={displayName} width={72} height={72} className="fe-avatar" />
+                ) : (
+                  <div className="fe-avatar-placeholder">
+                    {displayName.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <h1 className="fe-name">{displayName}</h1>
+              </div>
             </Link>
             {handicapIndex != null && (
               <div className="fe-hcp-badge">
