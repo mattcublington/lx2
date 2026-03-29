@@ -78,3 +78,110 @@ export interface MatchPlayResult {
   matchOver: boolean
   winner: 'A' | 'B' | null
 }
+
+// ─── Better Ball (Fourball) ─────────────────────────────────────────────────
+
+export interface BetterBallInput {
+  holes: HoleData[]
+  playerA: {
+    grossStrokes: (number | null)[]
+    playingHandicap: number
+  }
+  playerB: {
+    grossStrokes: (number | null)[]
+    playingHandicap: number
+  }
+  mode: 'stableford' | 'strokeplay'
+}
+
+export interface BetterBallHole {
+  holeNumber: number
+  selectedPlayer: 'A' | 'B' | 'both_pickup'
+  pairScore: number // points (stableford) or net strokes (strokeplay)
+  playerANet: number | null
+  playerBNet: number | null
+}
+
+export interface BetterBallResult {
+  holes: BetterBallHole[]
+  pairTotal: number
+  playerATotalUsed: number // how many holes player A's score was used
+  playerBTotalUsed: number
+  nR: boolean // stroke play only: true if both picked up on any hole
+}
+
+// ─── Skins ──────────────────────────────────────────────────────────────────
+
+export interface SkinsInput {
+  holes: HoleData[]
+  players: {
+    playerId: string
+    grossStrokes: (number | null)[]
+    playingHandicap: number
+  }[]
+  mode: 'net' | 'gross'
+  lastHoleCarryover: 'split' | 'unawarded'
+}
+
+export interface SkinWin {
+  holeNumber: number
+  playerId: string
+  skinsWon: number // 1 + carried
+  netScore: number
+}
+
+export interface SkinsResult {
+  wins: SkinWin[]
+  carriedToNext: number // 0 if all resolved
+  skinsByPlayer: Record<string, number>
+  unawarded: number // only non-zero if lastHoleCarryover = 'unawarded'
+}
+
+// ─── Reds vs Blues ──────────────────────────────────────────────────────────
+
+export interface RvBInput {
+  players: {
+    playerId: string
+    team: 'red' | 'blue'
+    stablefordTotal: number
+  }[]
+  bestOf?: number // if set, only count top N per team
+}
+
+export interface RvBTeamResult {
+  total: number
+  playerCount: number
+  average: number
+  countedPlayers: string[]
+}
+
+export interface RvBResult {
+  red: RvBTeamResult
+  blue: RvBTeamResult
+  winner: 'red' | 'blue' | 'tied'
+  margin: number
+}
+
+// ─── Scramble (Texas Scramble) ──────────────────────────────────────────────
+
+export interface ScrambleTeam {
+  teamId: string
+  teamName: string
+  players: { playerId: string; playingHandicap: number }[]
+}
+
+export interface ScrambleInput {
+  holes: HoleData[]
+  team: ScrambleTeam
+  grossStrokes: (number | null)[] // one score per hole for the team
+  teamSize: 2 | 3 | 4
+  allowanceOverride?: number[] // custom percentages per position
+}
+
+export interface ScrambleResult {
+  teamHandicap: number
+  grossTotal: number | null
+  netTotal: number | null
+  relativeToPar: number | null
+  nR: boolean
+}
