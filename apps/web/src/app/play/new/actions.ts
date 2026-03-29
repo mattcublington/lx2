@@ -47,6 +47,8 @@ interface StartRoundData {
   entryFeePence?: number | null
   // OCR-uploaded course (when courseId starts with 'upload-')
   uploadedCourse?: UploadedCourseData
+  // Group assignments from wizard (array of groups, each group is array of player indices)
+  groupAssignments?: number[][]
 }
 
 export async function startRound(data: StartRoundData): Promise<string> {
@@ -192,8 +194,28 @@ export async function startRound(data: StartRoundData): Promise<string> {
     throw new Error(`Failed to create scorecards: ${scsErr?.message ?? 'unknown error'}`)
   }
 
-  // 9. Auto-generate groups if players exceed group size
-  if (eps.length > groupSize) {
+  // 9. Create groups — use wizard assignments if provided, otherwise auto-generate
+  if (data.groupAssignments && data.groupAssignments.length > 0) {
+    await admin.from('event_groups').insert(
+      data.groupAssignments.map((_, i) => ({
+        event_id: event.id,
+        flight_number: i + 1,
+        label: `Group ${i + 1}`,
+        start_hole: 1,
+      }))
+    )
+    for (const [groupIdx, playerIndices] of data.groupAssignments.entries()) {
+      for (const playerIdx of playerIndices) {
+        const epId = eps[playerIdx]?.id
+        if (epId) {
+          await admin
+            .from('event_players')
+            .update({ flight_number: groupIdx + 1 })
+            .eq('id', epId)
+        }
+      }
+    }
+  } else if (eps.length > groupSize) {
     const numGroups = Math.ceil(eps.length / groupSize)
     await admin.from('event_groups').insert(
       Array.from({ length: numGroups }, (_, i) => ({

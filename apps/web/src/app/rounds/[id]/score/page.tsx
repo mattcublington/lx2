@@ -327,19 +327,36 @@ export default async function ScorePage({ params, searchParams }: PageProps) {
   }
 
   // ── 5. All players in this event (for live leaderboard) ────────────────────
-  const { data: allEventPlayers } = await supabase
+  // First, get the current player's flight_number to filter by group
+  const { data: currentEpFlight } = await supabase
+    .from('event_players')
+    .select('flight_number')
+    .eq('id', ep.id)
+    .single()
+
+  const myFlightNumber = currentEpFlight?.flight_number ?? null
+
+  let eventPlayersQuery = supabase
     .from('event_players')
     .select(`
       id,
       user_id,
       display_name,
       handicap_index,
+      flight_number,
       scorecards (
         id,
         hole_scores ( hole_number, gross_strokes )
       )
     `)
     .eq('event_id', scorecard.event_id)
+
+  // If the player has a group assignment, only show players in the same group
+  if (myFlightNumber !== null) {
+    eventPlayersQuery = eventPlayersQuery.eq('flight_number', myFlightNumber)
+  }
+
+  const { data: allEventPlayers } = await eventPlayersQuery
 
   // Normalise into a flat shape ScoreEntryLive can consume.
   // isCurrentUser is based on the event_player's user_id matching the
