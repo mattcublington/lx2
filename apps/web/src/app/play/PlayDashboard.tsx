@@ -121,11 +121,11 @@ export default function PlayDashboard({
         .fe-banner {
           position: relative;
           width: 100%;
-          padding: 1.75rem 1.5rem 1.5rem;
+          padding: 2.5rem 2rem 1.75rem;
           overflow: hidden;
           display: flex;
           flex-direction: column;
-          align-items: center;
+          align-items: flex-start;
         }
         .fe-banner-img {
           position: absolute;
@@ -222,8 +222,7 @@ export default function PlayDashboard({
           position: relative;
           z-index: 3;
           width: 100%;
-          max-width: 340px;
-          margin-top: 1rem;
+          margin-top: 1.25rem;
           background: rgba(255,255,255,0.08);
           backdrop-filter: blur(8px);
           -webkit-backdrop-filter: blur(8px);
@@ -435,7 +434,7 @@ export default function PlayDashboard({
           flex-direction: row;
           align-items: center;
           gap: 1rem;
-          padding: 1.25rem 1.25rem;
+          padding: 1.125rem 1.25rem 1.125rem 1rem;
           background: #FFFFFF;
           border-radius: 18px;
           box-shadow: 0 2px 8px rgba(26, 28, 28, 0.06);
