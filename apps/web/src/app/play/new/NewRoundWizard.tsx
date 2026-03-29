@@ -1,5 +1,5 @@
 'use client'
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { COURSES, getCourse } from '@/lib/courses'
 import type { Course, CourseHole } from '@/lib/courses'
@@ -33,7 +33,7 @@ interface Props {
   combinationTees: CombinationTee[]
 }
 
-type Step = 'venue' | 'scorecard-upload' | 'players' | 'combination' | 'settings'
+type Step = 'venue' | 'scorecard-upload' | 'players' | 'groups' | 'combination' | 'settings'
 
 interface Player {
   name: string
@@ -63,6 +63,7 @@ interface WizardState {
   inviteLink: boolean        // open registration via shared link
   groupSize: 2 | 3 | 4      // players per group
   entryFeeStr: string        // raw input string, parsed on submit
+  groupAssignments: number[][] // groups of player indices (into active players list)
 }
 
 // ── Design tokens ──────────────────────────────────────────────────────────────
@@ -168,17 +169,18 @@ const FIRST_COURSE = COURSES[0]!.id
 
 // ── Shared components ──────────────────────────────────────────────────────────
 
-// Step order for stepper: Course=0, Players=1, Settings=2
-function stepIndex(step: Step): number {
+// Step order for stepper: Course=0, Players=1, [Groups=2], Settings=2|3
+function stepIndex(step: Step, needsGroups: boolean): number {
   if (step === 'venue' || step === 'scorecard-upload') return 0
   if (step === 'players') return 1
-  return 2 // combination + settings both show as step 3
+  if (step === 'groups') return 2
+  return needsGroups ? 3 : 2 // combination + settings both show as last step
 }
 
-function StepBar({ step }: { step: Step }) {
-  const current = stepIndex(step)
+function StepBar({ step, needsGroups }: { step: Step; needsGroups: boolean }) {
+  const current = stepIndex(step, needsGroups)
   const isAllDone = step === 'settings'
-  const steps = ['Course', 'Players', 'Settings']
+  const steps = needsGroups ? ['Course', 'Players', 'Groups', 'Settings'] : ['Course', 'Players', 'Settings']
 
   return (
     <div style={{
@@ -195,7 +197,7 @@ function StepBar({ step }: { step: Step }) {
       <div style={{
         position: 'absolute', top: 16, left: 'calc(1.25rem + 16px)',
         height: 2, background: FE.greenDark, zIndex: 1, transition: 'width 0.3s ease-in-out',
-        width: isAllDone ? 'calc(100% - 2.5rem - 32px)' : current === 1 ? '50%' : current === 0 ? '0%' : '100%',
+        width: isAllDone ? 'calc(100% - 2.5rem - 32px)' : `${(current / (steps.length - 1)) * 100}%`,
       }} />
 
       {steps.map((label, i) => {
@@ -708,6 +710,251 @@ function PlayersStep({
 
       <BottomBar>
         <PrimaryButton onClick={onNext} disabled={!canProceed()}>
+          Next: Settings
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </PrimaryButton>
+      </BottomBar>
+    </>
+  )
+}
+
+// ── Screen 2b: Group Assignment ──────────────────────────────────────────────
+
+function autoGenerateGroups(playerCount: number, groupSize: number): number[][] {
+  const numGroups = Math.ceil(playerCount / groupSize)
+  const groups: number[][] = Array.from({ length: numGroups }, () => [])
+  for (let i = 0; i < playerCount; i++) {
+    groups[Math.floor(i / groupSize)]!.push(i)
+  }
+  return groups
+}
+
+function GroupsStep({
+  players,
+  groupSize,
+  groupAssignments,
+  onGroupSizeChange,
+  onGroupAssignmentsChange,
+  onNext,
+}: {
+  players: Player[]
+  groupSize: 2 | 3 | 4
+  groupAssignments: number[][]
+  onGroupSizeChange: (size: 2 | 3 | 4) => void
+  onGroupAssignmentsChange: (assignments: number[][]) => void
+  onNext: () => void
+}) {
+  const dragPlayerRef = useRef<{ playerIdx: number; fromGroup: number } | null>(null)
+  const [dragOverGroup, setDragOverGroup] = useState<number | null>(null)
+
+  // Active players (filled-in name + handicap, or isUser)
+  const activePlayers = players
+    .map((p, i) => ({ ...p, originalIndex: i }))
+    .filter(p => p.isUser || (p.name.trim() !== '' && p.handicapIndex !== ''))
+
+  // Auto-generate on mount or when player count / group size changes
+  const totalAssigned = groupAssignments.reduce((sum, g) => sum + g.length, 0)
+  const needsRegenerate = groupAssignments.length === 0 || totalAssigned !== activePlayers.length
+
+  // Use a ref to avoid stale closure issues with the effect
+  const regenerateRef = useRef(needsRegenerate)
+  regenerateRef.current = needsRegenerate
+
+  useEffect(() => {
+    if (regenerateRef.current) {
+      onGroupAssignmentsChange(autoGenerateGroups(activePlayers.length, groupSize))
+    }
+  }, [activePlayers.length, groupSize]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleRegenerate = () => {
+    onGroupAssignmentsChange(autoGenerateGroups(activePlayers.length, groupSize))
+  }
+
+  // ── Drag & Drop ────────────────────────────────────────────────────────────
+  function onDragStart(e: React.DragEvent, playerIdx: number, fromGroup: number) {
+    dragPlayerRef.current = { playerIdx, fromGroup }
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', String(playerIdx))
+    requestAnimationFrame(() => {
+      (e.currentTarget as HTMLElement).style.opacity = '0.4'
+    })
+  }
+
+  function onDragEnd(e: React.DragEvent) {
+    dragPlayerRef.current = null
+    setDragOverGroup(null)
+    ;(e.currentTarget as HTMLElement).style.opacity = '1'
+  }
+
+  function onDragOver(e: React.DragEvent, groupIdx: number) {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    if (dragOverGroup !== groupIdx) setDragOverGroup(groupIdx)
+  }
+
+  function onDragLeave(e: React.DragEvent, groupIdx: number) {
+    const related = e.relatedTarget as HTMLElement | null
+    const container = e.currentTarget as HTMLElement
+    if (!related || !container.contains(related)) {
+      if (dragOverGroup === groupIdx) setDragOverGroup(null)
+    }
+  }
+
+  function onDrop(e: React.DragEvent, toGroup: number) {
+    e.preventDefault()
+    setDragOverGroup(null)
+    const drag = dragPlayerRef.current
+    if (!drag || drag.fromGroup === toGroup) return
+    const newAssignments = groupAssignments.map(g => [...g])
+    // Remove from source
+    const srcGroup = newAssignments[drag.fromGroup]
+    if (!srcGroup) return
+    const idx = srcGroup.indexOf(drag.playerIdx)
+    if (idx === -1) return
+    srcGroup.splice(idx, 1)
+    // Add to target
+    if (!newAssignments[toGroup]) newAssignments[toGroup] = []
+    newAssignments[toGroup]!.push(drag.playerIdx)
+    onGroupAssignmentsChange(newAssignments)
+  }
+
+  return (
+    <>
+      <div style={{ padding: '0 1.25rem', paddingBottom: 100 }}>
+        <div style={{ marginBottom: '1.5rem' }}>
+          <h1 style={{ margin: 0, fontFamily: font.display, fontWeight: 700, fontSize: 24, color: FE.forestPrimary, letterSpacing: '-0.01em', marginBottom: '0.5rem' }}>
+            Arrange groups
+          </h1>
+          <p style={{ margin: 0, fontFamily: font.body, fontSize: 16, color: FE.onSecondary, lineHeight: 1.5 }}>
+            {activePlayers.length} players across {groupAssignments.length} {groupAssignments.length === 1 ? 'group' : 'groups'}. Drag players between groups to rearrange.
+          </p>
+        </div>
+
+        {/* Group size selector */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <div style={{ fontFamily: font.body, fontWeight: 500, fontSize: 14, color: FE.forestPrimary, marginBottom: '0.75rem' }}>
+            Group size
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            {([2, 3, 4] as const).map(n => (
+              <PillBtn key={n} active={groupSize === n} onClick={() => onGroupSizeChange(n)}>
+                {n}-ball
+              </PillBtn>
+            ))}
+            <button
+              onClick={handleRegenerate}
+              style={{
+                marginLeft: 'auto',
+                padding: '8px 14px', border: '1.5px solid #E0EBE0', borderRadius: 10,
+                background: '#fff', color: '#6B8C6B', fontSize: '0.8125rem',
+                fontWeight: 500, fontFamily: font.body, cursor: 'pointer',
+                transition: 'background 0.15s', whiteSpace: 'nowrap',
+              }}
+            >
+              Shuffle
+            </button>
+          </div>
+        </div>
+
+        {/* Group cards */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {groupAssignments.map((playerIndices, groupIdx) => {
+            const isOver = dragOverGroup === groupIdx
+            return (
+              <div
+                key={groupIdx}
+                style={{
+                  background: '#fff', borderRadius: 16,
+                  border: `1px solid ${isOver ? '#0D631B' : '#E0EBE0'}`,
+                  boxShadow: isOver ? '0 0 0 2px rgba(13, 99, 27, 0.15)' : FE.shadowFloat,
+                  overflow: 'hidden',
+                  transition: 'border-color 0.15s, box-shadow 0.15s',
+                }}
+                onDragOver={e => onDragOver(e, groupIdx)}
+                onDragLeave={e => onDragLeave(e, groupIdx)}
+                onDrop={e => onDrop(e, groupIdx)}
+              >
+                {/* Group header */}
+                <div style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '12px 16px', background: '#F2F5F0',
+                  borderBottom: '1px solid #E0EBE0',
+                }}>
+                  <span style={{ fontSize: '0.9375rem', fontWeight: 600, color: '#1A2E1A', fontFamily: font.body }}>
+                    Group {groupIdx + 1}
+                  </span>
+                  <span style={{ fontSize: '0.75rem', color: '#6B8C6B', fontFamily: font.body }}>
+                    {playerIndices.length} {playerIndices.length === 1 ? 'player' : 'players'}
+                  </span>
+                </div>
+
+                {/* Player rows */}
+                {playerIndices.length === 0 ? (
+                  <div style={{
+                    padding: '16px', fontSize: '0.8125rem', fontFamily: font.body,
+                    color: isOver ? '#0D631B' : '#9ca3af', textAlign: 'center',
+                    background: isOver ? 'rgba(13, 99, 27, 0.04)' : 'transparent',
+                    transition: 'background 0.12s, color 0.12s',
+                  }}>
+                    {isOver ? 'Drop here to assign' : 'Drag a player here'}
+                  </div>
+                ) : (
+                  playerIndices.map((pIdx, rowIdx) => {
+                    const player = activePlayers[pIdx]
+                    if (!player) return null
+                    return (
+                      <div
+                        key={pIdx}
+                        draggable
+                        onDragStart={e => onDragStart(e, pIdx, groupIdx)}
+                        onDragEnd={onDragEnd}
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                          padding: '10px 16px',
+                          borderBottom: rowIdx < playerIndices.length - 1 ? '1px solid #f0f4f0' : 'none',
+                          gap: 10, fontFamily: font.body, cursor: 'grab',
+                          userSelect: 'none', transition: 'background 0.12s, opacity 0.12s',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                          {/* Drag handle */}
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{ flexShrink: 0, color: '#C8D4C8' }}>
+                            <circle cx="4.5" cy="3" r="1.25" fill="currentColor" />
+                            <circle cx="9.5" cy="3" r="1.25" fill="currentColor" />
+                            <circle cx="4.5" cy="7" r="1.25" fill="currentColor" />
+                            <circle cx="9.5" cy="7" r="1.25" fill="currentColor" />
+                            <circle cx="4.5" cy="11" r="1.25" fill="currentColor" />
+                            <circle cx="9.5" cy="11" r="1.25" fill="currentColor" />
+                          </svg>
+                          <span style={{
+                            width: 32, height: 32, borderRadius: '50%',
+                            background: 'linear-gradient(135deg, rgba(13,99,27,0.1) 0%, rgba(61,107,26,0.1) 100%)',
+                            flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: '0.6875rem', fontWeight: 700, color: '#0D631B',
+                          }}>
+                            {initials(player.name || 'P')}
+                          </span>
+                          <span style={{ fontSize: '0.9375rem', fontWeight: 500, color: '#1A2E1A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {player.name}{player.isUser ? ' (you)' : ''}
+                          </span>
+                        </div>
+                        <span style={{ fontSize: '0.8125rem', color: '#6B8C6B', flexShrink: 0 }}>
+                          {parseFloat(player.handicapIndex || '0').toFixed(1)}
+                        </span>
+                      </div>
+                    )
+                  })
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      <BottomBar>
+        <PrimaryButton onClick={onNext}>
           Next: Settings
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -1385,6 +1632,7 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
     inviteLink: false,
     groupSize: 4,
     entryFeeStr: '',
+    groupAssignments: [],
   })
 
   // Uploaded courses from scorecard OCR (temporary, session-only)
@@ -1392,11 +1640,16 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
 
   const update = (partial: Partial<WizardState>) => setState(s => ({ ...s, ...partial }))
 
-  // Step order: venue → players → combination → settings
+  // Compute whether groups step is needed
+  const activePlayerCount = state.players.filter(p => p.isUser || (p.name.trim() !== '' && p.handicapIndex !== '')).length
+  const needsGroups = activePlayerCount > state.groupSize
+
+  // Step order: venue → players → [groups] → combination → settings
   const goBack = () => {
     if (state.step === 'scorecard-upload') update({ step: 'venue' })
     else if (state.step === 'players') update({ step: 'venue' })
-    else if (state.step === 'combination') update({ step: 'players' })
+    else if (state.step === 'groups') update({ step: 'players' })
+    else if (state.step === 'combination') update({ step: needsGroups ? 'groups' : 'players' })
     else if (state.step === 'settings') update({ step: 'combination' })
   }
 
@@ -1457,7 +1710,15 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
     })
   }
 
-  const proceedToCombination = () => update({ step: 'combination' })
+  const proceedFromPlayers = () => {
+    if (needsGroups) {
+      update({ step: 'groups' })
+    } else {
+      update({ step: 'combination', groupAssignments: [] })
+    }
+  }
+
+  const proceedFromGroups = () => update({ step: 'combination' })
 
   const selectCombination = (courseId: string, dbComboId: string | null) => {
     const newNtpHoles = defaultNtpHoles(courseId)
@@ -1509,6 +1770,7 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
           inviteLink: state.inviteLink,
           groupSize: state.groupSize,
           entryFeePence: entryFeePence && entryFeePence > 0 ? entryFeePence : null,
+          groupAssignments: state.groupAssignments.length > 0 ? state.groupAssignments : [],
           ...(uploadedCourse ? {
             uploadedCourse: {
               name: uploadedCourse.name,
@@ -1556,7 +1818,7 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
         </div>
 
         {/* Step bar */}
-        <StepBar step={state.step} />
+        <StepBar step={state.step} needsGroups={needsGroups} />
 
         {/* Error */}
         {error && (
@@ -1591,7 +1853,18 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
           <PlayersStep
             players={state.players}
             onChange={players => update({ players })}
-            onNext={proceedToCombination}
+            onNext={proceedFromPlayers}
+          />
+        )}
+
+        {state.step === 'groups' && (
+          <GroupsStep
+            players={state.players}
+            groupSize={state.groupSize}
+            groupAssignments={state.groupAssignments}
+            onGroupSizeChange={size => update({ groupSize: size, groupAssignments: [] })}
+            onGroupAssignmentsChange={groupAssignments => update({ groupAssignments })}
+            onNext={proceedFromGroups}
           />
         )}
 
