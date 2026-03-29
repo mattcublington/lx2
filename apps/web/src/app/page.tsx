@@ -404,6 +404,7 @@ export default function HomePage() {
           priority
           style={{ objectFit: 'cover', zIndex: 1 }}
           sizes="100vw"
+          quality={90}
         />
         <div className="hp-hero-overlay" />
         <div className="hp-hero-content">

@@ -558,6 +558,7 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
               height={120}
               className="pf-hero-banner"
               priority
+              quality={90}
             />
             <div className="pf-hero-body">
             <div className="pf-avatar-wrap">

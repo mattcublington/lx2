@@ -638,6 +638,7 @@ export default function PlayDashboard({
             priority
             className="fe-banner-img"
             sizes="100vw"
+            quality={90}
           />
           <div className="fe-banner-overlay" />
           <button className="fe-so-hd" onClick={handleSignOut}>Sign out</button>
