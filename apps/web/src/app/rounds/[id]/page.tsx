@@ -346,8 +346,8 @@ const STYLES = `
     border-bottom: 1px solid rgba(26, 28, 28, 0.06);
   }
   .rs-event-title {
-    font-family: var(--font-dm-serif), serif;
-    font-weight: 400;
+    font-family: var(--font-dm-sans), sans-serif;
+    font-weight: 600;
     font-size: 1.0625rem;
     color: #1A2E1A;
     letter-spacing: -0.01em;
