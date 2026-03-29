@@ -2,6 +2,7 @@
 import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createEvent } from './actions'
 import type { WizardCombo, CombinationTee, ComboHole } from './page'
 
@@ -63,6 +64,7 @@ export default function NewEventWizard({
   const [predictionsEnabled, setPredictionsEnabled] = useState(false)
   const [startingCreditsStr, setStartingCreditsStr] = useState('1000')
   const [error, setError]                 = useState('')
+  const [courseSearch, setCourseSearch]   = useState('')
 
   // Auto-generate event name from combination + format + date
   useEffect(() => {
@@ -140,6 +142,64 @@ export default function NewEventWizard({
   return (
     <>
       <style>{`
+        /* ── Hero Banner ── */
+        .nev-banner {
+          position: relative;
+          width: 100%;
+          height: 160px;
+          overflow: hidden;
+        }
+        .nev-banner-img {
+          position: absolute;
+          inset: 0;
+          object-fit: cover;
+          width: 100%;
+          height: 100%;
+        }
+        .nev-banner-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            180deg,
+            rgba(10, 31, 10, 0.55) 0%,
+            rgba(10, 31, 10, 0.25) 50%,
+            rgba(10, 31, 10, 0.15) 100%
+          );
+          z-index: 1;
+        }
+        .nev-banner-content {
+          position: absolute;
+          inset: 0;
+          z-index: 2;
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          padding: 1rem 1.25rem;
+        }
+        .nev-back {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          color: rgba(255,255,255,0.85);
+          text-decoration: none;
+          font-family: var(--font-dm-sans), sans-serif;
+          font-size: 0.875rem;
+          font-weight: 500;
+          padding: 6px 10px;
+          border-radius: 8px;
+          transition: background 0.15s, color 0.15s;
+        }
+        .nev-back:hover { background: rgba(255,255,255,0.15); color: #fff; }
+        .nev-banner-logo {
+          width: auto;
+          height: auto;
+          opacity: 0.7;
+        }
+        @media (min-width: 768px) {
+          .nev-banner { height: 180px; }
+        }
+
+        /* ── Form fields ── */
         .wiz-input {
           width: 100%; padding: 11px 14px;
           border: 1.5px solid #d1d5db; border-radius: 10px;
@@ -152,13 +212,69 @@ export default function NewEventWizard({
           display: block; font-size: 0.8125rem; font-weight: 500;
           color: #374151; margin-bottom: 6px; font-family: var(--font-dm-sans), sans-serif;
         }
-        .combo-card {
-          padding: 16px; border: 2px solid #E0EBE0; border-radius: 14px;
-          background: #fff; cursor: pointer; transition: all 0.15s;
+
+        /* ── Course selection ── */
+        .nev-search {
+          position: relative;
+          margin-bottom: 16px;
+        }
+        .nev-search-icon {
+          position: absolute;
+          left: 14px;
+          top: 50%;
+          transform: translateY(-50%);
+          pointer-events: none;
+          color: #6B8C6B;
+        }
+        .nev-search-input {
+          width: 100%;
+          padding: 12px 14px 12px 42px;
+          border: 1.5px solid #E0EBE0;
+          border-radius: 12px;
+          font-size: 0.9375rem;
+          font-family: var(--font-dm-sans), sans-serif;
+          color: #1A2E1A;
+          outline: none;
+          box-sizing: border-box;
+          background: #fff;
+          box-shadow: 0 2px 8px rgba(26, 28, 28, 0.04);
+          transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .nev-search-input:focus {
+          border-color: #0D631B;
+          box-shadow: 0 0 0 3px rgba(13, 99, 27, 0.1);
+        }
+        .nev-course-card {
+          display: flex;
+          gap: 14px;
+          padding: 16px;
+          background: #fff;
+          border-radius: 14px;
+          cursor: pointer;
+          margin-bottom: 10px;
+          box-shadow: 0 2px 8px rgba(26, 28, 28, 0.04);
+          border-left: 4px solid transparent;
+          transition: all 0.15s;
           font-family: var(--font-dm-sans), sans-serif;
         }
-        .combo-card:hover { border-color: #0D631B; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(13,99,27,0.12); }
-        .combo-card.selected { border-color: #0D631B; background: #F0F9F1; }
+        .nev-course-card:hover {
+          box-shadow: 0 4px 12px rgba(26, 28, 28, 0.08);
+          transform: translateY(-1px);
+        }
+        .nev-course-card.selected {
+          border-left-color: #0D631B;
+          background: rgba(13, 99, 27, 0.04);
+        }
+        .nev-course-icon {
+          width: 44px;
+          height: 44px;
+          border-radius: 10px;
+          flex-shrink: 0;
+          background: linear-gradient(135deg, rgba(13,99,27,0.1) 0%, rgba(61,107,26,0.1) 100%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
         .hole-chip {
           width: 40px; height: 40px; border-radius: 10px; border: 1.5px solid #d1d5db;
           background: #fff; font-size: 0.8125rem; font-weight: 600; cursor: pointer;
@@ -194,21 +310,31 @@ export default function NewEventWizard({
         .size-chip.selected { border-color: #0D631B; background: #F0F9F1; color: #0D631B; font-weight: 600; }
       `}</style>
 
-      {/* ── Header ── */}
-      <header style={{ background: '#0a1f0a', padding: '0 32px' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Link href="/play" style={{ textDecoration: 'none', color: '#6B8C6B', fontSize: '0.8125rem', fontFamily: 'var(--font-dm-sans), sans-serif' }}>
-            ← Back
+      {/* ── Hero Banner ── */}
+      <div className="nev-banner">
+        <Image
+          src="/hero.jpg"
+          alt="Golf course"
+          fill
+          priority
+          className="nev-banner-img"
+          sizes="100vw"
+          quality={90}
+        />
+        <div className="nev-banner-overlay" />
+        <div className="nev-banner-content">
+          <Link href="/events" className="nev-back">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M12 4L6 10L12 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Back
           </Link>
-          <span style={{ fontFamily: 'var(--font-dm-sans), sans-serif', fontWeight: 700, color: '#fff', fontSize: '1rem', letterSpacing: '-0.02em' }}>
-            LX<span style={{ color: '#4ade80' }}>2</span>
-          </span>
-          <span style={{ width: 48 }} />
+          <Image src="/lx2-logo.svg" alt="LX2" width={64} height={32} className="nev-banner-logo" priority />
         </div>
-      </header>
+      </div>
 
       {/* ── Body ── */}
-      <main style={{ background: '#F2F5F0', minHeight: 'calc(100dvh - 60px)', padding: '32px 32px 80px' }}>
+      <main style={{ background: '#F2F5F0', minHeight: 'calc(100dvh - 160px)', padding: '32px 32px 80px' }}>
         <div style={{ maxWidth: 640, margin: '0 auto' }}>
 
           {/* Page title */}
@@ -298,25 +424,81 @@ export default function NewEventWizard({
                     No courses found in the database. Please contact support to add courses.
                   </div>
                 ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10, marginTop: 4 }}>
-                    {combinations.map(c => (
-                      <button
-                        key={c.id}
-                        className={`combo-card${combinationId === c.id ? ' selected' : ''}`}
-                        onClick={() => { setCombinationId(c.id); setNtpHoles([]); setLdHoles([]) }}
-                      >
-                        <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: '#1A2E1A', marginBottom: 2 }}>
-                          {c.name.split('—').pop()?.trim() ?? c.name}
+                  <>
+                    {combinations.length > 4 && (
+                      <div className="nev-search">
+                        <svg className="nev-search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                          <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" strokeWidth="1.5"/>
+                          <path d="M10.5 10.5 L14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                        </svg>
+                        <input
+                          className="nev-search-input"
+                          type="text"
+                          value={courseSearch}
+                          onChange={e => setCourseSearch(e.target.value)}
+                          placeholder="Search courses"
+                        />
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                      {combinations
+                        .filter(c => {
+                          if (!courseSearch) return true
+                          const q = courseSearch.toLowerCase()
+                          return c.name.toLowerCase().includes(q) || c.courseName.toLowerCase().includes(q)
+                        })
+                        .map(c => {
+                          const selected = combinationId === c.id
+                          const shortN = c.name.split('—').pop()?.trim() ?? c.name
+                          return (
+                            <div
+                              key={c.id}
+                              className={`nev-course-card${selected ? ' selected' : ''}`}
+                              onClick={() => { setCombinationId(c.id); setNtpHoles([]); setLdHoles([]) }}
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={e => e.key === 'Enter' && (setCombinationId(c.id), setNtpHoles([]), setLdHoles([]))}
+                            >
+                              <div className="nev-course-icon">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                                  <line x1="5" y1="3" x2="5" y2="21" stroke="#0D631B" strokeWidth="2" strokeLinecap="round"/>
+                                  <path d="M5 3 L19 8 L5 13 Z" fill="#0D631B"/>
+                                  <line x1="3" y1="21" x2="8" y2="21" stroke="#0D631B" strokeWidth="2" strokeLinecap="round"/>
+                                </svg>
+                              </div>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontWeight: 600, fontSize: '0.9375rem', color: '#1A2E1A', marginBottom: 2 }}>
+                                  {shortN}
+                                </div>
+                                <div style={{ fontSize: '0.8125rem', color: '#6B8C6B' }}>
+                                  {c.courseName} &middot; Par {c.par}
+                                </div>
+                              </div>
+                              {selected && (
+                                <div style={{
+                                  width: 24, height: 24, borderRadius: '50%',
+                                  background: '#0D631B', display: 'flex',
+                                  alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                                  alignSelf: 'center',
+                                }}>
+                                  <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                                    <path d="M2.5 7L5.5 10L11.5 4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                  </svg>
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
+                      {courseSearch && combinations.filter(c => {
+                        const q = courseSearch.toLowerCase()
+                        return c.name.toLowerCase().includes(q) || c.courseName.toLowerCase().includes(q)
+                      }).length === 0 && (
+                        <div style={{ padding: '20px', textAlign: 'center', fontSize: '0.875rem', color: '#6B8C6B', fontFamily: 'var(--font-dm-sans), sans-serif' }}>
+                          No courses matching &ldquo;{courseSearch}&rdquo;
                         </div>
-                        <div style={{ fontSize: '0.8125rem', color: '#6B8C6B' }}>
-                          {c.courseName} &middot; Par {c.par}
-                        </div>
-                        {combinationId === c.id && (
-                          <div style={{ marginTop: 8, fontSize: '0.75rem', color: '#0D631B', fontWeight: 600 }}>✓ Selected</div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
+                      )}
+                    </div>
+                  </>
                 )}
               </div>
 

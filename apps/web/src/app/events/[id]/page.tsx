@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import JoinForm from './JoinForm'
 import RealtimeRefresher from './RealtimeRefresher'
+import BottomNav from '@/components/BottomNav'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -203,7 +204,7 @@ export default async function EventPage({ params }: PageProps) {
       </header>
 
       {/* ── Body ── */}
-      <main style={{ background: '#F2F5F0', minHeight: 'calc(100dvh - 60px)', padding: '32px 32px 80px' }}>
+      <main style={{ background: '#F2F5F0', minHeight: 'calc(100dvh - 60px)', padding: '32px 32px max(100px, calc(80px + env(safe-area-inset-bottom)))' }}>
         <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
           {/* ── Event card ── */}
@@ -414,6 +415,8 @@ export default async function EventPage({ params }: PageProps) {
 
       {/* Subscribes to Supabase Realtime — triggers router.refresh() on player list changes */}
       <RealtimeRefresher eventId={id} />
+
+      <BottomNav active="events" />
     </>
   )
 }

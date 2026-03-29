@@ -121,8 +121,11 @@ export default function PlayDashboard({
         .fe-banner {
           position: relative;
           width: 100%;
-          height: 160px;
+          padding: 1.75rem 1.5rem 1.5rem;
           overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
         }
         .fe-banner-img {
           position: absolute;
@@ -136,70 +139,45 @@ export default function PlayDashboard({
           inset: 0;
           background: linear-gradient(
             180deg,
-            rgba(10, 31, 10, 0.55) 0%,
-            rgba(10, 31, 10, 0.25) 50%,
-            rgba(10, 31, 10, 0.15) 100%
+            rgba(10, 31, 10, 0.6) 0%,
+            rgba(10, 31, 10, 0.45) 50%,
+            rgba(10, 31, 10, 0.35) 100%
           );
           z-index: 1;
         }
         .fe-banner-logo {
           position: absolute;
           top: 0.875rem;
-          right: 6.5rem;
+          right: 1.25rem;
           z-index: 3;
           opacity: 0.7;
           filter: brightness(0) invert(1);
         }
-        /* Sign-out link in header — always visible */
-        .fe-so-hd {
-          display: block;
-          position: absolute;
-          top: 0.875rem;
-          right: 1.25rem;
-          z-index: 4;
-          background: rgba(255,255,255,0.12);
-          backdrop-filter: blur(8px);
-          -webkit-backdrop-filter: blur(8px);
-          border: 1px solid rgba(255,255,255,0.18);
-          border-radius: 8px;
-          font-family: var(--font-lexend), sans-serif;
-          font-size: 0.75rem;
-          font-weight: 500;
-          color: rgba(255,255,255,0.85);
-          cursor: pointer;
-          padding: 6px 12px;
-          letter-spacing: 0.01em;
-          transition: background 0.15s, color 0.15s;
-        }
-        .fe-so-hd:hover { background: rgba(255,255,255,0.22); color: #fff; }
         .fe-banner-profile {
-          position: absolute;
-          top: 50%;
-          left: 1.25rem;
-          transform: translateY(-50%);
+          position: relative;
           z-index: 3;
           display: flex;
           align-items: center;
-          gap: 0.75rem;
+          gap: 1rem;
           text-decoration: none;
           color: #fff;
         }
         .fe-avatar {
-          width: 48px;
-          height: 48px;
-          border-radius: 50%;
-          border: 2.5px solid rgba(255,255,255,0.85);
-          box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+          width: 72px;
+          height: 72px;
+          border-radius: 14px;
+          border: 3px solid rgba(255,255,255,0.25);
+          box-shadow: 0 2px 12px rgba(0,0,0,0.3);
           object-fit: cover;
           flex-shrink: 0;
           background: #E0EBE0;
         }
         .fe-avatar-placeholder {
-          width: 48px;
-          height: 48px;
-          border-radius: 50%;
-          border: 2.5px solid rgba(255,255,255,0.85);
-          box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+          width: 72px;
+          height: 72px;
+          border-radius: 14px;
+          border: 3px solid rgba(255,255,255,0.25);
+          box-shadow: 0 2px 12px rgba(0,0,0,0.3);
           flex-shrink: 0;
           background: linear-gradient(135deg, #0D631B, #0a4f15);
           display: flex;
@@ -208,13 +186,13 @@ export default function PlayDashboard({
           color: #fff;
           font-family: var(--font-manrope), sans-serif;
           font-weight: 800;
-          font-size: 1.125rem;
+          font-size: 1.5rem;
         }
-        .fe-banner-info { display: flex; flex-direction: column; gap: 0.2rem; }
+        .fe-banner-info { display: flex; flex-direction: column; gap: 0.35rem; }
         .fe-name {
           font-family: var(--font-manrope), sans-serif;
           font-weight: 800;
-          font-size: 1.1875rem;
+          font-size: 1.5rem;
           color: #fff;
           letter-spacing: -0.02em;
           line-height: 1.1;
@@ -224,12 +202,44 @@ export default function PlayDashboard({
           display: inline-flex;
           align-items: center;
           gap: 0.3rem;
+          background: rgba(13, 99, 27, 0.7);
+          backdrop-filter: blur(6px);
+          -webkit-backdrop-filter: blur(6px);
+          border: 1px solid rgba(13, 99, 27, 0.5);
+          border-radius: 9999px;
+          padding: 4px 12px;
           font-family: var(--font-lexend), sans-serif;
-          font-size: 0.8125rem;
-          font-weight: 500;
-          color: rgba(255,255,255,0.9);
-          text-shadow: 0 1px 3px rgba(0,0,0,0.25);
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #fff;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          width: fit-content;
         }
+        /* Sign-out button — full-width below profile */
+        .fe-so-hd {
+          display: block;
+          position: relative;
+          z-index: 3;
+          width: 100%;
+          max-width: 340px;
+          margin-top: 1rem;
+          background: rgba(255,255,255,0.08);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          border: 1px solid rgba(255,255,255,0.12);
+          border-radius: 12px;
+          font-family: var(--font-dm-sans), sans-serif;
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: rgba(255,255,255,0.85);
+          cursor: pointer;
+          padding: 12px 24px;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          transition: background 0.15s, color 0.15s;
+        }
+        .fe-so-hd:hover { background: rgba(255,255,255,0.18); color: #fff; }
 
         /* ── Main content ────────────────────────────────── */
         .fe-main {
@@ -780,13 +790,12 @@ export default function PlayDashboard({
             quality={90}
           />
           <div className="fe-banner-overlay" />
-          <button className="fe-so-hd" onClick={handleSignOut}>Sign out</button>
           <div className="fe-banner-logo">
             <Image src="/lx2-logo.svg" alt="LX2" width={64} height={32} style={{ width: 'auto', height: 'auto' }} priority />
           </div>
           <Link href="/profile" className="fe-banner-profile">
             {avatarUrl ? (
-              <Image src={avatarUrl} alt={displayName} width={48} height={48} className="fe-avatar" />
+              <Image src={avatarUrl} alt={displayName} width={72} height={72} className="fe-avatar" />
             ) : (
               <div className="fe-avatar-placeholder">
                 {displayName.charAt(0).toUpperCase()}
@@ -796,12 +805,12 @@ export default function PlayDashboard({
               <h1 className="fe-name">{displayName}</h1>
               {handicapIndex != null && (
                 <div className="fe-hcp-badge">
-                  <FlagIcon size={12} />
-                  <span>{handicapIndex % 1 === 0 ? handicapIndex.toFixed(1) : handicapIndex} HCP</span>
+                  Handicap: {handicapIndex % 1 === 0 ? handicapIndex.toFixed(1) : handicapIndex}
                 </div>
               )}
             </div>
           </Link>
+          <button className="fe-so-hd" onClick={handleSignOut}>Sign Out</button>
         </div>
 
         {/* ── Main ── */}

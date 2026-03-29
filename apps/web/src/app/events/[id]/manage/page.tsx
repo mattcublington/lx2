@@ -6,6 +6,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import ManageActions, { ConfirmPlayers, FinaliseButton, DeleteEventButton } from './ManageActions'
 import GroupManager from './GroupManager'
 import PredictionsToggle from './PredictionsToggle'
+import BottomNav from '@/components/BottomNav'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -434,6 +435,8 @@ export default async function ManagePage({ params }: PageProps) {
         </main>
 
       </div>
+
+      <BottomNav active="events" />
     </>
   )
 }
