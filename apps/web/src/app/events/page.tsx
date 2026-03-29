@@ -29,6 +29,7 @@ export default async function EventsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
+  // Events where user is a confirmed player
   const { data: playerRows } = await supabase
     .from('event_players')
     .select(`
@@ -47,6 +48,20 @@ export default async function EventsPage() {
     .eq('rsvp_status', 'confirmed')
     .is('events.archived_at', null)
 
+  // Events where user is the organiser (may not be in event_players)
+  const { data: organisedRows } = await supabase
+    .from('events')
+    .select(`
+      id,
+      name,
+      date,
+      format,
+      courses ( name ),
+      course_combinations ( name )
+    `)
+    .eq('created_by', user.id)
+    .is('archived_at', null)
+
   type RawPlayer = {
     event_id: string
     scorecards: { id: string }[] | null
@@ -60,10 +75,22 @@ export default async function EventsPage() {
     } | null
   }
 
-  const events: EventRow[] = ((playerRows ?? []) as unknown as RawPlayer[])
+  type RawOrganised = {
+    id: string
+    name: string
+    date: string
+    format: string
+    courses: { name: string } | null
+    course_combinations: { name: string } | null
+  }
+
+  const seenIds = new Set<string>()
+
+  const playerEvents: EventRow[] = ((playerRows ?? []) as unknown as RawPlayer[])
     .filter(p => p.events != null)
     .map(p => {
       const ev = p.events!
+      seenIds.add(ev.id)
       const courseName = ev.course_combinations?.name ?? ev.courses?.name ?? null
       const scs = p.scorecards as unknown as { id: string }[] | null
       return {
@@ -75,6 +102,19 @@ export default async function EventsPage() {
         courseName,
       }
     })
+
+  const organisedEvents: EventRow[] = ((organisedRows ?? []) as unknown as RawOrganised[])
+    .filter(o => !seenIds.has(o.id))
+    .map(o => ({
+      event_id: o.id,
+      scorecard_id: null,
+      name: o.name,
+      date: o.date,
+      format: o.format,
+      courseName: o.course_combinations?.name ?? o.courses?.name ?? null,
+    }))
+
+  const events: EventRow[] = [...playerEvents, ...organisedEvents]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
   const today = new Date().toISOString().slice(0, 10)
