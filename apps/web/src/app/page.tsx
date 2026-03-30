@@ -242,12 +242,17 @@ export default function HomePage() {
         }
         .hp-hero p {
           font-family: var(--font-lexend), 'Lexend', sans-serif;
-          font-size: clamp(1rem, 1.4vw, 1.125rem);
+          font-size: clamp(0.9375rem, 1.3vw, 1.0625rem);
           font-weight: 400;
           color: rgba(255,255,255,0.8);
-          line-height: 1.65;
-          margin-bottom: 2.5rem;
-          max-width: 460px;
+          line-height: 1.55;
+          max-width: 480px;
+          margin: 0 auto 0.625rem;
+        }
+        .hp-hero-tagline {
+          font-weight: 600 !important;
+          color: rgba(255,255,255,0.95) !important;
+          margin-bottom: 2.5rem !important;
         }
         .hp-hero-ctas {
           display: flex;
@@ -637,11 +642,9 @@ export default function HomePage() {
             Your data.<br />
             Your edge.
           </h1>
-          <p>
-            For every golfer, every society, every club.<br />
-            Score rounds, track handicaps, run events and manage your club.<br />
-            Golf intelligence that gets smarter with every round.
-          </p>
+          <p>For every golfer, every society, every club.</p>
+          <p>Score rounds, analyse your game, run multi-round tournaments and manage your club.</p>
+          <p className="hp-hero-tagline">Golf intelligence that gets smarter with every round.</p>
           <div className="hp-hero-ctas">
             <Button asChild className="hp-btn-primary">
               <Link href="/auth/signup">Create account</Link>
