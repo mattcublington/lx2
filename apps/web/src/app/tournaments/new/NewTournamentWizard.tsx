@@ -61,8 +61,6 @@ function makeRound(date: string): RoundDraft {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function NewTournamentWizard({
-  displayName: _displayName,
-  handicapIndex: _handicapIndex,
   combinations,
 }: Props) {
   const router = useRouter()

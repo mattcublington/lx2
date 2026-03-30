@@ -273,7 +273,7 @@ export default function TournamentManageClient({
   handicapAllowancePct,
 }: Props) {
   const router = useRouter()
-  const [rounds, setRounds] = useState<Round[]>(initialRounds)
+  const rounds = initialRounds
 
   function refresh() {
     router.refresh()

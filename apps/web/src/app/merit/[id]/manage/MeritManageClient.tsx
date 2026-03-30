@@ -227,7 +227,6 @@ function CompleteButton({ meritId, status, onMutate }: {
 
 export default function MeritManageClient({
   meritId,
-  meritName: _meritName,
   status,
   entries: initialEntries,
   available,

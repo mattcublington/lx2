@@ -33,7 +33,7 @@ interface Props {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function NewMeritWizard({ displayName: _displayName, events, tournaments }: Props) {
+export default function NewMeritWizard({ events, tournaments }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
 
