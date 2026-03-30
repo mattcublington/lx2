@@ -632,11 +632,14 @@ export default function HomePage() {
         />
         <div className="hp-hero-overlay" aria-hidden="true" />
         <div className="hp-hero-text">
-          <span className="hp-hero-eyebrow">Golf scoring &amp; society management</span>
-          <h1>One place for every golfer, every society, every club.</h1>
+          <h1>
+            Your game.<br />
+            Your data.<br />
+            Your edge.
+          </h1>
           <p>
-            Track your rounds. Play with friends. Compete in events.
-            Run your club. All in one beautiful app.
+            For every golfer, every society, every club.<br />
+            Golf intelligence that gets smarter with every round.
           </p>
           <div className="hp-hero-ctas">
             <Button asChild className="hp-btn-primary">
