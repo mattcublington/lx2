@@ -1283,7 +1283,7 @@ export default function LX2Architecture() {
         <Image src="/lx2-logo.svg" alt="LX2" width={144} height={57} style={{ display: 'block' }} />
         <div>
           <div style={{ fontSize: 13, color: '#6B7280', fontWeight: 400 }}>Platform architecture</div>
-          <div style={{ fontSize: 11, color: '#9CA3AF' }}>v0.7 · March 2026 · two-app platform</div>
+          <div style={{ fontSize: 11, color: '#9CA3AF' }}>v0.8 · March 2026 · two-app platform</div>
         </div>
       </div>
 
@@ -1797,7 +1797,7 @@ export default function LX2Architecture() {
           {/* Overview */}
           <div style={{ background: 'linear-gradient(135deg, #0D2B12 0%, #1A3E1A 100%)', borderRadius: 16, padding: '18px 22px', boxShadow: '0 8px 24px rgba(13,43,18,0.18)' }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', fontFamily: "'Manrope', sans-serif", marginBottom: 4 }}>.claude/ — AI-assisted development setup</div>
-            <div style={{ fontSize: 12, color: '#86EFAC', lineHeight: 1.6 }}>The <code style={{ background: 'rgba(255,255,255,0.12)', padding: '1px 5px', borderRadius: 4 }}>.claude/</code> folder configures how Claude Code works with LX2. It defines <strong style={{ color: '#fff' }}>agents</strong> (specialist AI roles), <strong style={{ color: '#fff' }}>slash commands</strong> (multi-step workflows), <strong style={{ color: '#fff' }}>hooks</strong> (automated gates), and <strong style={{ color: '#fff' }}>rules</strong> (context injected by file path). Together they enforce the design system, architecture patterns, and quality gates on every change — without repeating them in every prompt.</div>
+            <div style={{ fontSize: 12, color: '#86EFAC', lineHeight: 1.6 }}>The <code style={{ background: 'rgba(255,255,255,0.12)', padding: '1px 5px', borderRadius: 4 }}>.claude/</code> folder configures how Claude Code works with LX2. It defines <strong style={{ color: '#fff' }}>agents</strong> (specialist AI roles), <strong style={{ color: '#fff' }}>slash commands</strong> (multi-step workflows), <strong style={{ color: '#fff' }}>hooks</strong> (automated gates), and <strong style={{ color: '#fff' }}>rules</strong> (context injected by file path). Globally, <strong style={{ color: '#fff' }}>plugins</strong> add live MCP tool access (Supabase, Vercel, Context7) and auto-inject skills when editing matching files. Together they enforce the design system, architecture patterns, and quality gates on every change — without repeating them in every prompt.</div>
           </div>
 
           {/* Folder tree */}
@@ -1965,6 +1965,57 @@ export default function LX2Architecture() {
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* MCPs */}
+          <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 16, padding: '18px 20px', boxShadow: '0 4px 16px rgba(26,28,28,0.04)' }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#1A2E1A', fontFamily: "'Manrope', sans-serif", marginBottom: 4 }}>MCPs — live tool access</div>
+            <div style={{ fontSize: 11, color: '#6B8C6B', marginBottom: 12 }}>Model Context Protocol servers give Claude direct tool access at runtime — no copy-paste, no manual steps. Configured globally at ~/.claude/settings.json.</div>
+            {[
+              { name: 'Supabase', prefix: 'mcp__supabase__*', color: '#3ECF8E', bg: '#F0FDF4', tools: ['apply_migration — run SQL migrations directly against lx2-dev', 'execute_sql — ad-hoc queries and data inspection', 'list_tables — enumerate schema + RLS status', 'get_advisors — security + performance recommendations', 'list_projects / get_project — project metadata'] },
+              { name: 'Vercel', prefix: 'mcp__vercel__*', color: '#000', bg: '#F8F8F8', tools: ['list_deployments / get_deployment — inspect production and preview builds', 'get_deployment_build_logs — diagnose build failures', 'get_runtime_logs — live function logs in production', 'list_projects / get_project — project config and env vars', 'list_toolbar_threads — Vercel Toolbar comment threads'] },
+              { name: 'Context7', prefix: 'mcp__plugin_context7__*', color: '#8B5CF6', bg: '#F5F3FF', tools: ['resolve-library-id — map library name to canonical doc ID', 'query-docs — fetch current official docs for any library (Next.js, Supabase, Tailwind, React, etc.)', 'Prevents hallucinated APIs — always checked before writing library code'] },
+              { name: 'Claude Preview', prefix: 'mcp__Claude_Preview__*', color: '#2563EB', bg: '#EFF6FF', tools: ['preview_start — boot dev server (web :3000, club :3001, arch :3002)', 'preview_screenshot — visual snapshot for layout checks', 'preview_console_logs — catch runtime JS errors', 'preview_snapshot — accessibility tree for structure checks', 'preview_eval — run JS in the preview for debugging'] },
+              { name: 'Scheduled Tasks', prefix: 'mcp__scheduled-tasks__*', color: '#B45309', bg: '#FEF3C7', tools: ['create_scheduled_task — background long-running tasks (audit agent, build agent)', 'list_scheduled_tasks / update_scheduled_task — monitor and manage'] },
+            ].map((m, i, arr) => (
+              <div key={i} style={{ display: 'flex', gap: 12, padding: '10px 0', borderBottom: i < arr.length - 1 ? '0.5px solid rgba(0,0,0,0.06)' : 'none' }}>
+                <div style={{ flexShrink: 0, width: 110 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#1A2E1A', fontFamily: "'Manrope', sans-serif" }}>{m.name}</div>
+                  <code style={{ fontSize: 9, padding: '2px 5px', borderRadius: 4, background: m.bg, color: m.color, fontWeight: 600, display: 'inline-block', marginTop: 3 }}>{m.prefix}</code>
+                </div>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {m.tools.map((t, j) => (
+                    <div key={j} style={{ fontSize: 11, color: '#44483E', display: 'flex', gap: 5 }}>
+                      <span style={{ color: m.color, flexShrink: 0 }}>·</span><span>{t}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Plugins */}
+          <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 16, padding: '18px 20px', boxShadow: '0 4px 16px rgba(26,28,28,0.04)' }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#1A2E1A', fontFamily: "'Manrope', sans-serif", marginBottom: 4 }}>Plugins — auto-injected intelligence</div>
+            <div style={{ fontSize: 11, color: '#6B8C6B', marginBottom: 12 }}>Plugins add skills, MCP servers, and slash commands that Claude picks up automatically. Installed globally via <code style={{ background: '#F3F4F6', padding: '1px 4px', borderRadius: 4 }}>~/.claude/settings.json</code>. Skills are injected into context when file patterns match — no manual prompting required.</div>
+            {[
+              { name: 'superpowers', ver: 'v5.0.5', color: '#7C3AED', bg: '#F5F3FF', what: 'Skill framework + discipline system. Injects skills like brainstorming, debugging, ui-ux-pro-max, TDD, and investigation-mode. Forces structured workflows before responding — prevents ad-hoc, undisciplined changes.' },
+              { name: 'vercel', ver: 'v2e79fc9', color: '#000', bg: '#F8F8F8', what: 'Full Vercel ecosystem knowledge graph + auto-injected skills (Next.js, AI SDK, Turborepo, deployment, performance). Adds Vercel MCP tools. Subagents: deployment-expert, performance-optimizer, ai-architect. Skills fire automatically when editing matching files.' },
+              { name: 'supabase', ver: 'v61c0597', color: '#3ECF8E', bg: '#F0FDF4', what: 'Supabase MCP server (migrations, SQL, RLS, branches). Injects Supabase-specific skills when editing migration files or Supabase client code. Used for direct DB management in every session.' },
+              { name: 'context7', ver: 'v61c0597', color: '#8B5CF6', bg: '#F5F3FF', what: 'Live library documentation via MCP. Fetches current official docs for any library before writing code — prevents hallucinated APIs. Critical for Next.js 15, Supabase, and Vercel SDK usage.' },
+              { name: 'code-review', ver: 'v61c0597', color: '#1565C0', bg: '#E3F2FD', what: 'Adds superpowers:code-reviewer agent. Triggered after significant feature implementation — 3-pass review (security, design, quality). Runs automatically when a major step is marked complete.' },
+              { name: 'frontend-design', ver: 'v61c0597', color: '#B45309', bg: '#FEF3C7', what: 'UI/UX design skills injected when editing TSX files. Enforces component structure, accessibility, and design system compliance. Pairs with the design-guardian agent.' },
+              { name: 'commit-commands', ver: 'v61c0597', color: '#0D631B', bg: '#DCFCE7', what: 'Adds /commit slash command — structured commit workflow: git status → diff → log → draft message → stage → commit with Co-Authored-By. Ensures consistent commit hygiene.' },
+              { name: 'claude-md-management', ver: 'v1.0.0', color: '#44483E', bg: '#F3F4F6', what: 'Tools for keeping CLAUDE.md up to date. Manages Session Learnings, design system overrides, and coding rules. Ensures project instructions stay current across sessions.' },
+            ].map((p, i, arr) => (
+              <div key={i} style={{ display: 'flex', gap: 12, padding: '10px 0', borderBottom: i < arr.length - 1 ? '0.5px solid rgba(0,0,0,0.06)' : 'none' }}>
+                <div style={{ flexShrink: 0, width: 140 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: p.color, fontFamily: "'Manrope', sans-serif" }}>{p.name}</div>
+                  <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 99, background: p.bg, color: p.color, fontWeight: 600, display: 'inline-block', marginTop: 3 }}>{p.ver}</span>
+                </div>
+                <div style={{ flex: 1, fontSize: 12, color: '#44483E', lineHeight: 1.5 }}>{p.what}</div>
+              </div>
+            ))}
           </div>
 
         </div>
