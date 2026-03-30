@@ -164,7 +164,7 @@ export const AnimatedNumber_003 = () => {
   const [isAnimating, setIsAnimating] = useState(false);
   const hasAnimated = useRef(false);
 
-  const formatNumber = (num: any) => {
+  const formatNumber = (num: number) => {
     return new Intl.NumberFormat("en-US").format(num);
   };
 
