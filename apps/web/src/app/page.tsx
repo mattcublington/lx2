@@ -63,7 +63,7 @@ const FEATURES: Array<{
     Icon: Activity,
     name: 'Live Scoring & Leaderboards',
     description:
-      'Score hole by hole on any device. Real-time standings update as scores come in — share the leaderboard link with anyone.',
+      'Score hole-by-hole on any device — works offline too. Leaderboards update live as scores come in. Share the link and anyone can follow along, no account needed.',
     href: '/auth/signup',
     cta: 'Start scoring',
     className: 'col-span-1',
@@ -73,7 +73,7 @@ const FEATURES: Array<{
     Icon: Users,
     name: 'Society Events',
     description:
-      'Create events in minutes. Set format, contests, and entry fee. Players join with a code — no accounts required.',
+      'Create a competition in minutes. Players join with a code — no download or account required. Handle formats, contests, and entry fees from one screen.',
     href: '/auth/signup',
     cta: 'Create an event',
     className: 'col-span-1',
@@ -83,7 +83,7 @@ const FEATURES: Array<{
     Icon: CalendarDays,
     name: 'Tournament Series',
     description:
-      'Run multi-round tournaments with automatic stroke index allocation, group draws, and cumulative standings.',
+      'Run a full season without the spreadsheets. Automatic stroke index allocation, group draws, and cumulative standings across every round.',
     href: '/auth/signup',
     cta: 'Learn more',
     className: 'col-span-1',
@@ -93,11 +93,15 @@ const FEATURES: Array<{
     Icon: LayoutDashboard,
     name: 'Club Portal',
     description:
-      'Organisers get a dedicated dashboard to manage members, publish results, and run competitions — all from one place.',
-    href: 'https://club.lx2.golf',
-    cta: 'Explore Club Portal',
+      'A dedicated home for your club — member management, competition calendar, and published results. Built for the people who keep golf running.',
+    href: '#',
+    cta: 'Coming soon',
     className: 'col-span-1',
-    background: <div className="hp-bento-bg hp-bento-bg-club" />,
+    background: (
+      <div className="hp-bento-bg hp-bento-bg-club">
+        <span className="hp-bento-soon">Coming soon</span>
+      </div>
+    ),
   },
 ]
 
@@ -497,74 +501,82 @@ export default function HomePage() {
         /* Bento card decorative backgrounds */
         .hp-bento-bg { position: absolute; inset: 0; pointer-events: none; }
 
-        /* Scoring — warm fresh green with bar chart */
+        /* Coming soon badge */
+        .hp-bento-soon {
+          position: absolute;
+          top: 14px;
+          right: 14px;
+          font-family: var(--font-lexend), 'Lexend', sans-serif;
+          font-size: 0.625rem;
+          font-weight: 500;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: #0D631B;
+          background: rgba(13, 99, 27, 0.10);
+          border: 1px solid rgba(13, 99, 27, 0.18);
+          border-radius: 9999px;
+          padding: 3px 10px;
+          pointer-events: none;
+        }
+
+        /* Scoring — bar chart watermark */
         .hp-bento-bg-scoring {
           background: linear-gradient(160deg, #E2F0E4 0%, #F0F8F1 100%);
         }
         .hp-bento-bg-scoring::after {
           content: '';
           position: absolute;
-          top: 16px;
-          right: 16px;
-          width: 96px;
-          height: 60px;
-          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 60'%3E%3Crect x='0' y='32' width='14' height='28' rx='3' fill='%230D631B' opacity='.15'/%3E%3Crect x='20' y='20' width='14' height='40' rx='3' fill='%230D631B' opacity='.22'/%3E%3Crect x='40' y='8' width='14' height='52' rx='3' fill='%230D631B' opacity='.32'/%3E%3Crect x='60' y='16' width='14' height='44' rx='3' fill='%230D631B' opacity='.24'/%3E%3Crect x='80' y='10' width='14' height='50' rx='3' fill='%230D631B' opacity='.18'/%3E%3C/svg%3E") center / contain no-repeat;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 160px;
+          height: 100px;
+          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 60'%3E%3Crect x='0' y='32' width='14' height='28' rx='3' fill='%230D631B' opacity='.07'/%3E%3Crect x='20' y='20' width='14' height='40' rx='3' fill='%230D631B' opacity='.10'/%3E%3Crect x='40' y='8' width='14' height='52' rx='3' fill='%230D631B' opacity='.15'/%3E%3Crect x='60' y='16' width='14' height='44' rx='3' fill='%230D631B' opacity='.11'/%3E%3Crect x='80' y='10' width='14' height='50' rx='3' fill='%230D631B' opacity='.08'/%3E%3C/svg%3E") center / contain no-repeat;
         }
 
-        /* Leaderboard — deeper teal-green with podium */
-        .hp-bento-bg-leaderboard {
-          background: linear-gradient(160deg, #D8EAD9 0%, #EAF3EB 100%);
-        }
-        .hp-bento-bg-leaderboard::after {
-          content: '';
-          position: absolute;
-          top: 16px;
-          right: 16px;
-          width: 72px;
-          height: 56px;
-          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 56'%3E%3Crect x='24' y='8' width='24' height='48' rx='3' fill='%230D631B' opacity='.28'/%3E%3Crect x='0' y='22' width='22' height='34' rx='3' fill='%230D631B' opacity='.18'/%3E%3Crect x='50' y='30' width='22' height='26' rx='3' fill='%230D631B' opacity='.14'/%3E%3C/svg%3E") center / contain no-repeat;
-        }
-
-        /* Events — sage with calendar dots */
+        /* Events — calendar watermark */
         .hp-bento-bg-events {
           background: linear-gradient(160deg, #E4EDE5 0%, #F2F7F2 100%);
         }
         .hp-bento-bg-events::after {
           content: '';
           position: absolute;
-          top: 16px;
-          right: 16px;
-          width: 60px;
-          height: 60px;
-          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Crect x='0' y='10' width='60' height='50' rx='6' fill='none' stroke='%230D631B' stroke-width='2.5' opacity='.2'/%3E%3Crect x='0' y='10' width='60' height='16' rx='6' fill='%230D631B' opacity='.12'/%3E%3Ccircle cx='14' cy='42' r='4' fill='%230D631B' opacity='.22'/%3E%3Ccircle cx='30' cy='42' r='4' fill='%230D631B' opacity='.22'/%3E%3Ccircle cx='46' cy='42' r='4' fill='%230D631B' opacity='.14'/%3E%3Ccircle cx='14' cy='55' r='4' fill='%230D631B' opacity='.14'/%3E%3Ccircle cx='30' cy='55' r='4' fill='%230D631B' opacity='.22'/%3E%3C/svg%3E") center / contain no-repeat;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 120px;
+          height: 120px;
+          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Crect x='0' y='10' width='60' height='50' rx='6' fill='none' stroke='%230D631B' stroke-width='2.5' opacity='.10'/%3E%3Crect x='0' y='10' width='60' height='16' rx='6' fill='%230D631B' opacity='.06'/%3E%3Ccircle cx='14' cy='42' r='4' fill='%230D631B' opacity='.10'/%3E%3Ccircle cx='30' cy='42' r='4' fill='%230D631B' opacity='.10'/%3E%3Ccircle cx='46' cy='42' r='4' fill='%230D631B' opacity='.07'/%3E%3Ccircle cx='14' cy='55' r='4' fill='%230D631B' opacity='.07'/%3E%3Ccircle cx='30' cy='55' r='4' fill='%230D631B' opacity='.10'/%3E%3C/svg%3E") center / contain no-repeat;
         }
 
-        /* Tournaments — richest green, trophy silhouette */
+        /* Tournaments — trophy watermark */
         .hp-bento-bg-tournaments {
           background: linear-gradient(160deg, #D2E6D4 0%, #E6F0E7 100%);
         }
         .hp-bento-bg-tournaments::after {
           content: '';
           position: absolute;
-          top: 16px;
-          right: 16px;
-          width: 48px;
-          height: 60px;
-          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 60'%3E%3Cpath d='M8 4h32v18c0 10-6 16-16 18C14 38 8 32 8 22V4z' fill='%230D631B' opacity='.2'/%3E%3Crect x='18' y='40' width='12' height='8' rx='2' fill='%230D631B' opacity='.18'/%3E%3Crect x='10' y='48' width='28' height='6' rx='3' fill='%230D631B' opacity='.22'/%3E%3Cpath d='M8 10 C0 10 0 22 8 22' stroke='%230D631B' stroke-width='2.5' fill='none' opacity='.18'/%3E%3Cpath d='M40 10 C48 10 48 22 40 22' stroke='%230D631B' stroke-width='2.5' fill='none' opacity='.18'/%3E%3C/svg%3E") center / contain no-repeat;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 100px;
+          height: 120px;
+          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 60'%3E%3Cpath d='M8 4h32v18c0 10-6 16-16 18C14 38 8 32 8 22V4z' fill='%230D631B' opacity='.10'/%3E%3Crect x='18' y='40' width='12' height='8' rx='2' fill='%230D631B' opacity='.09'/%3E%3Crect x='10' y='48' width='28' height='6' rx='3' fill='%230D631B' opacity='.10'/%3E%3Cpath d='M8 10 C0 10 0 22 8 22' stroke='%230D631B' stroke-width='2.5' fill='none' opacity='.09'/%3E%3Cpath d='M40 10 C48 10 48 22 40 22' stroke='%230D631B' stroke-width='2.5' fill='none' opacity='.09'/%3E%3C/svg%3E") center / contain no-repeat;
         }
 
-        /* Club Portal — dashboard rows */
+        /* Club Portal — dashboard rows watermark */
         .hp-bento-bg-club {
           background: linear-gradient(160deg, #DDE8DE 0%, #EDF4EE 100%);
         }
         .hp-bento-bg-club::after {
           content: '';
           position: absolute;
-          top: 16px;
-          right: 16px;
-          width: 80px;
-          height: 56px;
-          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 56'%3E%3Crect x='0' y='0' width='80' height='10' rx='3' fill='%230D631B' opacity='.18'/%3E%3Crect x='0' y='16' width='60' height='8' rx='2' fill='%230D631B' opacity='.14'/%3E%3Crect x='0' y='30' width='72' height='8' rx='2' fill='%230D631B' opacity='.11'/%3E%3Crect x='0' y='44' width='50' height='8' rx='2' fill='%230D631B' opacity='.09'/%3E%3Ccircle cx='74' cy='36' r='5' fill='%230D631B' opacity='.2'/%3E%3C/svg%3E") center / contain no-repeat;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 160px;
+          height: 112px;
+          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 56'%3E%3Crect x='0' y='0' width='80' height='10' rx='3' fill='%230D631B' opacity='.09'/%3E%3Crect x='0' y='16' width='60' height='8' rx='2' fill='%230D631B' opacity='.07'/%3E%3Crect x='0' y='30' width='72' height='8' rx='2' fill='%230D631B' opacity='.06'/%3E%3Crect x='0' y='44' width='50' height='8' rx='2' fill='%230D631B' opacity='.05'/%3E%3Ccircle cx='74' cy='36' r='5' fill='%230D631B' opacity='.09'/%3E%3C/svg%3E") center / contain no-repeat;
         }
 
         /* ── Stats ────────────────────────────────────────── */
