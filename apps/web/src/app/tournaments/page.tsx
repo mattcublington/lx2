@@ -3,6 +3,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import BottomNav from '@/components/BottomNav'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr + 'T12:00:00')
@@ -300,31 +302,29 @@ export default async function TournamentsPage() {
           line-height: 1.6;
           border: 1px solid #E0EBE0;
         }
-        .th-card {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 1rem 1.25rem;
-          background: #FFFFFF;
-          border: 1px solid #E0EBE0;
-          border-radius: 14px;
+        /* Card link wrapper */
+        .th-card-link {
+          display: block;
           text-decoration: none;
           color: inherit;
           margin-bottom: 0.625rem;
-          transition: transform 0.15s, box-shadow 0.15s;
-          box-shadow: 0 2px 8px rgba(26, 46, 26, 0.04);
         }
-        .th-card:last-child {
-          margin-bottom: 0;
-        }
-        .th-card:hover {
+        .th-card-link:last-child { margin-bottom: 0; }
+        /* Hover lift applied to shadcn Card inside the link */
+        .th-card-link:hover .th-card-inner {
           transform: translateY(-1px);
           box-shadow: 0 6px 18px rgba(26, 46, 26, 0.1);
         }
-        .th-card-info {
-          flex: 1;
-          min-width: 0;
+        .th-card-inner {
+          transition: transform 0.15s, box-shadow 0.15s;
         }
+        .th-card-content {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 1rem 1.25rem !important;
+        }
+        .th-card-info { flex: 1; min-width: 0; }
         .th-card-name {
           font-family: var(--font-dm-serif), serif;
           font-size: 1rem;
@@ -342,31 +342,30 @@ export default async function TournamentsPage() {
           align-items: center;
           flex-wrap: wrap;
         }
-        .th-badge {
-          font-size: 0.6875rem;
-          font-weight: 600;
-          padding: 2px 7px;
-          border-radius: 6px;
-        }
+        /* Badge overrides — brand colours on shadcn Badge base */
         .th-badge-format {
-          background: rgba(13, 99, 27, 0.08);
-          color: #0D631B;
+          background: rgba(13, 99, 27, 0.08) !important;
+          color: #0D631B !important;
+          border-color: rgba(13, 99, 27, 0.15) !important;
+          font-size: 0.6875rem !important;
         }
-        .th-badge-status-active {
-          background: rgba(13, 99, 27, 0.1);
-          color: #0D631B;
+        .th-badge-active, .th-badge-upcoming {
+          background: rgba(13, 99, 27, 0.1) !important;
+          color: #0D631B !important;
+          border-color: rgba(13, 99, 27, 0.2) !important;
+          font-size: 0.6875rem !important;
         }
-        .th-badge-status-upcoming {
-          background: rgba(13, 99, 27, 0.08);
-          color: #0D631B;
+        .th-badge-in-progress {
+          background: rgba(230, 130, 0, 0.1) !important;
+          color: #a05800 !important;
+          border-color: rgba(230, 130, 0, 0.2) !important;
+          font-size: 0.6875rem !important;
         }
-        .th-badge-status-in-progress {
-          background: rgba(230, 130, 0, 0.1);
-          color: #a05800;
-        }
-        .th-badge-status-completed {
-          background: rgba(107, 140, 107, 0.12);
-          color: #4a6e4a;
+        .th-badge-completed {
+          background: rgba(107, 140, 107, 0.12) !important;
+          color: #4a6e4a !important;
+          border-color: rgba(107, 140, 107, 0.2) !important;
+          font-size: 0.6875rem !important;
         }
         .th-chev {
           color: #C8D4C8;
@@ -375,7 +374,7 @@ export default async function TournamentsPage() {
           flex-shrink: 0;
           transition: transform 0.15s, color 0.15s;
         }
-        .th-card:hover .th-chev {
+        .th-card-link:hover .th-chev {
           transform: translateX(2px);
           color: #0D631B;
         }
@@ -488,61 +487,73 @@ function TournamentCard({ tournament: t }: { tournament: TournamentRow }) {
     t.status === 'upcoming' ? 'Upcoming' :
     t.finalised ? 'Completed' : t.status
 
-  const statusClass =
-    t.status === 'in_progress' ? 'th-badge-status-in-progress' :
-    t.status === 'upcoming' ? 'th-badge-status-upcoming' :
-    t.finalised ? 'th-badge-status-completed' : 'th-badge-status-upcoming'
+  const statusCssKey =
+    t.status === 'in_progress' ? 'in-progress' :
+    t.status === 'upcoming' ? 'upcoming' :
+    t.finalised ? 'completed' : 'upcoming'
 
   return (
-    <Link href={`/tournaments/${t.id}`} className="th-card">
-      <div className="th-card-info">
-        <div className="th-card-name">{t.name}</div>
-        <div className="th-card-meta">
-          {FORMAT_LABEL[t.format] && (
-            <span className={`th-badge th-badge-format`}>{FORMAT_LABEL[t.format]}</span>
-          )}
-          <span className={`th-badge ${statusClass}`}>{statusLabel}</span>
-          <span>{roundCount} {roundCount === 1 ? 'round' : 'rounds'}</span>
-          {nextRound && <span>Next: {formatDate(nextRound.date)}</span>}
-        </div>
-      </div>
-      <div className="th-chev">›</div>
+    <Link href={`/tournaments/${t.id}`} className="th-card-link">
+      <Card className="th-card-inner">
+        <CardContent className="th-card-content">
+          <div className="th-card-info">
+            <div className="th-card-name">{t.name}</div>
+            <div className="th-card-meta">
+              {FORMAT_LABEL[t.format] && (
+                <Badge className="th-badge-format">{FORMAT_LABEL[t.format]}</Badge>
+              )}
+              <Badge className={`th-badge-${statusCssKey}`}>{statusLabel}</Badge>
+              <span>{roundCount} {roundCount === 1 ? 'round' : 'rounds'}</span>
+              {nextRound && <span>Next: {formatDate(nextRound.date)}</span>}
+            </div>
+          </div>
+          <div className="th-chev">›</div>
+        </CardContent>
+      </Card>
     </Link>
   )
 }
 
 function MeritCard({ merit: m }: { merit: MeritRow }) {
   const statusLabel = m.status === 'active' ? 'Active' : m.status === 'completed' ? 'Completed' : m.status
-  const statusClass = m.status === 'active' ? 'th-badge-status-active' : 'th-badge-status-completed'
+  const statusCssKey = m.status === 'active' ? 'active' : 'completed'
 
   return (
-    <Link href={`/merit/${m.id}`} className="th-card">
-      <div className="th-card-info">
-        <div className="th-card-name">{m.name}</div>
-        <div className="th-card-meta">
-          <span>{m.season_year} Season</span>
-          <span className={`th-badge ${statusClass}`}>{statusLabel}</span>
-        </div>
-      </div>
-      <div className="th-chev">›</div>
+    <Link href={`/merit/${m.id}`} className="th-card-link">
+      <Card className="th-card-inner">
+        <CardContent className="th-card-content">
+          <div className="th-card-info">
+            <div className="th-card-name">{m.name}</div>
+            <div className="th-card-meta">
+              <span>{m.season_year} Season</span>
+              <Badge className={`th-badge-${statusCssKey}`}>{statusLabel}</Badge>
+            </div>
+          </div>
+          <div className="th-chev">›</div>
+        </CardContent>
+      </Card>
     </Link>
   )
 }
 
 function StandaloneEventCard({ ev }: { ev: StandaloneEvent }) {
   return (
-    <Link href={`/events/${ev.event_id}`} className="th-card">
-      <div className="th-card-info">
-        <div className="th-card-name">{ev.name}</div>
-        <div className="th-card-meta">
-          <span>{formatDate(ev.date)}</span>
-          {ev.courseName && <span>{ev.courseName}</span>}
-          {FORMAT_LABEL[ev.format] && (
-            <span className="th-badge th-badge-format">{FORMAT_LABEL[ev.format]}</span>
-          )}
-        </div>
-      </div>
-      <div className="th-chev">›</div>
+    <Link href={`/events/${ev.event_id}`} className="th-card-link">
+      <Card className="th-card-inner">
+        <CardContent className="th-card-content">
+          <div className="th-card-info">
+            <div className="th-card-name">{ev.name}</div>
+            <div className="th-card-meta">
+              <span>{formatDate(ev.date)}</span>
+              {ev.courseName && <span>{ev.courseName}</span>}
+              {FORMAT_LABEL[ev.format] && (
+                <Badge className="th-badge-format">{FORMAT_LABEL[ev.format]}</Badge>
+              )}
+            </div>
+          </div>
+          <div className="th-chev">›</div>
+        </CardContent>
+      </Card>
     </Link>
   )
 }
