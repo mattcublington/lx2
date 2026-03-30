@@ -580,8 +580,8 @@ export default function HomePage() {
         }
         @media (max-width: 768px) {
           .hp-nav { padding: 0 24px; }
-          .hp-hero-text { padding: 7rem 24px 4rem; max-width: 100%; }
-          .hp-hero-ctas { flex-direction: column; align-items: flex-start; }
+          .hp-hero-text { padding: 7rem 24px 4rem; max-width: 100%; text-align: center; }
+          .hp-hero-ctas { flex-direction: column; align-items: center; }
           .hp-btn-primary, .hp-btn-secondary { width: 100%; justify-content: center !important; }
           .hp-features { padding: 4rem 24px; }
           .hp-stats { padding: 4rem 24px; }
@@ -639,6 +639,7 @@ export default function HomePage() {
           </h1>
           <p>
             For every golfer, every society, every club.<br />
+            Score rounds, track handicaps, run events and manage your club.<br />
             Golf intelligence that gets smarter with every round.
           </p>
           <div className="hp-hero-ctas">
