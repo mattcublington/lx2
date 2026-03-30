@@ -228,7 +228,7 @@ export default function ManageActions({ eventUrl, eventName }: Props) {
           onClick={handleCopy}
           style={{
             padding: '11px 18px', border: 'none', borderRadius: 10,
-            background: copied ? '#15803d' : '#0D631B', color: '#fff',
+            background: copied ? '#0a4f15' : '#0D631B', color: '#fff',
             fontSize: '0.875rem', fontWeight: 600, fontFamily: 'var(--font-dm-sans), sans-serif',
             cursor: 'pointer', whiteSpace: 'nowrap', transition: 'background 0.15s', flexShrink: 0,
           }}
