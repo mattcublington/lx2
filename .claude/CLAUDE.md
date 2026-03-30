@@ -78,6 +78,17 @@ No gold, ivory, warm-cream, brass, or off-palette accent colours.
 - Two-column grid at `min-width: 768px`; single column mobile
 - App header: full-width `#0a1f0a` with radial gradient highlights + dot/noise texture overlay
 
+### Layout Rules — Always Apply
+- Page titles must sit inside a consistent top bar or header component, never floating over hero images or banners
+- Section headings must use the same horizontal padding as their content (pageGutter: 16px mobile, 24px desktop)
+- All form sections on the same page must use the same card/container treatment — no mixing card-wrapped and unwrapped fields
+- Stepper/progress components must have equal spacing above and below (minimum 16px each side)
+- Type hierarchy: maximum two heading levels per screen — section title (DM Serif Display) and field labels (DM Sans). No mixing serif/sans-serif for headings on the same screen.
+- Hero banners are decorative only — no interactive elements or titles overlaid on images
+- All content must align to the same left margin within a screen — no elements with different indents unless inside a nested card
+- Vertical spacing between sections must be consistent (use spacing scale from tokens.ts)
+- Form labels sit directly above their inputs with 4px gap, section titles have 16px gap to their first field
+
 ### What NOT to do
 
 - Do not use `max-width: 480px` as a body container
