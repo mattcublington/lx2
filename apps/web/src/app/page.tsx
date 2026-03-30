@@ -63,7 +63,7 @@ const FEATURES: Array<{
     Icon: Activity,
     name: 'Live Scoring & Leaderboards',
     description:
-      'Score hole-by-hole on any device — works offline too. Leaderboards update live as scores come in. Share the link and anyone can follow along, no account needed.',
+      'Score hole-by-hole on any device. Works offline too. Leaderboards update live as scores come in. Share the link and anyone can follow along, no account needed.',
     href: '/auth/signup',
     cta: 'Start scoring',
     className: 'col-span-1',
@@ -81,7 +81,7 @@ const FEATURES: Array<{
     Icon: Users,
     name: 'Society Events',
     description:
-      'Create a competition in minutes. Players join with a code — no download or account required. Handle formats, contests, and entry fees from one screen.',
+      'Create a competition in minutes. Players join with a code, no download or account required. Handle formats, contests, and entry fees from one screen.',
     href: '/auth/signup',
     cta: 'Create an event',
     className: 'col-span-1',
@@ -119,7 +119,7 @@ const FEATURES: Array<{
     Icon: LayoutDashboard,
     name: 'Club Portal',
     description:
-      'A dedicated home for your club — member management, competition calendar, and published results. Built for the people who keep golf running.',
+      'A dedicated home for your club. Member management, competition calendar, and published results. Built for the people who keep golf running.',
     href: '#',
     cta: 'Coming soon',
     className: 'col-span-1',
@@ -733,7 +733,7 @@ export default function HomePage() {
         <div className="hp-features-inner">
           <h2>Everything you need on the course</h2>
           <p className="hp-features-lead">
-            From the first tee to the final standings — LX2 handles scoring,
+            From the first tee to the final standings. LX2 handles scoring,
             results, and society admin in one place.
           </p>
           <BentoGrid>
@@ -764,7 +764,7 @@ export default function HomePage() {
               value={0}
               staticText="Real time"
               label="Live leaderboards"
-              sublabel="Every score, every group, every hole — as it happens."
+              sublabel="Every score, every group, every hole, as it happens."
             />
           </div>
         </div>
