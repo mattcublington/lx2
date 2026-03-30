@@ -412,6 +412,7 @@ export default async function ScorePage({ params, searchParams }: PageProps) {
       groupPlayers={groupPlayers}
       initialHole={initialHole}
       {...(event.share_code ? { shareCode: event.share_code } : {})}
+      isOrganiser={event.created_by === user.id}
     />
   )
 }

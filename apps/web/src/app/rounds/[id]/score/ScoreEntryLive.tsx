@@ -32,6 +32,7 @@ export interface Props {
   groupPlayers: GroupPlayer[]
   initialHole?: number
   shareCode?: string
+  isOrganiser?: boolean
 }
 
 interface State {
@@ -984,7 +985,7 @@ export default function ScoreEntryLive(props: Props) {
     scorecardId, eventId, playerName, handicapIndex, format, allowancePct,
     holes, initialScores, initialPickups, ntpHoles, ldHoles, eventPlayerId,
     selectedTee, eventName, eventDate, groupPlayers, initialHole = 0,
-    shareCode,
+    shareCode, isOrganiser,
   } = props
 
   const router = useRouter()
@@ -1795,6 +1796,8 @@ export default function ScoreEntryLive(props: Props) {
         {/* ── Settings modal ── */}
         {settingsOpen && (
           <SettingsModal
+            eventId={eventId}
+            isOrganiser={!!isOrganiser}
             onScorecard={() => { setSettingsOpen(false); d({ type: 'TOGGLE_CARD' }) }}
             onLeaderboard={() => { setSettingsOpen(false); setShowLeaderboard(true) }}
             onClose={() => setSettingsOpen(false)}
@@ -1968,14 +1971,21 @@ function ScoreModal({
 // ─── Settings Modal ───────────────────────────────────────────────────────────
 
 function SettingsModal({
+  eventId,
+  isOrganiser,
   onScorecard,
   onLeaderboard,
   onClose,
 }: {
+  eventId: string
+  isOrganiser: boolean
   onScorecard: () => void
   onLeaderboard: () => void
   onClose: () => void
 }) {
+  const router = useRouter()
+  const [showCourseWarning, setShowCourseWarning] = useState(false)
+
   return (
     <div className="sc-overlay" onClick={onClose}>
       <div className="sc-settings" onClick={e => e.stopPropagation()}>
@@ -1998,6 +2008,31 @@ function SettingsModal({
           </button>
         </div>
 
+        {isOrganiser && (
+          <>
+            <div className="sc-settings-div" />
+            <div className="sc-danger-lbl">Edit setup</div>
+
+            <div className="sc-settings-list">
+              <button className="sc-settings-row" onClick={() => setShowCourseWarning(true)}>
+                <div className="sc-settings-ico green">⛳</div>
+                <span className="sc-settings-lbl">Change course</span>
+                <span className="sc-settings-chev">›</span>
+              </button>
+              <button className="sc-settings-row" onClick={() => router.push(`/events/${eventId}/manage`)}>
+                <div className="sc-settings-ico green">👥</div>
+                <span className="sc-settings-lbl">Edit players &amp; groups</span>
+                <span className="sc-settings-chev">›</span>
+              </button>
+              <button className="sc-settings-row" onClick={() => router.push(`/events/${eventId}/manage?edit=format`)}>
+                <div className="sc-settings-ico green">🏌️</div>
+                <span className="sc-settings-lbl">Change game type &amp; tees</span>
+                <span className="sc-settings-chev">›</span>
+              </button>
+            </div>
+          </>
+        )}
+
         <div className="sc-settings-div" />
         <div className="sc-danger-lbl">Danger zone</div>
 
@@ -2012,6 +2047,56 @@ function SettingsModal({
         <div className="sc-settings-ft">
           <button className="sc-cancel-btn" onClick={onClose}>Cancel</button>
         </div>
+
+        {/* ── Course change warning dialog ── */}
+        {showCourseWarning && (
+          <div style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 200, padding: '1.25rem',
+          }} onClick={() => setShowCourseWarning(false)}>
+            <div style={{
+              background: '#fff', borderRadius: 16, padding: '1.5rem',
+              maxWidth: 340, width: '100%',
+              boxShadow: '0 12px 40px rgba(26,28,28,0.15)',
+            }} onClick={e => e.stopPropagation()}>
+              <h3 style={{
+                margin: '0 0 0.5rem', fontFamily: "var(--font-manrope), 'Manrope', sans-serif",
+                fontWeight: 700, fontSize: '1.125rem', color: '#1A2E1A',
+              }}>
+                Change course?
+              </h3>
+              <p style={{
+                margin: '0 0 1.25rem', fontFamily: "var(--font-lexend), 'Lexend', sans-serif",
+                fontSize: '0.875rem', color: '#6B8C6B', lineHeight: 1.5,
+              }}>
+                Changing the course will restart all scoring. All scores entered so far will be lost. Are you sure?
+              </p>
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button
+                  onClick={() => setShowCourseWarning(false)}
+                  style={{
+                    flex: 1, padding: '0.75rem', border: '1.5px solid #E0EBE0', borderRadius: 12,
+                    background: '#fff', fontFamily: "var(--font-lexend), sans-serif",
+                    fontSize: '0.875rem', fontWeight: 500, color: '#1A2E1A', cursor: 'pointer',
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => router.push(`/events/${eventId}/manage?edit=course`)}
+                  style={{
+                    flex: 1, padding: '0.75rem', border: 'none', borderRadius: 12,
+                    background: '#B43C3C', fontFamily: "var(--font-lexend), sans-serif",
+                    fontSize: '0.875rem', fontWeight: 600, color: '#fff', cursor: 'pointer',
+                  }}
+                >
+                  Change course
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
