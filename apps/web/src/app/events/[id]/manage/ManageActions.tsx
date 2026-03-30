@@ -3,6 +3,9 @@ import { useState, useTransition } from 'react'
 import { confirmPlayer } from '@/app/events/manage-actions'
 import { useRouter } from 'next/navigation'
 import { finaliseEvent, unfinaliseEvent, deleteEvent } from './actions'
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose,
+} from '@/components/ui/dialog'
 
 interface Props {
   eventUrl: string
@@ -134,30 +137,41 @@ export function FinaliseButton({ eventId, finalised }: { eventId: string; finali
     )
   }
 
-  if (showConfirm) {
-    return (
-      <div style={{
-        background: '#fff', borderRadius: 16, border: '1px solid #E0EBE0', padding: '24px',
-        textAlign: 'center',
-      }}>
-        <div style={{
-          fontSize: '0.9375rem', fontWeight: 500, color: '#1A2E1A',
-          fontFamily: 'var(--font-dm-sans), sans-serif', marginBottom: 16,
-        }}>
-          Finalise this event? This locks all scores.
-        </div>
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-          <button
-            onClick={() => setShowConfirm(false)}
-            disabled={isPending}
-            style={{
-              padding: '9px 20px', border: '1.5px solid #E0EBE0', borderRadius: 10,
-              background: '#fff', color: '#1A2E1A', fontSize: '0.875rem', fontWeight: 500,
-              fontFamily: 'var(--font-dm-sans), sans-serif', cursor: 'pointer',
-            }}
-          >
-            Cancel
-          </button>
+  return (
+    <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+      <button
+        onClick={() => setShowConfirm(true)}
+        style={{
+          width: '100%', padding: '12px', border: '1.5px solid #E0EBE0', borderRadius: 12,
+          background: '#fff', color: '#1A2E1A', fontSize: '0.9375rem', fontWeight: 600,
+          fontFamily: 'var(--font-dm-sans), sans-serif', cursor: 'pointer',
+          transition: 'border-color 0.15s, background 0.15s',
+        }}
+      >
+        Finalise event
+      </button>
+      <DialogContent style={{ fontFamily: 'var(--font-dm-sans), sans-serif', maxWidth: 420 }}>
+        <DialogHeader>
+          <DialogTitle style={{ fontFamily: 'var(--font-dm-sans), sans-serif', color: '#1A2E1A' }}>
+            Finalise event?
+          </DialogTitle>
+          <DialogDescription style={{ fontFamily: 'var(--font-dm-sans), sans-serif' }}>
+            This locks all scores and publishes the final leaderboard.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <DialogClose asChild>
+            <button
+              disabled={isPending}
+              style={{
+                padding: '9px 20px', border: '1.5px solid #E0EBE0', borderRadius: 10,
+                background: '#fff', color: '#1A2E1A', fontSize: '0.875rem', fontWeight: 500,
+                fontFamily: 'var(--font-dm-sans), sans-serif', cursor: 'pointer',
+              }}
+            >
+              Cancel
+            </button>
+          </DialogClose>
           <button
             onClick={handleFinalise}
             disabled={isPending}
@@ -170,23 +184,9 @@ export function FinaliseButton({ eventId, finalised }: { eventId: string; finali
           >
             {isPending ? 'Finalising…' : 'Finalise'}
           </button>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <button
-      onClick={() => setShowConfirm(true)}
-      style={{
-        width: '100%', padding: '12px', border: '1.5px solid #E0EBE0', borderRadius: 12,
-        background: '#fff', color: '#1A2E1A', fontSize: '0.9375rem', fontWeight: 600,
-        fontFamily: 'var(--font-dm-sans), sans-serif', cursor: 'pointer',
-        transition: 'border-color 0.15s, background 0.15s',
-      }}
-    >
-      Finalise event
-    </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -292,38 +292,43 @@ export function DeleteEventButton({ eventId, eventName, finalised }: { eventId: 
     )
   }
 
-  if (showConfirm) {
-    return (
-      <div style={{
-        background: '#fff8f8', borderRadius: 12, border: '1px solid #fecaca',
-        padding: '16px 20px', textAlign: 'center',
-      }}>
-        <div style={{
-          fontSize: '0.875rem', fontWeight: 500, color: '#991b1b',
-          fontFamily: 'var(--font-dm-sans), sans-serif', marginBottom: 4,
-        }}>
-          Delete &ldquo;{eventName}&rdquo;?
-        </div>
-        <div style={{
-          fontSize: '0.8125rem', color: '#6B8C6B',
-          fontFamily: 'var(--font-dm-sans), sans-serif', marginBottom: 14, lineHeight: 1.4,
-        }}>
-          {errorMsg
-            ? <span style={{ color: '#DC2626' }}>{errorMsg}</span>
-            : 'This removes the event from all lists. If scores have been submitted, the data is archived (not permanently deleted).'}
-        </div>
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-          <button
-            onClick={() => setShowConfirm(false)}
-            disabled={isPending}
-            style={{
-              padding: '8px 18px', border: '1.5px solid #E0EBE0', borderRadius: 10,
-              background: '#fff', color: '#1A2E1A', fontSize: '0.8125rem', fontWeight: 500,
-              fontFamily: 'var(--font-dm-sans), sans-serif', cursor: 'pointer',
-            }}
-          >
-            Cancel
-          </button>
+  return (
+    <Dialog open={showConfirm} onOpenChange={open => { setShowConfirm(open); if (!open) setErrorMsg(null) }}>
+      <button
+        onClick={() => setShowConfirm(true)}
+        style={{
+          padding: '9px 18px', border: '1.5px solid #fecaca', borderRadius: 10,
+          background: '#fff', color: '#DC2626', fontSize: '0.8125rem', fontWeight: 500,
+          fontFamily: 'var(--font-dm-sans), sans-serif', cursor: 'pointer',
+          transition: 'background 0.15s, border-color 0.15s',
+        }}
+      >
+        Delete event
+      </button>
+      <DialogContent style={{ fontFamily: 'var(--font-dm-sans), sans-serif', maxWidth: 420 }}>
+        <DialogHeader>
+          <DialogTitle style={{ fontFamily: 'var(--font-dm-sans), sans-serif', color: '#991b1b' }}>
+            Delete &ldquo;{eventName}&rdquo;?
+          </DialogTitle>
+          <DialogDescription style={{ fontFamily: 'var(--font-dm-sans), sans-serif' }}>
+            {errorMsg
+              ? <span style={{ color: '#DC2626' }}>{errorMsg}</span>
+              : 'This removes the event from all lists. If scores have been submitted, the data is archived (not permanently deleted).'}
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <DialogClose asChild>
+            <button
+              disabled={isPending}
+              style={{
+                padding: '8px 18px', border: '1.5px solid #E0EBE0', borderRadius: 10,
+                background: '#fff', color: '#1A2E1A', fontSize: '0.8125rem', fontWeight: 500,
+                fontFamily: 'var(--font-dm-sans), sans-serif', cursor: 'pointer',
+              }}
+            >
+              Cancel
+            </button>
+          </DialogClose>
           <button
             onClick={handleDelete}
             disabled={isPending}
@@ -336,22 +341,8 @@ export function DeleteEventButton({ eventId, eventName, finalised }: { eventId: 
           >
             {isPending ? 'Deleting…' : 'Delete permanently'}
           </button>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <button
-      onClick={() => setShowConfirm(true)}
-      style={{
-        padding: '9px 18px', border: '1.5px solid #fecaca', borderRadius: 10,
-        background: '#fff', color: '#DC2626', fontSize: '0.8125rem', fontWeight: 500,
-        fontFamily: 'var(--font-dm-sans), sans-serif', cursor: 'pointer',
-        transition: 'background 0.15s, border-color 0.15s',
-      }}
-    >
-      Delete event
-    </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
