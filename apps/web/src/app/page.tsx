@@ -17,29 +17,31 @@ function StatCounter({
   label,
   sublabel,
   suffix = '',
+  staticText,
 }: {
   value: number
   label: string
   sublabel: string
   suffix?: string
+  staticText?: string
 }) {
   const [display, setDisplay] = useState(0)
   const motionVal = useMotionValue(0)
   const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.4 })
 
   useEffect(() => {
-    if (!inView) return
+    if (!inView || staticText) return
     // animate() returns playback controls; void discards it since triggerOnce=true
     void animate(motionVal, value, {
       duration: 1.4,
       ease: 'easeOut',
       onUpdate: (v) => setDisplay(Math.round(v)),
     })
-  }, [inView, motionVal, value])
+  }, [inView, motionVal, value, staticText])
 
   return (
     <div ref={ref} className="hp-stat">
-      <span className="hp-stat-number">{display}{suffix}</span>
+      <span className="hp-stat-number">{staticText ?? `${display}${suffix}`}</span>
       <span className="hp-stat-label">{label}</span>
       <span className="hp-stat-sublabel">{sublabel}</span>
     </div>
@@ -698,17 +700,19 @@ export default function HomePage() {
             <StatCounter
               value={6}
               label="Competition formats"
-              sublabel="Stableford · Stroke Play · Better Ball · Scramble · Skins · Red vs Blue"
+              sublabel="Stableford · Stroke Play · Better Ball · Scramble · Skins · Red vs Blue · and more to come"
+            />
+            <StatCounter
+              value={100}
+              suffix="%"
+              label="Offline-ready"
+              sublabel="Score every hole, even when the signal drops on the 7th."
             />
             <StatCounter
               value={0}
-              label="Accounts needed to play"
-              sublabel="Players join any event with a code — no sign-up, no friction"
-            />
-            <StatCounter
-              value={18}
-              label="Holes tracked live, hole by hole"
-              sublabel="Every score syncs instantly — players, spectators and the TV leaderboard update in real time"
+              staticText="Real time"
+              label="Live leaderboards"
+              sublabel="Every score, every group, every hole — as it happens."
             />
           </div>
         </div>
@@ -723,7 +727,7 @@ export default function HomePage() {
             alt="LX2"
             height={96}
             width={192}
-            style={{ height: '30px', width: 'auto', opacity: 0.65 }}
+            style={{ height: '30px', width: 'auto', filter: 'brightness(0) invert(1)', opacity: 0.6 }}
           />
         </Link>
       </footer>
