@@ -67,7 +67,15 @@ const FEATURES: Array<{
     href: '/auth/signup',
     cta: 'Start scoring',
     className: 'col-span-1',
-    background: <div className="hp-bento-bg hp-bento-bg-scoring" />,
+    background: (
+      <svg style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none'}} viewBox="0 0 5 3" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+        <rect x=".2" y="1.2" width=".6" height="1.4" rx=".12" fill="#0D631B" opacity=".18"/>
+        <rect x="1.1" y=".8" width=".6" height="1.8" rx=".12" fill="#0D631B" opacity=".24"/>
+        <rect x="2" y=".3" width=".6" height="2.3" rx=".12" fill="#0D631B" opacity=".32"/>
+        <rect x="2.9" y=".6" width=".6" height="2" rx=".12" fill="#0D631B" opacity=".26"/>
+        <rect x="3.8" y=".4" width=".6" height="2.2" rx=".12" fill="#0D631B" opacity=".20"/>
+      </svg>
+    ),
   },
   {
     Icon: Users,
@@ -77,7 +85,17 @@ const FEATURES: Array<{
     href: '/auth/signup',
     cta: 'Create an event',
     className: 'col-span-1',
-    background: <div className="hp-bento-bg hp-bento-bg-events" />,
+    background: (
+      <svg style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none'}} viewBox="0 0 5 3" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+        <rect x=".5" y=".4" width="4" height="2.4" rx=".3" fill="none" stroke="#0D631B" strokeWidth=".12" opacity=".22"/>
+        <rect x=".5" y=".4" width="4" height=".7" rx=".3" fill="#0D631B" opacity=".14"/>
+        <circle cx="1.5" cy="1.9" r=".2" fill="#0D631B" opacity=".22"/>
+        <circle cx="2.5" cy="1.9" r=".2" fill="#0D631B" opacity=".22"/>
+        <circle cx="3.5" cy="1.9" r=".2" fill="#0D631B" opacity=".16"/>
+        <circle cx="1.5" cy="2.5" r=".2" fill="#0D631B" opacity=".16"/>
+        <circle cx="2.5" cy="2.5" r=".2" fill="#0D631B" opacity=".22"/>
+      </svg>
+    ),
   },
   {
     Icon: CalendarDays,
@@ -87,7 +105,15 @@ const FEATURES: Array<{
     href: '/auth/signup',
     cta: 'Learn more',
     className: 'col-span-1',
-    background: <div className="hp-bento-bg hp-bento-bg-tournaments" />,
+    background: (
+      <svg style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none'}} viewBox="0 0 5 4" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+        <path d="M1 .3h3v1.5c0 .85-.5 1.35-1.5 1.5C1.5 3.15 1 2.65 1 1.8V.3z" fill="#0D631B" opacity=".22"/>
+        <rect x="1.8" y="3" width="1.4" height=".5" rx=".15" fill="#0D631B" opacity=".20"/>
+        <rect x="1.2" y="3.5" width="2.6" height=".4" rx=".15" fill="#0D631B" opacity=".22"/>
+        <path d="M1 .8 C.3 .8 .3 1.8 1 1.8" stroke="#0D631B" strokeWidth=".12" fill="none" opacity=".20"/>
+        <path d="M4 .8 C4.7 .8 4.7 1.8 4 1.8" stroke="#0D631B" strokeWidth=".12" fill="none" opacity=".20"/>
+      </svg>
+    ),
   },
   {
     Icon: LayoutDashboard,
@@ -98,9 +124,16 @@ const FEATURES: Array<{
     cta: 'Coming soon',
     className: 'col-span-1',
     background: (
-      <div className="hp-bento-bg hp-bento-bg-club">
+      <>
         <span className="hp-bento-soon">Coming soon</span>
-      </div>
+        <svg style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none'}} viewBox="0 0 5 3" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+          <rect x=".3" y=".3" width="4.4" height=".55" rx=".15" fill="#0D631B" opacity=".20"/>
+          <rect x=".3" y="1.1" width="3.3" height=".45" rx=".12" fill="#0D631B" opacity=".16"/>
+          <rect x=".3" y="1.75" width="3.9" height=".45" rx=".12" fill="#0D631B" opacity=".14"/>
+          <rect x=".3" y="2.4" width="2.7" height=".45" rx=".12" fill="#0D631B" opacity=".12"/>
+          <circle cx="4.5" cy="1.7" r=".3" fill="#0D631B" opacity=".20"/>
+        </svg>
+      </>
     ),
   },
 ]
@@ -454,30 +487,14 @@ export default function HomePage() {
           line-height: 1.6;
         }
         /* Brand overrides for bento card internals */
-        .hp-features .group { border-radius: 20px !important; }
-        .hp-features .group h3 {
-          font-family: var(--font-manrope), 'Manrope', sans-serif !important;
-          font-weight: 700 !important;
-          font-size: 1.125rem !important;
-          color: #1A2E1A !important;
+        .hp-features .group {
+          position: relative !important;
+          overflow: hidden !important;
+          border-radius: 20px !important;
+          background: #ffffff !important;
+          border: 1px solid #E0EBE0 !important;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
         }
-        .hp-features .group p {
-          font-family: var(--font-lexend), 'Lexend', sans-serif !important;
-          color: #6B8C6B !important;
-          animation: none !important;
-          opacity: 1 !important;
-          font-size: 0.9375rem !important;
-          line-height: 1.6 !important;
-        }
-        .hp-features .group svg { color: #0D631B !important; }
-        .hp-features .group button,
-        .hp-features .group a {
-          font-family: var(--font-lexend), 'Lexend', sans-serif !important;
-          color: #0D631B !important;
-          font-size: 0.875rem !important;
-        }
-
-        /* ── Bento card overrides — brand fonts + colours ────── */
         .hp-features .group h3 {
           font-family: var(--font-manrope), 'Manrope', sans-serif !important;
           font-weight: 700 !important;
@@ -487,19 +504,19 @@ export default function HomePage() {
         }
         .hp-features .group p {
           font-family: var(--font-lexend), 'Lexend', sans-serif !important;
-          font-size: 0.8125rem !important;
+          font-size: 0.875rem !important;
           font-weight: 400 !important;
           color: #4A5E4A !important;
-          line-height: 1.55 !important;
+          line-height: 1.6 !important;
+          animation: none !important;
+          opacity: 1 !important;
         }
+        .hp-features .group svg { color: #0D631B !important; }
         .hp-features .group a, .hp-features .group button {
           font-family: var(--font-lexend), 'Lexend', sans-serif !important;
           font-size: 0.8125rem !important;
           color: #0D631B !important;
         }
-
-        /* Bento card decorative backgrounds */
-        .hp-bento-bg { position: absolute; inset: 0; pointer-events: none; }
 
         /* Coming soon badge */
         .hp-bento-soon {
@@ -517,66 +534,6 @@ export default function HomePage() {
           border-radius: 9999px;
           padding: 3px 10px;
           pointer-events: none;
-        }
-
-        /* Scoring — bar chart watermark */
-        .hp-bento-bg-scoring {
-          background: linear-gradient(160deg, #E2F0E4 0%, #F0F8F1 100%);
-        }
-        .hp-bento-bg-scoring::after {
-          content: '';
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 160px;
-          height: 100px;
-          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 60'%3E%3Crect x='0' y='32' width='14' height='28' rx='3' fill='%230D631B' opacity='.07'/%3E%3Crect x='20' y='20' width='14' height='40' rx='3' fill='%230D631B' opacity='.10'/%3E%3Crect x='40' y='8' width='14' height='52' rx='3' fill='%230D631B' opacity='.15'/%3E%3Crect x='60' y='16' width='14' height='44' rx='3' fill='%230D631B' opacity='.11'/%3E%3Crect x='80' y='10' width='14' height='50' rx='3' fill='%230D631B' opacity='.08'/%3E%3C/svg%3E") center / contain no-repeat;
-        }
-
-        /* Events — calendar watermark */
-        .hp-bento-bg-events {
-          background: linear-gradient(160deg, #E4EDE5 0%, #F2F7F2 100%);
-        }
-        .hp-bento-bg-events::after {
-          content: '';
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 120px;
-          height: 120px;
-          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Crect x='0' y='10' width='60' height='50' rx='6' fill='none' stroke='%230D631B' stroke-width='2.5' opacity='.10'/%3E%3Crect x='0' y='10' width='60' height='16' rx='6' fill='%230D631B' opacity='.06'/%3E%3Ccircle cx='14' cy='42' r='4' fill='%230D631B' opacity='.10'/%3E%3Ccircle cx='30' cy='42' r='4' fill='%230D631B' opacity='.10'/%3E%3Ccircle cx='46' cy='42' r='4' fill='%230D631B' opacity='.07'/%3E%3Ccircle cx='14' cy='55' r='4' fill='%230D631B' opacity='.07'/%3E%3Ccircle cx='30' cy='55' r='4' fill='%230D631B' opacity='.10'/%3E%3C/svg%3E") center / contain no-repeat;
-        }
-
-        /* Tournaments — trophy watermark */
-        .hp-bento-bg-tournaments {
-          background: linear-gradient(160deg, #D2E6D4 0%, #E6F0E7 100%);
-        }
-        .hp-bento-bg-tournaments::after {
-          content: '';
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 100px;
-          height: 120px;
-          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 60'%3E%3Cpath d='M8 4h32v18c0 10-6 16-16 18C14 38 8 32 8 22V4z' fill='%230D631B' opacity='.10'/%3E%3Crect x='18' y='40' width='12' height='8' rx='2' fill='%230D631B' opacity='.09'/%3E%3Crect x='10' y='48' width='28' height='6' rx='3' fill='%230D631B' opacity='.10'/%3E%3Cpath d='M8 10 C0 10 0 22 8 22' stroke='%230D631B' stroke-width='2.5' fill='none' opacity='.09'/%3E%3Cpath d='M40 10 C48 10 48 22 40 22' stroke='%230D631B' stroke-width='2.5' fill='none' opacity='.09'/%3E%3C/svg%3E") center / contain no-repeat;
-        }
-
-        /* Club Portal — dashboard rows watermark */
-        .hp-bento-bg-club {
-          background: linear-gradient(160deg, #DDE8DE 0%, #EDF4EE 100%);
-        }
-        .hp-bento-bg-club::after {
-          content: '';
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 160px;
-          height: 112px;
-          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 56'%3E%3Crect x='0' y='0' width='80' height='10' rx='3' fill='%230D631B' opacity='.09'/%3E%3Crect x='0' y='16' width='60' height='8' rx='2' fill='%230D631B' opacity='.07'/%3E%3Crect x='0' y='30' width='72' height='8' rx='2' fill='%230D631B' opacity='.06'/%3E%3Crect x='0' y='44' width='50' height='8' rx='2' fill='%230D631B' opacity='.05'/%3E%3Ccircle cx='74' cy='36' r='5' fill='%230D631B' opacity='.09'/%3E%3C/svg%3E") center / contain no-repeat;
         }
 
         /* ── Stats ────────────────────────────────────────── */
