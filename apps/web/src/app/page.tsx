@@ -69,11 +69,11 @@ const FEATURES: Array<{
     className: 'col-span-1',
     background: (
       <svg style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none'}} viewBox="0 0 10 6" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
-        <rect x="2.7" y="2.4" width=".6" height="1.4" rx=".12" fill="#0D631B" opacity=".18"/>
-        <rect x="3.6" y="2.0" width=".6" height="1.8" rx=".12" fill="#0D631B" opacity=".24"/>
-        <rect x="4.5" y="1.5" width=".6" height="2.3" rx=".12" fill="#0D631B" opacity=".32"/>
-        <rect x="5.4" y="1.8" width=".6" height="2.0" rx=".12" fill="#0D631B" opacity=".26"/>
-        <rect x="6.3" y="1.6" width=".6" height="2.2" rx=".12" fill="#0D631B" opacity=".20"/>
+        <rect x="2.7" y="2.4" width=".6" height="1.4" rx=".12" fill="#0D631B" opacity=".09"/>
+        <rect x="3.6" y="2.0" width=".6" height="1.8" rx=".12" fill="#0D631B" opacity=".12"/>
+        <rect x="4.5" y="1.5" width=".6" height="2.3" rx=".12" fill="#0D631B" opacity=".16"/>
+        <rect x="5.4" y="1.8" width=".6" height="2.0" rx=".12" fill="#0D631B" opacity=".13"/>
+        <rect x="6.3" y="1.6" width=".6" height="2.2" rx=".12" fill="#0D631B" opacity=".10"/>
       </svg>
     ),
   },
@@ -87,13 +87,13 @@ const FEATURES: Array<{
     className: 'col-span-1',
     background: (
       <svg style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none'}} viewBox="0 0 10 6" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
-        <rect x="3" y="1.7" width="4" height="2.4" rx=".3" fill="none" stroke="#0D631B" strokeWidth=".12" opacity=".22"/>
-        <rect x="3" y="1.7" width="4" height=".7" rx=".3" fill="#0D631B" opacity=".14"/>
-        <circle cx="4" cy="3.2" r=".2" fill="#0D631B" opacity=".22"/>
-        <circle cx="5" cy="3.2" r=".2" fill="#0D631B" opacity=".22"/>
-        <circle cx="6" cy="3.2" r=".2" fill="#0D631B" opacity=".16"/>
-        <circle cx="4" cy="3.8" r=".2" fill="#0D631B" opacity=".16"/>
-        <circle cx="5" cy="3.8" r=".2" fill="#0D631B" opacity=".22"/>
+        <rect x="3" y="1.7" width="4" height="2.4" rx=".3" fill="none" stroke="#0D631B" strokeWidth=".12" opacity=".11"/>
+        <rect x="3" y="1.7" width="4" height=".7" rx=".3" fill="#0D631B" opacity=".07"/>
+        <circle cx="4" cy="3.2" r=".2" fill="#0D631B" opacity=".11"/>
+        <circle cx="5" cy="3.2" r=".2" fill="#0D631B" opacity=".11"/>
+        <circle cx="6" cy="3.2" r=".2" fill="#0D631B" opacity=".08"/>
+        <circle cx="4" cy="3.8" r=".2" fill="#0D631B" opacity=".08"/>
+        <circle cx="5" cy="3.8" r=".2" fill="#0D631B" opacity=".11"/>
       </svg>
     ),
   },
@@ -107,11 +107,11 @@ const FEATURES: Array<{
     className: 'col-span-1',
     background: (
       <svg style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none'}} viewBox="0 0 10 8" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3.5 1h3v1.5c0 .85-.5 1.35-1.5 1.5C4 4.15 3.5 3.65 3.5 2.8V1z" fill="#0D631B" opacity=".22"/>
-        <rect x="4.3" y="4" width="1.4" height=".5" rx=".15" fill="#0D631B" opacity=".20"/>
-        <rect x="3.7" y="4.5" width="2.6" height=".4" rx=".15" fill="#0D631B" opacity=".22"/>
-        <path d="M3.5 1.8 C2.8 1.8 2.8 2.8 3.5 2.8" stroke="#0D631B" strokeWidth=".12" fill="none" opacity=".20"/>
-        <path d="M6.5 1.8 C7.2 1.8 7.2 2.8 6.5 2.8" stroke="#0D631B" strokeWidth=".12" fill="none" opacity=".20"/>
+        <path d="M3.5 1h3v1.5c0 .85-.5 1.35-1.5 1.5C4 4.15 3.5 3.65 3.5 2.8V1z" fill="#0D631B" opacity=".11"/>
+        <rect x="4.3" y="4" width="1.4" height=".5" rx=".15" fill="#0D631B" opacity=".10"/>
+        <rect x="3.7" y="4.5" width="2.6" height=".4" rx=".15" fill="#0D631B" opacity=".11"/>
+        <path d="M3.5 1.8 C2.8 1.8 2.8 2.8 3.5 2.8" stroke="#0D631B" strokeWidth=".12" fill="none" opacity=".10"/>
+        <path d="M6.5 1.8 C7.2 1.8 7.2 2.8 6.5 2.8" stroke="#0D631B" strokeWidth=".12" fill="none" opacity=".10"/>
       </svg>
     ),
   },
@@ -127,11 +127,11 @@ const FEATURES: Array<{
       <>
         <span className="hp-bento-soon">Coming soon</span>
         <svg style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none'}} viewBox="0 0 10 6" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
-          <rect x="2.8" y="1.3" width="4.4" height=".55" rx=".15" fill="#0D631B" opacity=".20"/>
-          <rect x="2.8" y="2.1" width="3.3" height=".45" rx=".12" fill="#0D631B" opacity=".16"/>
-          <rect x="2.8" y="2.75" width="3.9" height=".45" rx=".12" fill="#0D631B" opacity=".14"/>
-          <rect x="2.8" y="3.4" width="2.7" height=".45" rx=".12" fill="#0D631B" opacity=".12"/>
-          <circle cx="7.8" cy="2.7" r=".3" fill="#0D631B" opacity=".20"/>
+          <rect x="2.8" y="1.3" width="4.4" height=".55" rx=".15" fill="#0D631B" opacity=".10"/>
+          <rect x="2.8" y="2.1" width="3.3" height=".45" rx=".12" fill="#0D631B" opacity=".08"/>
+          <rect x="2.8" y="2.75" width="3.9" height=".45" rx=".12" fill="#0D631B" opacity=".07"/>
+          <rect x="2.8" y="3.4" width="2.7" height=".45" rx=".12" fill="#0D631B" opacity=".06"/>
+          <circle cx="7.8" cy="2.7" r=".3" fill="#0D631B" opacity=".10"/>
         </svg>
       </>
     ),
