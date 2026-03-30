@@ -2,7 +2,6 @@ import { ReactNode, ComponentType } from "react";
 import { ArrowRightIcon } from "@radix-ui/react-icons";
 
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 const BentoGrid = ({
   children,
@@ -14,7 +13,7 @@ const BentoGrid = ({
   return (
     <div
       className={cn(
-        "grid w-full auto-rows-[12rem] grid-cols-3 gap-4",
+        "grid w-full auto-rows-[15rem] grid-cols-3 gap-4",
         className,
       )}
     >
@@ -52,7 +51,7 @@ const BentoCard = ({
     )}
   >
     <div>{background}</div>
-    <div className="pointer-events-none z-10 flex transform-gpu flex-col gap-1 p-5">
+    <div className="relative z-10 flex transform-gpu flex-col gap-1 p-5">
       <span style={{ color: '#0D631B', display: 'flex' }}>
         <Icon className="h-7 w-7 origin-left transform-gpu transition-all duration-300 ease-in-out" />
       </span>
@@ -60,19 +59,14 @@ const BentoCard = ({
         {name}
       </h3>
       <p className="max-w-lg text-neutral-400">{description}</p>
-    </div>
-
-    <div
-      className={cn(
-        "pointer-events-none absolute bottom-0 flex w-full translate-y-10 transform-gpu flex-row items-center p-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100",
-      )}
-    >
-      <Button variant="ghost" asChild size="sm" className="pointer-events-auto">
-        <a href={href}>
-          {cta}
-          <ArrowRightIcon className="ml-2 h-4 w-4" />
-        </a>
-      </Button>
+      <a
+        href={href}
+        className="mt-1 inline-flex items-center gap-1 text-sm font-medium transition-colors duration-200 hover:opacity-80"
+        style={{ color: '#0D631B' }}
+      >
+        {cta}
+        <ArrowRightIcon className="h-3.5 w-3.5" />
+      </a>
     </div>
     <div className="pointer-events-none absolute inset-0 transform-gpu transition-all duration-300 group-hover:bg-black/[.03] group-hover:dark:bg-neutral-800/10" />
   </div>

@@ -4,7 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { animate, useMotionValue } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
-import { Activity, Trophy, Users, CalendarDays, TrendingUp } from 'lucide-react'
+import { Activity, Trophy, Users, CalendarDays, LayoutDashboard } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { BentoCard, BentoGrid } from '@/components/ui/bento-grid'
@@ -100,14 +100,14 @@ const FEATURES: Array<{
     background: <div className="hp-bento-bg hp-bento-bg-tournaments" />,
   },
   {
-    Icon: TrendingUp,
-    name: 'Handicap Tracking',
+    Icon: LayoutDashboard,
+    name: 'Club Portal',
     description:
-      'Playing handicap calculated automatically from your course handicap index. Every round counts.',
-    href: '/auth/signup',
-    cta: 'Track your game',
+      'Organisers get a dedicated dashboard to manage members, publish results, and run competitions — all from one place.',
+    href: 'https://club.lx2.golf',
+    cta: 'Explore Club Portal',
     className: 'col-span-3 md:col-span-1',
-    background: <div className="hp-bento-bg hp-bento-bg-handicap" />,
+    background: <div className="hp-bento-bg hp-bento-bg-club" />,
   },
 ]
 
@@ -213,9 +213,12 @@ export default function HomePage() {
           );
           z-index: 1;
         }
-        .hp-hero-text {
+        .hp-hero-content {
           position: relative;
           z-index: 2;
+          width: 100%;
+        }
+        .hp-hero-text {
           display: flex;
           flex-direction: column;
           justify-content: center;
@@ -224,6 +227,59 @@ export default function HomePage() {
           opacity: 0;
           animation: hp-rise 0.6s ease forwards 0.1s;
         }
+        .hp-hero-right { display: none; }
+
+        /* ── Desktop hero audience cards ──────────────────── */
+        .hp-audience-card {
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.18);
+          border-radius: 16px;
+          padding: 24px 28px;
+          text-decoration: none;
+          display: block;
+          transition: background 0.2s ease, transform 0.2s ease;
+        }
+        .hp-audience-card:hover {
+          background: rgba(255, 255, 255, 0.16);
+          transform: translateY(-2px);
+        }
+        .hp-audience-card-label {
+          font-family: var(--font-lexend), 'Lexend', sans-serif;
+          font-size: 0.625rem;
+          font-weight: 500;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: rgba(255, 255, 255, 0.45);
+          margin-bottom: 6px;
+        }
+        .hp-audience-card-title {
+          font-family: var(--font-manrope), 'Manrope', sans-serif;
+          font-weight: 700;
+          font-size: 1.125rem;
+          color: #fff;
+          margin-bottom: 4px;
+          letter-spacing: -0.01em;
+        }
+        .hp-audience-card-desc {
+          font-family: var(--font-lexend), 'Lexend', sans-serif;
+          font-size: 0.8125rem;
+          color: rgba(255, 255, 255, 0.6);
+          line-height: 1.5;
+          margin-bottom: 14px;
+        }
+        .hp-audience-card-link {
+          font-family: var(--font-lexend), 'Lexend', sans-serif;
+          font-size: 0.8125rem;
+          font-weight: 500;
+          color: rgba(255, 255, 255, 0.85);
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          transition: color 0.15s;
+        }
+        .hp-audience-card:hover .hp-audience-card-link { color: #fff; }
         .hp-hero-eyebrow {
           font-family: var(--font-lexend), 'Lexend', sans-serif;
           font-weight: 500;
@@ -496,18 +552,18 @@ export default function HomePage() {
           background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 60'%3E%3Cpath d='M8 4h32v18c0 10-6 16-16 18C14 38 8 32 8 22V4z' fill='%230D631B' opacity='.2'/%3E%3Crect x='18' y='40' width='12' height='8' rx='2' fill='%230D631B' opacity='.18'/%3E%3Crect x='10' y='48' width='28' height='6' rx='3' fill='%230D631B' opacity='.22'/%3E%3Cpath d='M8 10 C0 10 0 22 8 22' stroke='%230D631B' stroke-width='2.5' fill='none' opacity='.18'/%3E%3Cpath d='M40 10 C48 10 48 22 40 22' stroke='%230D631B' stroke-width='2.5' fill='none' opacity='.18'/%3E%3C/svg%3E") center / contain no-repeat;
         }
 
-        /* Handicap — lightest, trending line */
-        .hp-bento-bg-handicap {
-          background: linear-gradient(160deg, #E8F2E9 0%, #F4FAF5 100%);
+        /* Club Portal — dashboard rows */
+        .hp-bento-bg-club {
+          background: linear-gradient(160deg, #DDE8DE 0%, #EDF4EE 100%);
         }
-        .hp-bento-bg-handicap::after {
+        .hp-bento-bg-club::after {
           content: '';
           position: absolute;
           top: 16px;
           right: 16px;
           width: 80px;
-          height: 48px;
-          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 48'%3E%3Cpolyline points='0,40 20,28 40,32 60,14 80,8' fill='none' stroke='%230D631B' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' opacity='.28'/%3E%3Ccircle cx='80' cy='8' r='4' fill='%230D631B' opacity='.32'/%3E%3C/svg%3E") center / contain no-repeat;
+          height: 56px;
+          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 56'%3E%3Crect x='0' y='0' width='80' height='10' rx='3' fill='%230D631B' opacity='.18'/%3E%3Crect x='0' y='16' width='60' height='8' rx='2' fill='%230D631B' opacity='.14'/%3E%3Crect x='0' y='30' width='72' height='8' rx='2' fill='%230D631B' opacity='.11'/%3E%3Crect x='0' y='44' width='50' height='8' rx='2' fill='%230D631B' opacity='.09'/%3E%3Ccircle cx='74' cy='36' r='5' fill='%230D631B' opacity='.2'/%3E%3C/svg%3E") center / contain no-repeat;
         }
 
         /* ── Stats ────────────────────────────────────────── */
@@ -582,7 +638,26 @@ export default function HomePage() {
         }
 
         /* ── Responsive ──────────────────────────────────── */
-        @media (max-width: 1024px) {
+        @media (min-width: 1024px) {
+          .hp-hero-content {
+            display: grid;
+            grid-template-columns: 55fr 45fr;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+          }
+          .hp-hero-text { padding: 8rem 2rem 5rem 44px; }
+          .hp-hero-right {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 8rem 44px 5rem 2rem;
+            opacity: 0;
+            animation: hp-rise 0.6s ease forwards 0.3s;
+          }
+          .hp-btn-link { width: auto; }
+        }
+        @media (max-width: 1023px) {
           .hp-hero-text { padding: 4rem 2.5rem 4rem 3.5rem; }
         }
         @media (max-width: 768px) {
@@ -638,40 +713,57 @@ export default function HomePage() {
           }}
         />
         <div className="hp-hero-overlay" aria-hidden="true" />
-        <div className="hp-hero-text">
-          <h1>
-            Your game.<br />
-            Your data.<br />
-            Your edge.
-          </h1>
-          <p>For every golfer, every society, every club.</p>
-          <p>Score rounds, analyse your game, run multi-round tournaments and manage your club.</p>
-          <p className="hp-hero-tagline">Golf intelligence that gets smarter with every round.</p>
-          <div className="hp-hero-ctas">
-            <Button asChild className="hp-btn-primary">
-              <Link href="/auth/signup">Create account</Link>
-            </Button>
-            <Button asChild variant="outline" className="hp-btn-secondary">
-              <Link href="/auth/login">Sign in</Link>
-            </Button>
-            <button className="hp-btn-link" onClick={handleJoinEvent}>
-              Join event →
-            </button>
-          </div>
-          {showCode && (
-            <div className="hp-code-row">
-              <span className="hp-code-label">Enter event code:</span>
-              <input
-                ref={codeRef}
-                className="hp-code-input"
-                placeholder="e.g. GOLF24"
-                value={code}
-                onChange={e => setCode(e.target.value.toUpperCase())}
-                onKeyDown={e => e.key === 'Enter' && handleJoin()}
-              />
-              <button className="hp-code-btn" onClick={handleJoin}>Go →</button>
+        <div className="hp-hero-content">
+          <div className="hp-hero-text">
+            <h1>
+              Your game.<br />
+              Your data.<br />
+              Your edge.
+            </h1>
+            <p>For every golfer, every society, every club.</p>
+            <p>Score rounds, analyse your game, run multi-round tournaments and manage your club.</p>
+            <p className="hp-hero-tagline">Golf intelligence that gets smarter with every round.</p>
+            <div className="hp-hero-ctas">
+              <Button asChild className="hp-btn-primary">
+                <Link href="/auth/signup">Create account</Link>
+              </Button>
+              <Button asChild variant="outline" className="hp-btn-secondary">
+                <Link href="/auth/login">Sign in</Link>
+              </Button>
+              <button className="hp-btn-link" onClick={handleJoinEvent}>
+                Join event →
+              </button>
             </div>
-          )}
+            {showCode && (
+              <div className="hp-code-row">
+                <span className="hp-code-label">Enter event code:</span>
+                <input
+                  ref={codeRef}
+                  className="hp-code-input"
+                  placeholder="e.g. GOLF24"
+                  value={code}
+                  onChange={e => setCode(e.target.value.toUpperCase())}
+                  onKeyDown={e => e.key === 'Enter' && handleJoin()}
+                />
+                <button className="hp-code-btn" onClick={handleJoin}>Go →</button>
+              </div>
+            )}
+          </div>
+
+          <div className="hp-hero-right">
+            <Link href="/auth/signup" className="hp-audience-card">
+              <p className="hp-audience-card-label">For Golfers</p>
+              <p className="hp-audience-card-title">Score. Compete. Improve.</p>
+              <p className="hp-audience-card-desc">Track every round, compete in society events, and watch your game develop over time.</p>
+              <span className="hp-audience-card-link">Create account →</span>
+            </Link>
+            <a href="https://club.lx2.golf" className="hp-audience-card">
+              <p className="hp-audience-card-label">For Clubs &amp; Societies</p>
+              <p className="hp-audience-card-title">Run better events.</p>
+              <p className="hp-audience-card-desc">Create competitions, manage your society, and let LX2 handle the admin.</p>
+              <span className="hp-audience-card-link">Explore Club Portal →</span>
+            </a>
+          </div>
         </div>
 
       </section>
