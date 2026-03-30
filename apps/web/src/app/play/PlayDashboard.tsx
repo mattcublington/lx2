@@ -165,7 +165,7 @@ export default function PlayDashboard({
         .fe-avatar {
           width: 72px;
           height: 72px;
-          border-radius: 14px;
+          border-radius: 50%;
           border: 3px solid rgba(255,255,255,0.25);
           box-shadow: 0 2px 12px rgba(0,0,0,0.3);
           object-fit: cover;
@@ -175,7 +175,7 @@ export default function PlayDashboard({
         .fe-avatar-placeholder {
           width: 72px;
           height: 72px;
-          border-radius: 14px;
+          border-radius: 50%;
           border: 3px solid rgba(255,255,255,0.25);
           box-shadow: 0 2px 12px rgba(0,0,0,0.3);
           flex-shrink: 0;

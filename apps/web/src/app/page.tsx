@@ -147,13 +147,15 @@ export default function HomePage() {
 
         /* ── Header / Nav ─────────────────────────────────── */
         .hp-header {
-          position: sticky;
+          position: absolute;
           top: 0;
+          left: 0;
+          right: 0;
           z-index: 40;
-          background: #0a1f0a;
           height: 72px;
           display: flex;
           align-items: center;
+          background: transparent;
         }
         .hp-nav {
           width: 100%;
@@ -192,17 +194,31 @@ export default function HomePage() {
 
         /* ── Hero ─────────────────────────────────────────── */
         .hp-hero {
-          min-height: calc(100dvh - 72px);
-          background: #F6FAF6;
-          display: grid;
-          grid-template-columns: 1fr 1fr;
+          position: relative;
+          min-height: 100dvh;
+          display: flex;
+          align-items: center;
           overflow: hidden;
         }
+        .hp-hero-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            180deg,
+            rgba(0, 0, 0, 0.08) 0%,
+            rgba(10, 31, 10, 0.28) 60%,
+            rgba(10, 31, 10, 0.45) 100%
+          );
+          z-index: 1;
+        }
         .hp-hero-text {
+          position: relative;
+          z-index: 2;
           display: flex;
           flex-direction: column;
           justify-content: center;
-          padding: 5rem 3.5rem 5rem 5rem;
+          max-width: 640px;
+          padding: 8rem 3.5rem 5rem 5rem;
           opacity: 0;
           animation: hp-rise 0.6s ease forwards 0.1s;
         }
@@ -212,15 +228,15 @@ export default function HomePage() {
           font-size: 0.6875rem;
           letter-spacing: 0.14em;
           text-transform: uppercase;
-          color: #0D631B;
+          color: rgba(255,255,255,0.65);
           margin-bottom: 1.25rem;
         }
         .hp-hero h1 {
           font-family: var(--font-manrope), 'Manrope', sans-serif;
           font-weight: 800;
-          font-size: clamp(2.25rem, 3.5vw, 3.5rem);
-          line-height: 1.1;
-          color: #1A2E1A;
+          font-size: clamp(2.5rem, 4.5vw, 4.5rem);
+          line-height: 1.06;
+          color: #fff;
           margin-bottom: 1.25rem;
           letter-spacing: -0.02em;
         }
@@ -228,7 +244,7 @@ export default function HomePage() {
           font-family: var(--font-lexend), 'Lexend', sans-serif;
           font-size: clamp(1rem, 1.4vw, 1.125rem);
           font-weight: 400;
-          color: #44483E;
+          color: rgba(255,255,255,0.8);
           line-height: 1.65;
           margin-bottom: 2.5rem;
           max-width: 460px;
@@ -247,6 +263,7 @@ export default function HomePage() {
           font-size: 1rem !important;
           padding: 0.875rem 2.25rem !important;
           height: auto !important;
+          color: #fff !important;
           background: linear-gradient(135deg, #0D631B 0%, #0a4f15 100%) !important;
           box-shadow: 0 8px 24px rgba(26, 28, 28, 0.12) !important;
           transition: transform 0.2s ease, box-shadow 0.2s ease !important;
@@ -264,32 +281,39 @@ export default function HomePage() {
           font-size: 1rem !important;
           padding: 0.875rem 2.25rem !important;
           height: auto !important;
-          color: #1A2E1A !important;
-          border-color: rgba(26, 28, 28, 0.22) !important;
+          color: #fff !important;
+          border-color: rgba(255,255,255,0.4) !important;
           background: transparent !important;
           transition: transform 0.2s ease, background 0.2s ease !important;
           white-space: nowrap;
         }
         .hp-btn-secondary:hover {
-          background: rgba(255,255,255,0.65) !important;
-          border-color: rgba(26,28,28,0.32) !important;
+          background: rgba(255,255,255,0.12) !important;
+          border-color: rgba(255,255,255,0.6) !important;
           transform: translateY(-1px) !important;
         }
         .hp-btn-link {
           background: transparent;
-          border: none;
-          color: #923357;
+          border: 1.5px solid rgba(255,255,255,0.4);
+          border-radius: 9999px;
+          color: #fff;
           font-family: var(--font-lexend), 'Lexend', sans-serif;
           font-weight: 500;
           font-size: 1rem;
           cursor: pointer;
-          padding: 0.25rem 0;
-          text-decoration: underline;
-          text-underline-offset: 4px;
-          transition: color 0.15s;
+          padding: 0.875rem 2.25rem;
+          text-decoration: none;
+          text-align: center;
+          width: 100%;
+          transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
           white-space: nowrap;
+          display: block;
         }
-        .hp-btn-link:hover { color: #7A2A49; text-decoration-thickness: 2px; }
+        .hp-btn-link:hover {
+          background: rgba(255,255,255,0.12);
+          border-color: rgba(255,255,255,0.6);
+          transform: translateY(-1px);
+        }
 
         /* Join code row */
         .hp-code-row {
@@ -301,14 +325,14 @@ export default function HomePage() {
         }
         .hp-code-label {
           font-size: 0.875rem;
-          color: #72786E;
+          color: rgba(255,255,255,0.65);
           white-space: nowrap;
         }
         .hp-code-input {
           width: 148px;
           padding: 10px 16px;
-          background: rgba(255,255,255,0.75);
-          border: 1.5px solid rgba(26,28,28,0.18);
+          background: rgba(255,255,255,0.15);
+          border: 1.5px solid rgba(255,255,255,0.3);
           border-radius: 9999px;
           font-family: var(--font-lexend), 'Lexend', sans-serif;
           font-size: 0.875rem;
@@ -318,29 +342,26 @@ export default function HomePage() {
           letter-spacing: 0.08em;
           transition: background 0.15s, border-color 0.15s, width 0.2s;
         }
-        .hp-code-input::placeholder { color: #72786E; letter-spacing: 0.04em; }
+        .hp-code-input::placeholder { color: rgba(255,255,255,0.45); letter-spacing: 0.04em; }
         .hp-code-input:focus {
-          background: #fff;
-          border-color: rgba(26,28,28,0.3);
+          background: rgba(255,255,255,0.22);
+          border-color: rgba(255,255,255,0.55);
           width: 180px;
           outline: none;
         }
         .hp-code-btn {
           padding: 10px 18px;
-          background: rgba(26,44,26,0.08);
-          border: 1.5px solid rgba(26,28,28,0.15);
+          background: rgba(255,255,255,0.12);
+          border: 1.5px solid rgba(255,255,255,0.25);
           border-radius: 9999px;
-          color: #1A2E1A;
+          color: #fff;
           font-size: 0.875rem;
           font-family: var(--font-lexend), 'Lexend', sans-serif;
           font-weight: 500;
           cursor: pointer;
           transition: background 0.15s;
         }
-        .hp-code-btn:hover { background: rgba(26,44,26,0.14); }
-
-        /* Hero image pane */
-        .hp-hero-image { position: relative; overflow: hidden; }
+        .hp-code-btn:hover { background: rgba(255,255,255,0.2); }
 
         /* ── Features / Bento ─────────────────────────────── */
         .hp-features {
@@ -388,24 +409,99 @@ export default function HomePage() {
           font-size: 0.875rem !important;
         }
 
+        /* ── Bento card overrides — brand fonts + colours ────── */
+        .hp-features .group h3 {
+          font-family: var(--font-manrope), 'Manrope', sans-serif !important;
+          font-weight: 700 !important;
+          font-size: 1.05rem !important;
+          color: #1A2E1A !important;
+          line-height: 1.25 !important;
+        }
+        .hp-features .group p {
+          font-family: var(--font-lexend), 'Lexend', sans-serif !important;
+          font-size: 0.8125rem !important;
+          font-weight: 400 !important;
+          color: #4A5E4A !important;
+          line-height: 1.55 !important;
+        }
+        .hp-features .group a, .hp-features .group button {
+          font-family: var(--font-lexend), 'Lexend', sans-serif !important;
+          font-size: 0.8125rem !important;
+          color: #0D631B !important;
+        }
+
         /* Bento card decorative backgrounds */
         .hp-bento-bg { position: absolute; inset: 0; pointer-events: none; }
+
+        /* Scoring — warm fresh green with bar chart */
         .hp-bento-bg-scoring {
-          background: linear-gradient(135deg, #E8F5ED 0%, #F4FAF6 60%, #F6FAF6 100%);
+          background: linear-gradient(160deg, #E2F0E4 0%, #F0F8F1 100%);
         }
         .hp-bento-bg-scoring::after {
           content: '';
           position: absolute;
-          bottom: 16px;
-          right: 20px;
-          width: 90px;
-          height: 56px;
-          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 90 56'%3E%3Crect x='0' y='28' width='14' height='28' rx='3' fill='%230D631B' opacity='.18'/%3E%3Crect x='19' y='18' width='14' height='38' rx='3' fill='%230D631B' opacity='.28'/%3E%3Crect x='38' y='6' width='14' height='50' rx='3' fill='%230D631B' opacity='.38'/%3E%3Crect x='57' y='16' width='14' height='40' rx='3' fill='%230D631B' opacity='.28'/%3E%3Crect x='76' y='10' width='14' height='46' rx='3' fill='%230D631B' opacity='.22'/%3E%3C/svg%3E") center / contain no-repeat;
+          bottom: 12px;
+          right: 16px;
+          width: 96px;
+          height: 60px;
+          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 60'%3E%3Crect x='0' y='32' width='14' height='28' rx='3' fill='%230D631B' opacity='.15'/%3E%3Crect x='20' y='20' width='14' height='40' rx='3' fill='%230D631B' opacity='.22'/%3E%3Crect x='40' y='8' width='14' height='52' rx='3' fill='%230D631B' opacity='.32'/%3E%3Crect x='60' y='16' width='14' height='44' rx='3' fill='%230D631B' opacity='.24'/%3E%3Crect x='80' y='10' width='14' height='50' rx='3' fill='%230D631B' opacity='.18'/%3E%3C/svg%3E") center / contain no-repeat;
         }
-        .hp-bento-bg-leaderboard { background: linear-gradient(135deg, #F0F4EC 0%, #E8F0E4 100%); }
-        .hp-bento-bg-events      { background: linear-gradient(135deg, #F6FAF6 0%, #EDF4EE 100%); }
-        .hp-bento-bg-tournaments { background: linear-gradient(135deg, #F2F7F2 0%, #E8F0E4 100%); }
-        .hp-bento-bg-handicap    { background: linear-gradient(135deg, #F6FAF6 0%, #EDF5ED 100%); }
+
+        /* Leaderboard — deeper teal-green with podium */
+        .hp-bento-bg-leaderboard {
+          background: linear-gradient(160deg, #D8EAD9 0%, #EAF3EB 100%);
+        }
+        .hp-bento-bg-leaderboard::after {
+          content: '';
+          position: absolute;
+          bottom: 12px;
+          right: 16px;
+          width: 72px;
+          height: 56px;
+          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 56'%3E%3Crect x='24' y='8' width='24' height='48' rx='3' fill='%230D631B' opacity='.28'/%3E%3Crect x='0' y='22' width='22' height='34' rx='3' fill='%230D631B' opacity='.18'/%3E%3Crect x='50' y='30' width='22' height='26' rx='3' fill='%230D631B' opacity='.14'/%3E%3C/svg%3E") center / contain no-repeat;
+        }
+
+        /* Events — sage with calendar dots */
+        .hp-bento-bg-events {
+          background: linear-gradient(160deg, #E4EDE5 0%, #F2F7F2 100%);
+        }
+        .hp-bento-bg-events::after {
+          content: '';
+          position: absolute;
+          bottom: 12px;
+          right: 16px;
+          width: 60px;
+          height: 60px;
+          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Crect x='0' y='10' width='60' height='50' rx='6' fill='none' stroke='%230D631B' stroke-width='2.5' opacity='.2'/%3E%3Crect x='0' y='10' width='60' height='16' rx='6' fill='%230D631B' opacity='.12'/%3E%3Ccircle cx='14' cy='42' r='4' fill='%230D631B' opacity='.22'/%3E%3Ccircle cx='30' cy='42' r='4' fill='%230D631B' opacity='.22'/%3E%3Ccircle cx='46' cy='42' r='4' fill='%230D631B' opacity='.14'/%3E%3Ccircle cx='14' cy='55' r='4' fill='%230D631B' opacity='.14'/%3E%3Ccircle cx='30' cy='55' r='4' fill='%230D631B' opacity='.22'/%3E%3C/svg%3E") center / contain no-repeat;
+        }
+
+        /* Tournaments — richest green, trophy silhouette */
+        .hp-bento-bg-tournaments {
+          background: linear-gradient(160deg, #D2E6D4 0%, #E6F0E7 100%);
+        }
+        .hp-bento-bg-tournaments::after {
+          content: '';
+          position: absolute;
+          bottom: 10px;
+          right: 16px;
+          width: 48px;
+          height: 60px;
+          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 60'%3E%3Cpath d='M8 4h32v18c0 10-6 16-16 18C14 38 8 32 8 22V4z' fill='%230D631B' opacity='.2'/%3E%3Crect x='18' y='40' width='12' height='8' rx='2' fill='%230D631B' opacity='.18'/%3E%3Crect x='10' y='48' width='28' height='6' rx='3' fill='%230D631B' opacity='.22'/%3E%3Cpath d='M8 10 C0 10 0 22 8 22' stroke='%230D631B' stroke-width='2.5' fill='none' opacity='.18'/%3E%3Cpath d='M40 10 C48 10 48 22 40 22' stroke='%230D631B' stroke-width='2.5' fill='none' opacity='.18'/%3E%3C/svg%3E") center / contain no-repeat;
+        }
+
+        /* Handicap — lightest, trending line */
+        .hp-bento-bg-handicap {
+          background: linear-gradient(160deg, #E8F2E9 0%, #F4FAF5 100%);
+        }
+        .hp-bento-bg-handicap::after {
+          content: '';
+          position: absolute;
+          bottom: 12px;
+          right: 16px;
+          width: 80px;
+          height: 48px;
+          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 48'%3E%3Cpolyline points='0,40 20,28 40,32 60,14 80,8' fill='none' stroke='%230D631B' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' opacity='.28'/%3E%3Ccircle cx='80' cy='8' r='4' fill='%230D631B' opacity='.32'/%3E%3C/svg%3E") center / contain no-repeat;
+        }
 
         /* ── Stats ────────────────────────────────────────── */
         .hp-stats { background: #1A2E1A; padding: 5rem 44px; }
@@ -484,9 +580,7 @@ export default function HomePage() {
         }
         @media (max-width: 768px) {
           .hp-nav { padding: 0 24px; }
-          .hp-hero { grid-template-columns: 1fr; min-height: auto; }
-          .hp-hero-text { padding: 3rem 24px; }
-          .hp-hero-image { height: 56vw; min-height: 220px; max-height: 380px; }
+          .hp-hero-text { padding: 7rem 24px 4rem; max-width: 100%; }
           .hp-hero-ctas { flex-direction: column; align-items: flex-start; }
           .hp-btn-primary, .hp-btn-secondary { width: 100%; justify-content: center !important; }
           .hp-features { padding: 4rem 24px; }
@@ -520,8 +614,23 @@ export default function HomePage() {
         </nav>
       </header>
 
-      {/* Hero — structured two-column, no text over image */}
+      {/* Hero — full-bleed image with gradient overlay */}
       <section className="hp-hero">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/hero.jpg"
+          alt=""
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center',
+          }}
+        />
+        <div className="hp-hero-overlay" aria-hidden="true" />
         <div className="hp-hero-text">
           <span className="hp-hero-eyebrow">Golf scoring &amp; society management</span>
           <h1>One place for every golfer, every society, every club.</h1>
@@ -556,18 +665,6 @@ export default function HomePage() {
           )}
         </div>
 
-        {/* Decorative image — no text overlaid */}
-        <div className="hp-hero-image" aria-hidden="true">
-          <Image
-            src="/hero.jpg"
-            alt=""
-            fill
-            priority
-            style={{ objectFit: 'cover' }}
-            sizes="50vw"
-            quality={90}
-          />
-        </div>
       </section>
 
       {/* Features — bento grid */}

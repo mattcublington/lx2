@@ -33,6 +33,8 @@ Start a server: use the `.claude/launch.json` configurations, not `cd && npm run
 
 ## Design system — DO NOT DEVIATE FROM THIS
 
+Before making any UI or design decision, read `.claude/skills/ui-ux-pro-max/design-system/OVERRIDES.md`. That file is the canonical source of brand constraints and takes absolute priority over any design tool suggestions.
+
 ### Fonts
 
 Use only these fonts. Do not introduce new typefaces.
@@ -84,7 +86,7 @@ No gold, ivory, warm-cream, brass, or off-palette accent colours.
 - All form sections on the same page must use the same card/container treatment — no mixing card-wrapped and unwrapped fields
 - Stepper/progress components must have equal spacing above and below (minimum 16px each side)
 - Type hierarchy: maximum two heading levels per screen — section title (DM Serif Display) and field labels (DM Sans). No mixing serif/sans-serif for headings on the same screen.
-- Hero banners are decorative only — no interactive elements or titles overlaid on images
+- App page hero banners are decorative only — no interactive elements or titles overlaid on images (this rule does NOT apply to the marketing homepage, which uses a full-bleed hero image with text overlay by design)
 - All content must align to the same left margin within a screen — no elements with different indents unless inside a nested card
 - Vertical spacing between sections must be consistent (use spacing scale from tokens.ts)
 - Form labels sit directly above their inputs with 4px gap, section titles have 16px gap to their first field
