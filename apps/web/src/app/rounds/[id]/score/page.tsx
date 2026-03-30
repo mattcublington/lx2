@@ -18,6 +18,13 @@ export interface GroupPlayer {
   handicapIndex: number
   isCurrentUser: boolean
   initialScores: Record<number, number | null>  // hole_number → gross_strokes (null = pickup)
+  flightNumber: number | null
+}
+
+export interface EventGroup {
+  flightNumber: number
+  label: string
+  playerNames: string[]
 }
 
 interface PageProps {
@@ -326,17 +333,17 @@ export default async function ScorePage({ params, searchParams }: PageProps) {
     initialPickups[row.hole_number] = row.gross_strokes === null
   }
 
-  // ── 5. All players in this event (for live leaderboard) ────────────────────
-  // First, get the current player's flight_number to filter by group
+  // ── 5. All players in this event (all groups for group switcher) ────────────
   const { data: currentEpFlight } = await supabase
     .from('event_players')
     .select('flight_number')
     .eq('id', ep.id)
     .single()
 
-  const myFlightNumber = currentEpFlight?.flight_number ?? null
+  const myFlightNumber = (currentEpFlight?.flight_number as number | null) ?? null
 
-  let eventPlayersQuery = supabase
+  // Fetch ALL event players (not filtered by group — needed for group switcher)
+  const { data: allEventPlayers } = await supabase
     .from('event_players')
     .select(`
       id,
@@ -351,17 +358,14 @@ export default async function ScorePage({ params, searchParams }: PageProps) {
     `)
     .eq('event_id', scorecard.event_id)
 
-  // If the player has a group assignment, only show players in the same group
-  if (myFlightNumber !== null) {
-    eventPlayersQuery = eventPlayersQuery.eq('flight_number', myFlightNumber)
-  }
-
-  const { data: allEventPlayers } = await eventPlayersQuery
+  // Fetch event groups for labels
+  const { data: eventGroups } = await supabase
+    .from('event_groups')
+    .select('flight_number, label')
+    .eq('event_id', scorecard.event_id)
+    .order('flight_number')
 
   // Normalise into a flat shape ScoreEntryLive can consume.
-  // isCurrentUser is based on the event_player's user_id matching the
-  // authenticated user — NOT on which scorecard URL we're currently on.
-  // This stays correct when the organiser navigates to another player's URL.
   const groupPlayers: GroupPlayer[] = (allEventPlayers ?? []).map(p => {
     const scorecards = p.scorecards as unknown as { id: string; hole_scores: { hole_number: number; gross_strokes: number | null }[] }[] | null
     const sc = (scorecards ?? [])[0]
@@ -375,6 +379,18 @@ export default async function ScorePage({ params, searchParams }: PageProps) {
       handicapIndex: Number(p.handicap_index),
       isCurrentUser: (p as unknown as { user_id: string | null }).user_id === user.id,
       initialScores: scores,
+      flightNumber: (p.flight_number as number | null) ?? null,
+    }
+  })
+
+  // Build groups list for the group switcher
+  const groups: EventGroup[] = (eventGroups ?? []).map(g => {
+    const fn = g.flight_number as number
+    const playersInGroup = groupPlayers.filter(p => p.flightNumber === fn)
+    return {
+      flightNumber: fn,
+      label: (g.label as string | null) ?? `Group ${fn}`,
+      playerNames: playersInGroup.map(p => p.displayName),
     }
   })
 
@@ -413,6 +429,8 @@ export default async function ScorePage({ params, searchParams }: PageProps) {
       initialHole={initialHole}
       {...(event.share_code ? { shareCode: event.share_code } : {})}
       isOrganiser={event.created_by === user.id}
+      myFlightNumber={myFlightNumber}
+      allGroups={groups}
     />
   )
 }

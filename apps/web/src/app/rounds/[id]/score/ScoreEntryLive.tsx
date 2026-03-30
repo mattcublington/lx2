@@ -3,7 +3,7 @@ import { useState, useReducer, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import { PLAYER_COLOURS } from '@/lib/player-colours'
-import type { ScoringHole, GroupPlayer } from './page'
+import type { ScoringHole, GroupPlayer, EventGroup } from './page'
 import { enqueueScore, getQueuedScores, deleteQueuedScore, migrateFromLocalStorage } from '@/lib/offline-queue'
 import { markRoundComplete } from '@/app/play/round-actions'
 
@@ -33,6 +33,8 @@ export interface Props {
   initialHole?: number
   shareCode?: string
   isOrganiser?: boolean
+  myFlightNumber?: number | null
+  allGroups?: EventGroup[]
 }
 
 interface State {
@@ -687,6 +689,59 @@ const STYLES = `
   }
   .sc-cancel-btn:hover { background: #F0F4EC; }
 
+  /* ── Group switcher ─────────────────────────────────────── */
+  .sc-groups {
+    padding: 0.5rem 1.25rem 0.75rem;
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .sc-groups::-webkit-scrollbar { display: none; }
+  .sc-group-tab {
+    flex-shrink: 0;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    border: 1.5px solid #E0EBE0;
+    background: #FFFFFF;
+    font-family: var(--font-lexend), 'Lexend', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #44483E;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .sc-group-tab:hover { border-color: rgba(13,99,27,0.4); }
+  .sc-group-tab.active {
+    background: #0D631B;
+    border-color: #0D631B;
+    color: #FFFFFF;
+    font-weight: 600;
+  }
+  .sc-group-tab .sc-group-names {
+    display: block;
+    font-size: 0.625rem;
+    font-weight: 400;
+    opacity: 0.7;
+    margin-top: 1px;
+  }
+  .sc-readonly-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-left: 1.25rem;
+    margin-bottom: 0.5rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 8px;
+    background: rgba(13,99,27,0.08);
+    font-family: var(--font-lexend), 'Lexend', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: #6B8C6B;
+  }
+
   /* ── Contest overlay (NTP / LD) ────────────────────────── */
   .sc-contest-modal {
     background: #FFFFFF;
@@ -985,7 +1040,7 @@ export default function ScoreEntryLive(props: Props) {
     scorecardId, eventId, playerName, handicapIndex, format, allowancePct,
     holes, initialScores, initialPickups, ntpHoles, ldHoles, eventPlayerId,
     selectedTee, eventName, eventDate, groupPlayers, initialHole = 0,
-    shareCode, isOrganiser,
+    shareCode, isOrganiser, myFlightNumber, allGroups = [],
   } = props
 
   const router = useRouter()
@@ -1019,6 +1074,7 @@ export default function ScoreEntryLive(props: Props) {
   const [cardView, setCardView] = useState<'front9' | 'back9' | 'all18'>('front9')
   const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [codeCopied, setCodeCopied] = useState(false)
+  const [activeGroup, setActiveGroup] = useState<number | null>(myFlightNumber ?? null)
 
   const autoAdvanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const autoAdvancedHoles = useRef<Set<number>>(new Set())
@@ -1304,10 +1360,19 @@ export default function ScoreEntryLive(props: Props) {
     isScored: (s.scores[h.holeInRound] != null || (s.pickups[h.holeInRound] ?? false)) && (winStart + vi !== s.hole),
   }))
 
+  // Filter players by active group (if groups exist)
+  const hasGroups = allGroups.length > 1
+  const visiblePlayers = hasGroups && activeGroup !== null
+    ? groupPlayers.filter(p => p.flightNumber === activeGroup)
+    : groupPlayers
+
+  // Whether we're viewing a group we can score (our own group or we're organiser)
+  const canScoreActiveGroup = isOrganiser || activeGroup === null || activeGroup === myFlightNumber
+
   // Player order: current user first, then others
   const orderedPlayers = [
-    ...groupPlayers.filter(p => p.isCurrentUser && p.scorecardId),
-    ...groupPlayers.filter(p => !p.isCurrentUser && p.scorecardId),
+    ...visiblePlayers.filter(p => p.isCurrentUser && p.scorecardId),
+    ...visiblePlayers.filter(p => !p.isCurrentUser && p.scorecardId),
   ]
 
   const modalPlayer = scoreModalId ? groupPlayers.find(p => p.scorecardId === scoreModalId) : null
@@ -1552,6 +1617,32 @@ export default function ScoreEntryLive(props: Props) {
             </button>
           </div>
         </div>
+
+        {/* ── Group switcher ── */}
+        {hasGroups && (
+          <>
+            <div className="sc-groups">
+              {allGroups.map(g => {
+                const names = g.playerNames.map(n => n.split(' ')[0]).join(', ')
+                return (
+                  <button
+                    key={g.flightNumber}
+                    className={`sc-group-tab${activeGroup === g.flightNumber ? ' active' : ''}`}
+                    onClick={() => setActiveGroup(g.flightNumber)}
+                  >
+                    {g.label}
+                    <span className="sc-group-names">{names}</span>
+                  </button>
+                )
+              })}
+            </div>
+            {!canScoreActiveGroup && (
+              <div className="sc-readonly-badge">
+                👁 Viewing only
+              </div>
+            )}
+          </>
+        )}
 
         {/* ── Hole navigation ── */}
         <div className="sc-nav">
