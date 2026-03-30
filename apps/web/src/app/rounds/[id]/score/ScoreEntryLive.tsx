@@ -6,6 +6,15 @@ import { PLAYER_COLOURS } from '@/lib/player-colours'
 import type { ScoringHole, GroupPlayer, EventGroup } from './page'
 import { enqueueScore, getQueuedScores, deleteQueuedScore, migrateFromLocalStorage } from '@/lib/offline-queue'
 import { markRoundComplete } from '@/app/play/round-actions'
+import {
+  allocateStrokes,
+  pts,
+  ptsLabel,
+  strokeResult,
+  scoreReducer,
+  type ScoreState as State,
+  type ScoreAction as Action,
+} from '@/lib/score-entry-helpers'
 
 // Prevents concurrent drain runs per scorecard.
 const draining = new Set<string>()
@@ -37,97 +46,9 @@ export interface Props {
   allGroups?: EventGroup[]
 }
 
-interface State {
-  hole: number
-  scores: Record<number, number | null>
-  pickups: Record<number, boolean>
-  showNTP: boolean
-  ntpResults: Record<number, string>
-  ldResults: Record<number, string>
-  showCard: boolean
-}
+// ─── Reducer alias (scoreReducer imported from @/lib/score-entry-helpers) ─────
 
-type Action =
-  | { type: 'SCORE'; holeInRound: number; v: number }
-  | { type: 'PICKUP'; holeInRound: number }
-  | { type: 'UNDO'; holeInRound: number }
-  | { type: 'SET_HOLE'; idx: number }
-  | { type: 'NEXT'; maxIdx: number }
-  | { type: 'SKIP_C'; maxIdx: number }
-  | { type: 'SAVE_C'; ct: 'ntp' | 'ld'; holeNum: number; dist: string; maxIdx: number }
-  | { type: 'TOGGLE_CARD' }
-
-// ─── Pure helpers ─────────────────────────────────────────────────────────────
-
-function allocateStrokes(hc: number, holes: ScoringHole[]): Record<number, number> {
-  const result: Record<number, number> = {}
-  for (const h of holes) result[h.holeInRound] = 0
-  const order = holes
-    .filter(h => h.siM !== null)
-    .map(h => ({ hir: h.holeInRound, si: h.siM! }))
-    .sort((a, b) => a.si - b.si)
-  let remaining = hc
-  while (remaining > 0) {
-    for (const o of order) {
-      if (remaining <= 0) break
-      result[o.hir] = (result[o.hir] ?? 0) + 1
-      remaining--
-    }
-  }
-  return result
-}
-
-function pts(gross: number, par: number, hcShots: number): number {
-  const d = (gross - hcShots) - par
-  return d >= 2 ? 0 : d === 1 ? 1 : d === 0 ? 2 : d === -1 ? 3 : d === -2 ? 4 : 5
-}
-
-function ptsLabel(p: number, gross: number, par: number, hcShots: number): string {
-  const net = gross - hcShots
-  const diff = net - par
-  const term = diff <= -3 ? 'albatross'
-    : diff === -2 ? 'eagle'
-    : diff === -1 ? 'birdie'
-    : diff === 0 ? 'par'
-    : diff === 1 ? 'bogey'
-    : diff === 2 ? 'double'
-    : 'triple+'
-  if (p === 0) return `blob · net ${net}`
-  return `${p === 1 ? '1pt' : p + 'pts'} · net ${term}`
-}
-
-function strokeResult(gross: number, par: number): string {
-  const diff = gross - par
-  if (diff <= -3) return 'Albatross'
-  if (diff === -2) return 'Eagle'
-  if (diff === -1) return 'Birdie'
-  if (diff === 0) return 'Par'
-  if (diff === 1) return 'Bogey'
-  if (diff === 2) return 'Double'
-  return `+${diff}`
-}
-
-// ─── Reducer ─────────────────────────────────────────────────────────────────
-
-function reducer(s: State, a: Action): State {
-  switch (a.type) {
-    case 'SCORE':
-      return { ...s, scores: { ...s.scores, [a.holeInRound]: a.v }, pickups: { ...s.pickups, [a.holeInRound]: false } }
-    case 'PICKUP':
-      return { ...s, scores: { ...s.scores, [a.holeInRound]: null }, pickups: { ...s.pickups, [a.holeInRound]: true } }
-    case 'UNDO':
-      return { ...s, scores: { ...s.scores, [a.holeInRound]: null }, pickups: { ...s.pickups, [a.holeInRound]: false } }
-    case 'SET_HOLE': return { ...s, hole: a.idx, showNTP: false }
-    case 'NEXT': return { ...s, hole: Math.min(a.maxIdx, s.hole + 1), showNTP: false }
-    case 'SKIP_C': return { ...s, showNTP: false, hole: Math.min(a.maxIdx, s.hole + 1) }
-    case 'SAVE_C': {
-      const k = a.ct === 'ntp' ? 'ntpResults' : 'ldResults'
-      return { ...s, [k]: { ...s[k], [a.holeNum]: a.dist }, showNTP: false, hole: Math.min(a.maxIdx, s.hole + 1) }
-    }
-    case 'TOGGLE_CARD': return { ...s, showCard: !s.showCard }
-    default: return s
-  }
-}
+const reducer = scoreReducer
 
 // ─── CSS ──────────────────────────────────────────────────────────────────────
 

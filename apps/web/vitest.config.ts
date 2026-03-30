@@ -10,6 +10,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      // Resolve workspace packages from TypeScript source so vitest doesn't need compiled dist/
+      '@lx2/leaderboard': path.resolve(__dirname, '../../packages/leaderboard/src/index.ts'),
+      '@lx2/scoring': path.resolve(__dirname, '../../packages/scoring/src/index.ts'),
     },
   },
 })
