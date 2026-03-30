@@ -440,7 +440,7 @@ export default function HomePage() {
         .hp-bento-bg-scoring::after {
           content: '';
           position: absolute;
-          bottom: 12px;
+          top: 16px;
           right: 16px;
           width: 96px;
           height: 60px;
@@ -454,7 +454,7 @@ export default function HomePage() {
         .hp-bento-bg-leaderboard::after {
           content: '';
           position: absolute;
-          bottom: 12px;
+          top: 16px;
           right: 16px;
           width: 72px;
           height: 56px;
@@ -468,7 +468,7 @@ export default function HomePage() {
         .hp-bento-bg-events::after {
           content: '';
           position: absolute;
-          bottom: 12px;
+          top: 16px;
           right: 16px;
           width: 60px;
           height: 60px;
@@ -482,7 +482,7 @@ export default function HomePage() {
         .hp-bento-bg-tournaments::after {
           content: '';
           position: absolute;
-          bottom: 10px;
+          top: 16px;
           right: 16px;
           width: 48px;
           height: 60px;
@@ -496,7 +496,7 @@ export default function HomePage() {
         .hp-bento-bg-handicap::after {
           content: '';
           position: absolute;
-          bottom: 12px;
+          top: 16px;
           right: 16px;
           width: 80px;
           height: 48px;
@@ -690,22 +690,22 @@ export default function HomePage() {
       {/* Stats — factual counters only */}
       <section className="hp-stats">
         <div className="hp-stats-inner">
-          <p className="hp-stats-lead">Built for societies of every size</p>
+          <p className="hp-stats-lead">Built for you</p>
           <div className="hp-stats-grid">
             <StatCounter
-              value={3}
-              label="Scoring formats"
-              sublabel="Stableford · Stroke Play · Match Play"
+              value={6}
+              label="Competition formats"
+              sublabel="Stableford · Stroke Play · Better Ball · Scramble · Skins · Red vs Blue"
             />
             <StatCounter
-              value={18}
-              label="Holes per round"
-              sublabel="Full 18-hole and 9-hole rounds supported"
+              value={0}
+              label="Accounts needed to play"
+              sublabel="Players join any event with a code — no sign-up, no friction"
             />
             <StatCounter
-              value={4}
-              label="Players per group"
-              sublabel="Groups of 2, 3, or 4 supported"
+              value={1}
+              label="Link to share your leaderboard"
+              sublabel="A live, public leaderboard anyone can follow from any device"
             />
           </div>
         </div>
