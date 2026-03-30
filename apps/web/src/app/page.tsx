@@ -706,9 +706,9 @@ export default function HomePage() {
               sublabel="Players join any event with a code — no sign-up, no friction"
             />
             <StatCounter
-              value={1}
-              label="Link to share your leaderboard"
-              sublabel="A live, public leaderboard anyone can follow from any device"
+              value={18}
+              label="Holes tracked live, hole by hole"
+              sublabel="Every score syncs instantly — players, spectators and the TV leaderboard update in real time"
             />
           </div>
         </div>
@@ -723,7 +723,7 @@ export default function HomePage() {
             alt="LX2"
             height={96}
             width={192}
-            style={{ height: '30px', width: 'auto', opacity: 0.45 }}
+            style={{ height: '30px', width: 'auto', opacity: 0.65 }}
           />
         </Link>
       </footer>
