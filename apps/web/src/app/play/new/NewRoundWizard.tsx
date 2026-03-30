@@ -718,8 +718,40 @@ function PlayersStep({
                         }}>
                           {player.name}
                         </div>
-                        <div style={{ fontFamily: font.body, fontSize: 12, color: '#6B8C6B' }}>
-                          PHCP: <strong style={{ color: FE.onPrimary }}>{player.handicapIndex || '\u2014'}</strong>
+                        <div style={{ fontFamily: font.body, fontSize: 12, color: '#6B8C6B', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          HCP:
+                          <input
+                            type="number"
+                            value={player.handicapIndex}
+                            onChange={e => {
+                              const val = e.target.value
+                              const num = parseFloat(val)
+                              if (val !== '' && (isNaN(num) || num < 0 || num > 54)) return
+                              const updated = [...players]
+                              updated[pIdx] = { ...player, handicapIndex: val }
+                              onChange(updated)
+                            }}
+                            placeholder="Enter handicap"
+                            min={0}
+                            max={54}
+                            step={0.1}
+                            style={{
+                              width: 56,
+                              padding: '2px 4px',
+                              border: '1px solid #E0EBE0',
+                              borderRadius: 6,
+                              fontFamily: font.body,
+                              fontSize: 12,
+                              fontWeight: 600,
+                              color: FE.onPrimary,
+                              background: '#FAFCFA',
+                              outline: 'none',
+                              textAlign: 'center',
+                              MozAppearance: 'textfield',
+                            }}
+                            onFocus={e => { e.currentTarget.style.borderColor = FE.greenDark; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(13,99,27,0.1)' }}
+                            onBlur={e => { e.currentTarget.style.borderColor = '#E0EBE0'; e.currentTarget.style.boxShadow = 'none' }}
+                          />
                         </div>
                       </div>
                     )
@@ -1645,7 +1677,7 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
     startTransition(async () => {
       try {
         const activePlayers = state.players
-          .filter(p => p.isUser || (p.name.trim() !== '' && p.handicapIndex !== ''))
+          .filter(p => p.isUser || p.name.trim() !== '')
           .map(p => ({
             name: p.name.trim(),
             handicapIndex: parseFloat(p.handicapIndex) || 0,
@@ -1665,7 +1697,7 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
         const rawToActive = new Map<number, number>()
         let activeIdx = 0
         state.players.forEach((p, rawIdx) => {
-          if (p.isUser || (p.name.trim() !== '' && p.handicapIndex !== '')) {
+          if (p.isUser || p.name.trim() !== '') {
             rawToActive.set(rawIdx, activeIdx++)
           }
         })
