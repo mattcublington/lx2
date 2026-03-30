@@ -9,7 +9,7 @@ export function LiveIndicator({ connected }: LiveIndicatorProps) {
         width: 8,
         height: 8,
         borderRadius: '50%',
-        background: connected ? '#22c55e' : '#9ca3af',
+        background: connected ? '#0D631B' : '#9ca3af',
         display: 'inline-block',
         flexShrink: 0,
         animation: connected ? 'pulse-dot 2s ease-in-out infinite' : 'none',

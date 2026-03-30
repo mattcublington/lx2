@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
-import BottomNav from '@/components/BottomNav'
 
 export default async function SocietyPage() {
   const supabase = await createClient()
@@ -89,8 +88,6 @@ export default async function SocietyPage() {
           </p>
         </main>
       </div>
-
-      <BottomNav active="home" />
     </>
   )
 }

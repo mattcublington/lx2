@@ -36,7 +36,6 @@ interface Props {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function NewEventWizard({
-  displayName: _displayName,
   handicapIndex,
   combinations,
   combinationTees,
