@@ -352,7 +352,8 @@ export default async function TournamentOverviewPage({ params }: PageProps) {
           margin-bottom: 4px;
         }
         .to-round-name {
-          font-family: var(--font-dm-serif), serif;
+          font-family: var(--font-dm-sans), sans-serif;
+          font-weight: 600;
           font-size: 1rem; color: #1A2E1A;
           margin-bottom: 6px;
         }

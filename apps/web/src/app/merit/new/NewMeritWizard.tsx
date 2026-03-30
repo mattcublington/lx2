@@ -750,7 +750,7 @@ export default function NewMeritWizard({ displayName: _displayName, events, tour
 
               {/* Settings summary */}
               <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #E0EBE0', padding: '24px' }}>
-                <div style={{ fontFamily: 'var(--font-dm-serif), serif', fontSize: '1.125rem', color: '#1A2E1A', marginBottom: 16 }}>
+                <div style={{ fontFamily: 'var(--font-dm-sans), sans-serif', fontWeight: 700, fontSize: '1.125rem', color: '#1A2E1A', marginBottom: 16 }}>
                   Settings
                 </div>
                 <div className="summary-row">
@@ -775,7 +775,7 @@ export default function NewMeritWizard({ displayName: _displayName, events, tour
 
               {/* Points template summary */}
               <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #E0EBE0', padding: '24px' }}>
-                <div style={{ fontFamily: 'var(--font-dm-serif), serif', fontSize: '1.125rem', color: '#1A2E1A', marginBottom: 16 }}>
+                <div style={{ fontFamily: 'var(--font-dm-sans), sans-serif', fontWeight: 700, fontSize: '1.125rem', color: '#1A2E1A', marginBottom: 16 }}>
                   Points Template
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -796,7 +796,7 @@ export default function NewMeritWizard({ displayName: _displayName, events, tour
 
               {/* Entries summary */}
               <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #E0EBE0', padding: '24px' }}>
-                <div style={{ fontFamily: 'var(--font-dm-serif), serif', fontSize: '1.125rem', color: '#1A2E1A', marginBottom: 16 }}>
+                <div style={{ fontFamily: 'var(--font-dm-sans), sans-serif', fontWeight: 700, fontSize: '1.125rem', color: '#1A2E1A', marginBottom: 16 }}>
                   Included Events ({entries.length})
                 </div>
                 {entries.length === 0 ? (

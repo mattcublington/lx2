@@ -186,7 +186,8 @@ export default async function ManagePage({ params }: PageProps) {
           font-family: var(--font-dm-sans), sans-serif;
         }
         .mg-tournament-ctx-name {
-          font-family: var(--font-dm-serif), serif;
+          font-family: var(--font-dm-sans), sans-serif;
+          font-weight: 600;
           font-size: 0.9375rem; color: #1A2E1A;
         }
         .mg-tournament-ctx-link {

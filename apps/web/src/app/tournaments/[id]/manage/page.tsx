@@ -162,7 +162,8 @@ export default async function TournamentManagePage({ params }: PageProps) {
           text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;
         }
         .mg-round-name {
-          font-family: var(--font-dm-serif), serif;
+          font-family: var(--font-dm-sans), sans-serif;
+          font-weight: 600;
           font-size: 0.9375rem; color: #1A2E1A; margin-bottom: 4px;
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }

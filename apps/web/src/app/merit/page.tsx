@@ -176,7 +176,8 @@ export default async function MeritPage() {
         }
         .om-card-info { flex: 1; min-width: 0; }
         .om-card-name {
-          font-family: var(--font-dm-serif), serif;
+          font-family: var(--font-dm-sans), sans-serif;
+          font-weight: 600;
           font-size: 1rem;
           color: #1A2E1A;
           margin-bottom: 0.3rem;
