@@ -12,8 +12,6 @@ import {
   ptsLabel,
   strokeResult,
   scoreReducer,
-  type ScoreState as State,
-  type ScoreAction as Action,
 } from '@/lib/score-entry-helpers'
 
 // Prevents concurrent drain runs per scorecard.

@@ -5,7 +5,7 @@
  * Uses the saved auth state from global-setup.ts.
  * Note: the final "Start round" click creates a real round in the test database.
  */
-import { test, expect, type Page } from '@playwright/test'
+import { test, expect } from '@playwright/test'
 
 test.describe('new round wizard — full flow', () => {
   test('navigates through all steps and reaches the settings page', async ({ page }) => {
@@ -103,8 +103,6 @@ test.describe('new round wizard — full flow', () => {
 // ─── Start round — creates real data in test DB ───────────────────────────────
 
 test.describe('new round wizard — start round', () => {
-  let startedRoundUrl: string
-
   test('completing the wizard redirects to the score entry page', async ({ page }) => {
     await page.goto('/play/new')
 
@@ -132,7 +130,6 @@ test.describe('new round wizard — start round', () => {
 
     // Should redirect to /rounds/<id>/score or /play
     await expect(page).toHaveURL(/\/rounds\/[^/]+\/score|\/play/, { timeout: 15_000 })
-    startedRoundUrl = page.url()
   })
 
   test('started round is accessible via /play dashboard', async ({ page }) => {
