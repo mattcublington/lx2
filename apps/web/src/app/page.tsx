@@ -4,7 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { animate, useMotionValue } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
-import { Activity, Trophy, Users, CalendarDays, LayoutDashboard } from 'lucide-react'
+import { Activity, Users, CalendarDays, LayoutDashboard } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { BentoCard, BentoGrid } from '@/components/ui/bento-grid'
@@ -61,23 +61,13 @@ const FEATURES: Array<{
 }> = [
   {
     Icon: Activity,
-    name: 'Live Scoring',
+    name: 'Live Scoring & Leaderboards',
     description:
-      'Score hole by hole on any device. Scores sync instantly across everyone in the group — no refreshing needed.',
+      'Score hole by hole on any device. Real-time standings update as scores come in — share the leaderboard link with anyone.',
     href: '/auth/signup',
     cta: 'Start scoring',
-    className: 'col-span-3 md:col-span-2',
+    className: 'col-span-1',
     background: <div className="hp-bento-bg hp-bento-bg-scoring" />,
-  },
-  {
-    Icon: Trophy,
-    name: 'Live Leaderboards',
-    description:
-      'Real-time standings update as scores come in. Share the leaderboard link with anyone.',
-    href: '/auth/signup',
-    cta: 'See how it works',
-    className: 'col-span-3 md:col-span-1',
-    background: <div className="hp-bento-bg hp-bento-bg-leaderboard" />,
   },
   {
     Icon: Users,
@@ -86,7 +76,7 @@ const FEATURES: Array<{
       'Create events in minutes. Set format, contests, and entry fee. Players join with a code — no accounts required.',
     href: '/auth/signup',
     cta: 'Create an event',
-    className: 'col-span-3 md:col-span-1',
+    className: 'col-span-1',
     background: <div className="hp-bento-bg hp-bento-bg-events" />,
   },
   {
@@ -96,7 +86,7 @@ const FEATURES: Array<{
       'Run multi-round tournaments with automatic stroke index allocation, group draws, and cumulative standings.',
     href: '/auth/signup',
     cta: 'Learn more',
-    className: 'col-span-3 md:col-span-1',
+    className: 'col-span-1',
     background: <div className="hp-bento-bg hp-bento-bg-tournaments" />,
   },
   {
@@ -106,7 +96,7 @@ const FEATURES: Array<{
       'Organisers get a dedicated dashboard to manage members, publish results, and run competitions — all from one place.',
     href: 'https://club.lx2.golf',
     cta: 'Explore Club Portal',
-    className: 'col-span-3 md:col-span-1',
+    className: 'col-span-1',
     background: <div className="hp-bento-bg hp-bento-bg-club" />,
   },
 ]
@@ -217,17 +207,28 @@ export default function HomePage() {
           position: relative;
           z-index: 2;
           width: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 8rem 44px 4rem;
+          opacity: 0;
+          animation: hp-rise 0.6s ease forwards 0.1s;
         }
         .hp-hero-text {
           display: flex;
           flex-direction: column;
-          justify-content: center;
-          max-width: 640px;
-          padding: 8rem 3.5rem 5rem 5rem;
-          opacity: 0;
-          animation: hp-rise 0.6s ease forwards 0.1s;
+          align-items: center;
+          text-align: center;
+          max-width: 720px;
         }
-        .hp-hero-right { display: none; }
+        .hp-hero-cards {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 16px;
+          margin-top: 2.5rem;
+          width: 100%;
+          max-width: 960px;
+        }
 
         /* ── Desktop hero audience cards ──────────────────── */
         .hp-audience-card {
@@ -638,31 +639,15 @@ export default function HomePage() {
         }
 
         /* ── Responsive ──────────────────────────────────── */
-        @media (min-width: 1024px) {
-          .hp-hero-content {
-            display: grid;
-            grid-template-columns: 55fr 45fr;
-            align-items: center;
-            max-width: 1400px;
-            margin: 0 auto;
-          }
-          .hp-hero-text { padding: 8rem 2rem 5rem 44px; }
-          .hp-hero-right {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            padding: 8rem 44px 5rem 2rem;
-            opacity: 0;
-            animation: hp-rise 0.6s ease forwards 0.3s;
-          }
+        @media (min-width: 769px) {
           .hp-btn-link { width: auto; }
-        }
-        @media (max-width: 1023px) {
-          .hp-hero-text { padding: 4rem 2.5rem 4rem 3.5rem; }
+          .hp-hero-ctas { justify-content: center; }
         }
         @media (max-width: 768px) {
           .hp-nav { padding: 0 24px; }
-          .hp-hero-text { padding: 7rem 24px 4rem; max-width: 100%; text-align: center; }
+          .hp-hero-content { padding: 7rem 24px 3rem; }
+          .hp-hero-text { max-width: 100%; }
+          .hp-hero-cards { grid-template-columns: 1fr; }
           .hp-hero-ctas { flex-direction: column; align-items: center; }
           .hp-btn-primary, .hp-btn-secondary { width: 100%; justify-content: center !important; }
           .hp-features { padding: 4rem 24px; }
@@ -750,17 +735,23 @@ export default function HomePage() {
             )}
           </div>
 
-          <div className="hp-hero-right">
+          <div className="hp-hero-cards">
             <Link href="/auth/signup" className="hp-audience-card">
               <p className="hp-audience-card-label">For Golfers</p>
               <p className="hp-audience-card-title">Score. Compete. Improve.</p>
-              <p className="hp-audience-card-desc">Track every round, compete in society events, and watch your game develop over time.</p>
+              <p className="hp-audience-card-desc">Track every round, compete in events, and watch your game develop over time.</p>
               <span className="hp-audience-card-link">Create account →</span>
             </Link>
-            <a href="https://club.lx2.golf" className="hp-audience-card">
-              <p className="hp-audience-card-label">For Clubs &amp; Societies</p>
+            <Link href="/auth/signup" className="hp-audience-card">
+              <p className="hp-audience-card-label">For Societies</p>
               <p className="hp-audience-card-title">Run better events.</p>
-              <p className="hp-audience-card-desc">Create competitions, manage your society, and let LX2 handle the admin.</p>
+              <p className="hp-audience-card-desc">Create competitions, manage entry fees, and share live leaderboards with all your members.</p>
+              <span className="hp-audience-card-link">Create an event →</span>
+            </Link>
+            <a href="https://club.lx2.golf" className="hp-audience-card">
+              <p className="hp-audience-card-label">For Clubs</p>
+              <p className="hp-audience-card-title">Your club, managed.</p>
+              <p className="hp-audience-card-desc">A dedicated organiser dashboard for member management, results, and competitions.</p>
               <span className="hp-audience-card-link">Explore Club Portal →</span>
             </a>
           </div>
