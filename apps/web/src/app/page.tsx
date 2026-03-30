@@ -701,13 +701,13 @@ export default function HomePage() {
         <div className="hp-hero-content">
           <div className="hp-hero-text">
             <h1>
-              Your game.<br />
-              Your data.<br />
-              Your edge.
+              Every round.<br />
+              Every shot.<br />
+              Every stat.
             </h1>
+            <p>Play, compete and manage all in one place.</p>
             <p>For every golfer, every society, every club.</p>
-            <p>Score rounds, analyse your game, run multi-round tournaments and manage your club.</p>
-            <p className="hp-hero-tagline">Golf intelligence that gets smarter with every round.</p>
+            <p className="hp-hero-tagline">The golf app that gets smarter the more you play.</p>
             <div className="hp-hero-ctas">
               <Button asChild className="hp-btn-primary">
                 <Link href="/auth/signup">Create account</Link>
