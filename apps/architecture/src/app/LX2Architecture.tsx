@@ -30,7 +30,7 @@ const modules: Record<string, Module> = {
     deps: ['handicap', 'course_db', 'auth', 'group_joining', 'round_summary'],
     data: ['hole_scores', 'scorecards', 'event_players', 'events'],
     liveUrl: null, prdUrl: `${GITHUB}/docs/prd/score-entry.md`,
-    codeUrl: `${GITHUB}/apps/web/src/app/rounds/[id]/score/ScoreEntryLive.tsx`,
+    codeUrl: `${GITHUB}/apps/web/src/app/rounds/%5Bid%5D/score/ScoreEntryLive.tsx`,
     features: [
       'One-tap score entry, large targets (48px+)',
       'Quick values: par−1, par, par+1, par+2, par+3 as large buttons',
@@ -83,9 +83,31 @@ const modules: Record<string, Module> = {
     deps: ['event_create', 'invite'],
     data: ['events', 'event_players'],
     liveUrl: null, prdUrl: `${GITHUB}/docs/prd/event-landing.md`,
-    codeUrl: `${GITHUB}/apps/web/src/app/events/[id]/page.tsx`,
+    codeUrl: `${GITHUB}/apps/web/src/app/events/%5Bid%5D/page.tsx`,
     features: ['Event name, date, course, format', 'Live player list via RealtimeRefresher', 'Anonymous join form — name + handicap, no account', 'join_token cookie for session continuity', 'Start scoring CTA', '/events/[id]/manage — organiser dashboard', '/events/[id]/score — scorecard redirect handler'],
     tech: 'Next.js server component + client RealtimeRefresher. Supabase join on events + event_players. joinEvent server action.',
+  },
+  scorecard_ocr: {
+    id: 'scorecard_ocr', name: 'Scorecard photo OCR', phase: 'soon', tier: 'player-pwa',
+    status: 'done', surface: 'player',
+    sub: 'Photo a paper scorecard — Claude Vision reads the scores',
+    desc: 'Players photograph a physical scorecard at the end of a round. Claude Vision reads the hole-by-hole scores and populates the scorecard automatically. Handles standard printed 18-hole and 9-hole layouts and handwritten scores. Images stored in Supabase Storage with per-user RLS. Foundation for the batch historical import pipeline in data_import.',
+    deps: ['score_entry', 'auth'],
+    data: ['scorecards', 'hole_scores'],
+    liveUrl: null,
+    prdUrl: `${GITHUB}/docs/prd/scorecard-ocr.md`,
+    codeUrl: `${GITHUB}/apps/web/src/app/rounds`,
+    features: [
+      'Photo capture from camera or gallery (file input)',
+      'Claude Vision API reads hole-by-hole scores from photo via server action',
+      'Handles standard printed scorecards and handwritten columns',
+      'Score preview + confirm step before persisting to hole_scores',
+      'Images stored in Supabase Storage (scorecard_uploads bucket)',
+      'Storage RLS: user owns their own uploads only',
+      'Migration 007_scorecard_uploads.sql + 008_scorecard_storage_rls.sql',
+      'Foundation for batch historical import in data_import module',
+    ],
+    tech: 'File input → Supabase Storage upload. Server action calls Claude Vision API with base64 image. Parsed JSON scores upserted to hole_scores. RLS on scorecard_uploads bucket.',
   },
   branded_event_site: {
     id: 'branded_event_site', name: 'Branded event site', phase: 'soon', tier: 'player-pwa',
@@ -105,12 +127,12 @@ const modules: Record<string, Module> = {
     id: 'marketing_home', name: 'Marketing homepage', phase: 'mvp', tier: 'player-web',
     status: 'done', surface: 'shared',
     sub: 'Fairway Editorial — hero + 4-feature grid',
-    desc: 'Public homepage at lx2.golf. Fairway Editorial design system: sage #F0F4EC background, full-bleed hero photo with gradient fade, Manrope 800 headline. Three hero CTAs: Create account → /auth/signup, Sign in → /auth/login, Join event → (inline code entry). Top-right nav shows dark frosted-glass avatar with user initial when signed in (links to /play), hidden when logged out. Feature grid: Track Your Game, Play With Friends, Compete in Events, Run Your Club.',
+    desc: 'Public homepage at lx2.golf. LX2 brand design: full-bleed hero photo with green gradient fade, Manrope 800 split headline. Three persistent hero CTAs: Create account → /auth/signup, Sign in → /auth/login, Join event → inline code entry. Signed-in avatar (frosted-glass, user initial) in header top-right → /play. Animated stats counters (rounds played, players, societies — scroll-triggered with framer-motion). Bento feature grid: Live Scoring, Live Leaderboards, Society Events, Tournaments — redesigned cards with icons and short impact copy. Dark footer (#111D11) with features, sign in, and architecture links. Auth callback fixed: display_name no longer overwritten on every login (only set on first signup).',
     deps: ['auth'],
     data: [],
     liveUrl: APP, prdUrl: `${GITHUB}/docs/prd/marketing-home.md`,
     codeUrl: `${GITHUB}/apps/web/src/app/page.tsx`,
-    features: ['Full-bleed hero photo + sage gradient fade', 'Manrope 800 hero headline', 'Three CTAs: Create account, Sign in, Join event (always visible — no conditional Dashboard)', 'Join event → inline event code input (pill, auto-focus)', 'Profile avatar top-right (dark frosted-glass, user initial) when signed in → /play', 'Feature highlights grid (4 cards)', 'Lexend body, Manrope headings throughout', 'Dark footer (#111D11) with Features / Sign in / Architecture links'],
+    features: ['Full-bleed hero photo + green gradient fade', 'Manrope 800 split hero headline (two lines, centred)', 'Three persistent CTAs: Create account, Sign in, Join event — never conditional', 'Join event → inline event code input (pill, auto-focus)', 'Animated stats counters (scroll-triggered framer-motion, rounds / players / societies)', 'Bento feature grid: Live Scoring, Live Leaderboards, Society Events, Tournaments — icon + headline + copy', 'Profile avatar top-right (dark frosted-glass, user initial) when signed in → /play', 'Dark footer (#111D11) with Features / Sign in / Architecture links', 'Auth callback: display_name set only on first account creation, not overwritten on every login'],
     tech: 'Next.js client component. CSS-in-JSX. hero.png served from public/. Supabase getUser() on mount to show/hide profile avatar. Manrope + Lexend via next/font.',
   },
 
@@ -120,12 +142,12 @@ const modules: Record<string, Module> = {
     id: 'player_home', name: 'Player home (/play)', phase: 'mvp', tier: 'player-web',
     status: 'done', surface: 'player',
     sub: 'Golfer entry point — Fairway Editorial dashboard',
-    desc: 'The authenticated golfer home. Fairway Editorial design system: sage #F0F4EC background, white sticky header with LX2 wordmark + search/bell icons. Hero section: Manrope 800 display name + green handicap badge. Dynamic 3-column quick-stats grid (rounds, avg score, best — renders when data available). Forest-green gradient "Start a new round" CTA (or "Join ongoing round" variant). Secondary "Join a group\'s round" ghost CTA shown when no active round — links to /play/join. Editorial recent-rounds list in white container linking to /rounds/[id] (summary). Optional upcoming-event card with berry #923357 accent. Fixed 5-item bottom nav (Home, Rounds, Events, Society, Profile). Phase 2: wire roundsThisMonth, avgScore, bestScore, upcomingEvent props from page.tsx.',
+    desc: 'The authenticated golfer home. Fairway Editorial design system: sage #F0F4EC background, white sticky header with LX2 SVG logo + search/bell icons. Hero section: Manrope 800 display name + green handicap badge. Always-3 quick-stats grid (Total rounds / Avg score 12mo / Best score — shown with "—" placeholder when no data, never hidden). Forest-green gradient "Start a new round" CTA (or "Join ongoing round" variant). Secondary "Join a group\'s round" ghost CTA shown when no active round — links to /play/join. Editorial recent-rounds list in white container linking to /rounds/[id] (summary). Optional upcoming-event card. My Events section lists events the signed-in user has organised with status badges (upcoming/in-progress/finalised), each linking to the manage page. Fixed 5-item bottom nav (Home, Rounds, Events, Society, Profile).',
     deps: ['auth', 'event_create', 'group_joining'],
     data: ['users', 'scorecards', 'events'],
     liveUrl: `${APP}/play`, prdUrl: `${GITHUB}/docs/prd/player-home.md`,
     codeUrl: `${GITHUB}/apps/web/src/app/play/PlayDashboard.tsx`,
-    features: ['Fairway Editorial layout: sage bg, white sticky header with sage gradient + dot/noise texture, Manrope/Lexend fonts', 'Hero: Manrope 800 display name + green handicap badge (inline-flex, tonal gradient)', 'Always-3 stat cards (Total rounds / Avg score 12mo / Best score) — rendered with "—" placeholder when no data, never hidden', 'Primary CTA: "Start a new round" / "Join ongoing round" (green gradient / white outline variant)', 'Secondary CTA: "Join a group\'s round" ghost button — shown only when no active round, links to /play/join', 'Editorial rounds list: white rounded container, course name + date, hover tint, tap-to-navigate to /rounds/[id] summary', 'Optional upcoming event card: berry date badge, event name, course + player count', 'Bottom nav 5 items wired: Home / Rounds / Events / Society / Profile — mobile only (hidden on desktop)', 'Desktop: sign-out link in sticky header', 'Optional props: roundsThisMonth, avgScore, bestScore, upcomingEvent — fully backward-compatible'],
+    features: ['Fairway Editorial layout: sage bg, white sticky header with sage gradient + dot/noise texture, Manrope/Lexend fonts', 'Header: LX2 SVG logo (next/image, 56×28px, priority) replacing text wordmark', 'Hero: Manrope 800 display name + green handicap badge (inline-flex, tonal gradient)', 'Always-3 stat cards (Total rounds / Avg score 12mo / Best score) — rendered with "—" placeholder when no data, never hidden', 'Primary CTA: "Start a new round" / "Join ongoing round" (green gradient / white outline variant)', 'Secondary CTA: "Join a group\'s round" ghost button — shown only when no active round, links to /play/join', 'Editorial rounds list: white rounded container, course name + date, hover tint, tap-to-navigate to /rounds/[id] summary', 'My Events section: events the user has organised, status badges (upcoming/in-progress/finalised), link to manage page', 'Bottom nav 5 items wired: Home / Rounds / Events / Society / Profile — mobile only (hidden on desktop)', 'Desktop: sign-out link in sticky header'],
     tech: 'Next.js server component (page.tsx fetches handicap_index + roundsCount) + client PlayDashboard. Manrope + Lexend (Fairway Editorial fonts via CSS vars). Supabase join: scorecards → events → courses + course_combinations. Inline SVG icons — no external icon lib.',
   },
   account_settings: {
@@ -215,7 +237,7 @@ const modules: Record<string, Module> = {
     deps: ['score_entry', 'course_db', 'auth'],
     data: ['hole_scores', 'scorecards', 'event_players', 'loop_holes', 'loop_hole_tees'],
     liveUrl: null, prdUrl: `${GITHUB}/docs/prd/round-summary.md`,
-    codeUrl: `${GITHUB}/apps/web/src/app/rounds/[id]/page.tsx`,
+    codeUrl: `${GITHUB}/apps/web/src/app/rounds/%5Bid%5D/page.tsx`,
     features: [
       'Hero: big total score (pts or gross), vs-par label, course + format + date',
       'Hole-by-hole SVG line chart — score vs par, colour-coded dots (birdie green, par grey, bogey amber, double+ red), dashed par baseline, auto-scaled Y axis, gaps at pickups/NR',
@@ -255,9 +277,32 @@ const modules: Record<string, Module> = {
     desc: 'Event-aware round summary: when a round belongs to an event, the /rounds/[id] page shows an Event Results card with finishing position, NTP/LD contest winners (closest/longest with distances), and link to full leaderboard. Leaderboard page at /events/[id]/leaderboard has OG metadata for shareable link previews. Group section renamed to "Event Leaderboard" for event rounds.',
     deps: ['stableford', 'strokeplay', 'event_create', 'round_summary'],
     data: ['events', 'scorecards', 'contest_entries'],
-    liveUrl: null, prdUrl: `${GITHUB}/docs/prd/results.md`, codeUrl: 'apps/web/src/app/rounds/[id]/page.tsx, apps/web/src/app/events/[id]/leaderboard/page.tsx',
+    liveUrl: null, prdUrl: `${GITHUB}/docs/prd/results.md`,
+    codeUrl: `${GITHUB}/apps/web/src/app/rounds/%5Bid%5D/page.tsx`,
     features: ['Event Results card on round summary (position, NTP/LD winners)', 'Contest winner detection (closest for NTP, longest for LD)', 'Distance display (cm/m for NTP, yards for LD)', 'Link to full event leaderboard', '"Event Leaderboard" label for event rounds', 'OG metadata on leaderboard page (title, description, siteName)'],
     tech: 'Server component. Parallel fetch of event_players + contest_entries. Contest winner computed server-side by grouping entries by (type, hole) and picking best distance. generateMetadata for OG tags on leaderboard page.',
+  },
+  analysis: {
+    id: 'analysis', name: 'Scoring analysis', phase: 'mvp', tier: 'player-web',
+    status: 'done', surface: 'player',
+    sub: 'Trends, distribution, and performance breakdown',
+    desc: 'Scoring analysis page at /analysis. Shows a player\'s scoring trends over time, score distribution histogram, round history with per-round details, and par performance breakdown (birdies, pars, bogeys, double-bogeys+). Data fetched from scorecard history with par from loop_holes. Accessible from the bottom nav and player home.',
+    deps: ['auth', 'round_summary', 'course_db'],
+    data: ['scorecards', 'hole_scores', 'loop_holes'],
+    liveUrl: `${APP}/analysis`,
+    prdUrl: null,
+    codeUrl: `${GITHUB}/apps/web/src/app/analysis`,
+    features: [
+      'Scoring trends line chart — score over time, coloured by format',
+      'Score distribution histogram — how often at each total',
+      'Par performance breakdown — birdies / pars / bogeys / double+',
+      'Round history list with date, course, format, score, points',
+      'Hero banner section header (consistent with rounds/events pages)',
+      'Par fetched from loop_holes (not assumed) — handles 9-hole loops correctly',
+      'Auth-gated — own data only',
+      'Bottom nav accessible',
+    ],
+    tech: 'Next.js server component. Supabase join: scorecards → hole_scores → loop_holes for par. SVG charts rendered server-side. Fixed data bug: par fetched via loop_id from event → course_combination → loops.',
   },
   join_a_game: {
     id: 'join_a_game', name: 'Join a game', phase: 'later', tier: 'player-web',
@@ -327,7 +372,7 @@ const modules: Record<string, Module> = {
   },
   predictions: {
     id: 'predictions', name: 'Predictions engine', phase: 'soon', tier: 'player-web',
-    status: 'planned', surface: 'player',
+    status: 'building', surface: 'player',
     sub: 'AI bookie sets live odds — bet virtual credits on your mates',
     desc: 'Virtual-currency prediction market for society events. An AI bookie sets opening odds based on handicap index, recent form (Form Pulse data), and field size, then adjusts live as hole scores stream in via Supabase Realtime. Players bet "LX2 Credits" (fake money — never real currency) on outright winner, head-to-head matchups, over/under Stableford totals, NTP/LD outcomes, and prop bets. Season-long bankroll leaderboard creates a second competition layer that keeps non-players engaged and drives retention between events.\n\n── ODDS ENGINE ──\nOpening odds: Bradley-Terry model using weighted recent form (last 5 rounds, exponential decay). Handicap-adjusted fields produce compressed odds (5/1 to 14/1 for a 12-player field) — this is correct because Stableford levels the playing field. Overround: 15% for outrights, 8% for two-way markets (head-to-heads). Odds displayed as decimal to one decimal place.\n\nIn-play adjustment: After each hole, project final scores using actual points + expected-per-hole × remaining holes. Win probability via normal CDF on pairwise gaps: prob_i_beats_j = Φ(gap / √(var_i + var_j)). Typical amateur Stableford variance ≈ 1.5 pts² per hole. Odds move gently early (1–6 holes), meaningfully mid-round (7–14), and sharply late (15–18).\n\n── VIRTUAL ECONOMY ──\nDefault 1,000 credits per event (organiser-configurable in advanced options: 500 / 1,000 / 2,000 / 5,000 / custom). No top-ups — if you bust, you\'re out (or rescue stake of 100). Max bet = 20% of current bankroll. Max exposure per event = 50% of bankroll. Overround naturally deflates the pool. Season leaderboard = cumulative profit/loss (normalised to % return so different credit amounts are comparable). Tracks: total bankroll, ROI %, longest winning streak, biggest single win.\n\n── ORGANISER CONTROLS ──\nDefault: toggle predictions on/off per event (one switch). Advanced options for experienced organisers: starting credits (default 1,000), adjust overround %, max bet limit, enable/disable specific market types, set custom place terms (each-way), configure prop bet templates, manual odds override for specific players.\n\n── SETTLEMENT ──\nUses event countback for tie-breaking (back 9, back 6, back 3, last hole) — standard in amateur golf. Dead heat rules for place bets where countback doesn\'t fully resolve: payout × (positions_available / tied_players). Each-way place terms: 1/4 odds, places based on field size (3 for 8–12, 4 for 13–20, 5 for 21–24).',
     deps: ['score_entry', 'leaderboard_live', 'player_home', 'auth'],
@@ -390,7 +435,7 @@ const modules: Record<string, Module> = {
     deps: ['event_create', 'auth'],
     data: ['event_players', 'users'],
     liveUrl: null, prdUrl: `${GITHUB}/docs/prd/invite.md`,
-    codeUrl: `${GITHUB}/apps/web/src/app/events/[id]/page.tsx`,
+    codeUrl: `${GITHUB}/apps/web/src/app/events/%5Bid%5D/page.tsx`,
     features: ['Public URL — no login needed', 'Enter name + handicap index to join', 'join_token cookie ties anonymous player to scorecard', 'RealtimeRefresher — live player list updates as others join', 'Organiser can manually add players', 'Manage page (/events/[id]/manage): organiser confirms invited players before round starts', 'Event details: name, date, course, format shown on landing'],
     tech: 'Public Next.js server component + client join form. Supabase insert into event_players. join_token cookie for anonymous session continuity. Supabase Realtime for live player list.',
   },
@@ -424,6 +469,54 @@ const modules: Record<string, Module> = {
       'My Events section on Play dashboard with status badges',
     ],
     tech: 'Next.js server component (manage/page.tsx) + GroupManager (DnD client component) + ManageActions (share/finalise). Server actions: generateGroups, updateGroup, assignPlayerToGroup, finaliseEvent, unfinaliseEvent, confirmPlayer. Admin client for organiser-scoped writes.',
+  },
+
+  tournaments: {
+    id: 'tournaments', name: 'Tournaments', phase: 'soon', tier: 'organiser',
+    status: 'done', surface: 'organiser',
+    sub: 'Multi-round tournaments with cumulative standings',
+    desc: 'Multi-round tournament system. Organisers create named tournaments (Stableford or Stroke Play), attach existing events as rounds, and view cumulative standings with DNS policy (best-of or count-all). Each round is a standard LX2 event — no new scoring mechanism. Tournament overview shows round-by-round scores with running totals. Manage page handles round ordering, add/remove, and finalise. Events can display a tournament badge and contextual hero banner when they belong to a tournament.',
+    deps: ['event_create', 'stableford', 'strokeplay', 'auth'],
+    data: ['tournaments', 'events'],
+    liveUrl: `${APP}/tournaments`,
+    prdUrl: `${GITHUB}/docs/prd/tournaments.md`,
+    codeUrl: `${GITHUB}/apps/web/src/app/tournaments`,
+    features: [
+      '3-step wizard: details (name, format) → rounds (attach events) → review',
+      'Tournament formats: Stableford and Stroke Play',
+      'DNS policy: best-of-N or count-all rounds',
+      'Cumulative standings: round-by-round scores + running total sorted by overall position',
+      'Tournament manage: add/remove/reorder rounds, finalise tournament',
+      'Hero banner + tournament context badge on event manage page',
+      'Tournament badge shown on events list for linked events',
+      'Events page includes Create Tournament CTA',
+      'Soft delete + finalisation guards (no accidental deletion of live tournaments)',
+      'Standings computation in @lx2/scoring with full Vitest test coverage',
+    ],
+    tech: '3-step client wizard (NewTournamentWizard.tsx). createTournament server action. Standings in lib/tournaments/standings.ts (Vitest tested). tournaments table with tournament_id FK on events. tournament manage at /tournaments/[id]/manage.',
+  },
+  order_of_merit: {
+    id: 'order_of_merit', name: 'Order of merit', phase: 'soon', tier: 'organiser',
+    status: 'done', surface: 'organiser',
+    sub: 'Season-long points leaderboard across events',
+    desc: 'Season-long order of merit system. Organisers define a points template (points per finishing position), select participating events or tournaments as entries, and get a cumulative points leaderboard. Built-in presets (European Tour, PGA Tour, Society standard). Optional best-of-N: count only top N results per player. Distinct from tournaments (which aggregate raw scores) — OOM aggregates points awarded by finishing position.',
+    deps: ['event_create', 'tournaments', 'auth'],
+    data: ['order_of_merits', 'events'],
+    liveUrl: `${APP}/merit`,
+    prdUrl: `${GITHUB}/docs/prd/order-of-merit.md`,
+    codeUrl: `${GITHUB}/apps/web/src/app/merit`,
+    features: [
+      '4-step wizard: details → points template → events/tournaments → review',
+      'Points template: configurable per-position points (1st=40, 2nd=30, etc.)',
+      'Built-in presets: European Tour, PGA Tour, WGC, Society standard',
+      'Participation points: base points for any player who completes a round',
+      'Best-of-N: count only top N results per player (e.g. best 8 of 12)',
+      'Cumulative standings: position, player name, total points, rounds counted',
+      'OOM manage: add/remove events, adjust points template, finalise',
+      'Points computation as pure TypeScript in lib/merit/points.ts with Vitest tests',
+      'Status: upcoming / active / completed',
+    ],
+    tech: '4-step client wizard (NewMeritWizard.tsx). Points computation in lib/merit/points.ts + presets in lib/merit/presets.ts. order_of_merits table with points_template JSONB column. Server actions: createMerit, updateMeritEntries, finaliseMerit.',
   },
 
   // ── Scoring engines ─────────────────────────────────────────────────────────
@@ -573,7 +666,7 @@ const modules: Record<string, Module> = {
     desc: 'Live score updates pushed to all players in a group the moment any hole is saved. Implemented as a single postgres_changes subscription in ScoreEntryLive, filtered to the set of scorecard IDs in the current event. On INSERT/UPDATE the relevant player\'s liveScores state is updated and the leaderboard re-renders. DELETE removes the hole entry from liveScores.',
     deps: ['auth', 'score_entry'], data: ['hole_scores'],
     liveUrl: null, prdUrl: `${GITHUB}/docs/prd/realtime.md`,
-    codeUrl: `${GITHUB}/apps/web/src/app/events/[id]/RealtimeRefresher.tsx`,
+    codeUrl: `${GITHUB}/apps/web/src/app/events/%5Bid%5D/RealtimeRefresher.tsx`,
     features: [
       'Supabase Realtime postgres_changes on hole_scores table',
       'Single channel subscription per scoring session',
@@ -1149,7 +1242,7 @@ function JourneyFlow({ journey, onSelectModule }: { journey: Journey; onSelectMo
 
 export default function LX2Architecture() {
   const [selected, setSelected] = useState<string | null>(null)
-  const [view, setView] = useState<'modules' | 'surfaces' | 'deps' | 'journeys' | 'blueprints' | 'tests' | 'stack' | 'claude'>('modules')
+  const [view, setView] = useState<'principles' | 'modules' | 'surfaces' | 'deps' | 'journeys' | 'blueprints' | 'tests' | 'stack' | 'claude'>('modules')
   const [activeJourney, setActiveJourney] = useState<string>('player')
   const mod = selected ? modules[selected] : null
 
@@ -1190,7 +1283,7 @@ export default function LX2Architecture() {
         <Image src="/lx2-logo.svg" alt="LX2" width={144} height={57} style={{ display: 'block' }} />
         <div>
           <div style={{ fontSize: 13, color: '#6B7280', fontWeight: 400 }}>Platform architecture</div>
-          <div style={{ fontSize: 11, color: '#9CA3AF' }}>v0.6 · March 2026 · two-app platform</div>
+          <div style={{ fontSize: 11, color: '#9CA3AF' }}>v0.7 · March 2026 · two-app platform</div>
         </div>
       </div>
 
@@ -1297,12 +1390,109 @@ export default function LX2Architecture() {
 
       {/* View tabs */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
-        {(['modules', 'surfaces', 'deps', 'journeys', 'blueprints', 'tests', 'stack', 'claude'] as const).map(v => (
+        {(['principles', 'modules', 'surfaces', 'deps', 'journeys', 'blueprints', 'tests', 'stack', 'claude'] as const).map(v => (
           <button key={v} onClick={() => setView(v)} style={{ fontSize: 12, padding: '6px 14px', borderRadius: 99, border: 'none', background: view === v ? '#1A2E1A' : '#F3F4F6', color: view === v ? '#fff' : '#6B7280', cursor: 'pointer', fontFamily: "'Lexend', sans-serif", fontWeight: view === v ? 500 : 400, transition: 'all 0.15s' }}>
-            {v === 'modules' ? 'All modules' : v === 'surfaces' ? 'App map' : v === 'deps' ? 'Dependencies' : v === 'journeys' ? 'Journeys' : v === 'blueprints' ? 'Service blueprints' : v === 'tests' ? 'Test strategy' : v === 'stack' ? 'Tech stack' : 'Claude setup'}
+            {v === 'principles' ? '10× principles' : v === 'modules' ? 'All modules' : v === 'surfaces' ? 'App map' : v === 'deps' ? 'Dependencies' : v === 'journeys' ? 'Journeys' : v === 'blueprints' ? 'Service blueprints' : v === 'tests' ? 'Test strategy' : v === 'stack' ? 'Tech stack' : 'Claude setup'}
           </button>
         ))}
       </div>
+
+      {/* ── Principles view ── */}
+      {view === 'principles' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
+
+          {/* Headline */}
+          <div style={{ background: 'linear-gradient(135deg, #0D2B12 0%, #1A3E1A 100%)', borderRadius: 16, padding: '20px 24px', boxShadow: '0 8px 24px rgba(13,43,18,0.18)' }}>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#fff', fontFamily: "'Manrope', sans-serif", marginBottom: 6 }}>How we build 10× better</div>
+            <div style={{ fontSize: 13, color: '#86EFAC', lineHeight: 1.6 }}>
+              These are non-negotiable. Not design guidelines — decisions. Every feature, every screen, every line of code is judged against them.
+              Competitors are Golf GameBook (player), intelligentgolf (club), Golfmanager (club OS), Golf Genius (tournaments), BRS Golf (tee booking).
+              We beat them by being the only platform that connects the golfer and the club in one identity, with live-everything and zero friction.
+            </div>
+          </div>
+
+          {/* Principles grid */}
+          {[
+            {
+              n: '01', title: 'On-course first, office never',
+              color: '#0D631B', bg: '#E8F5E9', border: '#BBF7D0',
+              body: 'Every decision is optimised for one hand, bright sunlight, wet fingers, a fourball waiting on the next tee. If it takes more than 2 taps on a golf course, redesign it. Desktop convenience is a bonus, never a requirement.',
+              beats: 'Golf GameBook — good UX but built mobile-first only for scoring, no club integration',
+            },
+            {
+              n: '02', title: 'Score first — data forever',
+              color: '#0D631B', bg: '#E8F5E9', border: '#BBF7D0',
+              body: 'Capture the score with zero friction. Everything else — analysis, history, handicap, leaderboard, order of merit, predictions — flows automatically from that data. Never ask the player to do admin. Let the platform do it.',
+              beats: 'Arccos / Shot Scope — hardware-dependent, require deliberate tagging, not transparent',
+            },
+            {
+              n: '03', title: 'No account, no problem',
+              color: '#1565C0', bg: '#DBEAFE', border: '#BFDBFE',
+              body: 'Players join events via invite link, score their round, see the leaderboard — no signup, no app download. We convert through value, never through friction. Anonymous play is a feature, not a workaround.',
+              beats: 'Golf Genius / intelligentgolf — every participant needs an account or CDH number to play',
+            },
+            {
+              n: '04', title: 'One truth, two views',
+              color: '#1565C0', bg: '#DBEAFE', border: '#BFDBFE',
+              body: 'The same event row powers the golfer app and the club console. Same score, same leaderboard, same player identity. No double-entry, no sync problems, no "the app says one thing and the tee sheet says another".',
+              beats: 'All competitors — none share data between golfer-facing and club-facing products in the same platform',
+            },
+            {
+              n: '05', title: 'Live beats final',
+              color: '#7C3AED', bg: '#EDE9FE', border: '#DDD6FE',
+              body: 'A real-time leaderboard during play is 10× more valuable than an emailed results sheet on Monday. Supabase Realtime means every score update is visible to all players and spectators within milliseconds. If it\'s not live, it\'s not good enough.',
+              beats: 'intelligentgolf — results published manually after the round; no live scoring for members',
+            },
+            {
+              n: '06', title: 'Scoring is science, not plumbing',
+              color: '#7C3AED', bg: '#EDE9FE', border: '#DDD6FE',
+              body: '@lx2/scoring is pure TypeScript with zero database dependency and 100% test coverage. Stableford, Stroke Play, Match Play, Skins, Better Ball, Scramble, RvB — all correct, all tested, all reusable across web and club. The scoring is never wrong.',
+              beats: 'Golf Genius — correct but opaque, black-box compute; intelligentgolf — limited format support',
+            },
+            {
+              n: '07', title: 'Offline is a feature',
+              color: '#B45309', bg: '#FEF3C7', border: '#FDE68A',
+              body: 'The IndexedDB offline queue means LX2 works in a tunnel under the 13th, in a bunker at Gleneagles, at any course with patchy signal. Scores are written locally and synced on reconnect. The player never loses a hole.',
+              beats: 'Golf GameBook — goes read-only offline; Golf Genius — requires signal throughout',
+            },
+            {
+              n: '08', title: 'One club, all of it',
+              color: '#B45309', bg: '#FEF3C7', border: '#FDE68A',
+              body: 'From a single casual round to a society day to monthly medals to annual memberships to the bar tab: one platform. Cumberwell Park currently uses intelligentgolf (members), golfbook/255it (tee sheet), Golf Genius (comps), and manual spreadsheets (bar). We replace all four.',
+              beats: 'intelligentgolf + golfbook + Golf Genius — fragmented stack, no single source of truth',
+            },
+            {
+              n: '09', title: 'Open data model',
+              color: '#854F0B', bg: '#FFF3E0', border: '#FED7AA',
+              body: 'Partner API, data import, CSV export. Your data is yours. We compete on value, never on lock-in. The biggest adoption blocker is migrating from an existing app — so we make that effortless (organiser bulk import, WHS record pull, scorecard OCR for history).',
+              beats: 'Golfmanager — has a partner API but the golfer data is siloed; no player-facing import tools',
+            },
+            {
+              n: '10', title: 'Build for the moment that matters',
+              color: '#6B7280', bg: '#F3F4F6', border: '#E5E7EB',
+              body: 'The 14th hole in the rain. The announcement of the winner at the prize-giving. The WhatsApp message Monday morning with the leaderboard link. The booking confirmation landing in your inbox. Design every surface around its peak moment — not average usage, the best moment.',
+              beats: 'All competitors — optimise for average utility; LX2 optimises for peak moments and emotional resonance',
+            },
+          ].map((p) => (
+            <div key={p.n} style={{ background: '#fff', border: `1px solid ${p.border}`, borderRadius: 16, padding: '18px 20px', boxShadow: '0 4px 16px rgba(26,28,28,0.04)' }}>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                <div style={{ flexShrink: 0, width: 32, height: 32, borderRadius: 10, background: p.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: p.color, fontFamily: "'Manrope', sans-serif", letterSpacing: '0.04em' }}>{p.n}</span>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#1A2E1A', fontFamily: "'Manrope', sans-serif", marginBottom: 6 }}>{p.title}</div>
+                  <div style={{ fontSize: 13, color: '#44483E', lineHeight: 1.65, marginBottom: 8 }}>{p.body}</div>
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
+                    <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 99, background: p.bg, color: p.color, fontWeight: 600, flexShrink: 0, marginTop: 1 }}>beats</span>
+                    <span style={{ fontSize: 11, color: '#6B8C6B', lineHeight: 1.5 }}>{p.beats}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+
+        </div>
+      )}
 
       {/* ── Journeys view ── */}
       {view === 'journeys' && (
@@ -1413,7 +1603,7 @@ export default function LX2Architecture() {
             <div style={{ fontSize: 12, fontWeight: 600, color: '#1A2E1A', fontFamily: "'Manrope', sans-serif", marginBottom: 14 }}>Test pyramid</div>
             {[
               { layer: 'E2E (Playwright)', count: '11 tests', tool: 'Playwright · Chromium', color: '#2563EB', bg: '#DBEAFE', desc: 'Full browser flows: auth, /play dashboard, new round wizard, public pages. Saved auth state (global-setup.ts). CI uploads report on failure.' },
-              { layer: 'Unit (Vitest)', count: '~40 tests', tool: 'Vitest · @lx2/scoring + @lx2/pwa', color: '#0D631B', bg: '#DCFCE7', desc: 'Pure functions only. Stableford / Stroke Play / Match Play / Handicap engines. Offline queue IndexedDB wrapper. Zero framework dependencies.' },
+              { layer: 'Unit (Vitest)', count: '131 tests', tool: 'Vitest · @lx2/scoring (72) + @lx2/predictions (34) + apps/web (25)', color: '#0D631B', bg: '#DCFCE7', desc: 'Pure functions only. All scoring engines (Stableford, Stroke, Match, Handicap, Skins, RvB, Scramble, Better Ball), predictions odds engine, tournament standings, order of merit points, and offline queue IndexedDB wrapper.' },
             ].map((row, i) => (
               <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', padding: '12px 0', borderBottom: i < 1 ? '0.5px solid rgba(0,0,0,0.06)' : 'none' }}>
                 <div style={{ flexShrink: 0, width: 120 }}>
@@ -1511,6 +1701,8 @@ export default function LX2Architecture() {
                 { name: 'TypeScript', role: 'Strict mode throughout', tag: 'core' },
                 { name: 'CSS-in-JSX', role: 'Component styles in <style> blocks — no CSS Modules', tag: 'pattern' },
                 { name: 'Tailwind CSS', role: 'globals.css only — base reset', tag: 'pattern' },
+                { name: 'shadcn/ui', role: 'Dialog, Card, Badge, Calendar — LX2 brand tokens wired into CSS vars', tag: 'ui' },
+                { name: 'Framer Motion', role: 'Scroll-triggered animations (homepage stats counters)', tag: 'ui' },
               ],
               color: '#2563EB', bg: '#EFF6FF', border: '#BFDBFE',
             },
@@ -1539,8 +1731,9 @@ export default function LX2Architecture() {
             {
               layer: 'Shared packages', icon: '📦',
               items: [
-                { name: '@lx2/scoring', role: 'Stableford, Stroke Play, Match Play, Handicap — pure TS, Vitest', tag: 'pkg' },
-                { name: '@lx2/leaderboard', role: 'computeLeaderboard() — shared by web + club', tag: 'pkg' },
+                { name: '@lx2/scoring', role: 'Stableford, Stroke, Match, Handicap, Skins, RvB, Scramble, Better Ball — pure TS, Vitest (72 tests)', tag: 'pkg' },
+                { name: '@lx2/predictions', role: 'Bradley-Terry odds model, in-play adjustments, settlement — pure TS, Vitest (34 tests)', tag: 'pkg' },
+                { name: '@lx2/leaderboard', role: 'computeLeaderboard() — shared by web + club apps', tag: 'pkg' },
                 { name: '@lx2/brand', role: 'Design tokens, getCSSVars(), applyClubTheme()', tag: 'pkg' },
                 { name: '@lx2/db', role: 'Supabase client factory, shared migrations', tag: 'pkg' },
               ],
