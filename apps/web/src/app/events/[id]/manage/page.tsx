@@ -38,6 +38,7 @@ export default async function ManagePage({ params }: PageProps) {
       id, name, date, format, handicap_allowance_pct,
       group_size, max_players, ntp_holes, ld_holes,
       entry_fee_pence, created_by, finalised,
+      tournament_id, round_number,
       course_combinations(name)
     `)
     .eq('id', id)
@@ -50,6 +51,26 @@ export default async function ManagePage({ params }: PageProps) {
   // Only the organiser can access the manage page
   if (event.created_by !== user.id) {
     return redirect(`/events/${id}`)
+  }
+
+  // Tournament context — if this event is part of a multi-round tournament
+  let tournamentName = ''
+  let tournamentId = ''
+  let roundCount = 0
+  if (event.tournament_id) {
+    tournamentId = event.tournament_id as string
+    const { data: tourn } = await supabase
+      .from('tournaments')
+      .select('name')
+      .eq('id', tournamentId)
+      .single()
+    tournamentName = tourn?.name ?? ''
+
+    const { count } = await supabase
+      .from('events')
+      .select('id', { count: 'exact', head: true })
+      .eq('tournament_id', tournamentId)
+    roundCount = count ?? 0
   }
 
   // Full player list — organiser can see all via event_players_select RLS
@@ -103,31 +124,84 @@ export default async function ManagePage({ params }: PageProps) {
           padding-bottom: max(80px, calc(80px + env(safe-area-inset-bottom)));
         }
 
-        /* ── Header ── */
-        .mg-hd {
-          background: #0a1f0a;
-          background-image:
-            radial-gradient(ellipse 80% 60% at 50% 0%, rgba(13,99,27,0.18) 0%, transparent 70%),
-            radial-gradient(ellipse 40% 50% at 80% 0%, rgba(13,99,27,0.10) 0%, transparent 60%);
-          position: sticky; top: 0; z-index: 50;
-          padding: 0 2rem;
+        /* ── Hero ── */
+        .mg-hero {
+          position: relative; width: 100%; height: 160px; overflow: hidden;
         }
-        .mg-hd::after {
-          content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
-          background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
-          background-size: 3px 3px;
+        .mg-hero-img { object-fit: cover; }
+        .mg-hero-overlay {
+          position: absolute; inset: 0;
+          background: linear-gradient(to bottom, rgba(10,31,10,0.45) 0%, rgba(10,31,10,0.75) 100%);
+          z-index: 1;
         }
-        .mg-hd-inner {
-          max-width: 1200px; margin: 0 auto; height: 56px;
+        .mg-hero-inner {
+          position: absolute; bottom: 0; left: 0; right: 0;
+          padding: 1.25rem 2rem; z-index: 2;
+          max-width: 1200px; margin: 0 auto;
+        }
+        .mg-hero-back {
+          display: inline-flex; align-items: center; gap: 6px;
+          color: rgba(255,255,255,0.7); text-decoration: none;
+          font-family: var(--font-dm-sans), sans-serif;
+          font-size: 0.875rem; font-weight: 500;
+          padding: 6px 10px; border-radius: 8px;
+          transition: background 0.15s, color 0.15s;
+          margin-bottom: 8px;
+        }
+        .mg-hero-back:hover { background: rgba(255,255,255,0.15); color: #fff; }
+        .mg-hero-eyebrow {
+          font-size: 0.75rem; font-weight: 600; color: rgba(255,255,255,0.65);
+          text-transform: uppercase; letter-spacing: 0.06em;
+          font-family: var(--font-dm-sans), sans-serif; margin-bottom: 4px;
+        }
+        .mg-hero-title {
+          font-family: var(--font-manrope), sans-serif;
+          font-weight: 800;
+          font-size: clamp(1.4rem, 4vw, 2rem);
+          color: #fff; margin: 0;
+          letter-spacing: -0.02em;
+          text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .mg-hero-subtitle {
+          font-size: 0.8125rem; color: rgba(255,255,255,0.6);
+          font-family: var(--font-dm-sans), sans-serif;
+          margin-top: 4px;
+          text-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+        @media (min-width: 768px) { .mg-hero { height: 180px; } }
+
+        /* ── Tournament context banner ── */
+        .mg-tournament-ctx {
           display: flex; align-items: center; justify-content: space-between;
-          position: relative; z-index: 2;
+          gap: 12px; padding: 14px 18px; border-radius: 14px;
+          background: linear-gradient(135deg, rgba(13,99,27,0.06) 0%, rgba(13,99,27,0.02) 100%);
+          border: 1.5px solid rgba(13,99,27,0.15);
         }
-        .mg-hd-back {
-          text-decoration: none; color: #6B8C6B;
-          font-size: 0.8125rem; font-family: var(--font-dm-sans), sans-serif;
-          transition: color 0.15s;
+        .mg-tournament-ctx-info {
+          display: flex; flex-direction: column; gap: 2px;
         }
-        .mg-hd-back:hover { color: #4ade80; }
+        .mg-tournament-ctx-label {
+          font-size: 0.6875rem; font-weight: 700; color: #6B8C6B;
+          text-transform: uppercase; letter-spacing: 0.06em;
+          font-family: var(--font-dm-sans), sans-serif;
+        }
+        .mg-tournament-ctx-name {
+          font-family: var(--font-dm-serif), serif;
+          font-size: 0.9375rem; color: #1A2E1A;
+        }
+        .mg-tournament-ctx-link {
+          display: inline-flex; align-items: center; gap: 6px;
+          padding: 8px 16px; border: 1.5px solid #0D631B; border-radius: 10px;
+          background: #fff; color: #0D631B;
+          font-family: var(--font-dm-sans), sans-serif;
+          font-size: 0.8125rem; font-weight: 600; text-decoration: none;
+          white-space: nowrap;
+          transition: background 0.15s, transform 0.15s;
+        }
+        .mg-tournament-ctx-link:hover {
+          background: rgba(13,99,27,0.04);
+          transform: translateY(-1px);
+        }
 
         /* ── Body ── */
         .mg-body { padding: 1.5rem 2rem; }
@@ -146,17 +220,7 @@ export default async function ManagePage({ params }: PageProps) {
           .mg-grid-full { grid-column: 1 / -1; }
         }
 
-        /* ── Page heading ── */
-        .mg-eyebrow {
-          font-size: 0.75rem; font-weight: 600; color: #6B8C6B;
-          text-transform: uppercase; letter-spacing: 0.06em;
-          font-family: var(--font-dm-sans), sans-serif; margin-bottom: 2px;
-        }
-        .mg-title {
-          font-family: var(--font-manrope), sans-serif; font-weight: 800;
-          font-size: clamp(1.5rem, 4vw, 2rem); color: #1A2E1A;
-          margin: 0; letter-spacing: -0.02em; line-height: 1.1;
-        }
+        /* (Page heading is now in the hero) */
 
         /* ── Card ── */
         .mg-card {
@@ -269,24 +333,43 @@ export default async function ManagePage({ params }: PageProps) {
 
       <div className="mg">
 
-        {/* ── Header ── */}
-        <header className="mg-hd">
-          <div className="mg-hd-inner">
-            <Link href={`/events/${id}`} className="mg-hd-back">← Tournament</Link>
-            <Image src="/lx2-logo.svg" alt="LX2" width={60} height={30} priority />
-            <span style={{ width: 72 }} />
+        {/* ── Hero ── */}
+        <div className="mg-hero">
+          <Image src="/hero.jpg" alt="Golf course" fill priority className="mg-hero-img" sizes="100vw" quality={90} />
+          <div className="mg-hero-overlay" />
+          <div className="mg-hero-inner">
+            <Link href={`/events/${id}`} className="mg-hero-back">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M12 4L6 10L12 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Tournament
+            </Link>
+            <div className="mg-hero-eyebrow">Managing tournament</div>
+            <h1 className="mg-hero-title">{event.name}</h1>
+            {event.tournament_id && (
+              <div className="mg-hero-subtitle">
+                Round {event.round_number} of {roundCount} &mdash; {tournamentName}
+              </div>
+            )}
           </div>
-        </header>
+        </div>
 
         {/* ── Body ── */}
         <main className="mg-body">
           <div className="mg-inner">
 
-            {/* Page heading */}
-            <div>
-              <div className="mg-eyebrow">Managing tournament</div>
-              <h1 className="mg-title">{event.name}</h1>
-            </div>
+            {/* Tournament context — link to multi-round management */}
+            {event.tournament_id && (
+              <div className="mg-tournament-ctx">
+                <div className="mg-tournament-ctx-info">
+                  <span className="mg-tournament-ctx-label">Part of multi-round tournament</span>
+                  <span className="mg-tournament-ctx-name">{tournamentName}</span>
+                </div>
+                <Link href={`/tournaments/${tournamentId}/manage`} className="mg-tournament-ctx-link">
+                  Manage Rounds &amp; Standings →
+                </Link>
+              </div>
+            )}
 
             {/* ── Two-column grid ── */}
             <div className="mg-grid">
@@ -420,6 +503,9 @@ export default async function ManagePage({ params }: PageProps) {
                 <div className="mg-links">
                   <Link href={`/events/${id}`} className="mg-link">← Tournament</Link>
                   <Link href={`/events/${id}/leaderboard`} className="mg-link primary">Leaderboard →</Link>
+                  {event.tournament_id && (
+                    <Link href={`/tournaments/${tournamentId}/manage`} className="mg-link">Manage Rounds →</Link>
+                  )}
                 </div>
 
                 {/* ── Danger zone ── */}
