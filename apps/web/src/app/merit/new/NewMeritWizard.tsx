@@ -657,7 +657,7 @@ export default function NewMeritWizard({ displayName: _displayName, events, tour
               {events.length > 0 && (
                 <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #E0EBE0', padding: '24px' }}>
                   <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#6B8C6B', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>
-                    Standalone Events
+                    Single-Round Tournaments
                   </div>
                   {events.map(ev => {
                     const isSelected = entries.some(e => e.type === 'event' && e.refId === ev.id)

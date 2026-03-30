@@ -162,7 +162,7 @@ export async function startRound(data: StartRoundData): Promise<string> {
     .single()
 
   if (eventErr || !event) {
-    throw new Error(`Failed to create event: ${eventErr?.message ?? 'unknown error'}`)
+    throw new Error(`Failed to create round: ${eventErr?.message ?? 'unknown error'}`)
   }
 
   // 7. Batch-insert all event_players in one request

@@ -391,26 +391,26 @@ export default async function TournamentsPage() {
           <div className="th-hero-overlay" />
           <div className="th-hero-inner">
             <h1 className="th-title">Tournaments</h1>
-            <p className="th-subtitle">Multi-round competitions &amp; series</p>
+            <p className="th-subtitle">Competitions &amp; series</p>
           </div>
         </div>
 
         <main className="th-main">
 
           <div className="th-cta-row">
-            <Link href="/tournaments/new" className="th-cta-primary">
+            <Link href="/events/new" className="th-cta-primary">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.75"/>
                 <path d="M12 8v8M8 12h8" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
               </svg>
-              New Tournament
+              New Single-Round Tournament
             </Link>
-            <Link href="/events/new" className="th-cta-outline">
+            <Link href="/tournaments/new" className="th-cta-outline">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.75"/>
                 <path d="M12 8v8M8 12h8" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
               </svg>
-              New Event
+              New Multi-Round Tournament
             </Link>
             <Link href="/merit/new" className="th-cta-outline">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -421,11 +421,11 @@ export default async function TournamentsPage() {
             </Link>
           </div>
 
-          {/* Active Tournaments */}
+          {/* Multi-Round Tournaments */}
           <section className="th-section">
-            <div className="th-section-title">Active Tournaments</div>
+            <div className="th-section-title">Multi-Round Tournaments</div>
             {activeTournaments.length === 0 ? (
-              <div className="th-empty">No active tournaments yet. Create one to get started.</div>
+              <div className="th-empty">No multi-round tournaments yet. Create one to get started.</div>
             ) : (
               activeTournaments.map(t => (
                 <TournamentCard key={t.id} tournament={t} />
@@ -433,10 +433,10 @@ export default async function TournamentsPage() {
             )}
           </section>
 
-          {/* Finalised Tournaments */}
+          {/* Completed Multi-Round Tournaments */}
           {finalisedTournaments.length > 0 && (
             <section className="th-section">
-              <div className="th-section-title">Past Tournaments</div>
+              <div className="th-section-title">Past Multi-Round Tournaments</div>
               {finalisedTournaments.map(t => (
                 <TournamentCard key={t.id} tournament={t} />
               ))}
@@ -455,11 +455,11 @@ export default async function TournamentsPage() {
             )}
           </section>
 
-          {/* Standalone Events */}
+          {/* Single-Round Tournaments (formerly Standalone Events) */}
           <section className="th-section">
-            <div className="th-section-title">Standalone Events</div>
+            <div className="th-section-title">Single-Round Tournaments</div>
             {standaloneEvents.length === 0 ? (
-              <div className="th-empty">No standalone events found.</div>
+              <div className="th-empty">No single-round tournaments found.</div>
             ) : (
               standaloneEvents.map(ev => (
                 <StandaloneEventCard key={ev.event_id} ev={ev} />

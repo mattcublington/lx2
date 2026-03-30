@@ -126,7 +126,7 @@ export default function NewEventWizard({
         })
         router.push(`/events/${eventId}/manage`)
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Failed to create event')
+        setError(e instanceof Error ? e.message : 'Failed to create tournament')
       }
     })
   }
@@ -334,7 +334,7 @@ export default function NewEventWizard({
             </svg>
             Back
           </Link>
-          <h1 className="nev-banner-title">New event</h1>
+          <h1 className="nev-banner-title">New tournament</h1>
         </div>
       </div>
 
@@ -412,10 +412,10 @@ export default function NewEventWizard({
           {/* ─────────────── STEP 1: Course & date ─────────────── */}
           {step === 1 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {/* Event details card */}
+              {/* Tournament details card */}
               <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #E0EBE0', padding: '28px 28px 24px' }}>
                 <div className="row-field">
-                  <label className="wiz-label">Event name</label>
+                  <label className="wiz-label">Tournament name</label>
                   <input
                     className="wiz-input"
                     type="text"
@@ -905,7 +905,7 @@ export default function NewEventWizard({
                   transition: 'background 0.15s',
                 }}
               >
-                {isPending ? 'Creating…' : 'Create event'}
+                {isPending ? 'Creating…' : 'Create tournament'}
               </button>
             )}
           </div>

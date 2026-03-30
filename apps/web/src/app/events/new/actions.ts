@@ -70,7 +70,7 @@ export async function createEvent(data: CreateEventData): Promise<string> {
     .select('id')
     .single()
 
-  if (eventErr || !event) throw new Error(`Failed to create event: ${eventErr?.message ?? 'unknown'}`)
+  if (eventErr || !event) throw new Error(`Failed to create tournament: ${eventErr?.message ?? 'unknown'}`)
 
   // Register organiser as first confirmed player
   // event_players_insert RLS: organiser can insert when created_by = auth.uid()

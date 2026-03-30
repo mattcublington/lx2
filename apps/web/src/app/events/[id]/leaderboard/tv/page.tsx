@@ -29,7 +29,7 @@ export default async function TVPage({ params }: PageProps) {
         fontFamily: 'var(--font-dm-sans), sans-serif', color: '#6B8C6B',
         fontSize: '1.25rem',
       }}>
-        Event not found
+        Tournament not found
       </div>
     )
   }
@@ -44,7 +44,7 @@ export default async function TVPage({ params }: PageProps) {
         fontFamily: 'var(--font-dm-sans), sans-serif', color: '#6B8C6B',
         fontSize: '1.25rem',
       }}>
-        No leaderboard for Match Play events
+        No leaderboard for Match Play tournaments
       </div>
     )
   }

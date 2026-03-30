@@ -42,7 +42,7 @@ export default function JoinForm({ eventId, userId, defaultName, defaultHandicap
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Failed to join'
         if (msg === 'MAX_PLAYERS_REACHED') {
-          setError('This event is full. You have been added to the waiting list.')
+          setError('This tournament is full. You have been added to the waiting list.')
         } else {
           setError(msg)
         }
@@ -63,7 +63,7 @@ export default function JoinForm({ eventId, userId, defaultName, defaultHandicap
         onMouseEnter={e => (e.currentTarget.style.background = '#0a4f15')}
         onMouseLeave={e => (e.currentTarget.style.background = '#0D631B')}
       >
-        Join this event
+        Join this tournament
       </button>
     )
   }

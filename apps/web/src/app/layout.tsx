@@ -3,12 +3,14 @@ import {
   DM_Sans,
   DM_Serif_Display,
   Manrope,
-  Lexend,
-} from 'next/font/google'
+  Lexend, Geist } from 'next/font/google'
 import './globals.css'
 // import { SpeedInsights } from '@vercel/speed-insights/next'
 import ServiceWorkerRegistration from '@/components/pwa/ServiceWorkerRegistration'
 import OfflineBanner from '@/components/pwa/OfflineBanner'
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const dmSans = DM_Sans({
   subsets: ['latin'],
@@ -61,12 +63,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={[
-        dmSans.variable,
-        dmSerifDisplay.variable,
-        manrope.variable,
-        lexend.variable,
-      ].join(' ')}
+      className={cn([
+              dmSans.variable,
+              dmSerifDisplay.variable,
+              manrope.variable,
+              lexend.variable,
+            ].join(' '), "font-sans", geist.variable)}
     >
       <head>
         <link rel="apple-touch-icon" href="/icons/apple-touch.png" />

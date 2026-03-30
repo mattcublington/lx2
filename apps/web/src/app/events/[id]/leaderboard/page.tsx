@@ -61,8 +61,8 @@ export default async function LeaderboardPage({ params }: PageProps) {
   if (!data) {
     return (
       <ErrorPage
-        title="Event not found"
-        body="This event doesn&apos;t exist or is no longer available."
+        title="Tournament not found"
+        body="This tournament doesn&apos;t exist or is no longer available."
       />
     )
   }
@@ -77,7 +77,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
     return (
       <ErrorPage
         title="No leaderboard for Match Play"
-        body="Match play events use head-to-head results — there&apos;s no ranked leaderboard."
+        body="Match play tournaments use head-to-head results — there&apos;s no ranked leaderboard."
       />
     )
   }

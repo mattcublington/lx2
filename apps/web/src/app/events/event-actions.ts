@@ -59,7 +59,7 @@ export async function joinEvent(
     .eq('id', eventId)
     .single()
 
-  if (!event) throw new Error('Event not found')
+  if (!event) throw new Error('Tournament not found')
 
   if (event.max_players) {
     const { count } = await admin
@@ -151,8 +151,8 @@ export async function joinEventAnon(
     .eq('id', eventId)
     .single()
 
-  if (!event)           throw new Error('Event not found')
-  if (!event.is_public) throw new Error('Event is not public')
+  if (!event)           throw new Error('Tournament not found')
+  if (!event.is_public) throw new Error('Tournament is not public')
 
   // Enforce max_players cap
   if (event.max_players) {

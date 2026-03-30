@@ -272,7 +272,7 @@ export default async function ManagePage({ params }: PageProps) {
         {/* ── Header ── */}
         <header className="mg-hd">
           <div className="mg-hd-inner">
-            <Link href={`/events/${id}`} className="mg-hd-back">← Event page</Link>
+            <Link href={`/events/${id}`} className="mg-hd-back">← Tournament</Link>
             <Image src="/lx2-logo.svg" alt="LX2" width={60} height={30} priority />
             <span style={{ width: 72 }} />
           </div>
@@ -284,7 +284,7 @@ export default async function ManagePage({ params }: PageProps) {
 
             {/* Page heading */}
             <div>
-              <div className="mg-eyebrow">Managing event</div>
+              <div className="mg-eyebrow">Managing tournament</div>
               <h1 className="mg-title">{event.name}</h1>
             </div>
 
@@ -300,9 +300,9 @@ export default async function ManagePage({ params }: PageProps) {
                 <ManageActions eventUrl={eventUrl} eventName={event.name} />
               </div>
 
-              {/* ── Event details ── */}
+              {/* ── Tournament details ── */}
               <div className="mg-card">
-                <div className="mg-card-label">Event details</div>
+                <div className="mg-card-label">Tournament details</div>
                 {[
                   ['Date',        formatDate(event.date)],
                   ['Course',      comboName ?? '—'],
@@ -418,7 +418,7 @@ export default async function ManagePage({ params }: PageProps) {
 
                 {/* ── Quick links ── */}
                 <div className="mg-links">
-                  <Link href={`/events/${id}`} className="mg-link">← Event page</Link>
+                  <Link href={`/events/${id}`} className="mg-link">← Tournament</Link>
                   <Link href={`/events/${id}/leaderboard`} className="mg-link primary">Leaderboard →</Link>
                 </div>
 

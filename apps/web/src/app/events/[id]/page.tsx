@@ -61,8 +61,8 @@ export default async function EventPage({ params }: PageProps) {
   if (!event) {
     return (
       <ErrorCard
-        title="Event not found"
-        body="This event doesn't exist or is no longer available."
+        title="Tournament not found"
+        body="This tournament doesn&apos;t exist or is no longer available."
         back="/play"
       />
     )
@@ -287,7 +287,7 @@ export default async function EventPage({ params }: PageProps) {
               </span>
             </div>
 
-            {/* Event name */}
+            {/* Tournament name */}
             <h1 style={{
               fontFamily: 'var(--font-manrope), sans-serif',
               fontWeight: 800,
@@ -341,7 +341,7 @@ export default async function EventPage({ params }: PageProps) {
                     ✓
                   </span>
                   <span style={{ fontSize: '0.9375rem', fontWeight: 500, color: '#1A2E1A' }}>
-                    You&apos;re confirmed for this event
+                    You&apos;re confirmed for this tournament
                   </span>
                 </div>
                 <Link
@@ -386,7 +386,7 @@ export default async function EventPage({ params }: PageProps) {
                   href={`/events/${id}/manage`}
                   style={{ fontSize: '0.875rem', color: '#0D631B', fontWeight: 500, fontFamily: 'var(--font-dm-sans), sans-serif', textDecoration: 'none' }}
                 >
-                  ⚙ Manage event →
+                  ⚙ Manage tournament →
                 </Link>
               </div>
             )}
