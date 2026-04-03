@@ -204,6 +204,9 @@ export default function PlayDashboard({
         }
 
         /* ── Hero banner ─────────────────────────────────── */
+        .fe-banner-wrap {
+          padding: 1rem 1rem 0;
+        }
         .fe-banner {
           position: relative;
           width: 100%;
@@ -212,6 +215,8 @@ export default function PlayDashboard({
           overflow: hidden;
           display: flex;
           align-items: center;
+          border-radius: 20px;
+          box-shadow: 0 4px 20px rgba(10, 31, 10, 0.22);
         }
         .fe-banner-img {
           position: absolute;
@@ -225,9 +230,9 @@ export default function PlayDashboard({
           inset: 0;
           background: linear-gradient(
             180deg,
-            rgba(10, 31, 10, 0.6) 0%,
-            rgba(10, 31, 10, 0.45) 50%,
-            rgba(10, 31, 10, 0.35) 100%
+            rgba(10, 31, 10, 0.35) 0%,
+            rgba(10, 31, 10, 0.2) 50%,
+            rgba(10, 31, 10, 0.15) 100%
           );
           z-index: 1;
         }
@@ -953,6 +958,7 @@ export default function PlayDashboard({
       <div className="fe">
 
         {/* ── Hero banner with photo ── */}
+        <div className="fe-banner-wrap">
         <div className="fe-banner">
           <Image
             src="/hero.jpg"
@@ -991,6 +997,7 @@ export default function PlayDashboard({
               )}
             </div>
           </Link>
+        </div>
         </div>
 
         {/* Dropdown menu — rendered outside banner to avoid overflow clip */}
