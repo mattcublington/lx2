@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { listUploads } from './actions'
 import type { UploadRow } from './actions'
 import ClickableRow from './ClickableRow'
+import { DeleteRowButton, DeleteAllRejectedButton } from './DeleteControls'
 
 interface PageProps {
   searchParams: Promise<{ status?: string }>
@@ -204,11 +205,13 @@ export default async function AdminScorecardsPage({ searchParams }: PageProps) {
           .aq-body { padding: 1rem; }
           .aq-stats-inner { padding: 0 1rem; gap: 0; overflow-x: auto; }
           .aq-stat { padding: 0.75rem 1rem 0.75rem 0; margin-right: 1rem; }
-          /* Hide Country + Tees columns on mobile — row tap navigates */
+          /* Hide Country, Tees, and delete column on mobile */
           .aq-table th:nth-child(3),
           .aq-table td:nth-child(3),
           .aq-table th:nth-child(4),
-          .aq-table td:nth-child(4) { display: none; }
+          .aq-table td:nth-child(4),
+          .aq-table th:last-child,
+          .aq-table td:last-child { display: none; }
         }
       `}</style>
 
@@ -270,6 +273,13 @@ export default async function AdminScorecardsPage({ searchParams }: PageProps) {
               })}
             </nav>
 
+            {/* ── Delete all rejected — shown only when viewing rejected tab ── */}
+            {filter === 'rejected' && rejected.length > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <DeleteAllRejectedButton count={rejected.length} />
+              </div>
+            )}
+
             {/* ── Table ── */}
             <div className="aq-card">
               {rows.length === 0 ? (
@@ -286,6 +296,7 @@ export default async function AdminScorecardsPage({ searchParams }: PageProps) {
                       <th>Tees</th>
                       <th>Date</th>
                       <th>Status</th>
+                      <th></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -304,6 +315,11 @@ export default async function AdminScorecardsPage({ searchParams }: PageProps) {
                         <td className="aq-muted">{row.tee_count > 0 ? `${row.tee_count} tee${row.tee_count !== 1 ? 's' : ''}` : '—'}</td>
                         <td className="aq-muted">{formatDate(row.created_at)}</td>
                         <td><StatusBadge status={row.status} /></td>
+                        <td>
+                          {row.status === 'rejected' && (
+                            <DeleteRowButton id={row.id} />
+                          )}
+                        </td>
                       </ClickableRow>
                     ))}
                   </tbody>

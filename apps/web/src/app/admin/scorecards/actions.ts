@@ -342,6 +342,66 @@ export async function rejectUpload(id: string, notes: string): Promise<ActionRes
   return { ok: true }
 }
 
+// ── Delete single upload ─────────────────────────────────────────────────────
+
+export async function deleteUpload(id: string): Promise<ActionResult> {
+  try { await requireAdmin() } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Not authorized' }
+  }
+
+  const admin = createAdminClient()
+
+  // Only allow deleting rejected uploads
+  const { data: upload } = await admin
+    .from('scorecard_uploads')
+    .select('status, image_url')
+    .eq('id', id)
+    .single()
+
+  if (!upload) return { ok: false, error: 'Upload not found' }
+  if ((upload.status as string) !== 'rejected') {
+    return { ok: false, error: 'Only rejected uploads can be deleted' }
+  }
+
+  const { error } = await admin
+    .from('scorecard_uploads')
+    .delete()
+    .eq('id', id)
+
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath('/admin/scorecards')
+  return { ok: true }
+}
+
+// ── Delete all rejected ───────────────────────────────────────────────────────
+
+export async function deleteAllRejected(): Promise<ActionResult & { count?: number }> {
+  try { await requireAdmin() } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Not authorized' }
+  }
+
+  const admin = createAdminClient()
+
+  const { data: rejected } = await admin
+    .from('scorecard_uploads')
+    .select('id')
+    .eq('status', 'rejected')
+
+  const count = rejected?.length ?? 0
+  if (count === 0) return { ok: true, count: 0 }
+
+  const { error } = await admin
+    .from('scorecard_uploads')
+    .delete()
+    .eq('status', 'rejected')
+
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath('/admin/scorecards')
+  return { ok: true, count }
+}
+
 // ── Edit extracted data ───────────────────────────────────────────────────────
 
 export async function updateUploadData(
