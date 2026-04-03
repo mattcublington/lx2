@@ -9,7 +9,7 @@ export default async function ProfilePage() {
 
   const { data: profile } = await supabase
     .from('users')
-    .select('display_name, handicap_index, created_at, avatar_url, distance_unit')
+    .select('display_name, handicap_index, created_at, avatar_url, distance_unit, is_admin')
     .eq('id', user.id)
     .single()
 
@@ -22,6 +22,7 @@ export default async function ProfilePage() {
       memberSince={profile?.created_at ?? user.created_at ?? null}
       avatarUrl={profile?.avatar_url ?? null}
       distanceUnit={(profile?.distance_unit as 'yards' | 'metres') ?? 'yards'}
+      isAdmin={(profile as { is_admin?: boolean } | null)?.is_admin ?? false}
     />
   )
 }

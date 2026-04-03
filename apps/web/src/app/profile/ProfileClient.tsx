@@ -15,6 +15,7 @@ interface Props {
   memberSince: string | null
   avatarUrl: string | null
   distanceUnit: 'yards' | 'metres'
+  isAdmin: boolean
 }
 
 function getInitials(name: string): string {
@@ -26,7 +27,7 @@ function getInitials(name: string): string {
 // Which field is being inline-edited
 type EditingField = 'name' | 'handicap' | null
 
-export default function ProfileClient({ userId, email, displayName, handicapIndex, avatarUrl: initialAvatarUrl, distanceUnit: initialDistanceUnit }: Props) {
+export default function ProfileClient({ userId, email, displayName, handicapIndex, avatarUrl: initialAvatarUrl, distanceUnit: initialDistanceUnit, isAdmin }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -716,6 +717,12 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
               Account settings
               <ArrowRightIcon />
             </Link>
+            {isAdmin && (
+              <Link href="/admin/scorecards" className="pf-acct-link">
+                Scorecard review queue
+                <ArrowRightIcon />
+              </Link>
+            )}
             <button className="pf-signout-btn" onClick={handleSignOut}>
               Sign out
             </button>

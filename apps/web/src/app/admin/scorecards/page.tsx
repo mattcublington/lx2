@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { listUploads } from './actions'
 import type { UploadRow } from './actions'
 
@@ -56,28 +57,38 @@ export default async function AdminScorecardsPage({ searchParams }: PageProps) {
 
         /* ── Header ── */
         .aq-header {
-          background: #0a1f0a;
-          background-image: radial-gradient(ellipse at 20% 50%, rgba(13,99,27,0.35) 0%, transparent 60%),
-                            radial-gradient(ellipse at 80% 20%, rgba(61,107,26,0.2) 0%, transparent 50%);
-          padding: 1.5rem 2rem 1.25rem;
+          position: relative; width: 100%; height: 160px; overflow: hidden;
         }
-        .aq-header-inner { max-width: 1200px; margin: 0 auto; }
+        .aq-hero-img { object-fit: cover; }
+        .aq-hero-overlay {
+          position: absolute; inset: 0;
+          background: linear-gradient(to bottom, rgba(10,31,10,0.45) 0%, rgba(10,31,10,0.75) 100%);
+          z-index: 1;
+        }
+        .aq-header-inner {
+          position: absolute; bottom: 0; left: 0; right: 0;
+          padding: 1.25rem 2rem; z-index: 2;
+          max-width: 1200px; margin: 0 auto;
+        }
         .aq-back {
           display: inline-flex; align-items: center; gap: 6px;
-          color: rgba(255,255,255,0.6); text-decoration: none;
-          font-size: 0.8125rem; font-weight: 500;
-          padding: 5px 9px; border-radius: 8px;
+          color: rgba(255,255,255,0.7); text-decoration: none;
+          font-size: 0.875rem; font-weight: 500;
+          padding: 6px 10px; border-radius: 8px;
           transition: background 0.15s, color 0.15s;
-          margin-bottom: 12px;
+          margin-bottom: 8px;
         }
-        .aq-back:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .aq-back:hover { background: rgba(255,255,255,0.15); color: #fff; }
         .aq-title {
-          font-family: var(--font-dm-serif), Georgia, serif;
-          font-size: clamp(1.5rem, 4vw, 2rem);
+          font-family: var(--font-manrope), sans-serif;
+          font-weight: 800;
+          font-size: clamp(1.4rem, 4vw, 2rem);
           color: #fff; margin: 0 0 4px;
           letter-spacing: -0.02em;
+          text-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
-        .aq-subtitle { font-size: 0.8125rem; color: rgba(255,255,255,0.5); }
+        .aq-subtitle { font-size: 0.8125rem; color: rgba(255,255,255,0.6); text-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+        @media (min-width: 768px) { .aq-header { height: 180px; } }
 
         /* ── Stats strip ── */
         .aq-stats {
@@ -210,10 +221,12 @@ export default async function AdminScorecardsPage({ searchParams }: PageProps) {
 
         {/* ── Header ── */}
         <div className="aq-header">
+          <Image src="/hero.jpg" alt="Golf course" fill priority className="aq-hero-img" sizes="100vw" quality={90} />
+          <div className="aq-hero-overlay" />
           <div className="aq-header-inner">
             <Link href="/play" className="aq-back">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M12 4L6 10L12 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               Play
             </Link>

@@ -18,6 +18,14 @@ export interface UploadRow {
   tee_count: number
 }
 
+export interface DuplicateCandidate {
+  id: string
+  name: string
+  club: string | null
+  verified: boolean
+  source: string
+}
+
 export interface UploadDetail {
   id: string
   image_url: string
@@ -33,6 +41,12 @@ export interface UploadDetail {
   extracted_data: ExtractedCourseData | null
   uploader_name: string | null
   reviewer_name: string | null
+  duplicate_candidates: DuplicateCandidate[]
+}
+
+export interface ActionResult {
+  ok: boolean
+  error?: string
 }
 
 // ── Auth guard ───────────────────────────────────────────────────────────────
@@ -42,7 +56,6 @@ async function requireAdmin(): Promise<string> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
 
-  // is_admin added by migration 013 — cast needed until types regenerated
   const { data: profile } = await supabase
     .from('users')
     .select('is_admin')
@@ -74,7 +87,6 @@ export async function listUploads(status?: 'pending' | 'approved' | 'rejected'):
   if (error) throw new Error(error.message)
   const rows = data ?? []
 
-  // Batch-fetch uploader names
   const uploaderIds = [...new Set(rows.map(r => r.uploaded_by as string))]
   const { data: uploaders } = uploaderIds.length
     ? await admin.from('users').select('id, display_name').in('id', uploaderIds)
@@ -113,20 +125,48 @@ export async function getUploadDetail(id: string): Promise<UploadDetail | null> 
 
   if (error || !data) return null
 
-  const { data: uploader } = await admin
-    .from('users')
-    .select('display_name, email')
-    .eq('id', data.uploaded_by as string)
-    .single()
+  const [uploaderResult, reviewerResult] = await Promise.all([
+    admin.from('users').select('display_name, email').eq('id', data.uploaded_by as string).single(),
+    data.reviewed_by
+      ? admin.from('users').select('display_name').eq('id', data.reviewed_by as string).single()
+      : Promise.resolve({ data: null }),
+  ])
 
-  let reviewerName: string | null = null
-  if (data.reviewed_by) {
-    const { data: reviewer } = await admin
-      .from('users')
-      .select('display_name')
-      .eq('id', data.reviewed_by as string)
-      .single()
-    reviewerName = (reviewer?.display_name as string | null) ?? null
+  const extracted = (data.extracted_data as ExtractedCourseData | null) ?? null
+  const searchName = extracted?.courseName ?? (data.course_name as string | null) ?? ''
+
+  // Find potential duplicate courses in the database
+  let duplicateCandidates: DuplicateCandidate[] = []
+  if (searchName) {
+    // Search by trigram-style: split words and look for overlap
+    const words = searchName.split(/\s+/).filter(w => w.length > 3)
+    const searchTerms = [searchName, ...words].slice(0, 3)
+
+    const results = await Promise.all(
+      searchTerms.map(term =>
+        admin
+          .from('courses')
+          .select('id, name, club, verified, source')
+          .ilike('name', `%${term}%`)
+          .limit(5)
+      )
+    )
+
+    const seen = new Set<string>()
+    for (const { data: courses } of results) {
+      for (const c of courses ?? []) {
+        if (!seen.has(c.id as string)) {
+          seen.add(c.id as string)
+          duplicateCandidates.push({
+            id: c.id as string,
+            name: c.name as string,
+            club: c.club as string | null,
+            verified: c.verified as boolean,
+            source: c.source as string,
+          })
+        }
+      }
+    }
   }
 
   return {
@@ -141,19 +181,24 @@ export async function getUploadDetail(id: string): Promise<UploadDetail | null> 
     review_notes: data.review_notes as string | null,
     course_id: data.course_id as string | null,
     created_at: data.created_at as string,
-    extracted_data: (data.extracted_data as ExtractedCourseData | null) ?? null,
+    extracted_data: extracted,
     uploader_name:
-      (uploader?.display_name as string | null) ??
-      (uploader?.email as string | null) ??
+      (uploaderResult.data?.display_name as string | null) ??
+      (uploaderResult.data?.email as string | null) ??
       null,
-    reviewer_name: reviewerName,
+    reviewer_name: (reviewerResult.data?.display_name as string | null) ?? null,
+    duplicate_candidates: duplicateCandidates,
   }
 }
 
 // ── Approve ──────────────────────────────────────────────────────────────────
 
-export async function approveUpload(id: string, notes: string): Promise<void> {
-  const adminId = await requireAdmin()
+export async function approveUpload(id: string, notes: string): Promise<ActionResult> {
+  let adminId: string
+  try { adminId = await requireAdmin() } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Not authorized' }
+  }
+
   const admin = createAdminClient()
 
   const { data: upload, error: fetchErr } = await admin
@@ -162,7 +207,7 @@ export async function approveUpload(id: string, notes: string): Promise<void> {
     .eq('id', id)
     .single()
 
-  if (fetchErr || !upload) throw new Error('Upload not found')
+  if (fetchErr || !upload) return { ok: false, error: 'Upload not found' }
 
   const { error } = await admin
     .from('scorecard_uploads')
@@ -174,9 +219,8 @@ export async function approveUpload(id: string, notes: string): Promise<void> {
     })
     .eq('id', id)
 
-  if (error) throw new Error(error.message)
+  if (error) return { ok: false, error: error.message }
 
-  // Mark the OCR-created course as verified
   const extracted = upload.extracted_data as ExtractedCourseData | null
   const courseName = extracted?.courseName ?? (upload.course_name as string | null)
   if (courseName) {
@@ -190,14 +234,19 @@ export async function approveUpload(id: string, notes: string): Promise<void> {
 
   revalidatePath('/admin/scorecards')
   revalidatePath(`/admin/scorecards/${id}`)
+  return { ok: true }
 }
 
 // ── Reject ───────────────────────────────────────────────────────────────────
 
-export async function rejectUpload(id: string, notes: string): Promise<void> {
-  if (!notes.trim()) throw new Error('A rejection reason is required')
+export async function rejectUpload(id: string, notes: string): Promise<ActionResult> {
+  if (!notes.trim()) return { ok: false, error: 'A rejection reason is required' }
 
-  const adminId = await requireAdmin()
+  let adminId: string
+  try { adminId = await requireAdmin() } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Not authorized' }
+  }
+
   const admin = createAdminClient()
 
   const { error } = await admin
@@ -210,8 +259,31 @@ export async function rejectUpload(id: string, notes: string): Promise<void> {
     })
     .eq('id', id)
 
-  if (error) throw new Error(error.message)
+  if (error) return { ok: false, error: error.message }
 
   revalidatePath('/admin/scorecards')
   revalidatePath(`/admin/scorecards/${id}`)
+  return { ok: true }
+}
+
+// ── Edit extracted data ───────────────────────────────────────────────────────
+
+export async function updateUploadData(
+  id: string,
+  patch: { course_name?: string; extracted_data?: ExtractedCourseData }
+): Promise<ActionResult> {
+  try { await requireAdmin() } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Not authorized' }
+  }
+
+  const admin = createAdminClient()
+  const { error } = await admin
+    .from('scorecard_uploads')
+    .update(patch)
+    .eq('id', id)
+
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath(`/admin/scorecards/${id}`)
+  return { ok: true }
 }

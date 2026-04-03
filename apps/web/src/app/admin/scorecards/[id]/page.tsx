@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { getUploadDetail } from '../actions'
 import { getSignedImageUrl } from '@/lib/scorecard-ocr'
@@ -113,24 +114,35 @@ export default async function ReviewPage({ params }: PageProps) {
 
         /* ── Header ── */
         .ar-header {
-          background: #0a1f0a;
-          background-image: radial-gradient(ellipse at 20% 50%, rgba(13,99,27,0.35) 0%, transparent 60%);
-          padding: 1.25rem 2rem;
+          position: relative; width: 100%; height: 120px; overflow: hidden;
         }
-        .ar-header-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .ar-hero-img { object-fit: cover; }
+        .ar-hero-overlay {
+          position: absolute; inset: 0;
+          background: linear-gradient(to bottom, rgba(10,31,10,0.45) 0%, rgba(10,31,10,0.8) 100%);
+          z-index: 1;
+        }
+        .ar-header-inner {
+          position: absolute; bottom: 0; left: 0; right: 0;
+          padding: 1rem 2rem; z-index: 2;
+          max-width: 1200px; margin: 0 auto;
+          display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        }
         .ar-back {
           display: inline-flex; align-items: center; gap: 6px;
-          color: rgba(255,255,255,0.65); text-decoration: none;
-          font-size: 0.8125rem; font-weight: 500;
+          color: rgba(255,255,255,0.7); text-decoration: none;
+          font-size: 0.875rem; font-weight: 500;
           padding: 6px 10px; border-radius: 8px;
           transition: background 0.15s, color 0.15s;
+          flex-shrink: 0;
         }
-        .ar-back:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .ar-back:hover { background: rgba(255,255,255,0.15); color: #fff; }
         .ar-header-title {
-          font-family: var(--font-dm-serif), Georgia, serif;
+          font-family: var(--font-manrope), sans-serif;
+          font-weight: 800;
           font-size: 1.125rem; color: #fff;
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-          flex: 1;
+          flex: 1; text-shadow: 0 1px 4px rgba(0,0,0,0.3);
         }
         .badge {
           display: inline-block; padding: 4px 10px; border-radius: 999px;
@@ -258,6 +270,8 @@ export default async function ReviewPage({ params }: PageProps) {
 
         {/* ── Header ── */}
         <div className="ar-header">
+          <Image src="/hero.jpg" alt="Golf course" fill priority className="ar-hero-img" sizes="100vw" quality={90} />
+          <div className="ar-hero-overlay" />
           <div className="ar-header-inner">
             <Link href="/admin/scorecards" className="ar-back">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -365,6 +379,9 @@ export default async function ReviewPage({ params }: PageProps) {
                     existingNotes={upload.review_notes}
                     reviewerName={upload.reviewer_name}
                     reviewedAt={upload.reviewed_at}
+                    extractedData={upload.extracted_data}
+                    courseName={upload.course_name}
+                    duplicates={upload.duplicate_candidates}
                   />
                 </div>
               </div>
