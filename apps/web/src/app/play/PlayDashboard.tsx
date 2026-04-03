@@ -100,16 +100,16 @@ function getGreeting(displayName: string): { prefix: string; firstName: string }
 /* ── Daily insight ─────────────────────────────────────────────── */
 
 const GOLF_TIPS = [
-  'A pre-shot routine builds consistency — pick a spot behind the ball and commit.',
+  'A pre-shot routine builds consistency - pick a spot behind the ball and commit.',
   'Course management wins more shots than swing changes.',
   'The short game accounts for over 60% of your strokes. Practise it more.',
   'Align to an intermediate target 2 feet in front of the ball, not the distant flag.',
-  'On tough holes, aim for the fat part of the green — bogey is a fine score.',
+  'On tough holes, aim for the fat part of the green - bogey is a fine score.',
   'Slow your backswing. Most amateurs rush to the top.',
   'Speed control matters more than line when putting.',
   'Never make a swing change during a round. Trust what you have today.',
   'A solid 3-wood is more valuable than a driver you can\'t control.',
-  'Read greens from below the hole — you see the slope more clearly.',
+  'Read greens from below the hole - you see the slope more clearly.',
   'Tension is your biggest enemy. Relax your grip, shoulders, and jaw.',
   'Play to where your next shot is easiest, not where you want to be.',
   'For chip shots, play the ball off your back foot and lean the shaft forward.',
@@ -121,15 +121,15 @@ function getDailyInsight(
   recentScores: Array<{ date: string; score: number }>,
   roundsCount: number,
 ): string {
-  if (roundsCount === 0) return 'Every great round starts with the first. Get out there — the course is waiting.'
-  if (roundsCount === 1) return 'One round down. The best way to improve is to play more — consistency builds over time.'
+  if (roundsCount === 0) return 'Every great round starts with the first. Get out there - the course is waiting.'
+  if (roundsCount === 1) return 'One round down. The best way to improve is to play more - consistency builds over time.'
 
   if (recentScores.length >= 4) {
     const half = Math.floor(recentScores.length / 2)
     const recentAvg = recentScores.slice(-half).reduce((a, b) => a + b.score, 0) / half
     const olderAvg = recentScores.slice(0, half).reduce((a, b) => a + b.score, 0) / half
     const diff = olderAvg - recentAvg
-    if (diff > 2) return `Your last ${half} rounds average ${recentAvg.toFixed(1)} strokes — ${diff.toFixed(1)} better than before. You're on the right trajectory.`
+    if (diff > 2) return `Your last ${half} rounds average ${recentAvg.toFixed(1)} strokes - ${diff.toFixed(1)} better than before. You're on the right trajectory.`
     if (diff < -2) return `Your scoring has drifted up by ${Math.abs(diff).toFixed(1)} shots recently. A session focusing on the short game could turn it around.`
   }
 
@@ -967,9 +967,8 @@ export default function PlayDashboard({
           />
           <div className="fe-banner-overlay" />
 
-          {/* Top bar: logo + hamburger */}
+          {/* Top bar: hamburger */}
           <div className="fe-banner-top">
-            <Image src="/lx2-logo.svg" alt="LX2" width={56} height={28} className="fe-banner-logo-img" style={{ width: 'auto', height: 'auto' }} priority />
             <button className="fe-hamburger" onClick={() => setMenuOpen(o => !o)} aria-label="Open menu">
               <HamburgerIcon />
             </button>
@@ -1017,15 +1016,6 @@ export default function PlayDashboard({
           {/* Golf Form Pulse — sparkline of recent scores */}
           {recentScores.length >= 2 && <FormPulse recentScores={recentScores} />}
 
-          {/* Daily insight */}
-          <div className="fe-insight">
-            <div className="fe-insight-icon"><LightbulbIcon /></div>
-            <div>
-              <div className="fe-insight-label">Today&apos;s insight</div>
-              <div className="fe-insight-text">{dailyInsight}</div>
-            </div>
-          </div>
-
           {/* Primary CTA — active round or action cards */}
           {activeRoundId ? (
             <Link href={`/rounds/${activeRoundId}/score`} className="fe-cta join">
@@ -1059,6 +1049,15 @@ export default function PlayDashboard({
               <span className="fe-join-chevron">›</span>
             </Link>
           )}
+
+          {/* Daily insight */}
+          <div className="fe-insight">
+            <div className="fe-insight-icon"><LightbulbIcon /></div>
+            <div>
+              <div className="fe-insight-label">Today&apos;s insight</div>
+              <div className="fe-insight-text">{dailyInsight}</div>
+            </div>
+          </div>
 
           {/* Quick stats — 2 across, swipe for more */}
           <div className="fe-stats">
