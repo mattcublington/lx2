@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
+import { COURSES } from '@/lib/courses'
 import BottomNav from '@/components/BottomNav'
 import DeleteRoundButton from './DeleteRoundButton'
 import ChartSection from './ChartSection'
@@ -674,6 +675,7 @@ export default async function RoundSummaryPage({ params }: PageProps) {
         ld_holes,
         handicap_allowance_pct,
         combination_id,
+        course_id,
         round_type,
         loop_id,
         name,
@@ -697,6 +699,7 @@ export default async function RoundSummaryPage({ params }: PageProps) {
     format: 'stableford' | 'strokeplay' | 'matchplay'
     handicap_allowance_pct: number
     combination_id: string | null
+    course_id: string | null
     round_type: string
     loop_id: string | null
     name: string
@@ -783,6 +786,54 @@ export default async function RoundSummaryPage({ params }: PageProps) {
       for (const h of loopHoles) {
         holes.push({ holeInRound: hir++, par: h.par, siM: h.si_m ?? null, yards: yardsMap[h.id] ?? {} })
       }
+    }
+  } else if (event.course_id) {
+    // ── Fallback: resolve holes from courses.ts static data or OCR upload ──
+    const { data: courseRow } = await supabase
+      .from('courses')
+      .select('name, source')
+      .eq('id', event.course_id)
+      .single()
+
+    const course = courseRow ? COURSES.find(c => c.name === courseRow.name) : undefined
+    if (course) {
+      let hir = 1
+      for (const hole of course.holes) {
+        holes.push({ holeInRound: hir++, par: hole.par, siM: hole.si || null, yards: hole.teeYards ?? { [course.defaultRatingTee]: hole.yards } })
+      }
+    } else if (courseRow?.source === 'ocr') {
+      // OCR-uploaded course: load hole data from scorecard_uploads
+      const { data: uploads } = await supabase
+        .from('scorecard_uploads')
+        .select('extracted_data')
+        .not('extracted_data', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(20)
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- JSONB from Supabase
+      const upload = uploads?.find((u: any) => {
+        const ed = u.extracted_data
+        return ed?.courseName === courseRow.name ||
+          `${ed?.courseName} — ${ed?.tees?.[0]?.teeName}` === courseRow.name
+      })
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- JSONB from Supabase
+      const extracted = upload?.extracted_data as any
+      if (extracted?.tees?.[0]?.holes?.length > 0) {
+        const tee = extracted.tees[0]
+        for (const h of tee.holes) {
+          const yardsForHole: Record<string, number> = {}
+          for (const t of extracted.tees) {
+            const match = t.holes?.find((th: { hole: number }) => th.hole === h.hole)
+            if (match?.yards) yardsForHole[t.teeName] = match.yards
+          }
+          holes.push({ holeInRound: h.hole, par: h.par, siM: h.si ?? null, yards: yardsForHole })
+        }
+      } else {
+        courseDataUnavailable = true
+      }
+    } else {
+      courseDataUnavailable = true
     }
   } else {
     courseDataUnavailable = true
