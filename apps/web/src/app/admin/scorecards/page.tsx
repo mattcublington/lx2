@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { listUploads } from './actions'
 import type { UploadRow } from './actions'
+import ClickableRow from './ClickableRow'
 
 interface PageProps {
   searchParams: Promise<{ status?: string }>
@@ -177,21 +178,9 @@ export default async function AdminScorecardsPage({ searchParams }: PageProps) {
         .badge-approved { background: #dcfce7; color: #166534; }
         .badge-rejected { background: #fee2e2; color: #991b1b; }
 
-        /* ── Review link — stretched to cover the entire row ── */
-        .aq-table tbody tr { position: relative; cursor: pointer; }
-        .aq-review-link {
-          display: inline-flex; align-items: center; gap: 4px;
-          padding: 6px 12px; border-radius: 8px;
-          border: 1.5px solid #0D631B; background: #fff; color: #0D631B;
-          font-size: 0.8125rem; font-weight: 600; text-decoration: none;
-          transition: background 0.15s, transform 0.15s;
-          white-space: nowrap;
-        }
-        /* Pseudo-element expands the link's click area to the full row */
-        .aq-review-link::after {
-          content: ''; position: absolute; inset: 0;
-        }
-        .aq-table tbody tr:hover .aq-review-link { background: rgba(13,99,27,0.04); }
+        /* ── Row hover ── */
+        .aq-table tbody tr { cursor: pointer; }
+        .aq-table tbody tr:hover td { background: #F2F5F0; }
 
         /* ── Empty state ── */
         .aq-empty {
@@ -215,13 +204,11 @@ export default async function AdminScorecardsPage({ searchParams }: PageProps) {
           .aq-body { padding: 1rem; }
           .aq-stats-inner { padding: 0 1rem; gap: 0; overflow-x: auto; }
           .aq-stat { padding: 0.75rem 1rem 0.75rem 0; margin-right: 1rem; }
-          /* Hide Country, Tees, and the Review button column — row is fully clickable */
+          /* Hide Country + Tees columns on mobile — row tap navigates */
           .aq-table th:nth-child(3),
           .aq-table td:nth-child(3),
           .aq-table th:nth-child(4),
-          .aq-table td:nth-child(4),
-          .aq-table th:last-child,
-          .aq-table td:last-child { display: none; }
+          .aq-table td:nth-child(4) { display: none; }
         }
       `}</style>
 
@@ -299,12 +286,11 @@ export default async function AdminScorecardsPage({ searchParams }: PageProps) {
                       <th>Tees</th>
                       <th>Date</th>
                       <th>Status</th>
-                      <th></th>
                     </tr>
                   </thead>
                   <tbody>
                     {rows.map(row => (
-                      <tr key={row.id}>
+                      <ClickableRow key={row.id} href={`/admin/scorecards/${row.id}`}>
                         <td>
                           <div className="aq-course-name">
                             {row.extracted_course_name ?? row.course_name ?? 'Unknown course'}
@@ -318,12 +304,7 @@ export default async function AdminScorecardsPage({ searchParams }: PageProps) {
                         <td className="aq-muted">{row.tee_count > 0 ? `${row.tee_count} tee${row.tee_count !== 1 ? 's' : ''}` : '—'}</td>
                         <td className="aq-muted">{formatDate(row.created_at)}</td>
                         <td><StatusBadge status={row.status} /></td>
-                        <td>
-                          <Link href={`/admin/scorecards/${row.id}`} className="aq-review-link">
-                            Review →
-                          </Link>
-                        </td>
-                      </tr>
+                      </ClickableRow>
                     ))}
                   </tbody>
                 </table>
