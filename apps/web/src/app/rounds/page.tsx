@@ -61,51 +61,119 @@ export default async function RoundsPage() {
           color: #1A2E1A;
           padding-bottom: max(80px, calc(80px + env(safe-area-inset-bottom)));
         }
-        .rp-hero {
+
+        /* ── Hero banner (rounded card, matches dashboard) ── */
+        .rp-banner-wrap {
+          padding: 0.75rem 1rem 0;
+        }
+        .rp-banner {
           position: relative;
           width: 100%;
-          padding: 3rem 2rem 2rem;
+          min-height: 220px;
           overflow: hidden;
+          border-radius: 20px;
+          box-shadow: 0 4px 20px rgba(10, 31, 10, 0.22);
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
         }
-        .rp-hero-img {
+        .rp-banner-img {
           position: absolute;
           inset: 0;
           object-fit: cover;
           width: 100%;
           height: 100%;
+          filter: saturate(1.3) contrast(1.05);
         }
-        .rp-hero-overlay {
+        .rp-banner-overlay {
           position: absolute;
           inset: 0;
           background: linear-gradient(
             180deg,
-            rgba(10, 31, 10, 0.6) 0%,
-            rgba(10, 31, 10, 0.45) 50%,
-            rgba(10, 31, 10, 0.35) 100%
+            rgba(10, 31, 10, 0.25) 0%,
+            rgba(10, 31, 10, 0.05) 30%,
+            rgba(10, 31, 10, 0.15) 60%,
+            rgba(10, 31, 10, 0.5) 100%
           );
           z-index: 1;
         }
-        .rp-hero-inner {
-          max-width: 1200px;
-          margin: 0 auto;
+        .rp-banner-topbar {
           position: relative;
-          z-index: 2;
+          z-index: 3;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0.875rem 1rem;
         }
+        .rp-topbar-logo {
+          display: flex;
+          align-items: center;
+          text-decoration: none;
+        }
+        .rp-back-btn {
+          background: rgba(255, 255, 255, 0.12);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 10px;
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          color: #3a3a3a;
+          transition: background 0.15s, border-color 0.15s;
+          flex-shrink: 0;
+          text-decoration: none;
+        }
+        .rp-back-btn:hover { background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.35); }
+
+        /* ── Title card (inside banner, frosted glass) ── */
+        .rp-title-card {
+          position: relative;
+          z-index: 3;
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          padding: 1rem 1.25rem;
+          margin: 0 0.75rem 0.75rem;
+          background: rgba(255, 255, 255, 0.12);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: 14px;
+        }
+        .rp-title-icon {
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.15);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .rp-title-info { display: flex; flex-direction: column; gap: 0.15rem; }
         .rp-title {
           font-family: var(--font-manrope), sans-serif;
           font-weight: 800;
-          font-size: 1.75rem;
-          color: #FFFFFF;
-          letter-spacing: -0.01em;
+          font-size: 1.375rem;
+          color: #fff;
+          letter-spacing: -0.03em;
+          line-height: 1.1;
           margin: 0;
-          text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
         }
         .rp-subtitle {
-          font-size: 0.875rem;
-          color: rgba(255, 255, 255, 0.7);
-          margin-top: 0.35rem;
-          text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+          font-family: var(--font-dm-sans), sans-serif;
+          font-size: 0.8125rem;
+          font-weight: 400;
+          color: rgba(255, 255, 255, 0.6);
+          line-height: 1.3;
+          margin: 0;
+          margin-top: 0.15rem;
         }
+
         .rp-main {
           padding: 1.5rem 2rem;
           max-width: 1200px;
@@ -199,19 +267,46 @@ export default async function RoundsPage() {
         }
         .rp-cta:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(13, 99, 27, 0.28); }
         @media (min-width: 768px) {
-          .rp-hero { padding: 3rem 2rem 2.25rem; }
+          .rp-banner { min-height: 240px; }
+          .rp-title-card { margin: 0 1rem 1rem; padding: 1.125rem 1.5rem; }
           .rp-main { max-width: 560px; padding: 2rem; }
           .rp { padding-bottom: 0; }
         }
       `}</style>
 
       <div className="rp">
-        <div className="rp-hero">
-          <Image src="/hero.jpg" alt="" fill className="rp-hero-img" priority />
-          <div className="rp-hero-overlay" />
-          <div className="rp-hero-inner">
-            <h1 className="rp-title">My Rounds</h1>
-            <p className="rp-subtitle">Your scorecard history</p>
+        {/* ── Hero banner (matches dashboard structure) ── */}
+        <div className="rp-banner-wrap">
+          <div className="rp-banner">
+            <Image src="/hero.jpg" alt="Golf course" fill className="rp-banner-img" priority sizes="100vw" quality={90} />
+            <div className="rp-banner-overlay" />
+
+            {/* ── Logo + back button ── */}
+            <div className="rp-banner-topbar">
+              <Link href="/play" className="rp-topbar-logo">
+                <Image src="/lx2-logo.svg" alt="LX2" width={72} height={36} />
+              </Link>
+              <Link href="/play" className="rp-back-btn" aria-label="Back to dashboard">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M15 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </Link>
+            </div>
+
+            {/* ── Title card (inside banner, frosted glass) ── */}
+            <div className="rp-title-card">
+              <div className="rp-title-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="3" y="4" width="18" height="16" rx="2" stroke="#fff" strokeWidth="1.75"/>
+                  <path d="M3 10h18" stroke="#fff" strokeWidth="1.75"/>
+                  <path d="M9 4v6M15 4v6" stroke="#fff" strokeWidth="1.75" strokeLinecap="round"/>
+                </svg>
+              </div>
+              <div className="rp-title-info">
+                <h1 className="rp-title">My Rounds</h1>
+                <p className="rp-subtitle">Your scorecard history</p>
+              </div>
+            </div>
           </div>
         </div>
 

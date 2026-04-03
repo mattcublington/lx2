@@ -229,7 +229,7 @@ export default function PlayDashboard({
           align-items: center;
           justify-content: center;
           cursor: pointer;
-          color: #fff;
+          color: #3a3a3a;
           transition: background 0.15s, border-color 0.15s;
           flex-shrink: 0;
         }
