@@ -242,10 +242,13 @@ export default function PlayDashboard({
         .fe-banner {
           position: relative;
           width: 100%;
-          min-height: 200px;
+          min-height: 220px;
           overflow: hidden;
           border-radius: 20px;
           box-shadow: 0 4px 20px rgba(10, 31, 10, 0.22);
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
         }
         .fe-banner-img {
           position: absolute;
@@ -261,25 +264,27 @@ export default function PlayDashboard({
           background: linear-gradient(
             180deg,
             rgba(10, 31, 10, 0.05) 0%,
-            rgba(10, 31, 10, 0.1) 50%,
-            rgba(10, 31, 10, 0.3) 100%
+            rgba(10, 31, 10, 0.15) 50%,
+            rgba(10, 31, 10, 0.45) 100%
           );
           z-index: 1;
         }
 
-        /* ── Profile card (separate box below banner) ────── */
+        /* ── Profile card (inside banner, transparent) ────── */
         .fe-profile-card {
-          margin: -2rem 1.5rem 0;
           position: relative;
-          z-index: 5;
+          z-index: 3;
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 1rem;
           padding: 1rem 1.25rem;
-          background: linear-gradient(135deg, #1a3a1a 0%, #0a2a0a 100%);
-          border-radius: 16px;
-          box-shadow: 0 6px 24px rgba(10, 31, 10, 0.25);
+          margin: 0 0.75rem 0.75rem;
+          background: rgba(255, 255, 255, 0.12);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: 14px;
           animation: fe-rise 0.4s 0.05s cubic-bezier(0.2, 0, 0, 1) both;
         }
         .fe-profile-link {
@@ -1021,7 +1026,7 @@ export default function PlayDashboard({
           .fe-name { font-size: 1.5rem; }
           .fe-avatar, .fe-avatar-placeholder { width: 56px; height: 56px; }
           .fe-banner { min-height: 240px; }
-          .fe-profile-card { margin: -2.5rem 2rem 0; }
+          .fe-profile-card { margin: 0 1rem 1rem; padding: 1.125rem 1.5rem; }
           .fe { padding-bottom: 0; }
           .fe-menu { top: 3.75rem; right: 2rem; }
         }
@@ -1039,7 +1044,7 @@ export default function PlayDashboard({
           </button>
         </div>
 
-        {/* ── Hero banner (photo only) ── */}
+        {/* ── Hero banner with profile card inside ── */}
         <div className="fe-banner-wrap">
           <div className="fe-banner">
             <Image
@@ -1052,33 +1057,33 @@ export default function PlayDashboard({
               quality={90}
             />
             <div className="fe-banner-overlay" />
-          </div>
-        </div>
 
-        {/* ── Profile card (overlaps banner bottom) ── */}
-        <div className="fe-profile-card">
-          <Link href="/profile" className="fe-profile-link">
-            {avatarUrl ? (
-              <Image src={avatarUrl} alt={displayName} width={52} height={52} className="fe-avatar" />
-            ) : (
-              <div className="fe-avatar-placeholder">
-                {displayName.charAt(0).toUpperCase()}
-              </div>
-            )}
-            <div className="fe-banner-info">
-              <div className="fe-greeting-sub">{greetingPrefix},</div>
-              <h1 className="fe-name">{firstName}</h1>
-              <div className="fe-profile-sub">Ready for your next round?</div>
+            {/* ── Profile card (inside banner, frosted glass) ── */}
+            <div className="fe-profile-card">
+              <Link href="/profile" className="fe-profile-link">
+                {avatarUrl ? (
+                  <Image src={avatarUrl} alt={displayName} width={52} height={52} className="fe-avatar" />
+                ) : (
+                  <div className="fe-avatar-placeholder">
+                    {displayName.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="fe-banner-info">
+                  <div className="fe-greeting-sub">{greetingPrefix},</div>
+                  <h1 className="fe-name">{firstName}</h1>
+                  <div className="fe-profile-sub">Ready for your next round?</div>
+                </div>
+              </Link>
+              {handicapIndex != null && (
+                <div className="fe-hcp-neon">
+                  <span className="fe-hcp-label">HCP</span>
+                  <span className="fe-hcp-value">
+                    {handicapIndex % 1 === 0 ? handicapIndex.toFixed(1) : handicapIndex}
+                  </span>
+                </div>
+              )}
             </div>
-          </Link>
-          {handicapIndex != null && (
-            <div className="fe-hcp-neon">
-              <span className="fe-hcp-label">HCP</span>
-              <span className="fe-hcp-value">
-                {handicapIndex % 1 === 0 ? handicapIndex.toFixed(1) : handicapIndex}
-              </span>
-            </div>
-          )}
+          </div>
         </div>
 
         {/* Dropdown menu — rendered outside banner to avoid overflow clip */}
