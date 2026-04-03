@@ -177,7 +177,8 @@ export default async function AdminScorecardsPage({ searchParams }: PageProps) {
         .badge-approved { background: #dcfce7; color: #166534; }
         .badge-rejected { background: #fee2e2; color: #991b1b; }
 
-        /* ── Review link ── */
+        /* ── Review link — stretched to cover the entire row ── */
+        .aq-table tbody tr { position: relative; cursor: pointer; }
         .aq-review-link {
           display: inline-flex; align-items: center; gap: 4px;
           padding: 6px 12px; border-radius: 8px;
@@ -186,7 +187,11 @@ export default async function AdminScorecardsPage({ searchParams }: PageProps) {
           transition: background 0.15s, transform 0.15s;
           white-space: nowrap;
         }
-        .aq-review-link:hover { background: rgba(13,99,27,0.04); transform: translateY(-1px); }
+        /* Pseudo-element expands the link's click area to the full row */
+        .aq-review-link::after {
+          content: ''; position: absolute; inset: 0;
+        }
+        .aq-table tbody tr:hover .aq-review-link { background: rgba(13,99,27,0.04); }
 
         /* ── Empty state ── */
         .aq-empty {
@@ -210,10 +215,13 @@ export default async function AdminScorecardsPage({ searchParams }: PageProps) {
           .aq-body { padding: 1rem; }
           .aq-stats-inner { padding: 0 1rem; gap: 0; overflow-x: auto; }
           .aq-stat { padding: 0.75rem 1rem 0.75rem 0; margin-right: 1rem; }
+          /* Hide Country, Tees, and the Review button column — row is fully clickable */
           .aq-table th:nth-child(3),
           .aq-table td:nth-child(3),
           .aq-table th:nth-child(4),
-          .aq-table td:nth-child(4) { display: none; }
+          .aq-table td:nth-child(4),
+          .aq-table th:last-child,
+          .aq-table td:last-child { display: none; }
         }
       `}</style>
 

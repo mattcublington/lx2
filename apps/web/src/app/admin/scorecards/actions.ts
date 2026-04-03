@@ -201,15 +201,17 @@ export async function approveUpload(id: string, notes: string): Promise<ActionRe
 
   const admin = createAdminClient()
 
+  // Fetch full upload — we need uploader + geo for the course row
   const { data: upload, error: fetchErr } = await admin
     .from('scorecard_uploads')
-    .select('course_name, extracted_data')
+    .select('course_name, extracted_data, uploaded_by, country, continent')
     .eq('id', id)
     .single()
 
   if (fetchErr || !upload) return { ok: false, error: 'Upload not found' }
 
-  const { error } = await admin
+  // Mark upload as approved
+  const { error: approveErr } = await admin
     .from('scorecard_uploads')
     .update({
       status: 'approved',
@@ -219,17 +221,91 @@ export async function approveUpload(id: string, notes: string): Promise<ActionRe
     })
     .eq('id', id)
 
-  if (error) return { ok: false, error: error.message }
+  if (approveErr) return { ok: false, error: approveErr.message }
 
+  // ── Persist course to the main database ──────────────────────────────────
   const extracted = upload.extracted_data as ExtractedCourseData | null
   const courseName = extracted?.courseName ?? (upload.course_name as string | null)
-  if (courseName) {
-    await admin
+
+  if (courseName && extracted?.tees?.length) {
+    const tees = extracted.tees
+
+    // Use the tee with the most holes as the primary reference
+    const primaryTee = tees.reduce((best, t) =>
+      t.holes.length >= best.holes.length ? t : best
+    )
+    const holeCount = primaryTee.holes.length
+    const sumPar = primaryTee.holes.reduce((s, h) => s + (h.par ?? 0), 0)
+    const totalPar = (primaryTee.par ?? sumPar) || null
+
+    // 1. Upsert the course row (unique on name)
+    const { data: course, error: courseErr } = await admin
       .from('courses')
-      .update({ verified: true })
-      .eq('name', courseName)
-      .eq('source', 'ocr')
-      .eq('verified', false)
+      .upsert({
+        name: courseName,
+        club: extracted.clubName ?? null,
+        location: extracted.location ?? (upload.country as string | null) ?? null,
+        holes_count: holeCount,
+        source: 'ocr',
+        verified: true,
+        submitted_by: upload.uploaded_by as string,
+        country: upload.country as string | null,
+        continent: upload.continent as string | null,
+        slope_rating: primaryTee.slopeRating ?? null,
+        course_rating: primaryTee.courseRating ?? null,
+        par: totalPar,
+      }, { onConflict: 'name' })
+      .select('id')
+      .single()
+
+    if (courseErr) return { ok: false, error: `Course upsert failed: ${courseErr.message}` }
+    const courseId = course.id as string
+
+    // 2. Upsert course_holes — par + stroke_index per hole (from primary tee)
+    const holeRows = primaryTee.holes
+      .filter(h => h.par != null && h.si != null)
+      .map(h => ({
+        course_id: courseId,
+        hole_number: h.hole,
+        par: h.par as number,
+        stroke_index: h.si as number,
+      }))
+
+    if (holeRows.length > 0) {
+      const { error: holesErr } = await admin
+        .from('course_holes')
+        .upsert(holeRows, { onConflict: 'course_id,hole_number' })
+      if (holesErr) return { ok: false, error: `Holes upsert failed: ${holesErr.message}` }
+    }
+
+    // 3. Upsert course_tees — one row per extracted tee colour
+    for (const tee of tees) {
+      const yardages = tee.holes
+        .slice()
+        .sort((a, b) => a.hole - b.hole)
+        .map(h => h.yards)
+        .filter((y): y is number => y != null)
+
+      if (yardages.length === 0) continue
+
+      const { error: teeErr } = await admin
+        .from('course_tees')
+        .upsert({
+          course_id: courseId,
+          tee_name: tee.teeName,
+          yardages,
+          total_yards: yardages.reduce((s, y) => s + y, 0),
+          slope_rating: tee.slopeRating ?? null,
+          course_rating: tee.courseRating ?? null,
+        }, { onConflict: 'course_id,tee_name' })
+      if (teeErr) return { ok: false, error: `Tee upsert failed (${tee.teeName}): ${teeErr.message}` }
+    }
+
+    // 4. Link the upload row back to the course
+    await admin
+      .from('scorecard_uploads')
+      .update({ course_id: courseId })
+      .eq('id', id)
   }
 
   revalidatePath('/admin/scorecards')
