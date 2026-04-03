@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import ManageActions, { ConfirmPlayers, FinaliseButton, DeleteEventButton } from './ManageActions'
+import RecapGenerator from './RecapGenerator'
 import GroupManager from './GroupManager'
 import PredictionsToggle from './PredictionsToggle'
 import BottomNav from '@/components/BottomNav'
@@ -108,6 +109,13 @@ export default async function ManagePage({ params }: PageProps) {
     .from('prediction_markets')
     .select('id', { count: 'exact', head: true })
     .eq('event_id', id)
+
+  // Existing recap (if any)
+  const { data: existingRecap } = await admin
+    .from('event_recaps')
+    .select('id, commentary_group, commentary_players, banter_group, banter_players, stats_group, stats_players, recap_slug, generated_at')
+    .eq('event_id', id)
+    .maybeSingle()
 
   // Build the shareable URL. The app URL is always lx2.golf in production.
   // process.env.NEXT_PUBLIC_APP_URL is set in CI and prod; fall back to a relative path label.
@@ -499,6 +507,16 @@ export default async function ManagePage({ params }: PageProps) {
 
                 {/* ── Finalise ── */}
                 <FinaliseButton eventId={id} finalised={!!event.finalised} />
+
+                {/* ── Round Recap ── */}
+                {event.finalised && (
+                  <RecapGenerator
+                    eventId={id}
+                    eventName={event.name}
+                    existingRecap={existingRecap}
+                    appUrl={appUrl}
+                  />
+                )}
 
                 {/* ── Quick links ── */}
                 <div className="mg-links">
