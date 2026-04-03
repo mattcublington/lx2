@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useTransition, useRef } from 'react'
-import { generateGroups, updateGroup, assignPlayerToGroup } from './actions'
+import { useRouter } from 'next/navigation'
+import { generateGroups, updateGroup, assignPlayerToGroup, removePlayerFromEvent } from './actions'
+import PlayerPickerSheet from './PlayerPickerSheet'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -127,6 +129,8 @@ export default function GroupManager({ eventId, groups: initialGroups, players: 
   const [players, setPlayers] = useState<Player[]>(initialPlayers)
   const [dragOverTarget, setDragOverTarget] = useState<string | null>(null) // 'group-N' or 'unassigned'
   const dragPlayerRef = useRef<string | null>(null)
+  const [pickerGroup, setPickerGroup] = useState<{ flightNumber: number; label: string } | null>(null)
+  const router = useRouter()
 
   const numGroupsEstimate = Math.ceil(initialPlayers.length / groupSize)
   const hasGroups = groups.length > 0
@@ -158,6 +162,14 @@ export default function GroupManager({ eventId, groups: initialGroups, players: 
     setPlayers(prev => prev.map(p => p.id === playerId ? { ...p, flight_number: flightNumber } : p))
     startTransition(async () => {
       await assignPlayerToGroup(eventId, playerId, flightNumber)
+    })
+  }
+
+  function handleRemovePlayer(playerId: string) {
+    if (!confirm('Remove this player from the tournament?')) return
+    setPlayers(prev => prev.filter(p => p.id !== playerId))
+    startTransition(async () => {
+      await removePlayerFromEvent(eventId, playerId)
     })
   }
 
@@ -334,11 +346,36 @@ export default function GroupManager({ eventId, groups: initialGroups, players: 
                   key={player.id}
                   player={player}
                   index={idx}
-                  isLast={idx === groupPlayers.length - 1}
+                  isLast={idx === groupPlayers.length - 1 && groupPlayers.length >= groupSize}
                   onDragStart={onDragStart}
                   onDragEnd={onDragEnd}
+                  onRemove={handleRemovePlayer}
                 />
               ))
+            )}
+
+            {/* Add player button */}
+            {groupPlayers.length < groupSize && (
+              <button
+                onClick={() => setPickerGroup({ flightNumber: group.flight_number, label: groupLabel(group) })}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  width: '100%', padding: '10px 20px',
+                  background: 'transparent', border: 'none',
+                  borderTop: groupPlayers.length > 0 ? '1px solid #f0f4f0' : 'none',
+                  cursor: 'pointer', fontFamily: font,
+                  fontSize: '0.8125rem', color: '#0D631B', fontWeight: 500,
+                  transition: 'background 0.12s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(13, 99, 27, 0.04)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5"/>
+                  <path d="M8 4.5V11.5M4.5 8H11.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+                Add player
+              </button>
             )}
           </div>
         )
@@ -367,6 +404,7 @@ export default function GroupManager({ eventId, groups: initialGroups, players: 
               isLast={idx === unassigned.length - 1}
               onDragStart={onDragStart}
               onDragEnd={onDragEnd}
+              onRemove={handleRemovePlayer}
             />
           ))}
         </div>
@@ -395,6 +433,22 @@ export default function GroupManager({ eventId, groups: initialGroups, players: 
         </div>
       )}
 
+      {/* Player picker overlay */}
+      {pickerGroup && (
+        <PlayerPickerSheet
+          eventId={eventId}
+          groupLabel={pickerGroup.label}
+          flightNumber={pickerGroup.flightNumber}
+          groupSize={groupSize}
+          existingCount={players.filter(p => p.flight_number === pickerGroup.flightNumber).length}
+          onDone={() => {
+            setPickerGroup(null)
+            router.refresh()
+          }}
+          onCancel={() => setPickerGroup(null)}
+        />
+      )}
+
     </div>
   )
 }
@@ -407,12 +461,14 @@ function DraggablePlayerRow({
   isLast,
   onDragStart,
   onDragEnd,
+  onRemove,
 }: {
   player: Player
   index: number
   isLast: boolean
   onDragStart: (e: React.DragEvent, playerId: string) => void
   onDragEnd: (e: React.DragEvent) => void
+  onRemove: (playerId: string) => void
 }) {
   return (
     <div
@@ -421,7 +477,7 @@ function DraggablePlayerRow({
       onDragEnd={onDragEnd}
       style={{ ...playerRowStyle, borderBottom: isLast ? 'none' : '1px solid #f0f4f0' }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
         {/* Drag handle */}
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{ flexShrink: 0, color: '#C8D4C8' }}>
           <circle cx="4.5" cy="3" r="1.25" fill="currentColor" />
@@ -445,6 +501,24 @@ function DraggablePlayerRow({
           {Number(player.handicap_index).toFixed(1)}
         </span>
       </div>
+      <button
+        onClick={e => { e.stopPropagation(); onRemove(player.id) }}
+        aria-label={`Remove ${player.display_name}`}
+        style={{
+          width: 26, height: 26, borderRadius: '50%',
+          background: 'transparent', border: 'none',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', color: '#C8D4C8', flexShrink: 0,
+          transition: 'background 0.12s, color 0.12s',
+          padding: 0,
+        }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(220, 38, 38, 0.08)'; e.currentTarget.style.color = '#dc2626' }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#C8D4C8' }}
+      >
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <path d="M2.5 2.5L9.5 9.5M9.5 2.5L2.5 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        </svg>
+      </button>
     </div>
   )
 }
