@@ -231,13 +231,13 @@ export default function PlayDashboard({
           );
           z-index: 1;
         }
-        /* Top bar: logo left, hamburger right */
+        /* Top bar: hamburger pinned right */
         .fe-banner-top {
           position: relative;
           z-index: 3;
           display: flex;
           align-items: center;
-          justify-content: space-between;
+          justify-content: flex-end;
           width: 100%;
           margin-bottom: 1.25rem;
         }
@@ -308,15 +308,17 @@ export default function PlayDashboard({
         .fe-menu-item:last-child { border-bottom: none; }
         .fe-menu-item:hover { background: rgba(255,255,255,0.08); }
         .fe-menu-item.danger { color: rgba(255, 110, 110, 0.9); }
-        /* Avatar + greeting row */
+        /* Avatar + greeting row — centred in banner */
         .fe-banner-profile {
           position: relative;
           z-index: 3;
           display: flex;
           align-items: center;
+          justify-content: center;
           gap: 1rem;
           text-decoration: none;
           color: #fff;
+          width: 100%;
         }
         .fe-avatar {
           width: 68px;
