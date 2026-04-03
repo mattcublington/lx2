@@ -86,8 +86,6 @@ export default function ReviewActions({
     ))
   }
 
-  const isDone = status === 'approved' || status === 'rejected'
-
   return (
     <>
       <style>{`

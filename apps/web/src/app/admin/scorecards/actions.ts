@@ -136,7 +136,7 @@ export async function getUploadDetail(id: string): Promise<UploadDetail | null> 
   const searchName = extracted?.courseName ?? (data.course_name as string | null) ?? ''
 
   // Find potential duplicate courses in the database
-  let duplicateCandidates: DuplicateCandidate[] = []
+  const duplicateCandidates: DuplicateCandidate[] = []
   if (searchName) {
     // Search by trigram-style: split words and look for overlap
     const words = searchName.split(/\s+/).filter(w => w.length > 3)

@@ -31,7 +31,6 @@ function TeeTable({ tee }: { tee: ExtractedTee }) {
   const front = tee.holes.filter(h => h.hole <= 9)
   const back  = tee.holes.filter(h => h.hole > 9)
   const colour = TEE_COLOURS[tee.teeColour] ?? '#6B8C6B'
-  const isDark = ['Black', 'Blue', 'Green', 'Purple', 'Red'].includes(tee.teeColour)
 
   return (
     <div className="ar-tee">
