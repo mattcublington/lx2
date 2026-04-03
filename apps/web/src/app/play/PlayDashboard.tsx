@@ -1,5 +1,6 @@
 'use client'
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -54,6 +55,84 @@ interface Props {
 }
 
 
+/* ── Greeting ──────────────────────────────────────────────────── */
+
+type Period = 'morning' | 'afternoon' | 'evening'
+
+const TZ_GREETINGS: Record<string, Record<Period, string>> = {
+  'Asia/Tokyo':          { morning: 'おはようございます', afternoon: 'こんにちは', evening: 'こんばんは' },
+  'Asia/Osaka':          { morning: 'おはようございます', afternoon: 'こんにちは', evening: 'こんばんは' },
+  'Asia/Seoul':          { morning: '좋은 아침이에요', afternoon: '안녕하세요', evening: '좋은 저녁이에요' },
+  'Asia/Shanghai':       { morning: '早上好', afternoon: '下午好', evening: '晚上好' },
+  'Asia/Hong_Kong':      { morning: '早上好', afternoon: '下午好', evening: '晚上好' },
+  'Asia/Taipei':         { morning: '早安', afternoon: '午安', evening: '晚安' },
+  'Europe/Paris':        { morning: 'Bonjour', afternoon: 'Bonjour', evening: 'Bonsoir' },
+  'Europe/Brussels':     { morning: 'Bonjour', afternoon: 'Bonjour', evening: 'Bonsoir' },
+  'Europe/Madrid':       { morning: 'Buenos días', afternoon: 'Buenas tardes', evening: 'Buenas noches' },
+  'America/Mexico_City': { morning: 'Buenos días', afternoon: 'Buenas tardes', evening: 'Buenas noches' },
+  'America/Bogota':      { morning: 'Buenos días', afternoon: 'Buenas tardes', evening: 'Buenas noches' },
+  'America/Buenos_Aires':{ morning: 'Buenos días', afternoon: 'Buenas tardes', evening: 'Buenas noches' },
+  'America/Santiago':    { morning: 'Buenos días', afternoon: 'Buenas tardes', evening: 'Buenas noches' },
+  'Europe/Berlin':       { morning: 'Guten Morgen', afternoon: 'Guten Tag', evening: 'Guten Abend' },
+  'Europe/Vienna':       { morning: 'Guten Morgen', afternoon: 'Guten Tag', evening: 'Guten Abend' },
+  'Europe/Zurich':       { morning: 'Guten Morgen', afternoon: 'Guten Tag', evening: 'Guten Abend' },
+  'Europe/Rome':         { morning: 'Buongiorno', afternoon: 'Buon pomeriggio', evening: 'Buonasera' },
+  'Europe/Lisbon':       { morning: 'Bom dia', afternoon: 'Boa tarde', evening: 'Boa noite' },
+  'America/Sao_Paulo':   { morning: 'Bom dia', afternoon: 'Boa tarde', evening: 'Boa noite' },
+  'Europe/Amsterdam':    { morning: 'Goedemorgen', afternoon: 'Goedemiddag', evening: 'Goedenavond' },
+  'Europe/Moscow':       { morning: 'Доброе утро', afternoon: 'Добрый день', evening: 'Добрый вечер' },
+}
+
+function getGreeting(displayName: string): { prefix: string; firstName: string } {
+  const firstName = displayName.split(' ')[0] ?? displayName
+  const hour = new Date().getHours()
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+  const period: Period = hour >= 5 && hour < 12 ? 'morning' : hour >= 12 && hour < 17 ? 'afternoon' : 'evening'
+  const en: Record<Period, string> = { morning: 'Good morning', afternoon: 'Good afternoon', evening: 'Good evening' }
+  const match = TZ_GREETINGS[tz]
+  return { prefix: match ? match[period] : en[period], firstName }
+}
+
+/* ── Daily insight ─────────────────────────────────────────────── */
+
+const GOLF_TIPS = [
+  'A pre-shot routine builds consistency — pick a spot behind the ball and commit.',
+  'Course management wins more shots than swing changes.',
+  'The short game accounts for over 60% of your strokes. Practise it more.',
+  'Align to an intermediate target 2 feet in front of the ball, not the distant flag.',
+  'On tough holes, aim for the fat part of the green — bogey is a fine score.',
+  'Slow your backswing. Most amateurs rush to the top.',
+  'Speed control matters more than line when putting.',
+  'Never make a swing change during a round. Trust what you have today.',
+  'A solid 3-wood is more valuable than a driver you can\'t control.',
+  'Read greens from below the hole — you see the slope more clearly.',
+  'Tension is your biggest enemy. Relax your grip, shoulders, and jaw.',
+  'Play to where your next shot is easiest, not where you want to be.',
+  'For chip shots, play the ball off your back foot and lean the shaft forward.',
+  'Commit to every shot, even when the lie is tough. Doubt creates bad swings.',
+  'The mental game is won between shots, not during them.',
+]
+
+function getDailyInsight(
+  recentScores: Array<{ date: string; score: number }>,
+  roundsCount: number,
+): string {
+  if (roundsCount === 0) return 'Every great round starts with the first. Get out there — the course is waiting.'
+  if (roundsCount === 1) return 'One round down. The best way to improve is to play more — consistency builds over time.'
+
+  if (recentScores.length >= 4) {
+    const half = Math.floor(recentScores.length / 2)
+    const recentAvg = recentScores.slice(-half).reduce((a, b) => a + b.score, 0) / half
+    const olderAvg = recentScores.slice(0, half).reduce((a, b) => a + b.score, 0) / half
+    const diff = olderAvg - recentAvg
+    if (diff > 2) return `Your last ${half} rounds average ${recentAvg.toFixed(1)} strokes — ${diff.toFixed(1)} better than before. You're on the right trajectory.`
+    if (diff < -2) return `Your scoring has drifted up by ${Math.abs(diff).toFixed(1)} shots recently. A session focusing on the short game could turn it around.`
+  }
+
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86_400_000)
+  return GOLF_TIPS[dayOfYear % GOLF_TIPS.length] ?? GOLF_TIPS[0]!
+}
+
 function formatEventDate(dateStr: string): string {
   const d = new Date(dateStr + 'T12:00:00')
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -79,6 +158,9 @@ export default function PlayDashboard({
   recentScores = [],
 }: Props) {
   const router = useRouter()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const { prefix: greetingPrefix, firstName } = getGreeting(displayName)
+  const dailyInsight = getDailyInsight(recentScores, roundsCount)
 
   const handleSignOut = async () => {
     const supabase = createClient()
@@ -121,7 +203,7 @@ export default function PlayDashboard({
         .fe-banner {
           position: relative;
           width: 100%;
-          padding: 2.5rem 2rem 1.75rem;
+          padding: 1.125rem 1.5rem 1.75rem;
           overflow: hidden;
           display: flex;
           flex-direction: column;
@@ -145,14 +227,84 @@ export default function PlayDashboard({
           );
           z-index: 1;
         }
-        .fe-banner-logo {
-          position: absolute;
-          top: 0.875rem;
-          right: 1.25rem;
+        /* Top bar: logo left, hamburger right */
+        .fe-banner-top {
+          position: relative;
           z-index: 3;
-          opacity: 0.7;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+          margin-bottom: 1.25rem;
+        }
+        .fe-banner-logo-img {
+          opacity: 0.75;
           filter: brightness(0) invert(1);
         }
+        .fe-hamburger {
+          background: rgba(255,255,255,0.12);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          border: 1px solid rgba(255,255,255,0.15);
+          border-radius: 10px;
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          color: #fff;
+          transition: background 0.15s;
+          flex-shrink: 0;
+        }
+        .fe-hamburger:hover { background: rgba(255,255,255,0.22); }
+        /* Dropdown menu (fixed, over banner) */
+        .fe-menu {
+          position: fixed;
+          top: 4rem;
+          right: 1.5rem;
+          z-index: 200;
+          background: rgba(10, 22, 10, 0.94);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 14px;
+          overflow: hidden;
+          min-width: 186px;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          animation: fe-menu-in 0.15s ease-out both;
+        }
+        @keyframes fe-menu-in {
+          from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .fe-menu-backdrop {
+          position: fixed;
+          inset: 0;
+          z-index: 199;
+        }
+        .fe-menu-item {
+          display: flex;
+          align-items: center;
+          gap: 0.625rem;
+          width: 100%;
+          padding: 0.875rem 1.125rem;
+          font-family: var(--font-dm-sans), sans-serif;
+          font-size: 0.9375rem;
+          font-weight: 500;
+          color: rgba(255,255,255,0.88);
+          background: none;
+          border: none;
+          border-bottom: 1px solid rgba(255,255,255,0.06);
+          cursor: pointer;
+          text-decoration: none;
+          transition: background 0.12s;
+          text-align: left;
+        }
+        .fe-menu-item:last-child { border-bottom: none; }
+        .fe-menu-item:hover { background: rgba(255,255,255,0.08); }
+        .fe-menu-item.danger { color: rgba(255, 110, 110, 0.9); }
+        /* Avatar + greeting row */
         .fe-banner-profile {
           position: relative;
           z-index: 3;
@@ -163,20 +315,20 @@ export default function PlayDashboard({
           color: #fff;
         }
         .fe-avatar {
-          width: 72px;
-          height: 72px;
+          width: 68px;
+          height: 68px;
           border-radius: 50%;
-          border: 3px solid rgba(255,255,255,0.25);
+          border: 2.5px solid rgba(255,255,255,0.25);
           box-shadow: 0 2px 12px rgba(0,0,0,0.3);
           object-fit: cover;
           flex-shrink: 0;
           background: #E0EBE0;
         }
         .fe-avatar-placeholder {
-          width: 72px;
-          height: 72px;
+          width: 68px;
+          height: 68px;
           border-radius: 50%;
-          border: 3px solid rgba(255,255,255,0.25);
+          border: 2.5px solid rgba(255,255,255,0.25);
           box-shadow: 0 2px 12px rgba(0,0,0,0.3);
           flex-shrink: 0;
           background: linear-gradient(135deg, #0D631B, #0a4f15);
@@ -188,15 +340,23 @@ export default function PlayDashboard({
           font-weight: 800;
           font-size: 1.5rem;
         }
-        .fe-banner-info { display: flex; flex-direction: column; gap: 0.35rem; }
+        .fe-banner-info { display: flex; flex-direction: column; gap: 0.25rem; }
+        .fe-greeting-sub {
+          font-family: var(--font-lexend), sans-serif;
+          font-size: 0.9375rem;
+          font-weight: 300;
+          color: rgba(255,255,255,0.75);
+          letter-spacing: 0.01em;
+          line-height: 1.2;
+        }
         .fe-name {
           font-family: var(--font-manrope), sans-serif;
           font-weight: 800;
-          font-size: 1.5rem;
+          font-size: 1.875rem;
           color: #fff;
-          letter-spacing: -0.02em;
-          line-height: 1.1;
-          text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+          letter-spacing: -0.03em;
+          line-height: 1.05;
+          text-shadow: 0 1px 6px rgba(0,0,0,0.25);
         }
         .fe-hcp-badge {
           display: inline-flex;
@@ -215,30 +375,48 @@ export default function PlayDashboard({
           letter-spacing: 0.06em;
           text-transform: uppercase;
           width: fit-content;
+          margin-top: 0.25rem;
         }
-        /* Sign-out button — full-width below profile */
-        .fe-so-hd {
-          display: block;
-          position: relative;
-          z-index: 3;
-          width: 100%;
-          margin-top: 1.25rem;
-          background: rgba(255,255,255,0.08);
-          backdrop-filter: blur(8px);
-          -webkit-backdrop-filter: blur(8px);
-          border: 1px solid rgba(255,255,255,0.12);
-          border-radius: 12px;
+        /* Daily insight card */
+        .fe-insight {
+          background: linear-gradient(135deg, rgba(13,99,27,0.07) 0%, rgba(13,99,27,0.03) 100%);
+          border: 1px solid rgba(13,99,27,0.18);
+          border-radius: 14px;
+          padding: 0.875rem 1rem;
+          margin-bottom: 1.25rem;
+          animation: fe-rise 0.45s 0.05s cubic-bezier(0.2, 0, 0, 1) both;
+          display: flex;
+          gap: 0.75rem;
+          align-items: flex-start;
+        }
+        .fe-insight-icon {
+          width: 26px;
+          height: 26px;
+          border-radius: 7px;
+          background: rgba(13,99,27,0.12);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #0D631B;
+          flex-shrink: 0;
+          margin-top: 1px;
+        }
+        .fe-insight-label {
+          font-family: var(--font-lexend), sans-serif;
+          font-size: 0.625rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: #0D631B;
+          margin-bottom: 0.2rem;
+        }
+        .fe-insight-text {
           font-family: var(--font-dm-sans), sans-serif;
           font-size: 0.875rem;
-          font-weight: 600;
-          color: rgba(255,255,255,0.85);
-          cursor: pointer;
-          padding: 12px 24px;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          transition: background 0.15s, color 0.15s;
+          font-weight: 400;
+          color: #1A2E1A;
+          line-height: 1.5;
         }
-        .fe-so-hd:hover { background: rgba(255,255,255,0.18); color: #fff; }
 
         /* ── Main content ────────────────────────────────── */
         .fe-main {
@@ -763,9 +941,10 @@ export default function PlayDashboard({
             max-width: 560px;
             padding: 2rem 2rem;
           }
-          .fe-name { font-size: 1.625rem; }
-          .fe-avatar, .fe-avatar-placeholder { width: 80px; height: 80px; }
+          .fe-name { font-size: 2rem; }
+          .fe-avatar, .fe-avatar-placeholder { width: 76px; height: 76px; }
           .fe { padding-bottom: 0; }
+          .fe-menu { top: 4.25rem; right: 2rem; }
         }
       `}</style>
 
@@ -783,34 +962,65 @@ export default function PlayDashboard({
             quality={90}
           />
           <div className="fe-banner-overlay" />
-          <div className="fe-banner-logo">
-            <Image src="/lx2-logo.svg" alt="LX2" width={64} height={32} style={{ width: 'auto', height: 'auto' }} priority />
+
+          {/* Top bar: logo + hamburger */}
+          <div className="fe-banner-top">
+            <Image src="/lx2-logo.svg" alt="LX2" width={56} height={28} className="fe-banner-logo-img" style={{ width: 'auto', height: 'auto' }} priority />
+            <button className="fe-hamburger" onClick={() => setMenuOpen(o => !o)} aria-label="Open menu">
+              <HamburgerIcon />
+            </button>
           </div>
+
+          {/* Avatar + greeting */}
           <Link href="/profile" className="fe-banner-profile">
             {avatarUrl ? (
-              <Image src={avatarUrl} alt={displayName} width={72} height={72} className="fe-avatar" />
+              <Image src={avatarUrl} alt={displayName} width={68} height={68} className="fe-avatar" />
             ) : (
               <div className="fe-avatar-placeholder">
                 {displayName.charAt(0).toUpperCase()}
               </div>
             )}
             <div className="fe-banner-info">
-              <h1 className="fe-name">{displayName}</h1>
+              <div className="fe-greeting-sub">{greetingPrefix},</div>
+              <h1 className="fe-name">{firstName}</h1>
               {handicapIndex != null && (
                 <div className="fe-hcp-badge">
-                  Handicap: {handicapIndex % 1 === 0 ? handicapIndex.toFixed(1) : handicapIndex}
+                  HCP {handicapIndex % 1 === 0 ? handicapIndex.toFixed(1) : handicapIndex}
                 </div>
               )}
             </div>
           </Link>
-          <button className="fe-so-hd" onClick={handleSignOut}>Sign Out</button>
         </div>
+
+        {/* Dropdown menu — rendered outside banner to avoid overflow clip */}
+        {menuOpen && (
+          <div className="fe-menu-backdrop" onClick={() => setMenuOpen(false)} />
+        )}
+        {menuOpen && (
+          <nav className="fe-menu" role="menu">
+            <Link href="/profile" className="fe-menu-item" role="menuitem" onClick={() => setMenuOpen(false)}>
+              <UserMenuIcon /> Profile
+            </Link>
+            <button className="fe-menu-item danger" role="menuitem" onClick={handleSignOut}>
+              <SignOutMenuIcon /> Sign out
+            </button>
+          </nav>
+        )}
 
         {/* ── Main ── */}
         <main className="fe-main">
 
           {/* Golf Form Pulse — sparkline of recent scores */}
           {recentScores.length >= 2 && <FormPulse recentScores={recentScores} />}
+
+          {/* Daily insight */}
+          <div className="fe-insight">
+            <div className="fe-insight-icon"><LightbulbIcon /></div>
+            <div>
+              <div className="fe-insight-label">Today&apos;s insight</div>
+              <div className="fe-insight-text">{dailyInsight}</div>
+            </div>
+          </div>
 
           {/* Primary CTA — active round or action cards */}
           {activeRoundId ? (
@@ -1050,6 +1260,41 @@ function UsersIcon({ size = 12 }: { size?: number }) {
       <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
       <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="1.75"/>
       <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
+function HamburgerIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
+function UserMenuIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.75"/>
+      <path d="M4 20a8 8 0 0116 0" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
+function SignOutMenuIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M16 17l5-5-5-5M21 12H9" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
+function LightbulbIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 2a7 7 0 015.33 11.6c-.54.66-.83 1.48-.83 2.4V17a2 2 0 01-2 2H9a2 2 0 01-2-2v-1c0-.92-.29-1.74-.83-2.4A7 7 0 0112 2z" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M9 21h6" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
     </svg>
   )
 }

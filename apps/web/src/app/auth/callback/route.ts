@@ -18,11 +18,26 @@ export async function GET(request: Request) {
     if (user) {
       const fullName = user.user_metadata?.full_name as string | undefined
       const admin = createAdminClient()
-      await admin.from('users').upsert({
-        id: user.id,
-        email: user.email,
-        ...(fullName ? { display_name: fullName } : {}),
-      }, { onConflict: 'id', ignoreDuplicates: true })
+
+      // Check if the user row already exists.
+      // If it does, only update the email (never overwrite a custom display_name).
+      // If it doesn't, insert with the Google full_name as the initial display_name.
+      const { data: existing } = await admin
+        .from('users')
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      if (!existing) {
+        await admin.from('users').insert({
+          id: user.id,
+          email: user.email,
+          ...(fullName ? { display_name: fullName } : {}),
+        })
+      } else {
+        // Existing user — only sync email in case it changed; leave display_name untouched
+        await admin.from('users').update({ email: user.email }).eq('id', user.id)
+      }
     }
   }
 
