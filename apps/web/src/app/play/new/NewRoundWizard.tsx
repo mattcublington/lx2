@@ -336,18 +336,6 @@ function SearchInput({
 
 // ── Screen 1: Course Selection ─────────────────────────────────────────────────
 
-// Auto-detect user's likely continent from timezone
-function guessUserContinent(): string {
-  try {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
-    if (tz.startsWith('Europe/')) return 'Europe'
-    if (tz.startsWith('Australia/') || tz.startsWith('Pacific/')) return 'Oceania'
-    if (tz.startsWith('America/')) return 'North America'
-    if (tz.startsWith('Asia/')) return 'Asia'
-    if (tz.startsWith('Africa/')) return 'Africa'
-  } catch { /* ignore */ }
-  return ''
-}
 
 function VenueStep({
   selectedClub,
@@ -363,25 +351,13 @@ function VenueStep({
   allCourses: Course[]
 }) {
   const venues = getVenues(allCourses)
-  const continents = [...new Set(venues.map(v => v.continent))].sort()
 
-  // Auto-detect continent from timezone on mount
-  const [continent, setContinent] = useState(() => {
-    const guess = guessUserContinent()
-    return continents.includes(guess) ? guess : ''
-  })
   const [country, setCountry] = useState('')
   const [search, setSearch] = useState('')
 
-  // Derive countries from venues in selected continent
-  const countries = [...new Set(
-    venues
-      .filter(v => !continent || v.continent === continent)
-      .map(v => v.country)
-  )].sort()
+  const countries = [...new Set(venues.map(v => v.country))].sort()
 
   const filtered = venues.filter(v => {
-    if (continent && v.continent !== continent) return false
     if (country && v.country !== country) return false
     if (!search) return true
     return v.club.toLowerCase().includes(search.toLowerCase()) ||
@@ -401,36 +377,21 @@ function VenueStep({
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
-          <div style={{ flex: 1 }}>
+        {countries.length > 1 && (
+          <div style={{ marginBottom: '1rem' }}>
             <select
-              value={continent}
-              onChange={e => { setContinent(e.target.value); setCountry('') }}
+              value={country}
+              onChange={e => setCountry(e.target.value)}
               style={dropdownStyle}
-              aria-label="Filter by continent"
+              aria-label="Filter by country"
             >
-              <option value="">All continents</option>
-              {continents.map(c => (
+              <option value="">All countries</option>
+              {countries.map(c => (
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>
           </div>
-          {countries.length > 1 && (
-            <div style={{ flex: 1 }}>
-              <select
-                value={country}
-                onChange={e => setCountry(e.target.value)}
-                style={dropdownStyle}
-                aria-label="Filter by country"
-              >
-                <option value="">All countries</option>
-                {countries.map(c => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-            </div>
-          )}
-        </div>
+        )}
 
         <SearchInput value={search} onChange={setSearch} placeholder="Search clubs or country" />
 
