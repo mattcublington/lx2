@@ -13,6 +13,10 @@ import {
   strokeResult,
   scoreReducer,
 } from '@/lib/score-entry-helpers'
+import VoiceScoring from './VoiceScoring'
+import type { ConfirmedScore } from './VoiceConfirm'
+import { saveVoiceScoreDetails } from './voice-actions'
+import type { VoiceHoleContext, GroupPlayerInfo } from '@lx2/scoring'
 
 // Prevents concurrent drain runs per scorecard.
 const draining = new Set<string>()
@@ -469,9 +473,9 @@ const STYLES = `
     text-transform: uppercase; letter-spacing: 0.06em;
     text-align: center; margin-bottom: 0.75rem;
   }
-  .sc-modal-qs { display: flex; gap: 0.625rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .sc-modal-qs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.625rem; margin-bottom: 1.5rem; }
   .sc-mqbtn {
-    width: 56px; height: 56px;
+    width: 100%; aspect-ratio: 1; max-width: 72px; justify-self: center;
     border-radius: 50%;
     border: 2px solid transparent;
     background: rgba(240,244,236,0.6);
@@ -999,6 +1003,7 @@ export default function ScoreEntryLive(props: Props) {
   const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [codeCopied, setCodeCopied] = useState(false)
   const [activeGroup, setActiveGroup] = useState<number | null>(myFlightNumber ?? null)
+  const [showVoice, setShowVoice] = useState(false)
 
   const autoAdvanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const autoAdvancedHoles = useRef<Set<number>>(new Set())
@@ -1733,6 +1738,97 @@ export default function ScoreEntryLive(props: Props) {
             )
           })}
         </div>
+
+        {/* ── Voice scoring ── */}
+        {showVoice ? (
+          <VoiceScoring
+            hole={{
+              holeNumber: hole.holeInRound,
+              par: hole.par,
+              strokeIndex: hole.siM ?? 1,
+            }}
+            groupPlayers={groupPlayers
+              .filter(p => !p.isCurrentUser && p.scorecardId)
+              .map(p => ({
+                id: p.scorecardId,
+                displayName: p.displayName,
+              }))}
+            format={format}
+            playingHandicap={Math.round(handicapIndex * allowancePct)}
+            hcShots={hcOnHole}
+            markerName={playerName}
+            holeNumber={hole.holeInRound}
+            par={hole.par}
+            onScoresConfirmed={async (scores) => {
+              const transcript = scores.map(s => `${s.displayName}: ${s.score}`).join(', ')
+              for (const cs of scores) {
+                const hir = hole.holeInRound
+                if (cs.playerId === 'self') {
+                  if (cs.score !== null) {
+                    d({ type: 'SCORE', holeInRound: hir, v: cs.score })
+                    await enqueueScore(scorecardId, hir, cs.score)
+                  } else {
+                    d({ type: 'PICKUP', holeInRound: hir })
+                    await enqueueScore(scorecardId, hir, null)
+                  }
+                  // Save rich voice details for marker
+                  saveVoiceScoreDetails(scorecardId, hir, {
+                    putts: cs.putts,
+                    fairwayHit: cs.fairwayHit,
+                    greenInRegulation: cs.gir,
+                    missDirection: cs.missDirection,
+                    voiceTranscript: transcript,
+                  })
+                } else {
+                  // Other player — enqueue their score
+                  const targetScorecardId = cs.playerId
+                  if (cs.score !== null) {
+                    await enqueueScore(targetScorecardId, hir, cs.score)
+                  } else {
+                    await enqueueScore(targetScorecardId, hir, null)
+                  }
+                }
+              }
+              setShowVoice(false)
+            }}
+            onCancel={() => setShowVoice(false)}
+          />
+        ) : (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '0.5rem 0' }}>
+            {typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
+                <button
+                  onClick={() => setShowVoice(true)}
+                  style={{
+                    width: 56, height: 56,
+                    borderRadius: '50%',
+                    border: 'none',
+                    background: '#0D631B',
+                    color: '#FFFFFF',
+                    cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 4px 12px rgba(13,99,27,0.25)',
+                    transition: 'transform 0.15s, box-shadow 0.15s',
+                  }}
+                  aria-label="Score by voice"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                    <line x1="12" x2="12" y1="19" y2="22"/>
+                  </svg>
+                </button>
+                <span style={{
+                  fontFamily: "var(--font-dm-sans), 'DM Sans', sans-serif",
+                  fontSize: '0.75rem',
+                  color: '#72786E',
+                }}>
+                  Tap to score by voice
+                </span>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* ── Finish round banner ── */}
         {roundComplete && (
