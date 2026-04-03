@@ -217,16 +217,7 @@ export default function PlayDashboard({
         .fe-topbar-logo {
           display: flex;
           align-items: center;
-          gap: 0.5rem;
           text-decoration: none;
-          color: #1A2E1A;
-        }
-        .fe-topbar-logo-text {
-          font-family: var(--font-manrope), sans-serif;
-          font-weight: 800;
-          font-size: 1.25rem;
-          letter-spacing: -0.03em;
-          color: #0D631B;
         }
         .fe-hamburger {
           background: none;
@@ -247,8 +238,6 @@ export default function PlayDashboard({
         /* ── Hero banner ─────────────────────────────────── */
         .fe-banner-wrap {
           padding: 1rem 1rem 0;
-          position: relative;
-          padding-bottom: 28px; /* space for floating chips */
         }
         .fe-banner {
           position: relative;
@@ -267,6 +256,7 @@ export default function PlayDashboard({
           object-fit: cover;
           width: 100%;
           height: 100%;
+          filter: saturate(1.3) contrast(1.05);
         }
         .fe-banner-overlay {
           position: absolute;
@@ -350,105 +340,124 @@ export default function PlayDashboard({
           text-overflow: ellipsis;
         }
 
-        /* ── Circular HCP badge ──────────────────────────── */
-        .fe-hcp-circle {
-          width: 64px;
-          height: 64px;
-          border-radius: 50%;
-          background: radial-gradient(circle at 35% 35%, #0D631B, #0a4f15);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-          box-shadow:
-            0 0 0 2.5px rgba(255, 255, 255, 0.2),
-            0 0 16px rgba(13, 99, 27, 0.35),
-            0 4px 12px rgba(0, 0, 0, 0.2);
+        /* ── Neon HCP badge (pill, glow lines) ────────── */
+        .fe-hcp-neon {
           position: relative;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          padding: 0.5rem 1rem;
+          border-radius: 9999px;
+          border: 1px solid rgba(90, 180, 100, 0.25);
+          background: rgba(90, 180, 100, 0.08);
+          flex-shrink: 0;
+          overflow: hidden;
+          transition: background 0.3s;
         }
-        .fe-hcp-circle::after {
+        .fe-hcp-neon:hover {
+          background: rgba(90, 180, 100, 0.04);
+        }
+        /* Top glow line */
+        .fe-hcp-neon::before {
           content: '';
           position: absolute;
-          inset: -3px;
-          border-radius: 50%;
-          border: 1.5px solid rgba(255, 255, 255, 0.15);
+          top: -1px;
+          left: 12.5%;
+          width: 75%;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(120, 210, 130, 0.6), transparent);
+          opacity: 0;
+          transition: opacity 0.5s ease-in-out;
+        }
+        /* Bottom glow line */
+        .fe-hcp-neon::after {
+          content: '';
+          position: absolute;
+          bottom: -1px;
+          left: 12.5%;
+          width: 75%;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(120, 210, 130, 0.6), transparent);
+          opacity: 0;
+          transition: opacity 0.5s ease-in-out;
+        }
+        .fe-hcp-neon:hover::before,
+        .fe-hcp-neon:hover::after {
+          opacity: 1;
         }
         .fe-hcp-label {
           font-family: var(--font-dm-sans), sans-serif;
-          font-size: 0.5625rem;
-          font-weight: 700;
-          color: rgba(255, 255, 255, 0.7);
+          font-size: 0.6875rem;
+          font-weight: 600;
+          color: rgba(255, 255, 255, 0.65);
           text-transform: uppercase;
-          letter-spacing: 0.1em;
-          line-height: 1;
+          letter-spacing: 0.08em;
         }
         .fe-hcp-value {
           font-family: var(--font-manrope), sans-serif;
           font-weight: 800;
           font-size: 1.125rem;
           color: #fff;
-          line-height: 1.15;
           letter-spacing: -0.02em;
         }
 
-        /* ── Floating stat chips ─────────────────────────── */
-        .fe-float-chips {
+        /* ── Stat cards (scrollable row) ──────────────── */
+        .fe-stats {
           display: flex;
-          justify-content: center;
-          gap: 0.625rem;
-          position: relative;
-          z-index: 5;
-          margin-top: -22px;
-          padding: 0 1rem;
+          gap: 0.75rem;
+          overflow-x: auto;
+          scroll-snap-type: x mandatory;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+          margin-bottom: 1.5rem;
+          padding-bottom: 0.25rem;
           animation: fe-rise 0.45s 0.06s cubic-bezier(0.2, 0, 0, 1) both;
         }
-        .fe-chip {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          background: #fff;
-          border-radius: 9999px;
-          padding: 0.5rem 1rem 0.5rem 0.625rem;
-          box-shadow: 0 4px 14px rgba(26, 28, 28, 0.08);
-          border: 1px solid #E0EBE0;
-          flex: 1;
-          max-width: 180px;
-          transition: transform 0.2s, box-shadow 0.2s;
+        .fe-stats::-webkit-scrollbar { display: none; }
+        .fe-stat {
+          background: #FFFFFF;
+          border-radius: 16px;
+          padding: 1.25rem 0.5rem;
+          text-align: center;
+          box-shadow: 0 4px 12px rgba(26, 28, 28, 0.04);
+          transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+          min-width: calc(50% - 0.375rem);
+          flex-shrink: 0;
+          scroll-snap-align: start;
+          overflow: hidden;
         }
-        .fe-chip:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 6px 18px rgba(26, 28, 28, 0.12);
+        .fe-stat:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 16px rgba(26, 28, 28, 0.08);
         }
-        .fe-chip-icon {
-          width: 28px;
-          height: 28px;
-          border-radius: 50%;
+        .fe-stat-icon {
+          width: 32px;
+          height: 32px;
+          margin: 0 auto 0.5rem;
           display: flex;
           align-items: center;
           justify-content: center;
-          background: rgba(13, 99, 27, 0.1);
+          background: linear-gradient(135deg, rgba(13, 99, 27, 0.1) 0%, rgba(61, 107, 26, 0.1) 100%);
+          border-radius: 10px;
           color: #0D631B;
-          flex-shrink: 0;
         }
-        .fe-chip-data { display: flex; flex-direction: column; min-width: 0; }
-        .fe-chip-val {
+        .fe-stat-val {
           font-family: var(--font-manrope), sans-serif;
           font-weight: 700;
-          font-size: 0.9375rem;
+          font-size: 1.5rem;
           color: #1A2E1A;
-          line-height: 1.2;
-          letter-spacing: -0.01em;
+          margin-bottom: 0.2rem;
+          letter-spacing: -0.02em;
         }
-        .fe-chip-label {
-          font-family: var(--font-dm-sans), sans-serif;
-          font-size: 0.625rem;
-          font-weight: 500;
-          color: #6B8C6B;
-          line-height: 1.2;
-          white-space: nowrap;
+        .fe-stat-label {
+          font-family: var(--font-lexend), sans-serif;
+          font-size: 0.6875rem;
+          font-weight: 400;
+          color: #72786E;
+          line-height: 1.3;
           overflow: hidden;
           text-overflow: ellipsis;
+          white-space: nowrap;
         }
 
         /* Dropdown menu (fixed, below topbar) */
@@ -620,7 +629,7 @@ export default function PlayDashboard({
           color: #72786E;
         }
 
-        /* (stat cards removed — now floating chips on banner) */
+        /* ── (spacer) ── */
 
         /* ── CTA button ──────────────────────────────────── */
         .fe-cta {
@@ -1006,12 +1015,9 @@ export default function PlayDashboard({
           }
           .fe-name { font-size: 1.5rem; }
           .fe-avatar, .fe-avatar-placeholder { width: 56px; height: 56px; }
-          .fe-hcp-circle { width: 70px; height: 70px; }
-          .fe-hcp-value { font-size: 1.25rem; }
           .fe-banner { min-height: 260px; }
           .fe { padding-bottom: 0; }
           .fe-menu { top: 3.75rem; right: 2rem; }
-          .fe-chip { max-width: 200px; }
         }
       `}</style>
 
@@ -1020,8 +1026,7 @@ export default function PlayDashboard({
         {/* ── White top bar ── */}
         <div className="fe-topbar">
           <Link href="/play" className="fe-topbar-logo">
-            <Image src="/lx2-logo.png" alt="LX2" width={32} height={32} />
-            <span className="fe-topbar-logo-text">LX2</span>
+            <Image src="/lx2-logo.png" alt="LX2" width={44} height={44} />
           </Link>
           <button className="fe-hamburger" onClick={() => setMenuOpen(o => !o)} aria-label="Open menu">
             <HamburgerIcon />
@@ -1058,7 +1063,7 @@ export default function PlayDashboard({
                 </div>
               </Link>
               {handicapIndex != null && (
-                <div className="fe-hcp-circle">
+                <div className="fe-hcp-neon">
                   <span className="fe-hcp-label">HCP</span>
                   <span className="fe-hcp-value">
                     {handicapIndex % 1 === 0 ? handicapIndex.toFixed(1) : handicapIndex}
@@ -1068,18 +1073,6 @@ export default function PlayDashboard({
             </div>
           </div>
 
-          {/* Floating stat chips — bridge banner into content */}
-          <div className="fe-float-chips">
-            {stats.map((s, i) => (
-              <div className="fe-chip" key={i}>
-                <div className="fe-chip-icon">{s.icon}</div>
-                <div className="fe-chip-data">
-                  <span className="fe-chip-val">{s.value}</span>
-                  <span className="fe-chip-label">{s.label}</span>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Dropdown menu — rendered outside banner to avoid overflow clip */}
@@ -1146,7 +1139,16 @@ export default function PlayDashboard({
             </div>
           </div>
 
-          {/* Stats now shown as floating chips on the banner */}
+          {/* Quick stats */}
+          <div className="fe-stats">
+            {stats.map((s, i) => (
+              <div className="fe-stat" key={i}>
+                <div className="fe-stat-icon">{s.icon}</div>
+                <div className="fe-stat-val">{s.value}</div>
+                <div className="fe-stat-label">{s.label}</div>
+              </div>
+            ))}
+          </div>
 
           {/* Recent rounds */}
           <section className="fe-rounds">
