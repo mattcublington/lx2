@@ -98,6 +98,12 @@ export interface HoleScore {
   scorecard_id: string
   hole_number: number
   gross_strokes: number | null  // null = pick-up
+  putts: number | null
+  fairway_hit: boolean | null
+  green_in_regulation: boolean | null
+  miss_direction: string | null         // 'left' | 'right' | 'short' | 'long'
+  input_method: string | null           // 'manual' | 'voice'
+  voice_transcript: string | null
   created_at: string
 }
 
@@ -109,6 +115,21 @@ export interface ContestEntry {
   event_player_id: string
   distance_cm: number | null
   created_at: string
+}
+
+export interface EventRecap {
+  id: string
+  event_id: string
+  commentary_group: string
+  commentary_players: Json
+  banter_group: string
+  banter_players: Json
+  stats_group: string
+  stats_players: Json
+  config: Json
+  generated_at: string
+  generated_by: string | null
+  recap_slug: string | null
 }
 
 // ─── Club Platform Types ──────────────────────────────────────────────────────
