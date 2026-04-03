@@ -175,6 +175,8 @@ export default async function TournamentsPage() {
   const activeTournaments = tournaments.filter(t => !t.finalised)
   const finalisedTournaments = tournaments.filter(t => t.finalised)
 
+  const totalCount = tournaments.length + merits.length + standaloneEvents.length
+
   return (
     <>
       <style>{`
@@ -185,50 +187,173 @@ export default async function TournamentsPage() {
           color: #1A2E1A;
           padding-bottom: max(80px, calc(80px + env(safe-area-inset-bottom)));
         }
-        .th-hero {
+        /* ── Hero banner (rounded card, matches dashboard) ── */
+        .th-banner-wrap {
+          padding: 0.75rem 1rem 0;
+        }
+        .th-banner {
           position: relative;
           width: 100%;
-          padding: 3rem 2rem 2rem;
+          min-height: 220px;
           overflow: hidden;
+          border-radius: 20px;
+          box-shadow: 0 4px 20px rgba(10, 31, 10, 0.22);
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
         }
-        .th-hero-img {
+        .th-banner-img {
           position: absolute;
           inset: 0;
           object-fit: cover;
           width: 100%;
           height: 100%;
+          filter: saturate(1.3) contrast(1.05);
         }
-        .th-hero-overlay {
+        .th-banner-overlay {
           position: absolute;
           inset: 0;
           background: linear-gradient(
             180deg,
-            rgba(10, 31, 10, 0.6) 0%,
-            rgba(10, 31, 10, 0.45) 50%,
-            rgba(10, 31, 10, 0.35) 100%
+            rgba(10, 31, 10, 0.25) 0%,
+            rgba(10, 31, 10, 0.05) 30%,
+            rgba(10, 31, 10, 0.15) 60%,
+            rgba(10, 31, 10, 0.5) 100%
           );
           z-index: 1;
         }
-        .th-hero-inner {
-          max-width: 1200px;
-          margin: 0 auto;
+        .th-banner-topbar {
           position: relative;
-          z-index: 2;
+          z-index: 3;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0.875rem 1rem;
         }
+        .th-topbar-logo {
+          display: flex;
+          align-items: center;
+          text-decoration: none;
+        }
+        .th-hamburger {
+          background: rgba(255, 255, 255, 0.12);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 10px;
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          color: #3a3a3a;
+          transition: background 0.15s, border-color 0.15s;
+          flex-shrink: 0;
+          text-decoration: none;
+        }
+        .th-hamburger:hover { background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.35); }
+
+        /* ── Title card (inside banner, frosted glass) ── */
+        .th-title-card {
+          position: relative;
+          z-index: 3;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1rem;
+          padding: 1rem 1.25rem;
+          margin: 0 0.75rem 0.75rem;
+          background: rgba(255, 255, 255, 0.12);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: 14px;
+        }
+        .th-title-left {
+          display: flex;
+          align-items: center;
+          gap: 0.875rem;
+          flex: 1;
+          min-width: 0;
+        }
+        .th-title-icon {
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.15);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .th-title-info { display: flex; flex-direction: column; gap: 0.15rem; }
         .th-title {
           font-family: var(--font-manrope), sans-serif;
           font-weight: 800;
-          font-size: 1.75rem;
-          color: #FFFFFF;
-          letter-spacing: -0.01em;
+          font-size: 1.375rem;
+          color: #fff;
+          letter-spacing: -0.03em;
+          line-height: 1.1;
           margin: 0;
-          text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
         }
         .th-subtitle {
-          font-size: 0.875rem;
-          color: rgba(255, 255, 255, 0.7);
-          margin-top: 0.35rem;
-          text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+          font-family: var(--font-dm-sans), sans-serif;
+          font-size: 0.8125rem;
+          font-weight: 400;
+          color: rgba(255, 255, 255, 0.6);
+          line-height: 1.3;
+          margin: 0;
+          margin-top: 0.15rem;
+        }
+
+        /* ── Neon count badge ── */
+        .th-count-badge {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          padding: 0.5rem 1rem;
+          border-radius: 9999px;
+          border: 1px solid rgba(90, 180, 100, 0.25);
+          background: rgba(90, 180, 100, 0.08);
+          flex-shrink: 0;
+          overflow: hidden;
+        }
+        .th-count-badge::before {
+          content: '';
+          position: absolute;
+          top: -1px;
+          left: 12.5%;
+          width: 75%;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(120, 210, 130, 0.6), transparent);
+          opacity: 0.6;
+        }
+        .th-count-badge::after {
+          content: '';
+          position: absolute;
+          bottom: -1px;
+          left: 12.5%;
+          width: 75%;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(120, 210, 130, 0.6), transparent);
+          opacity: 0.6;
+        }
+        .th-count-value {
+          font-family: var(--font-manrope), sans-serif;
+          font-weight: 800;
+          font-size: 1.125rem;
+          color: #fff;
+          letter-spacing: -0.02em;
+        }
+        .th-count-label {
+          font-family: var(--font-dm-sans), sans-serif;
+          font-size: 0.6875rem;
+          font-weight: 600;
+          color: rgba(255, 255, 255, 0.65);
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
         }
         .th-main {
           padding: 1.5rem 2rem;
@@ -380,18 +505,49 @@ export default async function TournamentsPage() {
           color: #0D631B;
         }
         @media (min-width: 768px) {
-          .th-hero { padding: 3rem 2rem 2.25rem; }
+          .th-banner { min-height: 240px; }
+          .th-title-card { margin: 0 1rem 1rem; padding: 1.125rem 1.5rem; }
           .th { padding-bottom: 0; }
         }
       `}</style>
 
       <div className="th">
-        <div className="th-hero">
-          <Image src="/hero.jpg" alt="" fill className="th-hero-img" priority />
-          <div className="th-hero-overlay" />
-          <div className="th-hero-inner">
-            <h1 className="th-title">Tournaments</h1>
-            <p className="th-subtitle">Competitions &amp; series</p>
+        {/* ── Hero banner ── */}
+        <div className="th-banner-wrap">
+          <div className="th-banner">
+            <Image src="/hero.jpg" alt="Golf course" fill className="th-banner-img" priority sizes="100vw" quality={90} />
+            <div className="th-banner-overlay" />
+
+            <div className="th-banner-topbar">
+              <Link href="/play" className="th-topbar-logo">
+                <Image src="/lx2-logo.svg" alt="LX2" width={72} height={36} />
+              </Link>
+              <Link href="/play" className="th-hamburger" aria-label="Menu">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </Link>
+            </div>
+
+            <div className="th-title-card">
+              <div className="th-title-left">
+                <div className="th-title-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M6 9H4a2 2 0 01-2-2V5a2 2 0 012-2h2M18 9h2a2 2 0 002-2V5a2 2 0 00-2-2h-2M9 22h6M12 17v5M8 2h8v8a4 4 0 11-8 0V2z" stroke="#fff" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <div className="th-title-info">
+                  <h1 className="th-title">Tournaments</h1>
+                  <p className="th-subtitle">Competitions &amp; series</p>
+                </div>
+              </div>
+              {totalCount > 0 && (
+                <div className="th-count-badge">
+                  <span className="th-count-value">{totalCount}</span>
+                  <span className="th-count-label">events</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
