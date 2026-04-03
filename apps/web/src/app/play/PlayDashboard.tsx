@@ -203,25 +203,26 @@ export default function PlayDashboard({
           padding-bottom: max(80px, calc(80px + env(safe-area-inset-bottom)));
         }
 
-        /* ── Top bar (white, logo + hamburger) ───────────── */
-        .fe-topbar {
+        /* ── Banner top bar (logo + hamburger inside banner) ── */
+        .fe-banner-topbar {
+          position: relative;
+          z-index: 3;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 0.75rem 1.25rem;
-          background: #fff;
-          box-shadow: 0 1px 4px rgba(26, 28, 28, 0.06);
-          position: relative;
-          z-index: 10;
+          padding: 0.875rem 1rem;
         }
         .fe-topbar-logo {
           display: flex;
           align-items: center;
           text-decoration: none;
+          filter: drop-shadow(0 1px 3px rgba(0,0,0,0.3));
         }
         .fe-hamburger {
-          background: none;
-          border: 1px solid #E0EBE0;
+          background: rgba(255, 255, 255, 0.12);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
           border-radius: 10px;
           width: 40px;
           height: 40px;
@@ -229,26 +230,26 @@ export default function PlayDashboard({
           align-items: center;
           justify-content: center;
           cursor: pointer;
-          color: #1A2E1A;
+          color: #fff;
           transition: background 0.15s, border-color 0.15s;
           flex-shrink: 0;
         }
-        .fe-hamburger:hover { background: #F2F5F0; border-color: #c8d4c8; }
+        .fe-hamburger:hover { background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.35); }
 
         /* ── Hero banner ─────────────────────────────────── */
         .fe-banner-wrap {
-          padding: 1rem 1rem 0;
+          padding: 0 1rem;
         }
         .fe-banner {
           position: relative;
           width: 100%;
-          min-height: 220px;
+          min-height: 260px;
           overflow: hidden;
           border-radius: 20px;
           box-shadow: 0 4px 20px rgba(10, 31, 10, 0.22);
           display: flex;
           flex-direction: column;
-          justify-content: flex-end;
+          justify-content: space-between;
         }
         .fe-banner-img {
           position: absolute;
@@ -263,9 +264,10 @@ export default function PlayDashboard({
           inset: 0;
           background: linear-gradient(
             180deg,
-            rgba(10, 31, 10, 0.05) 0%,
-            rgba(10, 31, 10, 0.15) 50%,
-            rgba(10, 31, 10, 0.45) 100%
+            rgba(10, 31, 10, 0.25) 0%,
+            rgba(10, 31, 10, 0.05) 30%,
+            rgba(10, 31, 10, 0.15) 60%,
+            rgba(10, 31, 10, 0.5) 100%
           );
           z-index: 1;
         }
@@ -473,8 +475,8 @@ export default function PlayDashboard({
         /* Dropdown menu (fixed, below topbar) */
         .fe-menu {
           position: fixed;
-          top: 3.5rem;
-          right: 1.25rem;
+          top: 3.75rem;
+          right: 2rem;
           z-index: 200;
           background: rgba(10, 22, 10, 0.94);
           backdrop-filter: blur(16px);
@@ -1028,23 +1030,13 @@ export default function PlayDashboard({
           .fe-banner { min-height: 240px; }
           .fe-profile-card { margin: 0 1rem 1rem; padding: 1.125rem 1.5rem; }
           .fe { padding-bottom: 0; }
-          .fe-menu { top: 3.75rem; right: 2rem; }
+          .fe-menu { top: 4rem; right: 2.5rem; }
         }
       `}</style>
 
       <div className="fe">
 
-        {/* ── White top bar ── */}
-        <div className="fe-topbar">
-          <Link href="/play" className="fe-topbar-logo">
-            <Image src="/lx2-logo.png" alt="LX2" width={44} height={44} />
-          </Link>
-          <button className="fe-hamburger" onClick={() => setMenuOpen(o => !o)} aria-label="Open menu">
-            <HamburgerIcon />
-          </button>
-        </div>
-
-        {/* ── Hero banner with profile card inside ── */}
+        {/* ── Hero banner with logo, hamburger, and profile card ── */}
         <div className="fe-banner-wrap">
           <div className="fe-banner">
             <Image
@@ -1057,6 +1049,16 @@ export default function PlayDashboard({
               quality={90}
             />
             <div className="fe-banner-overlay" />
+
+            {/* ── Logo + hamburger inside banner ── */}
+            <div className="fe-banner-topbar">
+              <Link href="/play" className="fe-topbar-logo">
+                <Image src="/lx2-logo.png" alt="LX2" width={44} height={44} />
+              </Link>
+              <button className="fe-hamburger" onClick={() => setMenuOpen(o => !o)} aria-label="Open menu">
+                <HamburgerIcon />
+              </button>
+            </div>
 
             {/* ── Profile card (inside banner, frosted glass) ── */}
             <div className="fe-profile-card">
