@@ -31,6 +31,7 @@ interface Props {
   handicapIndex: number | null
   dbCombinations: DbCombo[] | null
   combinationTees: CombinationTee[]
+  extraCourses: Course[]
 }
 
 type Step = 'venue' | 'scorecard-upload' | 'players' | 'groups' | 'combination' | 'settings'
@@ -115,20 +116,20 @@ const dropdownStyle: React.CSSProperties = {
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-function getVenues() {
+function getVenues(allCourses: Course[]) {
   const seen = new Set<string>()
   const venues: { club: string; location: string; country: string; continent: string; count: number }[] = []
-  for (const c of COURSES) {
+  for (const c of allCourses) {
     if (!seen.has(c.club)) {
       seen.add(c.club)
-      venues.push({ club: c.club, location: c.location, country: c.country, continent: c.continent, count: COURSES.filter(x => x.club === c.club).length })
+      venues.push({ club: c.club, location: c.location, country: c.country, continent: c.continent, count: allCourses.filter(x => x.club === c.club).length })
     }
   }
   return venues
 }
 
-function getCoursesForClub(club: string) {
-  return COURSES.filter(c => c.club === club)
+function getCoursesForClub(club: string, allCourses: Course[]) {
+  return allCourses.filter(c => c.club === club)
 }
 
 function shortName(name: string): string {
@@ -353,13 +354,15 @@ function VenueStep({
   onSelect,
   onNext,
   onAddCourse,
+  allCourses,
 }: {
   selectedClub: string | null
   onSelect: (club: string) => void
   onNext: () => void
   onAddCourse: () => void
+  allCourses: Course[]
 }) {
-  const venues = getVenues()
+  const venues = getVenues(allCourses)
   const continents = [...new Set(venues.map(v => v.continent))].sort()
 
   // Auto-detect continent from timezone on mount
@@ -932,18 +935,20 @@ function CombinationStep({
   club,
   dbCombinations,
   onSelect,
+  allCourses,
 }: {
   club: string
   dbCombinations: DbCombo[] | null
   onSelect: (courseId: string, dbComboId: string | null) => void
+  allCourses: Course[]
 }) {
   const [search, setSearch] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const courses = getCoursesForClub(club)
+  const courses = getCoursesForClub(club, allCourses)
 
   const findDbCombo = (courseId: string): string | null => {
     if (!dbCombinations || dbCombinations.length === 0) return null
-    const course = COURSES.find(c => c.id === courseId)
+    const course = allCourses.find(c => c.id === courseId)
     if (!course) return null
     const short = shortName(course.name)
     return dbCombinations.find(dc => shortName(dc.name) === short || dc.name === course.name)?.id ?? null
@@ -1095,15 +1100,17 @@ function SettingsStep({
   onSubmit,
   submitting,
   combinationTees,
+  allCourses,
 }: {
   state: WizardState
   onUpdate: (partial: Partial<WizardState>) => void
   onSubmit: () => void
   submitting: boolean
   combinationTees: CombinationTee[]
+  allCourses: Course[]
 }) {
   const [advOpen, setAdvOpen] = useState(false)
-  const course = getCourse(state.courseId)
+  const course = allCourses.find(c => c.id === state.courseId)
   if (!course) return <div>Course not found</div>
 
   const par3Holes = course.holes.filter(h => h.par === 3).map(h => h.num)
@@ -1366,7 +1373,7 @@ function SettingsStep({
                         if (state.ntpEnabled) {
                           onUpdate({ ntpEnabled: false, ntpHoles: [] })
                         } else {
-                          onUpdate({ ntpEnabled: true, ntpHoles: defaultNtpHoles(state.courseId) })
+                          onUpdate({ ntpEnabled: true, ntpHoles: course.holes.filter(h => h.par === 3).map(h => h.num).slice(0, 1) })
                         }
                       }}
                     >
@@ -1379,7 +1386,9 @@ function SettingsStep({
                       if (state.ldEnabled) {
                         onUpdate({ ldEnabled: false, ldHoles: [] })
                       } else {
-                        onUpdate({ ldEnabled: true, ldHoles: defaultLdHoles(state.courseId) })
+                        const par5s = course.holes.filter(h => h.par === 5).map(h => h.num)
+                        const ldDefault = par5s.length > 0 ? [par5s[0]!] : course.holes.filter(h => h.par === 4).map(h => h.num).slice(0, 1)
+                        onUpdate({ ldEnabled: true, ldHoles: ldDefault })
                       }
                     }}
                   >
@@ -1552,7 +1561,7 @@ function SettingsStep({
 
 // ── Main wizard ────────────────────────────────────────────────────────────────
 
-export default function NewRoundWizard({ displayName, handicapIndex, dbCombinations, combinationTees }: Props) {
+export default function NewRoundWizard({ displayName, handicapIndex, dbCombinations, combinationTees, extraCourses }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -1585,6 +1594,11 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
 
   // Uploaded courses from scorecard OCR (temporary, session-only)
   const [uploadedCourses, setUploadedCourses] = useState<Course[]>([])
+
+  // All courses: static bundle + DB-approved OCR courses + session-uploaded courses
+  const allCourses: Course[] = [...COURSES, ...extraCourses, ...uploadedCourses]
+
+  const findCourse = (id: string) => allCourses.find(c => c.id === id)
 
   const update = (partial: Partial<WizardState>) => setState(s => ({ ...s, ...partial }))
 
@@ -1788,6 +1802,7 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
             onSelect={selectVenue}
             onNext={proceedToPlayers}
             onAddCourse={() => update({ step: 'scorecard-upload' })}
+            allCourses={allCourses}
           />
         )}
 
@@ -1814,6 +1829,7 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
             club={state.selectedClub}
             dbCombinations={dbCombinations}
             onSelect={selectCombination}
+            allCourses={allCourses}
           />
         )}
 
@@ -1824,6 +1840,7 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
             onSubmit={handleSubmit}
             submitting={isPending}
             combinationTees={combinationTees}
+            allCourses={allCourses}
           />
         )}
       </div>
