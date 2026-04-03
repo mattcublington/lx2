@@ -1760,16 +1760,16 @@ export default function ScoreEntryLive(props: Props) {
             holeNumber={hole.holeInRound}
             par={hole.par}
             onScoresConfirmed={async (scores) => {
-              const transcript = scores.map(s => `${s.displayName}: ${s.score}`).join(', ')
+              const transcriptStr = scores.map(cs => `${cs.displayName}: ${cs.score}`).join(', ')
               for (const cs of scores) {
                 const hir = hole.holeInRound
                 if (cs.playerId === 'self') {
                   if (cs.score !== null) {
                     d({ type: 'SCORE', holeInRound: hir, v: cs.score })
-                    await enqueueScore(scorecardId, hir, cs.score)
+                    await enqueueScore({ scorecard_id: scorecardId, hole_number: hir, gross_strokes: cs.score, queued_at: Date.now() })
                   } else {
                     d({ type: 'PICKUP', holeInRound: hir })
-                    await enqueueScore(scorecardId, hir, null)
+                    await enqueueScore({ scorecard_id: scorecardId, hole_number: hir, gross_strokes: null, queued_at: Date.now() })
                   }
                   // Save rich voice details for marker
                   saveVoiceScoreDetails(scorecardId, hir, {
@@ -1777,16 +1777,12 @@ export default function ScoreEntryLive(props: Props) {
                     fairwayHit: cs.fairwayHit,
                     greenInRegulation: cs.gir,
                     missDirection: cs.missDirection,
-                    voiceTranscript: transcript,
+                    voiceTranscript: transcriptStr,
                   })
                 } else {
                   // Other player — enqueue their score
                   const targetScorecardId = cs.playerId
-                  if (cs.score !== null) {
-                    await enqueueScore(targetScorecardId, hir, cs.score)
-                  } else {
-                    await enqueueScore(targetScorecardId, hir, null)
-                  }
+                  await enqueueScore({ scorecard_id: targetScorecardId, hole_number: hir, gross_strokes: cs.score, queued_at: Date.now() })
                 }
               }
               setShowVoice(false)
