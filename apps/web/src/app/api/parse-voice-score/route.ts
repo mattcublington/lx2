@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import type { VoiceParseResult, ParsedOwnScore, ParsedPlayerScore } from '@lx2/scoring'
+import type { VoiceParseResult } from '@lx2/scoring'
 
 interface RequestBody {
   transcript: string

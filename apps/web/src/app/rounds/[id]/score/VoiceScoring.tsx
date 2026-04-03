@@ -33,7 +33,6 @@ export default function VoiceScoring({
   holeNumber,
   par,
   onScoresConfirmed,
-  onCancel,
 }: VoiceScoringProps) {
   const [state, setState] = useState<VoiceState>('idle')
   const [parseResult, setParseResult] = useState<VoiceParseResult | null>(null)
@@ -97,7 +96,6 @@ export default function VoiceScoring({
   }, [state, startListening, stopListening])
 
   const handleConfirm = useCallback((scores: ConfirmedScore[]) => {
-    const total = scores.length
     setConfirmedMessage(`Hole ${holeNumber} saved`)
     setState('confirmed')
     setTimeout(() => {

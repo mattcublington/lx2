@@ -49,6 +49,57 @@ export interface UseVoiceInputReturn {
   isSupported: boolean
 }
 
+// ─── Golf-aware transcript correction ───────────────────────────────────────
+// The Web Speech API doesn't know golf terms, so it frequently mishears them.
+// These replacements bias the raw transcript toward golf vocabulary.
+
+const GOLF_CORRECTIONS: [RegExp, string][] = [
+  // Score terms
+  [/\bboog(?:ie|ey|y)\b/gi, 'bogey'],
+  [/\bboug(?:ie|ey|y)\b/gi, 'bogey'],
+  [/\bboggy\b/gi, 'bogey'],
+  [/\bbird(?:ie|y|ey)\b/gi, 'birdie'],
+  [/\bpaws?\b/gi, 'par'],            // "paw" → "par"
+  [/\bpower\b/gi, 'par'],            // "power" → "par" (common mishearing)
+
+  // Putts — most common mishearing
+  [/\bbutts\b/gi, 'putts'],
+  [/\bbutt\b/gi, 'putt'],
+  [/\bputs\b/gi, 'putts'],           // "puts" → "putts"
+  [/\bparts?\b/gi, 'putts'],         // "parts" → "putts" (in golf context)
+
+  // Stats
+  [/\bgir\b/gi, 'GIR'],
+  [/\bgreen and regulation\b/gi, 'green in regulation'],
+  [/\bfair way\b/gi, 'fairway'],
+
+  // "Pick up" variants
+  [/\bpicked? ?up\b/gi, 'picked up'],
+
+  // Numbers spoken as words that sound like other things
+  [/\bto\b(?=\s+putts?\b)/gi, 'two'],// "to putts" → "two putts"
+  [/\btoo\b(?=\s+putts?\b)/gi, 'two'],
+  [/\bwon\b/gi, 'one'],              // "won" → "one"
+  [/\bate\b/gi, 'eight'],            // "ate" → "eight"
+]
+
+// Context-sensitive: only replace "for" → "four" when it follows a name or comma
+// (to avoid replacing "for" in "scored for the team")
+const FOR_TO_FOUR = /(?:,\s*|\b(?:[A-Z][a-z]+)\s+)for\b/gi
+
+function correctGolfTranscript(raw: string): string {
+  let text = raw
+
+  for (const [pattern, replacement] of GOLF_CORRECTIONS) {
+    text = text.replace(pattern, replacement)
+  }
+
+  // Context-sensitive "for" → "four": only after names/commas
+  text = text.replace(FOR_TO_FOUR, (match) => match.replace(/for$/i, 'four'))
+
+  return text
+}
+
 // ─── Hook ────────────────────────────────────────────────────────────────────
 
 const SILENCE_TIMEOUT_MS = 8000
@@ -124,8 +175,8 @@ export function useVoiceInput(): UseVoiceInputReturn {
         }
       }
 
-      if (finalText) setTranscript(finalText)
-      setInterimTranscript(interimText)
+      if (finalText) setTranscript(correctGolfTranscript(finalText))
+      setInterimTranscript(correctGolfTranscript(interimText))
     }
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {

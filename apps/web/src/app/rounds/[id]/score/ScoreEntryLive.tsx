@@ -14,9 +14,7 @@ import {
   scoreReducer,
 } from '@/lib/score-entry-helpers'
 import VoiceScoring from './VoiceScoring'
-import type { ConfirmedScore } from './VoiceConfirm'
 import { saveVoiceScoreDetails } from './voice-actions'
-import type { VoiceHoleContext, GroupPlayerInfo } from '@lx2/scoring'
 
 // Prevents concurrent drain runs per scorecard.
 const draining = new Set<string>()

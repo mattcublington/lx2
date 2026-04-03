@@ -120,6 +120,28 @@ const modules: Record<string, Module> = {
     features: ['Custom colour theme per event', 'Sponsor logo placement (header, leaderboard, contest holes)', 'Pre-event landing page for marketing', 'Post-event recap with results, photos, highlights', 'Shareable URL — works without login', 'PDF results export for prize-giving'],
     tech: 'Event brand_assets table. CSS custom property injection per event. Vercel edge for fast shareable URLs.',
   },
+  voice_scoring: {
+    id: 'voice_scoring', name: 'Voice scoring', phase: 'mvp', tier: 'player-pwa',
+    status: 'building', surface: 'player',
+    sub: 'Speak scores, AI parses',
+    desc: 'Voice-first score input. The marker speaks scores for all players in one sentence. Local regex parser handles 85% of inputs instantly. Claude Haiku fallback for ambiguous cases. Captures rich detail (putts, FIR, GIR) for the marker\'s own hole, gross score only for other players.',
+    deps: ['score_entry', 'auth'],
+    data: ['hole_scores'],
+    liveUrl: null,
+    prdUrl: `${GITHUB}/docs/prd/voice-scoring.md`,
+    codeUrl: `${GITHUB}/apps/web/src/app/rounds/%5Bid%5D/score/VoiceScoring.tsx`,
+    features: [
+      'Web Speech API — on-device, free, works offline',
+      'Three-tier parsing: local regex → Claude Haiku → manual fallback',
+      'Combined utterance: "Bogey two putts. Dave par, Rich five, Tommo four"',
+      'Rich detail for own hole: putts, FIR, GIR, miss direction',
+      'Gross score only for other players — fast and simple',
+      'Confirm-all screen with one-tap correction per player',
+      'Auto-advance to next hole after confirmation',
+      'Voice transcript stored for debugging and model improvement',
+    ],
+    tech: 'Web Speech API (SpeechRecognition). Local parser in packages/scoring/src/voice-parser.ts. Haiku API route fallback at /api/parse-voice-score. New nullable columns on hole_scores (putts, fairway_hit, green_in_regulation, miss_direction, input_method, voice_transcript).',
+  },
 
   // ── Marketing & web home ────────────────────────────────────────────────────
 
@@ -134,6 +156,25 @@ const modules: Record<string, Module> = {
     codeUrl: `${GITHUB}/apps/web/src/app/page.tsx`,
     features: ['Full-bleed hero photo + green gradient fade', 'Manrope 800 split hero headline (two lines, centred)', 'Three persistent CTAs: Create account, Sign in, Join event — never conditional', 'Join event → inline event code input (pill, auto-focus)', 'Animated stats counters (scroll-triggered framer-motion, rounds / players / societies)', 'Bento feature grid: Live Scoring, Live Leaderboards, Society Events, Tournaments — icon + headline + copy', 'Profile avatar top-right (dark frosted-glass, user initial) when signed in → /play', 'Dark footer (#111D11) with Features / Sign in / Architecture links', 'Auth callback: display_name set only on first account creation, not overwritten on every login'],
     tech: 'Next.js client component. CSS-in-JSX. hero.png served from public/. Supabase getUser() on mount to show/hide profile avatar. Manrope + Lexend via next/font.',
+  },
+  recap_public: {
+    id: 'recap_public', name: 'Public recap page', phase: 'mvp', tier: 'player-web',
+    status: 'building', surface: 'shared',
+    sub: 'Shareable, no auth needed',
+    desc: 'Public-facing recap page at lx2.golf/recap/[slug]. No account required to view. OpenGraph meta tags for rich WhatsApp/iMessage/Twitter previews. Organic growth loop: every shared recap includes LX2 branding and a CTA to score your next round.',
+    deps: ['round_recap'],
+    data: ['event_recaps', 'events'],
+    liveUrl: null,
+    prdUrl: null,
+    codeUrl: `${GITHUB}/apps/web/src/app/recap/%5Bslug%5D/page.tsx`,
+    features: [
+      'Public URL — no login needed',
+      'OpenGraph image generation for rich link previews',
+      'Group narrative with full prose',
+      '"Powered by LX2" footer with CTA',
+      'Mobile-optimised layout',
+    ],
+    tech: 'Next.js dynamic route at /recap/[slug]. next/og ImageResponse for OG image generation. Reads from event_recaps table via admin client (no auth required for public page).',
   },
 
   // ── Player — web & stats ────────────────────────────────────────────────────
@@ -517,6 +558,27 @@ const modules: Record<string, Module> = {
       'Status: upcoming / active / completed',
     ],
     tech: '4-step client wizard (NewMeritWizard.tsx). Points computation in lib/merit/points.ts + presets in lib/merit/presets.ts. order_of_merits table with points_template JSONB column. Server actions: createMerit, updateMeritEntries, finaliseMerit.',
+  },
+  round_recap: {
+    id: 'round_recap', name: 'Round recap', phase: 'mvp', tier: 'organiser',
+    status: 'building', surface: 'organiser',
+    sub: 'AI-generated storytelling',
+    desc: 'After an event is finalised, generates round recaps in three styles (commentary, banter, stats) via a single Claude Sonnet API call. All three generated upfront — no regeneration. Organiser picks which style to share. Individual player recaps included when rich scoring data is available.',
+    deps: ['score_entry', 'event_create', 'leaderboard_live'],
+    data: ['event_recaps', 'hole_scores', 'scorecards', 'contest_entries'],
+    liveUrl: null,
+    prdUrl: `${GITHUB}/docs/prd/round-recap.md`,
+    codeUrl: `${GITHUB}/apps/web/src/app/events/%5Bid%5D/manage/RecapGenerator.tsx`,
+    features: [
+      'Three styles: commentary (newsletter), banter (WhatsApp), stats (analytical)',
+      'All three generated in one Sonnet API call — no regeneration',
+      'Group narrative: 3-4 paragraphs covering the day',
+      'Individual player recaps with +/- highlights and stat badges',
+      'Richer recaps for players with voice-captured detail (putts, FIR, GIR)',
+      'Organiser toggle controls: NTP/LD, wooden spoon, individual recaps',
+      'Share to WhatsApp, copy text, or share public link',
+    ],
+    tech: 'Next.js API route (/api/generate-recap) calling Claude Sonnet. event_recaps table with UNIQUE(event_id) constraint (one generation, no regeneration). Structured JSON output parsed into three style columns. RecapGenerator client component on event manage page.',
   },
 
   // ── Scoring engines ─────────────────────────────────────────────────────────
@@ -1171,6 +1233,14 @@ const tierConfig: Record<Tier, { label: string; note?: string; surfaceTag: strin
   'api':        { label: 'Integrations & data import',           surfaceTag: 'API',        color: '#854F0B', note: 'Data import (P2) unblocks adoption — organiser bulk import is highest leverage. Partner API (P3) closes Golfmanager gap.' },
 }
 
+const AI_MODULES = new Set(['voice_scoring', 'round_recap', 'scorecard_ocr'])
+
+const AI_MODEL_INFO: Record<string, string> = {
+  voice_scoring: 'Claude Haiku (fallback parser)',
+  round_recap: 'Claude Sonnet (storytelling)',
+  scorecard_ocr: 'Claude Vision (OCR)',
+}
+
 const phaseConfig: Record<Phase, { label: string; color: string; bg: string }> = {
   mvp:    { label: 'MVP', color: '#0D631B', bg: '#E8F5E9' },
   soon:   { label: 'P2',  color: '#1565C0', bg: '#E3F2FD' },
@@ -1760,6 +1830,15 @@ export default function LX2Architecture() {
               color: '#0891B2', bg: '#ECFEFF', border: '#A5F3FC',
             },
             {
+              layer: 'AI / LLM', icon: '🧠',
+              items: [
+                { name: 'Anthropic API', role: 'Claude Haiku (voice parsing) + Claude Sonnet (storytelling) + Claude Vision (OCR)', tag: 'api' },
+                { name: 'Web Speech API', role: 'Browser-native speech-to-text — on-device, free, works offline', tag: 'lib' },
+                { name: 'Est. cost', role: '< £0.50 per society day (16 players, 18 holes)', tag: 'note' },
+              ],
+              color: '#7C3AED', bg: '#F5F3FF', border: '#DDD6FE',
+            },
+            {
               layer: 'PWA / Offline', icon: '📱',
               items: [
                 { name: 'IndexedDB queue', role: 'Offline score writes — per-scorecard draining guard', tag: 'lib' },
@@ -2040,7 +2119,8 @@ export default function LX2Architecture() {
                 const isSel = selected === m.id
                 return (
                   <button key={m.id} onClick={() => setSelected(isSel ? null : m.id)} style={{ flex: '1 1 150px', minWidth: 140, maxWidth: 220, textAlign: 'left', padding: '12px 14px', borderRadius: 14, border: 'none', background: isSel ? '#F0F4EC' : '#fff', cursor: 'pointer', outline: isSel ? '2px solid #2E7D32' : '0.5px solid rgba(0,0,0,0.08)', boxShadow: '0 8px 24px rgba(26,28,28,0.04)', transition: 'all 0.15s', position: 'relative' }}>
-                    <div style={{ position: 'absolute', top: 8, right: 8 }}>
+                    <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 4 }}>
+                      {AI_MODULES.has(m.id) && <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 99, background: '#EDE9FE', color: '#7C3AED', fontWeight: 600 }}>AI</span>}
                       <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 99, background: pc.bg, color: pc.color, fontWeight: 500 }}>{pc.label}</span>
                     </div>
                     <div style={{ fontSize: 13, fontWeight: 600, color: '#1A2E1A', marginBottom: 3, paddingRight: 28, fontFamily: "'Manrope', sans-serif" }}>{m.name}</div>
@@ -2093,6 +2173,7 @@ export default function LX2Architecture() {
               <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 99, background: surfaceConfig[mod.surface]!.bg, color: surfaceConfig[mod.surface]!.color, fontWeight: 500 }}>{surfaceConfig[mod.surface]!.label}</span>
                 <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 99, background: phaseConfig[mod.phase]!.bg, color: phaseConfig[mod.phase]!.color, fontWeight: 500 }}>{phaseConfig[mod.phase]!.label}</span>
+                {AI_MODULES.has(mod.id) && <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 99, background: '#EDE9FE', color: '#7C3AED', fontWeight: 600 }}>AI — {AI_MODEL_INFO[mod.id]}</span>}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <div style={{ width: 6, height: 6, borderRadius: '50%', background: statusConfig[mod.status]!.color }} />
                   <span style={{ fontSize: 11, color: statusConfig[mod.status]!.color }}>{statusConfig[mod.status]!.label}</span>

@@ -45,7 +45,6 @@ export default function VoiceConfirm({
   playerScores,
   par,
   holeNumber,
-  playingHandicap,
   hcShots,
   markerName,
   format,
