@@ -203,18 +203,61 @@ export default function PlayDashboard({
           padding-bottom: max(80px, calc(80px + env(safe-area-inset-bottom)));
         }
 
+        /* ── Top bar (white, logo + hamburger) ───────────── */
+        .fe-topbar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0.75rem 1.25rem;
+          background: #fff;
+          box-shadow: 0 1px 4px rgba(26, 28, 28, 0.06);
+          position: relative;
+          z-index: 10;
+        }
+        .fe-topbar-logo {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          text-decoration: none;
+          color: #1A2E1A;
+        }
+        .fe-topbar-logo-text {
+          font-family: var(--font-manrope), sans-serif;
+          font-weight: 800;
+          font-size: 1.25rem;
+          letter-spacing: -0.03em;
+          color: #0D631B;
+        }
+        .fe-hamburger {
+          background: none;
+          border: 1px solid #E0EBE0;
+          border-radius: 10px;
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          color: #1A2E1A;
+          transition: background 0.15s, border-color 0.15s;
+          flex-shrink: 0;
+        }
+        .fe-hamburger:hover { background: #F2F5F0; border-color: #c8d4c8; }
+
         /* ── Hero banner ─────────────────────────────────── */
         .fe-banner-wrap {
           padding: 1rem 1rem 0;
+          position: relative;
+          padding-bottom: 28px; /* space for floating chips */
         }
         .fe-banner {
           position: relative;
           width: 100%;
-          min-height: 220px;
-          padding: 1.5rem;
+          min-height: 240px;
           overflow: hidden;
           display: flex;
-          align-items: center;
+          flex-direction: column;
+          justify-content: flex-end;
           border-radius: 20px;
           box-shadow: 0 4px 20px rgba(10, 31, 10, 0.22);
         }
@@ -230,45 +273,189 @@ export default function PlayDashboard({
           inset: 0;
           background: linear-gradient(
             180deg,
-            rgba(10, 31, 10, 0.35) 0%,
-            rgba(10, 31, 10, 0.2) 50%,
-            rgba(10, 31, 10, 0.15) 100%
+            rgba(10, 31, 10, 0.1) 0%,
+            rgba(10, 31, 10, 0.15) 40%,
+            rgba(10, 31, 10, 0.55) 100%
           );
           z-index: 1;
         }
-        /* Hamburger: absolute top-right of banner */
-        .fe-hamburger-anchor {
-          position: absolute;
-          top: 1.25rem;
-          right: 1.5rem;
+
+        /* ── Frosted glass strip at banner bottom ────────── */
+        .fe-glass-strip {
+          position: relative;
           z-index: 3;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1rem;
+          padding: 0.875rem 1.25rem;
+          background: rgba(255, 255, 255, 0.12);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border-top: 1px solid rgba(255, 255, 255, 0.2);
         }
-        .fe-banner-logo-img {
-          opacity: 0.75;
-          filter: brightness(0) invert(1);
+        .fe-glass-profile {
+          display: flex;
+          align-items: center;
+          gap: 0.875rem;
+          text-decoration: none;
+          color: #fff;
+          flex: 1;
+          min-width: 0;
         }
-        .fe-hamburger {
-          background: rgba(255,255,255,0.12);
-          backdrop-filter: blur(8px);
-          -webkit-backdrop-filter: blur(8px);
-          border: 1px solid rgba(255,255,255,0.15);
-          border-radius: 10px;
-          width: 40px;
-          height: 40px;
+        .fe-avatar {
+          width: 52px;
+          height: 52px;
+          border-radius: 50%;
+          border: 2px solid rgba(255,255,255,0.35);
+          box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+          object-fit: cover;
+          flex-shrink: 0;
+          background: #E0EBE0;
+        }
+        .fe-avatar-placeholder {
+          width: 52px;
+          height: 52px;
+          border-radius: 50%;
+          border: 2px solid rgba(255,255,255,0.35);
+          box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+          flex-shrink: 0;
+          background: linear-gradient(135deg, #0D631B, #0a4f15);
           display: flex;
           align-items: center;
           justify-content: center;
-          cursor: pointer;
           color: #fff;
-          transition: background 0.15s;
+          font-family: var(--font-manrope), sans-serif;
+          font-weight: 800;
+          font-size: 1.25rem;
+        }
+        .fe-banner-info { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+        .fe-greeting-sub {
+          font-family: var(--font-dm-sans), sans-serif;
+          font-size: 0.8125rem;
+          font-weight: 400;
+          color: rgba(255,255,255,0.7);
+          line-height: 1.2;
+        }
+        .fe-name {
+          font-family: var(--font-manrope), sans-serif;
+          font-weight: 800;
+          font-size: 1.375rem;
+          color: #fff;
+          letter-spacing: -0.03em;
+          line-height: 1.1;
+          text-shadow: 0 1px 4px rgba(0,0,0,0.2);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        /* ── Circular HCP badge ──────────────────────────── */
+        .fe-hcp-circle {
+          width: 64px;
+          height: 64px;
+          border-radius: 50%;
+          background: radial-gradient(circle at 35% 35%, #0D631B, #0a4f15);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          box-shadow:
+            0 0 0 2.5px rgba(255, 255, 255, 0.2),
+            0 0 16px rgba(13, 99, 27, 0.35),
+            0 4px 12px rgba(0, 0, 0, 0.2);
+          position: relative;
+        }
+        .fe-hcp-circle::after {
+          content: '';
+          position: absolute;
+          inset: -3px;
+          border-radius: 50%;
+          border: 1.5px solid rgba(255, 255, 255, 0.15);
+        }
+        .fe-hcp-label {
+          font-family: var(--font-dm-sans), sans-serif;
+          font-size: 0.5625rem;
+          font-weight: 700;
+          color: rgba(255, 255, 255, 0.7);
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          line-height: 1;
+        }
+        .fe-hcp-value {
+          font-family: var(--font-manrope), sans-serif;
+          font-weight: 800;
+          font-size: 1.125rem;
+          color: #fff;
+          line-height: 1.15;
+          letter-spacing: -0.02em;
+        }
+
+        /* ── Floating stat chips ─────────────────────────── */
+        .fe-float-chips {
+          display: flex;
+          justify-content: center;
+          gap: 0.625rem;
+          position: relative;
+          z-index: 5;
+          margin-top: -22px;
+          padding: 0 1rem;
+          animation: fe-rise 0.45s 0.06s cubic-bezier(0.2, 0, 0, 1) both;
+        }
+        .fe-chip {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          background: #fff;
+          border-radius: 9999px;
+          padding: 0.5rem 1rem 0.5rem 0.625rem;
+          box-shadow: 0 4px 14px rgba(26, 28, 28, 0.08);
+          border: 1px solid #E0EBE0;
+          flex: 1;
+          max-width: 180px;
+          transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .fe-chip:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 18px rgba(26, 28, 28, 0.12);
+        }
+        .fe-chip-icon {
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(13, 99, 27, 0.1);
+          color: #0D631B;
           flex-shrink: 0;
         }
-        .fe-hamburger:hover { background: rgba(255,255,255,0.22); }
-        /* Dropdown menu (fixed, over banner) */
+        .fe-chip-data { display: flex; flex-direction: column; min-width: 0; }
+        .fe-chip-val {
+          font-family: var(--font-manrope), sans-serif;
+          font-weight: 700;
+          font-size: 0.9375rem;
+          color: #1A2E1A;
+          line-height: 1.2;
+          letter-spacing: -0.01em;
+        }
+        .fe-chip-label {
+          font-family: var(--font-dm-sans), sans-serif;
+          font-size: 0.625rem;
+          font-weight: 500;
+          color: #6B8C6B;
+          line-height: 1.2;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        /* Dropdown menu (fixed, below topbar) */
         .fe-menu {
           position: fixed;
-          top: 4rem;
-          right: 1.5rem;
+          top: 3.5rem;
+          right: 1.25rem;
           z-index: 200;
           background: rgba(10, 22, 10, 0.94);
           backdrop-filter: blur(16px);
@@ -310,80 +497,6 @@ export default function PlayDashboard({
         .fe-menu-item:last-child { border-bottom: none; }
         .fe-menu-item:hover { background: rgba(255,255,255,0.08); }
         .fe-menu-item.danger { color: rgba(255, 110, 110, 0.9); }
-        /* Avatar + greeting — left side, vertically centred by banner flex */
-        .fe-banner-profile {
-          position: relative;
-          z-index: 3;
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          text-decoration: none;
-          color: #fff;
-          padding-right: 3rem; /* clear the hamburger */
-        }
-        .fe-avatar {
-          width: 68px;
-          height: 68px;
-          border-radius: 50%;
-          border: 2.5px solid rgba(255,255,255,0.25);
-          box-shadow: 0 2px 12px rgba(0,0,0,0.3);
-          object-fit: cover;
-          flex-shrink: 0;
-          background: #E0EBE0;
-        }
-        .fe-avatar-placeholder {
-          width: 68px;
-          height: 68px;
-          border-radius: 50%;
-          border: 2.5px solid rgba(255,255,255,0.25);
-          box-shadow: 0 2px 12px rgba(0,0,0,0.3);
-          flex-shrink: 0;
-          background: linear-gradient(135deg, #0D631B, #0a4f15);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #fff;
-          font-family: var(--font-manrope), sans-serif;
-          font-weight: 800;
-          font-size: 1.5rem;
-        }
-        .fe-banner-info { display: flex; flex-direction: column; gap: 0.25rem; }
-        .fe-greeting-sub {
-          font-family: var(--font-lexend), sans-serif;
-          font-size: 0.9375rem;
-          font-weight: 300;
-          color: rgba(255,255,255,0.75);
-          letter-spacing: 0.01em;
-          line-height: 1.2;
-        }
-        .fe-name {
-          font-family: var(--font-manrope), sans-serif;
-          font-weight: 800;
-          font-size: 1.875rem;
-          color: #fff;
-          letter-spacing: -0.03em;
-          line-height: 1.05;
-          text-shadow: 0 1px 6px rgba(0,0,0,0.25);
-        }
-        .fe-hcp-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.3rem;
-          background: rgba(13, 99, 27, 0.7);
-          backdrop-filter: blur(6px);
-          -webkit-backdrop-filter: blur(6px);
-          border: 1px solid rgba(13, 99, 27, 0.5);
-          border-radius: 9999px;
-          padding: 4px 12px;
-          font-family: var(--font-lexend), sans-serif;
-          font-size: 0.75rem;
-          font-weight: 600;
-          color: #fff;
-          letter-spacing: 0.06em;
-          text-transform: uppercase;
-          width: fit-content;
-          margin-top: 0.25rem;
-        }
         /* Daily insight card */
         .fe-insight {
           background: linear-gradient(135deg, rgba(13,99,27,0.07) 0%, rgba(13,99,27,0.03) 100%);
@@ -507,64 +620,7 @@ export default function PlayDashboard({
           color: #72786E;
         }
 
-        /* ── Stat cards (2-across, scrollable) ─────────── */
-        .fe-stats {
-          display: flex;
-          gap: 0.75rem;
-          overflow-x: auto;
-          scroll-snap-type: x mandatory;
-          -webkit-overflow-scrolling: touch;
-          scrollbar-width: none;
-          margin-bottom: 1.5rem;
-          padding-bottom: 0.25rem;
-          animation: fe-rise 0.45s 0.06s cubic-bezier(0.2, 0, 0, 1) both;
-        }
-        .fe-stats::-webkit-scrollbar { display: none; }
-        .fe-stat {
-          background: #FFFFFF;
-          border-radius: 16px;
-          padding: 1.25rem 0.5rem;
-          text-align: center;
-          box-shadow: 0 4px 12px rgba(26, 28, 28, 0.04);
-          transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-          min-width: calc(50% - 0.375rem);
-          flex-shrink: 0;
-          scroll-snap-align: start;
-          overflow: hidden;
-        }
-        .fe-stat:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 16px rgba(26, 28, 28, 0.08);
-        }
-        .fe-stat-icon {
-          width: 32px;
-          height: 32px;
-          margin: 0 auto 0.5rem;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: linear-gradient(135deg, rgba(13, 99, 27, 0.1) 0%, rgba(61, 107, 26, 0.1) 100%);
-          border-radius: 10px;
-          color: #0D631B;
-        }
-        .fe-stat-val {
-          font-family: var(--font-manrope), sans-serif;
-          font-weight: 700;
-          font-size: 1.5rem;
-          color: #1A2E1A;
-          margin-bottom: 0.2rem;
-          letter-spacing: -0.02em;
-        }
-        .fe-stat-label {
-          font-family: var(--font-lexend), sans-serif;
-          font-size: 0.6875rem;
-          font-weight: 400;
-          color: #72786E;
-          line-height: 1.3;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
+        /* (stat cards removed — now floating chips on banner) */
 
         /* ── CTA button ──────────────────────────────────── */
         .fe-cta {
@@ -948,56 +1004,82 @@ export default function PlayDashboard({
             max-width: 560px;
             padding: 2rem 2rem;
           }
-          .fe-name { font-size: 2rem; }
-          .fe-avatar, .fe-avatar-placeholder { width: 76px; height: 76px; }
+          .fe-name { font-size: 1.5rem; }
+          .fe-avatar, .fe-avatar-placeholder { width: 56px; height: 56px; }
+          .fe-hcp-circle { width: 70px; height: 70px; }
+          .fe-hcp-value { font-size: 1.25rem; }
+          .fe-banner { min-height: 260px; }
           .fe { padding-bottom: 0; }
-          .fe-menu { top: 4.25rem; right: 2rem; }
+          .fe-menu { top: 3.75rem; right: 2rem; }
+          .fe-chip { max-width: 200px; }
         }
       `}</style>
 
       <div className="fe">
 
-        {/* ── Hero banner with photo ── */}
+        {/* ── White top bar ── */}
+        <div className="fe-topbar">
+          <Link href="/play" className="fe-topbar-logo">
+            <Image src="/lx2-logo.png" alt="LX2" width={32} height={32} />
+            <span className="fe-topbar-logo-text">LX2</span>
+          </Link>
+          <button className="fe-hamburger" onClick={() => setMenuOpen(o => !o)} aria-label="Open menu">
+            <HamburgerIcon />
+          </button>
+        </div>
+
+        {/* ── Hero banner with frosted glass profile ── */}
         <div className="fe-banner-wrap">
-        <div className="fe-banner">
-          <Image
-            src="/hero.jpg"
-            alt="Golf course"
-            fill
-            priority
-            className="fe-banner-img"
-            sizes="100vw"
-            quality={90}
-          />
-          <div className="fe-banner-overlay" />
+          <div className="fe-banner">
+            <Image
+              src="/hero.jpg"
+              alt="Golf course"
+              fill
+              priority
+              className="fe-banner-img"
+              sizes="100vw"
+              quality={90}
+            />
+            <div className="fe-banner-overlay" />
 
-          {/* Hamburger: pinned top-right */}
-          <div className="fe-hamburger-anchor">
-            <button className="fe-hamburger" onClick={() => setMenuOpen(o => !o)} aria-label="Open menu">
-              <HamburgerIcon />
-            </button>
-          </div>
-
-          {/* Profile: left side, vertically centred by banner flex */}
-          <Link href="/profile" className="fe-banner-profile">
-            {avatarUrl ? (
-              <Image src={avatarUrl} alt={displayName} width={68} height={68} className="fe-avatar" />
-            ) : (
-              <div className="fe-avatar-placeholder">
-                {displayName.charAt(0).toUpperCase()}
-              </div>
-            )}
-            <div className="fe-banner-info">
-              <div className="fe-greeting-sub">{greetingPrefix},</div>
-              <h1 className="fe-name">{firstName}</h1>
+            {/* Frosted glass strip at bottom */}
+            <div className="fe-glass-strip">
+              <Link href="/profile" className="fe-glass-profile">
+                {avatarUrl ? (
+                  <Image src={avatarUrl} alt={displayName} width={52} height={52} className="fe-avatar" />
+                ) : (
+                  <div className="fe-avatar-placeholder">
+                    {displayName.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="fe-banner-info">
+                  <div className="fe-greeting-sub">{greetingPrefix}</div>
+                  <h1 className="fe-name">{firstName}</h1>
+                </div>
+              </Link>
               {handicapIndex != null && (
-                <div className="fe-hcp-badge">
-                  HCP {handicapIndex % 1 === 0 ? handicapIndex.toFixed(1) : handicapIndex}
+                <div className="fe-hcp-circle">
+                  <span className="fe-hcp-label">HCP</span>
+                  <span className="fe-hcp-value">
+                    {handicapIndex % 1 === 0 ? handicapIndex.toFixed(1) : handicapIndex}
+                  </span>
                 </div>
               )}
             </div>
-          </Link>
-        </div>
+          </div>
+
+          {/* Floating stat chips — bridge banner into content */}
+          <div className="fe-float-chips">
+            {stats.map((s, i) => (
+              <div className="fe-chip" key={i}>
+                <div className="fe-chip-icon">{s.icon}</div>
+                <div className="fe-chip-data">
+                  <span className="fe-chip-val">{s.value}</span>
+                  <span className="fe-chip-label">{s.label}</span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Dropdown menu — rendered outside banner to avoid overflow clip */}
@@ -1064,16 +1146,7 @@ export default function PlayDashboard({
             </div>
           </div>
 
-          {/* Quick stats — 2 across, swipe for more */}
-          <div className="fe-stats">
-            {stats.map((s, i) => (
-              <div className="fe-stat" key={i}>
-                <div className="fe-stat-icon">{s.icon}</div>
-                <div className="fe-stat-val">{s.value}</div>
-                <div className="fe-stat-label">{s.label}</div>
-              </div>
-            ))}
-          </div>
+          {/* Stats now shown as floating chips on the banner */}
 
           {/* Recent rounds */}
           <section className="fe-rounds">
