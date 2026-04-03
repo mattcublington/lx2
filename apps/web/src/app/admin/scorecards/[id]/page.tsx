@@ -269,7 +269,7 @@ export default async function ReviewPage({ params }: PageProps) {
 
         {/* ── Header ── */}
         <div className="ar-header">
-          <Image src="/hero.jpg" alt="Golf course" fill priority className="ar-hero-img" sizes="100vw" quality={90} />
+          <Image src="/hero.jpg" alt="Golf course" fill className="ar-hero-img" sizes="100vw" quality={90} />
           <div className="ar-hero-overlay" />
           <div className="ar-header-inner">
             <Link href="/admin/scorecards" className="ar-back">

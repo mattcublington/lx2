@@ -216,7 +216,7 @@ export default async function AdminScorecardsPage({ searchParams }: PageProps) {
 
         {/* ── Header ── */}
         <div className="aq-header">
-          <Image src="/hero.jpg" alt="Golf course" fill priority className="aq-hero-img" sizes="100vw" quality={90} />
+          <Image src="/hero.jpg" alt="Golf course" fill className="aq-hero-img" sizes="100vw" quality={90} />
           <div className="aq-hero-overlay" />
           <div className="aq-header-inner">
             <Link href="/play" className="aq-back">
