@@ -231,15 +231,14 @@ export default function PlayDashboard({
           );
           z-index: 1;
         }
-        /* Top bar: hamburger pinned right */
+        /* Top bar: profile left, hamburger right */
         .fe-banner-top {
           position: relative;
           z-index: 3;
           display: flex;
           align-items: center;
-          justify-content: flex-end;
+          justify-content: space-between;
           width: 100%;
-          margin-bottom: 1.25rem;
         }
         .fe-banner-logo-img {
           opacity: 0.75;
@@ -308,17 +307,15 @@ export default function PlayDashboard({
         .fe-menu-item:last-child { border-bottom: none; }
         .fe-menu-item:hover { background: rgba(255,255,255,0.08); }
         .fe-menu-item.danger { color: rgba(255, 110, 110, 0.9); }
-        /* Avatar + greeting row — centred in banner */
+        /* Avatar + greeting row — top left */
         .fe-banner-profile {
           position: relative;
           z-index: 3;
           display: flex;
           align-items: center;
-          justify-content: center;
           gap: 1rem;
           text-decoration: none;
           color: #fff;
-          width: 100%;
         }
         .fe-avatar {
           width: 68px;
@@ -969,32 +966,30 @@ export default function PlayDashboard({
           />
           <div className="fe-banner-overlay" />
 
-          {/* Top bar: hamburger */}
+          {/* Top bar: profile left, hamburger right */}
           <div className="fe-banner-top">
+            <Link href="/profile" className="fe-banner-profile">
+              {avatarUrl ? (
+                <Image src={avatarUrl} alt={displayName} width={68} height={68} className="fe-avatar" />
+              ) : (
+                <div className="fe-avatar-placeholder">
+                  {displayName.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="fe-banner-info">
+                <div className="fe-greeting-sub">{greetingPrefix},</div>
+                <h1 className="fe-name">{firstName}</h1>
+                {handicapIndex != null && (
+                  <div className="fe-hcp-badge">
+                    HCP {handicapIndex % 1 === 0 ? handicapIndex.toFixed(1) : handicapIndex}
+                  </div>
+                )}
+              </div>
+            </Link>
             <button className="fe-hamburger" onClick={() => setMenuOpen(o => !o)} aria-label="Open menu">
               <HamburgerIcon />
             </button>
           </div>
-
-          {/* Avatar + greeting */}
-          <Link href="/profile" className="fe-banner-profile">
-            {avatarUrl ? (
-              <Image src={avatarUrl} alt={displayName} width={68} height={68} className="fe-avatar" />
-            ) : (
-              <div className="fe-avatar-placeholder">
-                {displayName.charAt(0).toUpperCase()}
-              </div>
-            )}
-            <div className="fe-banner-info">
-              <div className="fe-greeting-sub">{greetingPrefix},</div>
-              <h1 className="fe-name">{firstName}</h1>
-              {handicapIndex != null && (
-                <div className="fe-hcp-badge">
-                  HCP {handicapIndex % 1 === 0 ? handicapIndex.toFixed(1) : handicapIndex}
-                </div>
-              )}
-            </div>
-          </Link>
         </div>
 
         {/* Dropdown menu — rendered outside banner to avoid overflow clip */}
