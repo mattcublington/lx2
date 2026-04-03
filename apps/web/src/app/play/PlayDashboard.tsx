@@ -216,7 +216,9 @@ export default function PlayDashboard({
           display: flex;
           align-items: center;
           text-decoration: none;
-          filter: drop-shadow(0 1px 3px rgba(0,0,0,0.3));
+        }
+        .fe-topbar-logo img {
+          filter: brightness(0) invert(1) drop-shadow(0 1px 4px rgba(0,0,0,0.35));
         }
         .fe-hamburger {
           background: rgba(255, 255, 255, 0.12);
@@ -238,7 +240,7 @@ export default function PlayDashboard({
 
         /* ── Hero banner ─────────────────────────────────── */
         .fe-banner-wrap {
-          padding: 0 1rem;
+          padding: 0.75rem 1rem 0;
         }
         .fe-banner {
           position: relative;
@@ -1053,7 +1055,7 @@ export default function PlayDashboard({
             {/* ── Logo + hamburger inside banner ── */}
             <div className="fe-banner-topbar">
               <Link href="/play" className="fe-topbar-logo">
-                <Image src="/lx2-logo.png" alt="LX2" width={44} height={44} />
+                <Image src="/lx2-logo.png" alt="LX2" width={64} height={29} style={{ width: 64, height: 'auto' }} />
               </Link>
               <button className="fe-hamburger" onClick={() => setMenuOpen(o => !o)} aria-label="Open menu">
                 <HamburgerIcon />
