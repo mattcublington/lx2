@@ -19,30 +19,188 @@ const STYLES = `
     padding-bottom: max(80px, calc(80px + env(safe-area-inset-bottom)));
   }
 
-  /* Header */
-  .rs-hd {
-    background: #F0F4EC;
-    padding: 1rem 1.25rem;
+  /* ── Hero banner (matches My Rounds page) ── */
+  .rs-banner-wrap {
+    padding: 0.75rem 1rem 0;
+  }
+  .rs-banner {
+    position: relative;
+    width: 100%;
+    min-height: 220px;
+    overflow: hidden;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(10, 31, 10, 0.22);
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
+  }
+  .rs-banner-img {
+    position: absolute;
+    inset: 0;
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+    filter: saturate(1.3) contrast(1.05);
+  }
+  .rs-banner-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(10, 31, 10, 0.25) 0%,
+      rgba(10, 31, 10, 0.05) 30%,
+      rgba(10, 31, 10, 0.15) 60%,
+      rgba(10, 31, 10, 0.5) 100%
+    );
+    z-index: 1;
+  }
+  .rs-banner-topbar {
+    position: relative;
+    z-index: 3;
+    display: flex;
     align-items: center;
-    position: sticky;
-    top: 0;
-    z-index: 50;
+    justify-content: space-between;
+    padding: 0.875rem 1rem;
   }
-  .rs-back {
-    font-family: var(--font-lexend), sans-serif;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #72786E;
+  .rs-topbar-logo {
+    display: flex;
+    align-items: center;
     text-decoration: none;
-    transition: color 0.15s;
   }
-  .rs-back:hover { color: #0D631B; }
+  .rs-back-btn {
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 0.4rem 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.85);
+    font-family: var(--font-dm-sans), sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+  }
+  .rs-back-btn:hover { background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.35); }
+
+  /* ── Title card (inside banner, frosted glass) ── */
+  .rs-title-card {
+    position: relative;
+    z-index: 3;
+    padding: 1rem 1.25rem;
+    margin: 0 0.75rem 0.75rem;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .rs-title-left {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .rs-course {
+    font-family: var(--font-manrope), sans-serif;
+    font-weight: 800;
+    font-size: 1.25rem;
+    color: #fff;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin: 0;
+  }
+  .rs-meta-row {
+    display: flex;
+    gap: 0.375rem;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 0.25rem;
+  }
+  .rs-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.5rem;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.6875rem;
+    font-weight: 500;
+  }
+  .rs-badge-warn {
+    background: rgba(180, 83, 9, 0.25);
+    color: rgba(255, 210, 140, 0.95);
+  }
+  .rs-date {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin-top: 0.125rem;
+  }
+
+  /* ── Score badge (neon pill, matches My Rounds count badge) ── */
+  .rs-score-badge {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(90, 180, 100, 0.25);
+    background: rgba(90, 180, 100, 0.08);
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .rs-score-badge::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 12.5%;
+    width: 75%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(120, 210, 130, 0.6), transparent);
+    opacity: 0.6;
+  }
+  .rs-score-badge::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 12.5%;
+    width: 75%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(120, 210, 130, 0.6), transparent);
+    opacity: 0.6;
+  }
+  .rs-score-value {
+    font-family: var(--font-manrope), sans-serif;
+    font-weight: 800;
+    font-size: 1.25rem;
+    color: #fff;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .rs-score-label {
+    font-family: var(--font-dm-sans), sans-serif;
+    font-size: 0.625rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.65);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 0.125rem;
+  }
 
   /* Main */
   .rs-main {
-    padding: 1rem 1.25rem 2rem;
+    padding: 1.5rem 2rem 2rem;
     max-width: 560px;
     margin: 0 auto;
     display: flex;
@@ -50,74 +208,12 @@ const STYLES = `
     gap: 1rem;
   }
 
-  /* Hero */
-  .rs-hero {
-    animation: rs-rise 0.4s cubic-bezier(0.2, 0, 0, 1) both;
-  }
-  .rs-course {
-    font-family: var(--font-manrope), sans-serif;
-    font-weight: 800;
-    font-size: 1.625rem;
-    color: #1A2E1A;
-    letter-spacing: -0.02em;
-    line-height: 1.15;
-    margin-bottom: 0.625rem;
-  }
-  .rs-meta-row {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin-bottom: 0.4rem;
-    align-items: center;
-  }
-  .rs-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.2rem 0.625rem;
-    border-radius: 20px;
-    background: rgba(13, 99, 27, 0.1);
-    color: #0D631B;
-    font-size: 0.75rem;
-    font-weight: 500;
-  }
-  .rs-badge-warn {
-    background: rgba(180, 83, 9, 0.1);
-    color: #B45309;
-  }
-  .rs-date {
+  /* Score detail (below banner) */
+  .rs-score-detail {
     font-size: 0.875rem;
     color: #72786E;
-    margin-bottom: 1rem;
-  }
-
-  /* Score hero */
-  .rs-score-hero {
-    display: flex;
-    align-items: baseline;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin-top: 0.5rem;
-  }
-  .rs-score-big {
-    font-family: var(--font-manrope), sans-serif;
-    font-weight: 800;
-    font-size: 3.5rem;
-    color: #1A2E1A;
-    letter-spacing: -0.03em;
-    line-height: 1;
-  }
-  .rs-score-unit {
-    font-family: var(--font-manrope), sans-serif;
-    font-weight: 700;
-    font-size: 1.5rem;
-    color: #0D631B;
-    letter-spacing: -0.01em;
-  }
-  .rs-score-sub {
-    width: 100%;
-    font-size: 0.875rem;
-    color: #72786E;
-    margin-top: 0.25rem;
+    text-align: center;
+    margin-bottom: 0.25rem;
   }
 
   /* Round complete banner */
@@ -431,9 +527,11 @@ const STYLES = `
   }
 
   @media (min-width: 768px) {
+    .rs-banner { min-height: 240px; }
+    .rs-title-card { margin: 0 1rem 1rem; padding: 1.125rem 1.5rem; }
     .rs-main { padding: 2rem; }
     .rs { padding-bottom: 0; }
-    .rs-course { font-size: 2rem; }
+    .rs-course { font-size: 1.375rem; }
   }
 `
 
@@ -978,48 +1076,62 @@ export default async function RoundSummaryPage({ params }: PageProps) {
       <style>{STYLES}</style>
       <div className="rs">
 
-        {/* Header */}
-        <header className="rs-hd">
-          <Image src="/lx2-logo.svg" alt="LX2" width={64} height={32} priority />
-          <Link href="/rounds" className="rs-back">My Rounds</Link>
-        </header>
+        {/* ── Hero banner (matches My Rounds page) ── */}
+        <div className="rs-banner-wrap">
+          <div className="rs-banner">
+            <Image src="/hero.jpg" alt="Golf course" fill className="rs-banner-img" priority sizes="100vw" quality={90} />
+            <div className="rs-banner-overlay" />
+
+            {/* Logo + back button */}
+            <div className="rs-banner-topbar">
+              <Link href="/play" className="rs-topbar-logo">
+                <Image src="/lx2-logo.svg" alt="LX2" width={72} height={36} />
+              </Link>
+              <Link href="/rounds" className="rs-back-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M15 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                My Rounds
+              </Link>
+            </div>
+
+            {/* Title card (frosted glass, inside banner) */}
+            <div className="rs-title-card">
+              <div className="rs-title-left">
+                <h1 className="rs-course">{displayCourse}</h1>
+                <div className="rs-meta-row">
+                  <span className="rs-badge">{formatLabel}</span>
+                  <span className="rs-badge">{totalHoles} holes</span>
+                  {!roundComplete && holesPlayed > 0 && (
+                    <span className="rs-badge rs-badge-warn">{holesPlayed}/{totalHoles} played</span>
+                  )}
+                </div>
+                <div className="rs-date">{dateLabel}</div>
+              </div>
+              {holesPlayed > 0 && (
+                <div className="rs-score-badge">
+                  <span className="rs-score-value">
+                    {format === 'stableford' ? totalPts : totalGross}
+                  </span>
+                  <span className="rs-score-label">
+                    {format === 'stableford' ? 'pts' : vsPar}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
         <main className="rs-main">
 
-          {/* Hero */}
-          <section className="rs-hero">
-            <div className="rs-course">{displayCourse}</div>
-            <div className="rs-meta-row">
-              <span className="rs-badge">{formatLabel}</span>
-              <span className="rs-badge">{totalHoles} holes</span>
-              {!roundComplete && holesPlayed > 0 && (
-                <span className="rs-badge rs-badge-warn">{holesPlayed}/{totalHoles} played</span>
-              )}
+          {/* Score detail */}
+          {holesPlayed > 0 && (
+            <div className="rs-score-detail">
+              {format === 'stableford'
+                ? `${totalGross} strokes · HCP ${handicapIndex}`
+                : `${vsPar} vs par ${coursePar} · HCP ${handicapIndex}`}
             </div>
-            <div className="rs-date">{dateLabel}</div>
-
-            {/* Score hero */}
-            {holesPlayed > 0 && (
-              <div className="rs-score-hero">
-                {format === 'stableford' ? (
-                  <>
-                    <span className="rs-score-big">{totalPts}</span>
-                    <span className="rs-score-unit">pts</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="rs-score-big">{totalGross}</span>
-                    <span className="rs-score-unit">{vsPar}</span>
-                  </>
-                )}
-                <div className="rs-score-sub">
-                  {format === 'stableford'
-                    ? `${totalGross} strokes · HCP ${handicapIndex}`
-                    : `${vsPar} vs par ${coursePar} · HCP ${handicapIndex}`}
-                </div>
-              </div>
-            )}
-          </section>
+          )}
 
           {/* Round status */}
           {roundComplete ? (
