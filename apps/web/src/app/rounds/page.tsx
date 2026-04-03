@@ -110,7 +110,7 @@ export default async function RoundsPage() {
           align-items: center;
           text-decoration: none;
         }
-        .rp-back-btn {
+        .rp-hamburger {
           background: rgba(255, 255, 255, 0.12);
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
@@ -127,7 +127,7 @@ export default async function RoundsPage() {
           flex-shrink: 0;
           text-decoration: none;
         }
-        .rp-back-btn:hover { background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.35); }
+        .rp-hamburger:hover { background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.35); }
 
         /* ── Title card (inside banner, frosted glass) ── */
         .rp-title-card {
@@ -135,6 +135,7 @@ export default async function RoundsPage() {
           z-index: 3;
           display: flex;
           align-items: center;
+          justify-content: space-between;
           gap: 1rem;
           padding: 1rem 1.25rem;
           margin: 0 0.75rem 0.75rem;
@@ -143,6 +144,13 @@ export default async function RoundsPage() {
           -webkit-backdrop-filter: blur(16px);
           border: 1px solid rgba(255, 255, 255, 0.15);
           border-radius: 14px;
+        }
+        .rp-title-left {
+          display: flex;
+          align-items: center;
+          gap: 0.875rem;
+          flex: 1;
+          min-width: 0;
         }
         .rp-title-icon {
           width: 44px;
@@ -172,6 +180,55 @@ export default async function RoundsPage() {
           line-height: 1.3;
           margin: 0;
           margin-top: 0.15rem;
+        }
+
+        /* ── Neon count badge (matches dashboard HCP style) ── */
+        .rp-count-badge {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          padding: 0.5rem 1rem;
+          border-radius: 9999px;
+          border: 1px solid rgba(90, 180, 100, 0.25);
+          background: rgba(90, 180, 100, 0.08);
+          flex-shrink: 0;
+          overflow: hidden;
+        }
+        .rp-count-badge::before {
+          content: '';
+          position: absolute;
+          top: -1px;
+          left: 12.5%;
+          width: 75%;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(120, 210, 130, 0.6), transparent);
+          opacity: 0.6;
+        }
+        .rp-count-badge::after {
+          content: '';
+          position: absolute;
+          bottom: -1px;
+          left: 12.5%;
+          width: 75%;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(120, 210, 130, 0.6), transparent);
+          opacity: 0.6;
+        }
+        .rp-count-value {
+          font-family: var(--font-manrope), sans-serif;
+          font-weight: 800;
+          font-size: 1.125rem;
+          color: #fff;
+          letter-spacing: -0.02em;
+        }
+        .rp-count-label {
+          font-family: var(--font-dm-sans), sans-serif;
+          font-size: 0.6875rem;
+          font-weight: 600;
+          color: rgba(255, 255, 255, 0.65);
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
         }
 
         .rp-main {
@@ -281,31 +338,39 @@ export default async function RoundsPage() {
             <Image src="/hero.jpg" alt="Golf course" fill className="rp-banner-img" priority sizes="100vw" quality={90} />
             <div className="rp-banner-overlay" />
 
-            {/* ── Logo + back button ── */}
+            {/* ── Logo + hamburger ── */}
             <div className="rp-banner-topbar">
               <Link href="/play" className="rp-topbar-logo">
                 <Image src="/lx2-logo.svg" alt="LX2" width={72} height={36} />
               </Link>
-              <Link href="/play" className="rp-back-btn" aria-label="Back to dashboard">
+              <Link href="/play" className="rp-hamburger" aria-label="Menu">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path d="M15 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
               </Link>
             </div>
 
             {/* ── Title card (inside banner, frosted glass) ── */}
             <div className="rp-title-card">
-              <div className="rp-title-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <rect x="3" y="4" width="18" height="16" rx="2" stroke="#fff" strokeWidth="1.75"/>
-                  <path d="M3 10h18" stroke="#fff" strokeWidth="1.75"/>
-                  <path d="M9 4v6M15 4v6" stroke="#fff" strokeWidth="1.75" strokeLinecap="round"/>
-                </svg>
+              <div className="rp-title-left">
+                <div className="rp-title-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <rect x="3" y="4" width="18" height="16" rx="2" stroke="#fff" strokeWidth="1.75"/>
+                    <path d="M3 10h18" stroke="#fff" strokeWidth="1.75"/>
+                    <path d="M9 4v6M15 4v6" stroke="#fff" strokeWidth="1.75" strokeLinecap="round"/>
+                  </svg>
+                </div>
+                <div className="rp-title-info">
+                  <h1 className="rp-title">My Rounds</h1>
+                  <p className="rp-subtitle">Your scorecard history</p>
+                </div>
               </div>
-              <div className="rp-title-info">
-                <h1 className="rp-title">My Rounds</h1>
-                <p className="rp-subtitle">Your scorecard history</p>
-              </div>
+              {rounds.length > 0 && (
+                <div className="rp-count-badge">
+                  <span className="rp-count-value">{rounds.length}</span>
+                  <span className="rp-count-label">played</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
