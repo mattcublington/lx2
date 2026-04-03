@@ -58,18 +58,29 @@ export async function startRound(data: StartRoundData): Promise<string> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
 
-  // 2. Resolve course — either from static courses.ts or from OCR upload
+  // 2. Resolve course — static courses.ts, freshly-uploaded OCR, or DB-stored OCR
   const isUploadedCourse = data.courseId.startsWith('upload-')
   const course = isUploadedCourse ? null : getCourse(data.courseId)
-  if (!isUploadedCourse && !course) throw new Error(`Course not found: ${data.courseId}`)
 
-  const courseName = isUploadedCourse ? data.uploadedCourse?.name : course!.name
-  const courseClub = isUploadedCourse ? data.uploadedCourse?.club : course!.club
-  const courseLocation = isUploadedCourse ? (data.uploadedCourse?.location ?? '') : course!.location
-  const courseHolesCount = isUploadedCourse ? (data.uploadedCourse?.holesCount ?? 18) : course!.holes.length
-  const courseSlopeRating = isUploadedCourse ? (data.uploadedCourse?.slopeRating ?? 113) : course!.slopeRating
-  const courseCourseRating = isUploadedCourse ? (data.uploadedCourse?.courseRating ?? 72) : course!.courseRating
-  const coursePar = isUploadedCourse ? (data.uploadedCourse?.par ?? 72) : course!.par
+  // If not in static data and not a fresh upload, look up in DB (e.g. previously-uploaded OCR course)
+  let dbCourse: { id: string; name: string; club: string | null; location: string | null; holes_count: number; slope_rating: number | null; course_rating: number | null; par: number | null } | null = null
+  if (!isUploadedCourse && !course) {
+    const { data: found } = await supabase
+      .from('courses')
+      .select('id, name, club, location, holes_count, slope_rating, course_rating, par')
+      .eq('id', data.courseId)
+      .maybeSingle()
+    dbCourse = found
+    if (!dbCourse) throw new Error(`Course not found: ${data.courseId}`)
+  }
+
+  const courseName = isUploadedCourse ? data.uploadedCourse?.name : course?.name ?? dbCourse?.name
+  const courseClub = isUploadedCourse ? data.uploadedCourse?.club : course?.club ?? dbCourse?.club
+  const courseLocation = isUploadedCourse ? (data.uploadedCourse?.location ?? '') : course?.location ?? dbCourse?.location ?? ''
+  const courseHolesCount = isUploadedCourse ? (data.uploadedCourse?.holesCount ?? 18) : course?.holes.length ?? dbCourse?.holes_count ?? 18
+  const courseSlopeRating = isUploadedCourse ? (data.uploadedCourse?.slopeRating ?? 113) : course?.slopeRating ?? dbCourse?.slope_rating ?? 113
+  const courseCourseRating = isUploadedCourse ? (data.uploadedCourse?.courseRating ?? 72) : course?.courseRating ?? dbCourse?.course_rating ?? 72
+  const coursePar = isUploadedCourse ? (data.uploadedCourse?.par ?? 72) : course?.par ?? dbCourse?.par ?? 72
 
   if (!courseName) throw new Error('Course name is required')
 
@@ -79,6 +90,7 @@ export async function startRound(data: StartRoundData): Promise<string> {
   const userHandicap = data.players.find(p => p.isUser)?.handicapIndex ?? null
   const admin = createAdminClient()
 
+  // If we already resolved the course from DB, skip the name-based lookup
   const [, existingCourse] = await Promise.all([
     admin
       .from('users')
@@ -88,12 +100,14 @@ export async function startRound(data: StartRoundData): Promise<string> {
         display_name: user.email!.split('@')[0],
         ...(userHandicap !== null ? { handicap_index: userHandicap } : {}),
       }, { onConflict: 'id', ignoreDuplicates: false }),
-    supabase
-      .from('courses')
-      .select('id')
-      .eq('name', courseName)
-      .maybeSingle()
-      .then(r => r.data),
+    dbCourse
+      ? Promise.resolve(dbCourse)
+      : supabase
+          .from('courses')
+          .select('id')
+          .eq('name', courseName)
+          .maybeSingle()
+          .then(r => r.data),
   ])
 
   // 4. Create course row only if it doesn't exist yet
