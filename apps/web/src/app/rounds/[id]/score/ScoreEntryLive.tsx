@@ -469,15 +469,15 @@ const STYLES = `
     text-transform: uppercase; letter-spacing: 0.06em;
     text-align: center; margin-bottom: 0.75rem;
   }
-  .sc-modal-qs { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .sc-modal-qs { display: flex; gap: 0.625rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem; }
   .sc-mqbtn {
-    width: 44px; height: 44px;
+    width: 56px; height: 56px;
     border-radius: 50%;
     border: 2px solid transparent;
     background: rgba(240,244,236,0.6);
     color: #1A2E1A;
     font-family: var(--font-manrope), sans-serif;
-    font-weight: 700; font-size: 1.0625rem;
+    font-weight: 700; font-size: 1.25rem;
     cursor: pointer;
     transition: all 0.14s;
     display: flex; align-items: center; justify-content: center;
@@ -529,12 +529,17 @@ const STYLES = `
   .sc-save-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(13,99,27,0.25); }
   .sc-save-btn:disabled { opacity: 0.45; cursor: default; }
   .sc-pickup-lnk {
-    background: none; border: none;
+    width: 100%; padding: 0.75rem 1rem;
+    background: none;
+    border: 2px solid #E0EBE0;
+    border-radius: 12px;
     color: #923357;
-    font-family: var(--font-lexend), sans-serif;
-    font-size: 0.8125rem; font-weight: 500;
-    cursor: pointer; text-align: center; padding: 0;
+    font-family: var(--font-dm-sans), sans-serif;
+    font-size: 0.875rem; font-weight: 600;
+    cursor: pointer; text-align: center;
+    transition: all 0.14s;
   }
+  .sc-pickup-lnk:hover { border-color: #923357; background: rgba(146,51,87,0.04); }
 
   /* ── Settings modal ────────────────────────────────────── */
   .sc-settings {
