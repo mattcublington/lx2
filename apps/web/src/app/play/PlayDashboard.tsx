@@ -217,9 +217,6 @@ export default function PlayDashboard({
           align-items: center;
           text-decoration: none;
         }
-        .fe-topbar-logo img {
-          filter: brightness(0) invert(1) drop-shadow(0 1px 4px rgba(0,0,0,0.35));
-        }
         .fe-hamburger {
           background: rgba(255, 255, 255, 0.12);
           backdrop-filter: blur(12px);
@@ -1055,7 +1052,7 @@ export default function PlayDashboard({
             {/* ── Logo + hamburger inside banner ── */}
             <div className="fe-banner-topbar">
               <Link href="/play" className="fe-topbar-logo">
-                <Image src="/lx2-logo.png" alt="LX2" width={64} height={29} style={{ width: 64, height: 'auto' }} />
+                <Image src="/lx2-logo.svg" alt="LX2" width={72} height={36} />
               </Link>
               <button className="fe-hamburger" onClick={() => setMenuOpen(o => !o)} aria-label="Open menu">
                 <HamburgerIcon />
