@@ -60,19 +60,19 @@ interface Props {
 type Period = 'morning' | 'afternoon' | 'evening'
 
 const TZ_GREETINGS: Record<string, Record<Period, string>> = {
-  'Asia/Tokyo':          { morning: 'おはようございます', afternoon: 'こんにちは', evening: 'こんばんは' },
-  'Asia/Osaka':          { morning: 'おはようございます', afternoon: 'こんにちは', evening: 'こんばんは' },
-  'Asia/Seoul':          { morning: '좋은 아침이에요', afternoon: '안녕하세요', evening: '좋은 저녁이에요' },
-  'Asia/Shanghai':       { morning: '早上好', afternoon: '下午好', evening: '晚上好' },
-  'Asia/Hong_Kong':      { morning: '早上好', afternoon: '下午好', evening: '晚上好' },
-  'Asia/Taipei':         { morning: '早安', afternoon: '午安', evening: '晚安' },
+  'Asia/Tokyo':          { morning: 'Ohayo gozaimasu', afternoon: 'Konnichiwa', evening: 'Konbanwa' },
+  'Asia/Osaka':          { morning: 'Ohayo gozaimasu', afternoon: 'Konnichiwa', evening: 'Konbanwa' },
+  'Asia/Seoul':          { morning: 'Joeun achimieyo', afternoon: 'Annyeonghaseyo', evening: 'Joeun jeonyeogeyo' },
+  'Asia/Shanghai':       { morning: 'Zao shang hao', afternoon: 'Xia wu hao', evening: 'Wan shang hao' },
+  'Asia/Hong_Kong':      { morning: 'Zao shang hao', afternoon: 'Xia wu hao', evening: 'Wan shang hao' },
+  'Asia/Taipei':         { morning: 'Zao an', afternoon: 'Wu an', evening: 'Wan an' },
   'Europe/Paris':        { morning: 'Bonjour', afternoon: 'Bonjour', evening: 'Bonsoir' },
   'Europe/Brussels':     { morning: 'Bonjour', afternoon: 'Bonjour', evening: 'Bonsoir' },
-  'Europe/Madrid':       { morning: 'Buenos días', afternoon: 'Buenas tardes', evening: 'Buenas noches' },
-  'America/Mexico_City': { morning: 'Buenos días', afternoon: 'Buenas tardes', evening: 'Buenas noches' },
-  'America/Bogota':      { morning: 'Buenos días', afternoon: 'Buenas tardes', evening: 'Buenas noches' },
-  'America/Buenos_Aires':{ morning: 'Buenos días', afternoon: 'Buenas tardes', evening: 'Buenas noches' },
-  'America/Santiago':    { morning: 'Buenos días', afternoon: 'Buenas tardes', evening: 'Buenas noches' },
+  'Europe/Madrid':       { morning: 'Buenos dias', afternoon: 'Buenas tardes', evening: 'Buenas noches' },
+  'America/Mexico_City': { morning: 'Buenos dias', afternoon: 'Buenas tardes', evening: 'Buenas noches' },
+  'America/Bogota':      { morning: 'Buenos dias', afternoon: 'Buenas tardes', evening: 'Buenas noches' },
+  'America/Buenos_Aires':{ morning: 'Buenos dias', afternoon: 'Buenas tardes', evening: 'Buenas noches' },
+  'America/Santiago':    { morning: 'Buenos dias', afternoon: 'Buenas tardes', evening: 'Buenas noches' },
   'Europe/Berlin':       { morning: 'Guten Morgen', afternoon: 'Guten Tag', evening: 'Guten Abend' },
   'Europe/Vienna':       { morning: 'Guten Morgen', afternoon: 'Guten Tag', evening: 'Guten Abend' },
   'Europe/Zurich':       { morning: 'Guten Morgen', afternoon: 'Guten Tag', evening: 'Guten Abend' },
@@ -80,7 +80,11 @@ const TZ_GREETINGS: Record<string, Record<Period, string>> = {
   'Europe/Lisbon':       { morning: 'Bom dia', afternoon: 'Boa tarde', evening: 'Boa noite' },
   'America/Sao_Paulo':   { morning: 'Bom dia', afternoon: 'Boa tarde', evening: 'Boa noite' },
   'Europe/Amsterdam':    { morning: 'Goedemorgen', afternoon: 'Goedemiddag', evening: 'Goedenavond' },
-  'Europe/Moscow':       { morning: 'Доброе утро', afternoon: 'Добрый день', evening: 'Добрый вечер' },
+  'Europe/Moscow':       { morning: 'Dobroe utro', afternoon: 'Dobry den', evening: 'Dobry vecher' },
+  'Asia/Bangkok':        { morning: 'Sawadee krap', afternoon: 'Sawadee krap', evening: 'Sawadee krap' },
+  'Asia/Jakarta':        { morning: 'Selamat pagi', afternoon: 'Selamat siang', evening: 'Selamat malam' },
+  'Asia/Kolkata':        { morning: 'Namaste', afternoon: 'Namaste', evening: 'Namaste' },
+  'Asia/Dubai':          { morning: 'Sabah al-khayr', afternoon: 'Masa al-khayr', evening: 'Masa al-khayr' },
 }
 
 function getGreeting(displayName: string): { prefix: string; firstName: string } {
