@@ -207,11 +207,11 @@ export default function PlayDashboard({
         .fe-banner {
           position: relative;
           width: 100%;
-          padding: 1.125rem 1.5rem 1.75rem;
+          min-height: 220px;
+          padding: 1.5rem;
           overflow: hidden;
           display: flex;
-          flex-direction: column;
-          align-items: flex-start;
+          align-items: center;
         }
         .fe-banner-img {
           position: absolute;
@@ -231,14 +231,12 @@ export default function PlayDashboard({
           );
           z-index: 1;
         }
-        /* Top bar: profile left, hamburger right */
-        .fe-banner-top {
-          position: relative;
+        /* Hamburger: absolute top-right of banner */
+        .fe-hamburger-anchor {
+          position: absolute;
+          top: 1.25rem;
+          right: 1.5rem;
           z-index: 3;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          width: 100%;
         }
         .fe-banner-logo-img {
           opacity: 0.75;
@@ -307,7 +305,7 @@ export default function PlayDashboard({
         .fe-menu-item:last-child { border-bottom: none; }
         .fe-menu-item:hover { background: rgba(255,255,255,0.08); }
         .fe-menu-item.danger { color: rgba(255, 110, 110, 0.9); }
-        /* Avatar + greeting row — top left */
+        /* Avatar + greeting — left side, vertically centred by banner flex */
         .fe-banner-profile {
           position: relative;
           z-index: 3;
@@ -316,6 +314,7 @@ export default function PlayDashboard({
           gap: 1rem;
           text-decoration: none;
           color: #fff;
+          padding-right: 3rem; /* clear the hamburger */
         }
         .fe-avatar {
           width: 68px;
@@ -966,30 +965,32 @@ export default function PlayDashboard({
           />
           <div className="fe-banner-overlay" />
 
-          {/* Top bar: profile left, hamburger right */}
-          <div className="fe-banner-top">
-            <Link href="/profile" className="fe-banner-profile">
-              {avatarUrl ? (
-                <Image src={avatarUrl} alt={displayName} width={68} height={68} className="fe-avatar" />
-              ) : (
-                <div className="fe-avatar-placeholder">
-                  {displayName.charAt(0).toUpperCase()}
-                </div>
-              )}
-              <div className="fe-banner-info">
-                <div className="fe-greeting-sub">{greetingPrefix},</div>
-                <h1 className="fe-name">{firstName}</h1>
-                {handicapIndex != null && (
-                  <div className="fe-hcp-badge">
-                    HCP {handicapIndex % 1 === 0 ? handicapIndex.toFixed(1) : handicapIndex}
-                  </div>
-                )}
-              </div>
-            </Link>
+          {/* Hamburger: pinned top-right */}
+          <div className="fe-hamburger-anchor">
             <button className="fe-hamburger" onClick={() => setMenuOpen(o => !o)} aria-label="Open menu">
               <HamburgerIcon />
             </button>
           </div>
+
+          {/* Profile: left side, vertically centred by banner flex */}
+          <Link href="/profile" className="fe-banner-profile">
+            {avatarUrl ? (
+              <Image src={avatarUrl} alt={displayName} width={68} height={68} className="fe-avatar" />
+            ) : (
+              <div className="fe-avatar-placeholder">
+                {displayName.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div className="fe-banner-info">
+              <div className="fe-greeting-sub">{greetingPrefix},</div>
+              <h1 className="fe-name">{firstName}</h1>
+              {handicapIndex != null && (
+                <div className="fe-hcp-badge">
+                  HCP {handicapIndex % 1 === 0 ? handicapIndex.toFixed(1) : handicapIndex}
+                </div>
+              )}
+            </div>
+          </Link>
         </div>
 
         {/* Dropdown menu — rendered outside banner to avoid overflow clip */}
