@@ -1672,12 +1672,15 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
   }
 
   const selectCombination = (courseId: string, dbComboId: string | null) => {
-    const newNtpHoles = defaultNtpHoles(courseId)
-    const newLdHoles = defaultLdHoles(courseId)
+    const c = findCourse(courseId)
+    const tee = c ? (c.tees.includes('White') ? 'White' : (c.tees[0] ?? 'White')) : 'White'
+    const newNtpHoles = c ? c.holes.filter(h => h.par === 3).map(h => h.num).slice(0, 1) : []
+    const par5s = c ? c.holes.filter(h => h.par === 5).map(h => h.num) : []
+    const newLdHoles = par5s.length > 0 ? [par5s[0]!] : (c ? c.holes.filter(h => h.par === 4).map(h => h.num).slice(0, 1) : [])
     const ntpEnabled = state.ntpEnabled && newNtpHoles.length > 0
     update({
       courseId, dbCombinationId: dbComboId,
-      tee: defaultTee(courseId),
+      tee,
       ntpEnabled,
       ldEnabled: state.ldEnabled,
       ntpHoles: ntpEnabled ? newNtpHoles : [],
