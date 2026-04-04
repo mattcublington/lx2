@@ -1,8 +1,5 @@
 'use server'
 
-// Allow up to 60 seconds for OCR processing (Claude API + image analysis)
-export const maxDuration = 60
-
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'

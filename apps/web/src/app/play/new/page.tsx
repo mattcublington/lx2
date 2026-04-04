@@ -3,6 +3,9 @@ import { createClient } from '@/lib/supabase/server'
 import NewRoundWizard from './NewRoundWizard'
 import type { Course, CourseHole } from '@/lib/courses'
 
+// Allow up to 60 seconds for OCR processing (Claude API + image analysis)
+export const maxDuration = 60
+
 export default async function NewRoundPage() {
   const supabase = await createClient()
 
