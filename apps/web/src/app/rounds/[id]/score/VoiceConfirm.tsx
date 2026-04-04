@@ -227,12 +227,12 @@ const STYLES = `
   }
   .vcf-hole {
     font-family: var(--font-dm-serif), 'DM Serif Display', serif;
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     color: #1A2E1A;
   }
   .vcf-par {
     font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
-    font-size: 0.8125rem;
+    font-size: 0.9375rem;
     color: #72786E;
     font-weight: 500;
   }
@@ -304,24 +304,27 @@ const STYLES = `
   .vcf-badges {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.25rem;
+    gap: 0.375rem;
+    margin-top: 0.125rem;
   }
   .vcf-badge {
     font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
-    font-size: 0.6875rem;
-    font-weight: 500;
-    color: #72786E;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #1A2E1A;
     background: #F0F4EC;
-    padding: 0.125rem 0.5rem;
-    border-radius: 6px;
+    padding: 0.25rem 0.625rem;
+    border-radius: 8px;
   }
   .vcf-badge-score {
-    color: #0D631B;
-    background: rgba(13,99,27,0.1);
+    color: #FFFFFF;
+    background: #0D631B;
+    font-weight: 700;
   }
   .vcf-badge-gir {
     color: #0D631B;
-    background: rgba(13,99,27,0.1);
+    background: rgba(13,99,27,0.15);
+    font-weight: 700;
   }
   .vcf-row-right {
     display: flex;
@@ -338,11 +341,11 @@ const STYLES = `
   }
   .vcf-pts {
     font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
-    font-size: 0.6875rem;
-    font-weight: 500;
+    font-size: 0.8125rem;
+    font-weight: 600;
     color: #0D631B;
-    background: rgba(13,99,27,0.1);
-    padding: 0.2rem 0.5rem;
+    background: rgba(13,99,27,0.12);
+    padding: 0.25rem 0.625rem;
     border-radius: 24px;
     white-space: nowrap;
   }
