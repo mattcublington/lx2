@@ -1,5 +1,8 @@
 'use server'
 
+// Allow up to 60 seconds for OCR processing (Claude API + image analysis)
+export const maxDuration = 60
+
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -91,7 +94,7 @@ async function extractScorecardData(
   // be altered by user input. The sanitised values are only used as hints —
   // Claude will override them with what it actually reads from the card.
   const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     max_tokens: 16384,
     messages: [
       {
@@ -103,40 +106,39 @@ async function extractScorecardData(
           },
           {
             type: 'text',
-            text: `You are a golf scorecard data extractor. Extract structured data from this physical golf scorecard photograph.
+            text: `You are a golf scorecard data extractor. Extract structured data from this scorecard photograph.
 
-IMPORTANT: The scorecard image may be rotated (landscape card photographed in portrait, or vice versa).
-Mentally rotate the image so you can read the text correctly before extracting any numbers.
-Read each number carefully from the card — do NOT guess or interpolate values.
+Hints from the uploader (trust the card over these):
+- Club: "${userClubName}", Course: "${userCourseName}", Country: "${userCountry}"
 
-The uploader has suggested the following (use as hints only — trust what you read on the card):
-- Club name hint: "${userClubName}"
-- Course name hint: "${userCourseName}"
-- Country hint: "${userCountry}"
+CRITICAL INSTRUCTIONS FOR ACCURACY:
+1. The image may be ROTATED. Orient yourself by finding readable text (club name, "Hole", "Par",
+   "SI") and mentally rotate so you can read it naturally before extracting ANY numbers.
+2. Scorecards have ROWS (or COLUMNS) of distances, one per tee. Each tee has a different total.
+   The LONGEST tee has the highest total. The SHORTEST has the lowest.
+   Read ONE COMPLETE ROW AT A TIME. For each tee, trace that single row across all 18 holes.
+   Do NOT jump between rows — that causes mixed-up values.
+3. After extracting each tee, SUM the 9-hole and 18-hole distances and compare to the
+   "Out"/"In"/"Total" printed on the card. If your sum doesn't match, re-read that row.
+4. Check the EDGES and CORNERS of the card for a Course Rating / Slope Rating table.
+   Common labels: "C.R/S.R", "CR/SR", "C.R.", "S.R.", "SSS", "CSS", "Slope".
+   Often split into Men and Ladies rows. These are small numbers like 71.2 / 128.
 
-Before generating JSON, carefully examine the card:
-1. How many distinct tee rows of distances are there? Each coloured row of numbers is a separate tee.
-   Common: 3-6 tees. Some cards have more. Count carefully and extract ALL of them.
-2. What unit are distances in? Look for notes like "measurements are in metres".
-3. Look for Course Rating (CR) and Slope Rating (SR) — often in small print at the edges or
-   corners of the card, in a separate table. Labels include: "C.R/S.R", "CR/SR", "C.R.", "S.R.",
-   "SSS", "CSS", "Course Rating", "Slope". They may be split by Men/Ladies.
-
-Output ONLY valid JSON (no markdown fencing, no other text) matching this schema:
+Output ONLY valid JSON (no markdown, no other text):
 {
   "courseName": "string",
   "clubName": "string",
   "location": "string or null",
-  "distanceUnit": "'metres' or 'yards'",
+  "distanceUnit": "'metres' or 'yards' — check for notes like 'measurements are in metres'",
   "tees": [
     {
-      "teeName": "string — the name as shown on card, e.g. 'Protea', 'Blue Crane', 'Yellow'",
+      "teeName": "string — as printed, e.g. 'Protea', 'Blue Crane', 'Yellow'",
       "teeColour": "string — normalised: Yellow, White, Red, Blue, Green, Black, Orange, Purple",
-      "courseRating": "number or null — men's CR for this tee",
-      "slopeRating": "number or null — men's SR for this tee",
-      "courseRatingWomen": "number or null — women's/ladies' CR for this tee",
-      "slopeRatingWomen": "number or null — women's/ladies' SR for this tee",
-      "par": "number or null — total par",
+      "courseRating": "number or null — men's CR",
+      "slopeRating": "number or null — men's SR",
+      "courseRatingWomen": "number or null — women's/ladies' CR",
+      "slopeRatingWomen": "number or null — women's/ladies' SR",
+      "par": "number or null",
       "holes": [
         { "hole": 1, "par": 4, "si": 11, "yards": 382 }
       ]
@@ -145,15 +147,11 @@ Output ONLY valid JSON (no markdown fencing, no other text) matching this schema
 }
 
 Rules:
-- Extract EVERY tee. Do not skip any.
-- Read each distance value directly from the card. Do NOT estimate, hallucinate, or mix up rows.
-  Verify by checking that each tee's total matches the "Out"/"In"/"Total" shown on the card.
-- Do NOT convert units — keep distances exactly as printed on the card.
-- Stroke index may be labelled "SI", "S.I.", "Index", or "Hcp".
-- Ignore "Out"/"In"/"Total" summary rows — only extract individual hole data.
-- For CR/SR: if split by Men/Ladies, use courseRating+slopeRating for men,
-  courseRatingWomen+slopeRatingWomen for women. If CR/SR applies to the whole course
-  rather than a specific tee, attach it to the first/longest tee.`,
+- Extract EVERY tee — do not skip any. Order from longest to shortest.
+- "yards" field = distance in the ORIGINAL unit on the card (do NOT convert metres to yards)
+- Stroke index labels: "SI", "S.I.", "Index", "Hcp"
+- Omit "Out"/"In"/"Total" summary rows from holes array
+- For CR/SR split by Men/Ladies: men → courseRating/slopeRating, women → courseRatingWomen/slopeRatingWomen`,
           },
         ],
       },

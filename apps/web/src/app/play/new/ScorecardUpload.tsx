@@ -39,7 +39,7 @@ interface Props {
 
 // ── Image compression (resize large phone photos for faster upload) ──────────
 
-function compressImage(file: File, maxDimension = 4000, quality = 0.85): Promise<Blob> {
+function compressImage(file: File, maxDimension = 4000, quality = 0.95): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const img = new Image()
     img.onload = () => {
