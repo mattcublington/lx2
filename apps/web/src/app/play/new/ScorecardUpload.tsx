@@ -138,7 +138,7 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
 
   if (phase === 'form') {
     return (
-      <div style={{ padding: '1.25rem' }}>
+      <div style={{ flex: 1, overflowY: 'auto' as const, padding: '1.25rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
           <button onClick={onCancel} aria-label="Go back" style={{
             width: 40, height: 40, background: 'transparent', border: 'none', borderRadius: 12,
@@ -336,7 +336,7 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
 
   if (phase === 'uploading') {
     return (
-      <div style={{ padding: '3rem 1.25rem', textAlign: 'center' }}>
+      <div style={{ flex: 1, overflowY: 'auto' as const, padding: '3rem 1.25rem', textAlign: 'center' }}>
         <div style={{
           width: 64, height: 64, margin: '0 auto 1.5rem', borderRadius: '50%',
           background: 'rgba(13, 99, 27, 0.08)', display: 'flex',
@@ -410,7 +410,7 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
   }
 
   return (
-    <div style={{ padding: '1.25rem', paddingBottom: 100 }}>
+    <div style={{ flex: 1, overflowY: 'auto' as const, padding: '1.25rem', paddingBottom: 100 }}>
       <div style={{ marginBottom: '1.5rem' }}>
         <h2 style={{ margin: 0, fontFamily: font.display, fontWeight: 700, fontSize: 22, color: FE.forestPrimary, marginBottom: '0.25rem' }}>
           Check &amp; edit
