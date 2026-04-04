@@ -1237,8 +1237,6 @@ function CombinationStep({
     !search || shortName(c.name).toLowerCase().includes(search.toLowerCase())
   )
 
-  const selectedCourse = courses.find(c => c.id === selectedId)
-
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, overflow: 'hidden' }}>
       <div style={{ flex: 1, overflowY: 'auto' as const, padding: '0 1.25rem', paddingBottom: 16 }}>
