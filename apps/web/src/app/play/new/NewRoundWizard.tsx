@@ -291,7 +291,9 @@ function BottomBar({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
       position: 'fixed', bottom: 0, left: 0, right: 0,
-      background: FE.white, padding: '1rem 1.25rem',
+      background: FE.white,
+      padding: '1rem 1.25rem',
+      paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))',
       boxShadow: '0 -2px 8px rgba(26, 28, 28, 0.06)', zIndex: 50,
     }}>
       <div style={{ maxWidth: 430, margin: '0 auto' }}>
@@ -406,9 +408,9 @@ function VenueStep({
                 tabIndex={0}
                 onKeyDown={e => e.key === 'Enter' && onSelect(venue.club)}
                 style={{
-                  display: 'flex', gap: '1rem', padding: '1.25rem',
+                  display: 'flex', gap: '0.75rem', padding: '0.75rem 1rem',
                   background: selected ? 'rgba(13, 99, 27, 0.05)' : FE.white,
-                  borderRadius: 16, cursor: 'pointer', marginBottom: '1rem',
+                  borderRadius: 12, cursor: 'pointer', marginBottom: '0.5rem',
                   boxShadow: FE.shadowFloat,
                   borderLeft: selected ? `4px solid ${FE.greenDark}` : '4px solid transparent',
                   transition: 'all 0.2s ease-in-out',
@@ -418,21 +420,21 @@ function VenueStep({
               >
                 {/* Venue icon */}
                 <div style={{
-                  width: 48, height: 48, borderRadius: 8, flexShrink: 0,
+                  width: 36, height: 36, borderRadius: 8, flexShrink: 0,
                   background: 'linear-gradient(135deg, rgba(13,99,27,0.1) 0%, rgba(61,107,26,0.1) 100%)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                     <line x1="5" y1="3" x2="5" y2="21" stroke={FE.greenDark} strokeWidth="2" strokeLinecap="round"/>
                     <path d="M5 3 L19 8 L5 13 Z" fill={FE.greenDark}/>
                     <line x1="3" y1="21" x2="8" y2="21" stroke={FE.greenDark} strokeWidth="2" strokeLinecap="round"/>
                   </svg>
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: font.display, fontWeight: 600, fontSize: 18, color: FE.onPrimary, marginBottom: '0.25rem' }}>
+                  <div style={{ fontFamily: font.display, fontWeight: 600, fontSize: 16, color: FE.onPrimary, marginBottom: '0.125rem' }}>
                     {venueDisplayName(venue.club)}
                   </div>
-                  <div style={{ fontFamily: font.body, fontSize: 14, color: FE.onTertiary, lineHeight: 1.4 }}>
+                  <div style={{ fontFamily: font.body, fontSize: 13, color: FE.onTertiary, lineHeight: 1.4 }}>
                     {venue.location}, {venue.country} · {venue.count} {venue.count === 1 ? 'course' : 'courses'}
                   </div>
                 </div>
@@ -454,8 +456,8 @@ function VenueStep({
           tabIndex={0}
           onKeyDown={e => e.key === 'Enter' && onAddCourse()}
           style={{
-            display: 'flex', gap: '1rem', padding: '1.25rem',
-            background: FE.white, borderRadius: 16, cursor: 'pointer',
+            display: 'flex', gap: '0.75rem', padding: '0.75rem 1rem',
+            background: FE.white, borderRadius: 12, cursor: 'pointer',
             boxShadow: FE.shadowFloat, border: `1px dashed rgba(13, 99, 27, 0.3)`,
             transition: 'all 0.2s ease-in-out',
           }}
@@ -463,21 +465,21 @@ function VenueStep({
           onMouseLeave={e => { e.currentTarget.style.boxShadow = FE.shadowFloat; e.currentTarget.style.borderColor = 'rgba(13, 99, 27, 0.3)' }}
         >
           <div style={{
-            width: 48, height: 48, borderRadius: 8, flexShrink: 0,
+            width: 36, height: 36, borderRadius: 8, flexShrink: 0,
             background: 'linear-gradient(135deg, rgba(13,99,27,0.1) 0%, rgba(61,107,26,0.1) 100%)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
               <rect x="3" y="6" width="18" height="13" rx="2" stroke={FE.greenDark} strokeWidth="1.5"/>
               <circle cx="12" cy="12.5" r="3" stroke={FE.greenDark} strokeWidth="1.5"/>
               <circle cx="17" cy="9" r="1" fill={FE.greenDark}/>
             </svg>
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: font.display, fontWeight: 600, fontSize: 18, color: FE.greenDark, marginBottom: '0.25rem' }}>
+            <div style={{ fontFamily: font.display, fontWeight: 600, fontSize: 16, color: FE.greenDark, marginBottom: '0.125rem' }}>
               Add a course
             </div>
-            <div style={{ fontFamily: font.body, fontSize: 14, color: FE.onTertiary, lineHeight: 1.4 }}>
+            <div style={{ fontFamily: font.body, fontSize: 13, color: FE.onTertiary, lineHeight: 1.4 }}>
               Photograph a scorecard and we&apos;ll extract the data
             </div>
           </div>
@@ -1117,39 +1119,49 @@ function SettingsStep({
             </div>
           </div>
 
-          {/* Tee selector */}
+          {/* Tee selector — coloured grid */}
           {course.tees.length > 1 && (
             <div style={{ marginBottom: '1.5rem' }}>
               <SettingLabel>Tee</SettingLabel>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: course.tees.length <= 4 ? '1fr 1fr' : '1fr 1fr 1fr',
+                gap: '0.625rem',
+              }}>
                 {course.tees.map(tee => {
                   const swatch = TEE_COLOUR_MAP[tee] ?? { bg: '#ccc', border: '#ccc' }
                   const selected = state.tee === tee
+                  const isLight = tee === 'White' || tee === 'Yellow'
+                  const isGradient = swatch.bg.includes('gradient')
+                  const textColor = isLight ? FE.onPrimary : '#FFFFFF'
+                  const checkColor = isLight ? FE.greenDark : '#FFFFFF'
                   return (
-                    <label key={tee} onClick={() => onUpdate({ tee })} style={{
-                      display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer',
-                    }}>
-                      {/* Radio indicator */}
-                      <div style={{
-                        width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
-                        border: selected ? `2px solid ${FE.greenDark}` : '2px solid rgba(26,28,28,0.25)',
-                        background: 'transparent',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    <button
+                      key={tee}
+                      onClick={() => onUpdate({ tee })}
+                      style={{
+                        position: 'relative',
+                        padding: '0.875rem 0.75rem',
+                        borderRadius: 12,
+                        border: selected ? `2.5px solid ${FE.greenDark}` : `2px solid ${swatch.border}`,
+                        background: isGradient ? swatch.bg : swatch.bg,
+                        cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                        fontFamily: font.body, fontWeight: 600, fontSize: 14,
+                        color: textColor,
                         transition: 'all 0.2s ease-in-out',
-                      }}>
-                        {selected && (
-                          <div style={{ width: 10, height: 10, borderRadius: '50%', background: FE.greenDark }} />
-                        )}
-                      </div>
-                      {/* Tee colour swatch */}
-                      <div style={{
-                        width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
-                        background: swatch.bg, border: `2px solid ${swatch.border}`,
-                      }} />
-                      <span style={{ fontFamily: font.body, fontSize: 15, color: FE.onPrimary, flex: 1 }}>
-                        {tee}
-                      </span>
-                    </label>
+                        boxShadow: selected ? `0 0 0 3px rgba(13,99,27,0.15)` : 'none',
+                        outline: 'none',
+                        minHeight: 48,
+                      }}
+                    >
+                      {selected && (
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                          <path d="M3 8L6.5 11.5L13 4.5" stroke={checkColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                      {tee}
+                    </button>
                   )
                 })}
               </div>
