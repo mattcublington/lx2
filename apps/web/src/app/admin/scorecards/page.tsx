@@ -3,7 +3,7 @@ import Image from 'next/image'
 import { listUploads } from './actions'
 import type { UploadRow } from './actions'
 import ClickableRow from './ClickableRow'
-import { DeleteRowButton, DeleteAllRejectedButton } from './DeleteControls'
+import { DeleteRowButton, DeleteAllRejectedButton, DeleteAllPendingButton } from './DeleteControls'
 
 interface PageProps {
   searchParams: Promise<{ status?: string }>
@@ -273,7 +273,12 @@ export default async function AdminScorecardsPage({ searchParams }: PageProps) {
               })}
             </nav>
 
-            {/* ── Delete all rejected — shown only when viewing rejected tab ── */}
+            {/* ── Bulk delete — shown on pending or rejected tabs ── */}
+            {filter === 'pending' && pending.length > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <DeleteAllPendingButton count={pending.length} />
+              </div>
+            )}
             {filter === 'rejected' && rejected.length > 0 && (
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <DeleteAllRejectedButton count={rejected.length} />
@@ -316,7 +321,7 @@ export default async function AdminScorecardsPage({ searchParams }: PageProps) {
                         <td className="aq-muted">{formatDate(row.created_at)}</td>
                         <td><StatusBadge status={row.status} /></td>
                         <td>
-                          {row.status === 'rejected' && (
+                          {(row.status === 'rejected' || row.status === 'pending') && (
                             <DeleteRowButton id={row.id} />
                           )}
                         </td>

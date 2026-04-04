@@ -351,7 +351,7 @@ export async function deleteUpload(id: string): Promise<ActionResult> {
 
   const admin = createAdminClient()
 
-  // Only allow deleting rejected uploads
+  // Only allow deleting rejected or pending uploads
   const { data: upload } = await admin
     .from('scorecard_uploads')
     .select('status, image_url')
@@ -359,8 +359,8 @@ export async function deleteUpload(id: string): Promise<ActionResult> {
     .single()
 
   if (!upload) return { ok: false, error: 'Upload not found' }
-  if ((upload.status as string) !== 'rejected') {
-    return { ok: false, error: 'Only rejected uploads can be deleted' }
+  if ((upload.status as string) !== 'rejected' && (upload.status as string) !== 'pending') {
+    return { ok: false, error: 'Only rejected or pending uploads can be deleted' }
   }
 
   const { error } = await admin
@@ -395,6 +395,34 @@ export async function deleteAllRejected(): Promise<ActionResult & { count?: numb
     .from('scorecard_uploads')
     .delete()
     .eq('status', 'rejected')
+
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath('/admin/scorecards')
+  return { ok: true, count }
+}
+
+// ── Delete all pending ───────────────────────────────────────────────────────
+
+export async function deleteAllPending(): Promise<ActionResult & { count?: number }> {
+  try { await requireAdmin() } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Not authorized' }
+  }
+
+  const admin = createAdminClient()
+
+  const { data: pending } = await admin
+    .from('scorecard_uploads')
+    .select('id')
+    .eq('status', 'pending')
+
+  const count = pending?.length ?? 0
+  if (count === 0) return { ok: true, count: 0 }
+
+  const { error } = await admin
+    .from('scorecard_uploads')
+    .delete()
+    .eq('status', 'pending')
 
   if (error) return { ok: false, error: error.message }
 
