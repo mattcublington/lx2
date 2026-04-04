@@ -118,14 +118,25 @@ const dropdownStyle: React.CSSProperties = {
 
 function getVenues(allCourses: Course[]) {
   const seen = new Set<string>()
-  const venues: { club: string; location: string; country: string; continent: string; count: number }[] = []
+  const venues: { club: string; location: string; country: string; continent: string; count: number; lat?: number; lng?: number }[] = []
   for (const c of allCourses) {
     if (!seen.has(c.club)) {
       seen.add(c.club)
-      venues.push({ club: c.club, location: c.location, country: c.country, continent: c.continent, count: allCourses.filter(x => x.club === c.club).length })
+      venues.push({ club: c.club, location: c.location, country: c.country, continent: c.continent, count: allCourses.filter(x => x.club === c.club).length, ...(c.lat != null && c.lng != null ? { lat: c.lat, lng: c.lng } : {}) })
     }
   }
   return venues
+}
+
+/** Haversine distance in km between two GPS points */
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371
+  const dLat = (lat2 - lat1) * Math.PI / 180
+  const dLng = (lng2 - lng1) * Math.PI / 180
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng / 2) ** 2
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
 function getCoursesForClub(club: string, allCourses: Course[]) {
@@ -346,6 +357,7 @@ function VenueStep({
   const [loadingRecent, setLoadingRecent] = useState(false)
   const [nearbyLoading, setNearbyLoading] = useState(false)
   const [nearbyError, setNearbyError] = useState<string | null>(null)
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
 
   // Load recently played clubs when "Recent" tab is activated
   useEffect(() => {
@@ -362,6 +374,7 @@ function VenueStep({
   const handleNearby = () => {
     if (filter === 'nearby') { setFilter('all'); return }
     setFilter('nearby')
+    if (userLocation) return // Already have GPS, just switch filter
     setNearbyLoading(true)
     setNearbyError(null)
     if (!navigator.geolocation) {
@@ -370,10 +383,9 @@ function VenueStep({
       return
     }
     navigator.geolocation.getCurrentPosition(
-      () => {
-        // GPS obtained — but courses don't have coordinates yet
+      (pos) => {
+        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude })
         setNearbyLoading(false)
-        setNearbyError('Nearby search coming soon — GPS courses are being added')
       },
       () => {
         setNearbyLoading(false)
@@ -383,10 +395,14 @@ function VenueStep({
     )
   }
 
+  // Compute distance from user to each venue (memoised on userLocation)
+  const venueDistances = userLocation
+    ? new Map(venues.filter(v => v.lat != null && v.lng != null).map(v => [v.club, haversineKm(userLocation.lat, userLocation.lng, v.lat!, v.lng!)]))
+    : null
+
   // Build venue list based on active filter
   const getFilteredVenues = () => {
     if (filter === 'recent') {
-      // Match recent clubs against known venues
       const recentClubNames = new Set(recentClubs.map(r => r.club))
       const matched = venues.filter(v => recentClubNames.has(v.club))
       if (!search) return matched
@@ -396,7 +412,17 @@ function VenueStep({
       )
     }
 
-    // 'all' or 'nearby' (nearby falls back to all for now)
+    if (filter === 'nearby' && venueDistances) {
+      // Only show venues with coordinates, sorted by distance
+      const withCoords = venues.filter(v => venueDistances.has(v.club))
+      withCoords.sort((a, b) => (venueDistances.get(a.club) ?? Infinity) - (venueDistances.get(b.club) ?? Infinity))
+      if (!search) return withCoords
+      return withCoords.filter(v =>
+        v.club.toLowerCase().includes(search.toLowerCase()) ||
+        v.location.toLowerCase().includes(search.toLowerCase())
+      )
+    }
+
     if (!search) return venues
     return venues.filter(v =>
       v.club.toLowerCase().includes(search.toLowerCase()) ||
@@ -406,6 +432,13 @@ function VenueStep({
   }
 
   const filtered = getFilteredVenues()
+
+  /** Format distance for display */
+  const formatDist = (km: number): string => {
+    if (km < 1) return `${Math.round(km * 1000)}m`
+    if (km < 100) return `${km.toFixed(1)}km`
+    return `${Math.round(km)}km`
+  }
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, overflow: 'hidden' }}>
@@ -520,6 +553,9 @@ function VenueStep({
                   </div>
                   <div style={{ fontFamily: font.body, fontSize: 13, color: FE.onTertiary, lineHeight: 1.4 }}>
                     {venue.location}, {venue.country} · {venue.count} {venue.count === 1 ? 'course' : 'courses'}
+                    {filter === 'nearby' && venueDistances?.has(venue.club) && (
+                      <> · {formatDist(venueDistances.get(venue.club)!)}</>
+                    )}
                   </div>
                 </div>
               </div>

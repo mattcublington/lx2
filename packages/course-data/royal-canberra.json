@@ -3,6 +3,8 @@
   "location": "Yarralumla, ACT",
   "country": "Australia",
   "continent": "Oceania",
+  "lat": -35.2975,
+  "lng": 149.1040,
   "_comment": "27-hole facility. Three 9-hole loops: A (native holes 1–9), B (native holes 10–18), C (native holes 19–27). Three 18-hole courses: Westbourne (A+B), Yarralumla (B+C), Brindabella (C+A). Source: royal_canberra_scorecards (2).json (updated March 2026). USGA ratings (2016). yards = converted from metres (club scorecard is metric); metres = men's distances from club website. Tee colours: Blue (men), White (men, standard), Purple/Red (women).",
   "loops": {
     "a": {

@@ -64,7 +64,7 @@ export default async function NewRoundPage() {
   // These supplement the static courses.ts bundle at runtime.
   const { data: ocrCourses } = await supabase
     .from('courses')
-    .select('id, name, club, location, country, continent, holes_count, slope_rating, course_rating, par, course_holes(hole_number, par, stroke_index), course_tees(tee_name, yardages, slope_rating, course_rating)')
+    .select('id, name, club, location, country, continent, lat, lng, holes_count, slope_rating, course_rating, par, course_holes(hole_number, par, stroke_index), course_tees(tee_name, yardages, slope_rating, course_rating)')
     .eq('source', 'ocr')
     .eq('verified', true)
 
@@ -115,6 +115,7 @@ export default async function NewRoundPage() {
       par: (row.par as number | null) ?? holes.reduce((s, h) => s + h.par, 0),
       tees,
       defaultRatingTee: ratedTee?.tee_name ?? '',
+      ...(row.lat != null && row.lng != null ? { lat: row.lat as number, lng: row.lng as number } : {}),
     } satisfies Course
   })
 

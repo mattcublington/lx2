@@ -3,6 +3,8 @@
   "location": "Bradford-on-Avon, Wiltshire",
   "country": "England",
   "continent": "Europe",
+  "lat": 51.3280,
+  "lng": -2.2530,
   "_comment": "27-hole facility with six 9-hole loops: Red, Blue, Orange, Yellow, White, Par3. Stroke indices are consistent per loop regardless of combination. Source: cumberwell_scorecards_v3.json (March 2026) + USGA NCRDB (CourseIDs 22312–22317).",
   "loops": {
     "red": {
