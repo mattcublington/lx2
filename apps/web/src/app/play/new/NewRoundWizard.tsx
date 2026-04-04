@@ -185,7 +185,7 @@ function StepBar({ step }: { step: Step }) {
   return (
     <div style={{
       display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
-      padding: '0 1.25rem 1.5rem', position: 'relative',
+      padding: '0 1.25rem 1.5rem', position: 'relative', flexShrink: 0,
     }}>
       {/* Background progress line */}
       <div style={{
@@ -290,7 +290,7 @@ function PrimaryButton({
 function BottomBar({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
-      position: 'sticky', bottom: 0,
+      flexShrink: 0,
       background: FE.white,
       padding: '1rem 1.25rem',
       paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))',
@@ -366,8 +366,8 @@ function VenueStep({
   })
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const }}>
-      <div style={{ flex: 1, padding: '0 1.25rem', paddingBottom: 16 }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, overflow: 'hidden' }}>
+      <div style={{ flex: 1, overflowY: 'auto' as const, padding: '0 1.25rem', paddingBottom: 16 }}>
         <div style={{ marginBottom: '1.5rem' }}>
           <h1 style={{ margin: 0, fontFamily: font.display, fontWeight: 700, fontSize: 24, color: FE.forestPrimary, letterSpacing: '-0.01em', marginBottom: '0.5rem' }}>
             Where are you playing?
@@ -888,8 +888,8 @@ function PlayersStep({
   const canProceed = players[0]?.name.trim() !== ''
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const }}>
-      <div style={{ flex: 1, padding: '0 1.25rem', paddingBottom: 16 }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, overflow: 'hidden' }}>
+      <div style={{ flex: 1, overflowY: 'auto' as const, padding: '0 1.25rem', paddingBottom: 16 }}>
         <div style={{ marginBottom: '1.5rem' }}>
           <h1 style={{ margin: 0, fontFamily: font.display, fontWeight: 700, fontSize: 24, color: FE.forestPrimary, letterSpacing: '-0.01em', marginBottom: '0.5rem' }}>
             Who&rsquo;s playing?
@@ -1145,8 +1145,8 @@ function CombinationStep({
   const selectedCourse = courses.find(c => c.id === selectedId)
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const }}>
-      <div style={{ flex: 1, padding: '0 1.25rem', paddingBottom: 16 }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, overflow: 'hidden' }}>
+      <div style={{ flex: 1, overflowY: 'auto' as const, padding: '0 1.25rem', paddingBottom: 16 }}>
         <div style={{ marginBottom: '1.5rem' }}>
           <h1 style={{ margin: 0, fontFamily: font.display, fontWeight: 700, fontSize: 24, color: FE.forestPrimary, letterSpacing: '-0.01em', marginBottom: '0.5rem' }}>
             Which combination?
@@ -1315,8 +1315,8 @@ function SettingsStep({
   const activePlayers = state.players.filter((p, i) => i === 0 || p.name.trim() !== '')
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const }}>
-      <div style={{ flex: 1, padding: '0 1.25rem', paddingBottom: 16 }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, overflow: 'hidden' }}>
+      <div style={{ flex: 1, overflowY: 'auto' as const, padding: '0 1.25rem', paddingBottom: 16 }}>
         <div style={{ marginBottom: '1.5rem' }}>
           <h1 style={{ margin: 0, fontFamily: font.display, fontWeight: 700, fontSize: 24, color: FE.forestPrimary, letterSpacing: '-0.01em', marginBottom: '0.25rem' }}>
             Round settings
@@ -1953,11 +1953,11 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
   const showBackButton = state.step !== 'venue'
 
   return (
-    <div style={{ minHeight: '100dvh', background: FE.sageBg, fontFamily: font.body, color: FE.onPrimary, display: 'flex', flexDirection: 'column' }}>
-      <div style={{ maxWidth: 430, margin: '0 auto', width: '100%', flex: 1, display: 'flex', flexDirection: 'column' }}>
+    <div style={{ height: '100dvh', background: FE.sageBg, fontFamily: font.body, color: FE.onPrimary, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ maxWidth: 430, margin: '0 auto', width: '100%', flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
         {/* Header */}
-        <div style={{ padding: '1rem 1.25rem', display: 'flex', alignItems: 'center' }}>
+        <div style={{ padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
           {showBackButton ? (
             <BackButton onClick={goBack} />
           ) : (
@@ -1986,7 +1986,7 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
             margin: '0 1.25rem 1rem', padding: '12px 16px',
             background: '#FEE2E2', border: '1px solid #FCA5A5',
             borderRadius: 12, fontFamily: font.body, fontSize: 14,
-            color: '#991B1B', lineHeight: 1.4,
+            color: '#991B1B', lineHeight: 1.4, flexShrink: 0,
           }}>
             {error}
           </div>
