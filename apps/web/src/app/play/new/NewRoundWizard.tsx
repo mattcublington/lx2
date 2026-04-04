@@ -290,15 +290,13 @@ function PrimaryButton({
 function BottomBar({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
-      position: 'fixed', bottom: 0, left: 0, right: 0,
+      position: 'sticky', bottom: 0,
       background: FE.white,
       padding: '1rem 1.25rem',
       paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))',
       boxShadow: '0 -4px 12px rgba(26, 28, 28, 0.1)', zIndex: 50,
     }}>
-      <div style={{ maxWidth: 430, margin: '0 auto' }}>
-        {children}
-      </div>
+      {children}
     </div>
   )
 }
@@ -368,8 +366,8 @@ function VenueStep({
   })
 
   return (
-    <>
-      <div style={{ padding: '0 1.25rem', paddingBottom: 120 }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const }}>
+      <div style={{ flex: 1, padding: '0 1.25rem', paddingBottom: 16 }}>
         <div style={{ marginBottom: '1.5rem' }}>
           <h1 style={{ margin: 0, fontFamily: font.display, fontWeight: 700, fontSize: 24, color: FE.forestPrimary, letterSpacing: '-0.01em', marginBottom: '0.5rem' }}>
             Where are you playing?
@@ -494,7 +492,7 @@ function VenueStep({
           </svg>
         </PrimaryButton>
       </BottomBar>
-    </>
+    </div>
   )
 }
 
@@ -890,8 +888,8 @@ function PlayersStep({
   const canProceed = players[0]?.name.trim() !== ''
 
   return (
-    <>
-      <div style={{ padding: '0 1.25rem', paddingBottom: 120 }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const }}>
+      <div style={{ flex: 1, padding: '0 1.25rem', paddingBottom: 16 }}>
         <div style={{ marginBottom: '1.5rem' }}>
           <h1 style={{ margin: 0, fontFamily: font.display, fontWeight: 700, fontSize: 24, color: FE.forestPrimary, letterSpacing: '-0.01em', marginBottom: '0.5rem' }}>
             Who&rsquo;s playing?
@@ -1111,7 +1109,7 @@ function PlayersStep({
           onClose={() => setPickerGroup(null)}
         />
       )}
-    </>
+    </div>
   )
 }
 
@@ -1147,8 +1145,8 @@ function CombinationStep({
   const selectedCourse = courses.find(c => c.id === selectedId)
 
   return (
-    <>
-      <div style={{ padding: '0 1.25rem', paddingBottom: 120 }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const }}>
+      <div style={{ flex: 1, padding: '0 1.25rem', paddingBottom: 16 }}>
         <div style={{ marginBottom: '1.5rem' }}>
           <h1 style={{ margin: 0, fontFamily: font.display, fontWeight: 700, fontSize: 24, color: FE.forestPrimary, letterSpacing: '-0.01em', marginBottom: '0.5rem' }}>
             Which combination?
@@ -1227,7 +1225,7 @@ function CombinationStep({
           )}
         </PrimaryButton>
       </BottomBar>
-    </>
+    </div>
   )
 }
 
@@ -1317,8 +1315,8 @@ function SettingsStep({
   const activePlayers = state.players.filter((p, i) => i === 0 || p.name.trim() !== '')
 
   return (
-    <>
-      <div style={{ padding: '0 1.25rem', paddingBottom: 120 }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const }}>
+      <div style={{ flex: 1, padding: '0 1.25rem', paddingBottom: 16 }}>
         <div style={{ marginBottom: '1.5rem' }}>
           <h1 style={{ margin: 0, fontFamily: font.display, fontWeight: 700, fontSize: 24, color: FE.forestPrimary, letterSpacing: '-0.01em', marginBottom: '0.25rem' }}>
             Round settings
@@ -1751,7 +1749,7 @@ function SettingsStep({
               : 'Start round'}
         </PrimaryButton>
       </BottomBar>
-    </>
+    </div>
   )
 }
 
@@ -1955,8 +1953,8 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
   const showBackButton = state.step !== 'venue'
 
   return (
-    <div style={{ minHeight: '100dvh', background: FE.sageBg, fontFamily: font.body, color: FE.onPrimary }}>
-      <div style={{ maxWidth: 430, margin: '0 auto' }}>
+    <div style={{ minHeight: '100dvh', background: FE.sageBg, fontFamily: font.body, color: FE.onPrimary, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ maxWidth: 430, margin: '0 auto', width: '100%', flex: 1, display: 'flex', flexDirection: 'column' }}>
 
         {/* Header */}
         <div style={{ padding: '1rem 1.25rem', display: 'flex', alignItems: 'center' }}>
