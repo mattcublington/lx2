@@ -78,12 +78,27 @@ const STYLES = `
     top: 0;
     z-index: 50;
   }
+  .sc-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-width: 0;
+  }
   .sc-bar-title {
     font-family: var(--font-manrope), 'Manrope', sans-serif;
     font-weight: 700;
     font-size: 0.9375rem;
     color: #1A2E1A;
     letter-spacing: -0.01em;
+    display: block;
+    line-height: 1.2;
+  }
+  .sc-bar-score {
+    font-family: var(--font-lexend), 'Lexend', sans-serif;
+    font-size: 0.6875rem;
+    color: #72786E;
+    line-height: 1.2;
+    margin-top: 1px;
   }
   .sc-icon-btn {
     width: 40px; height: 40px;
@@ -337,41 +352,51 @@ const STYLES = `
   .sc-bottom {
     position: fixed; bottom: 0; left: 0; right: 0;
     background: #FFFFFF;
-    display: flex; align-items: center; gap: 0.625rem;
-    padding: 0.875rem 1.25rem;
-    padding-bottom: calc(0.875rem + env(safe-area-inset-bottom));
+    display: flex; align-items: center; justify-content: center; gap: 1rem;
+    padding: 0.75rem 1.25rem;
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
     box-shadow: 0 -2px 8px rgba(26,28,28,0.06);
     z-index: 50;
   }
-  .sc-bottom-player { display: flex; align-items: center; gap: 0.5rem; flex: 1; min-width: 0; }
-  .sc-bottom-name {
-    font-family: var(--font-manrope), sans-serif;
-    font-weight: 700; font-size: 0.875rem; color: #1A2E1A; line-height: 1.2;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;
-  }
-  .sc-bottom-pts {
-    font-family: var(--font-lexend), sans-serif;
-    font-size: 0.6875rem; color: #72786E; white-space: nowrap;
-  }
-  .sc-act-btn {
+  .sc-bottom-action {
+    display: flex; flex-direction: column; align-items: center; gap: 0.25rem;
     background: transparent;
-    border: 2px solid rgba(26,28,28,0.18);
+    border: 1.5px solid #E0EBE0;
     color: #1A2E1A;
-    font-family: var(--font-lexend), sans-serif;
-    font-weight: 500; font-size: 0.8125rem;
-    padding: 0.5rem 0.75rem;
-    border-radius: 12px;
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+    font-weight: 500; font-size: 0.6875rem;
+    padding: 0.5rem 1rem;
+    border-radius: 14px;
     cursor: pointer;
     transition: all 0.15s;
     white-space: nowrap;
-    text-decoration: none;
-    display: inline-flex; align-items: center;
+    min-width: 88px;
+    flex: 1;
+    max-width: 120px;
+  }
+  .sc-bottom-action:hover {
+    background: #F0F4EC;
+    border-color: #0D631B;
+    color: #0D631B;
+    transform: translateY(-1px);
+  }
+  .sc-bottom-action svg { color: #6B8C6B; transition: color 0.15s; }
+  .sc-bottom-action:hover svg { color: #0D631B; }
+  .sc-bottom-voice {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, #0D631B 0%, #0a4f15 100%);
+    color: #FFFFFF;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 14px rgba(13,99,27,0.3);
+    transition: transform 0.15s, box-shadow 0.15s;
     flex-shrink: 0;
   }
-  .sc-act-btn:hover {
-    background: #F0F4EC;
-    border-color: rgba(26,28,28,0.3);
-    transform: translateY(-1px);
+  .sc-bottom-voice:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(13,99,27,0.4);
   }
   .sc-act-finish {
     background: linear-gradient(135deg, #0D631B 0%, #0a4f15 100%);
@@ -1174,7 +1199,7 @@ export default function ScoreEntryLive(props: Props) {
   // ── Running totals ─────────────────────────────────────────────────────────
 
   function getRunningTotal() {
-    let totalPts = 0, totalStrokes = 0, holesPlayed = 0
+    let totalPts = 0, totalStrokes = 0, totalPar = 0, holesPlayed = 0
     for (const h of holes) {
       const sc = s.scores[h.holeInRound]
       const pu = s.pickups[h.holeInRound]
@@ -1182,10 +1207,10 @@ export default function ScoreEntryLive(props: Props) {
       if (sc != null) {
         holesPlayed++
         if (format === 'stableford') totalPts += pts(sc, h.par, strokesPerHole[h.holeInRound] ?? 0)
-        else totalStrokes += sc
+        else { totalStrokes += sc; totalPar += h.par }
       }
     }
-    return { totalPts, totalStrokes, holesPlayed }
+    return { totalPts, totalStrokes, totalPar, holesPlayed }
   }
 
   // ── Persistence ────────────────────────────────────────────────────────────
@@ -1346,7 +1371,7 @@ export default function ScoreEntryLive(props: Props) {
 
   // ── Derivations for render ─────────────────────────────────────────────────
 
-  const { totalPts, totalStrokes, holesPlayed } = getRunningTotal()
+  const { totalPts, totalStrokes, totalPar, holesPlayed } = getRunningTotal()
   const myRoundComplete = holesPlayed === holes.length
   const allPlayersComplete = myRoundComplete && groupPlayers
     .filter(p => p.scorecardId && p.scorecardId !== scorecardId)
@@ -1603,25 +1628,24 @@ export default function ScoreEntryLive(props: Props) {
 
         {/* ── Context bar ── */}
         <div className="sc-bar">
-          <span className="sc-bar-title">{eventName}</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            {shareCode && (
-              <button
-                className={`sc-share-chip${codeCopied ? ' copied' : ''}`}
-                onClick={() => {
-                  navigator.clipboard.writeText(shareCode).catch(() => {})
-                  setCodeCopied(true)
-                  setTimeout(() => setCodeCopied(false), 2000)
-                }}
-                title="Tap to copy — share this code so another group can join"
-              >
-                {codeCopied ? '✓ Copied' : shareCode}
-              </button>
-            )}
-            <button className="sc-icon-btn" onClick={() => setSettingsOpen(true)} aria-label="Round settings">
-              <GearIcon />
-            </button>
+          <div className="sc-bar-left">
+            <div className="sc-avatar" style={{ width: 32, height: 32, background: PLAYER_COLOURS[0], fontSize: '0.6875rem' }}>
+              {myInitials}
+            </div>
+            <div>
+              <span className="sc-bar-title">{playerName.split(' ')[0] || playerName}</span>
+              <div className="sc-bar-score">
+                {holesPlayed > 0
+                  ? format === 'stableford'
+                    ? `${totalPts}pts · thru ${holesPlayed}`
+                    : `${totalStrokes - totalPar >= 0 ? '+' : ''}${totalStrokes - totalPar} (net ${totalStrokes - effectiveHc}) · thru ${holesPlayed}`
+                  : `HC ${effectiveHc}`}
+              </div>
+            </div>
           </div>
+          <button className="sc-icon-btn" onClick={() => setSettingsOpen(true)} aria-label="Round settings">
+            <GearIcon />
+          </button>
         </div>
 
         {/* ── Group switcher ── */}
@@ -1745,10 +1769,12 @@ export default function ScoreEntryLive(props: Props) {
 
             const isUnscored = !playerPickup && playerScore === null
 
-            // Running Stableford total for this player
+            // Running total for this player (format-aware)
             let playerTotalPts = 0
+            let playerTotalStrokes = 0
+            let playerTotalPar = 0
             let playerHolesPlayed = 0
-            if (format === 'stableford') {
+            {
               const pScores = isOwn ? s.scores : (liveScores[p.scorecardId] ?? p.initialScores ?? {})
               const pPickups = isOwn ? s.pickups : {}
               const pStrokes = isOwn
@@ -1760,7 +1786,8 @@ export default function ScoreEntryLive(props: Props) {
                 if (pu) { playerHolesPlayed++; continue }
                 if (sc != null) {
                   playerHolesPlayed++
-                  playerTotalPts += pts(sc, h.par, pStrokes[h.holeInRound] ?? 0)
+                  if (format === 'stableford') playerTotalPts += pts(sc, h.par, pStrokes[h.holeInRound] ?? 0)
+                  else { playerTotalStrokes += sc; playerTotalPar += h.par }
                 }
               }
             }
@@ -1782,9 +1809,11 @@ export default function ScoreEntryLive(props: Props) {
                   <div style={{ minWidth: 0, overflow: 'hidden' }}>
                     <div className="sc-player-name">{p.displayName.split(' ')[0]}</div>
                     <div className="sc-player-you">
-                      {format === 'stableford' && playerHolesPlayed > 0
-                        ? `${playerTotalPts}pts thru ${playerHolesPlayed}`
-                        : isOwn ? 'you' : ''}
+                      {playerHolesPlayed > 0
+                        ? format === 'stableford'
+                          ? `${playerTotalPts}pts thru ${playerHolesPlayed}`
+                          : `${playerTotalStrokes - playerTotalPar >= 0 ? '+' : ''}${playerTotalStrokes - playerTotalPar} thru ${playerHolesPlayed}`
+                        : `HC ${Math.round(p.handicapIndex * allowancePct)}`}
                     </div>
                   </div>
                 </div>
@@ -1816,8 +1845,8 @@ export default function ScoreEntryLive(props: Props) {
           })}
         </div>
 
-        {/* ── Voice scoring ── */}
-        {showVoice ? (
+        {/* ── Voice scoring overlay ── */}
+        {showVoice && (
           <VoiceScoring
             hole={{
               holeNumber: hole.holeInRound,
@@ -1848,7 +1877,6 @@ export default function ScoreEntryLive(props: Props) {
                     d({ type: 'PICKUP', holeInRound: hir })
                     await enqueueScore({ scorecard_id: scorecardId, hole_number: hir, gross_strokes: null, queued_at: Date.now() })
                   }
-                  // Save rich voice details for marker
                   saveVoiceScoreDetails(scorecardId, hir, {
                     putts: cs.putts,
                     fairwayHit: cs.fairwayHit,
@@ -1861,7 +1889,6 @@ export default function ScoreEntryLive(props: Props) {
                     voiceTranscript: transcriptStr,
                   })
                 } else {
-                  // Other player — enqueue their score
                   const targetScorecardId = cs.playerId
                   await enqueueScore({ scorecard_id: targetScorecardId, hole_number: hir, gross_strokes: cs.score, queued_at: Date.now() })
                 }
@@ -1870,41 +1897,6 @@ export default function ScoreEntryLive(props: Props) {
             }}
             onCancel={() => setShowVoice(false)}
           />
-        ) : (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '0.5rem 0' }}>
-            {typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) && (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
-                <button
-                  onClick={() => setShowVoice(true)}
-                  style={{
-                    width: 56, height: 56,
-                    borderRadius: '50%',
-                    border: 'none',
-                    background: '#0D631B',
-                    color: '#FFFFFF',
-                    cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: '0 4px 12px rgba(13,99,27,0.25)',
-                    transition: 'transform 0.15s, box-shadow 0.15s',
-                  }}
-                  aria-label="Score by voice"
-                >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                    <line x1="12" x2="12" y1="19" y2="22"/>
-                  </svg>
-                </button>
-                <span style={{
-                  fontFamily: "var(--font-dm-sans), 'DM Sans', sans-serif",
-                  fontSize: '0.75rem',
-                  color: '#72786E',
-                }}>
-                  Tap to score by voice
-                </span>
-              </div>
-            )}
-          </div>
         )}
 
         {/* ── Finish round banner ── */}
@@ -1927,33 +1919,38 @@ export default function ScoreEntryLive(props: Props) {
 
         {/* ── Bottom action bar ── */}
         <div className="sc-bottom">
-          <div className="sc-bottom-player">
-            <div className="sc-avatar sc-bottom-avatar"
-              style={{ width: 36, height: 36, background: PLAYER_COLOURS[0], fontSize: '0.75rem' }}>
-              {myInitials}
-            </div>
-            <div>
-              <div className="sc-bottom-name">{playerName.split(' ')[0] || playerName}</div>
-              <div className="sc-bottom-pts">
-                {holesPlayed > 0
-                  ? format === 'stableford'
-                    ? `${totalPts}pts · thru ${holesPlayed}`
-                    : `${totalStrokes} · thru ${holesPlayed}`
-                  : `HC ${effectiveHc}`}
-              </div>
-            </div>
-          </div>
           {roundComplete ? (
-            <a href={`/rounds/${scorecardId}`} className="sc-act-finish">
+            <a href={`/rounds/${scorecardId}`} className="sc-act-finish" style={{ margin: '0 auto' }}>
               Finish round →
             </a>
           ) : (
             <>
-              <button className="sc-act-btn" onClick={() => d({ type: 'TOGGLE_CARD' })}>
-                Scorecard
+              <button className="sc-bottom-action" onClick={() => d({ type: 'TOGGLE_CARD' })}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/>
+                </svg>
+                <span>Scorecard</span>
               </button>
-              <button className="sc-act-btn" onClick={() => setShowLeaderboard(true)}>
-                Leaderboard
+              {typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) ? (
+                <button
+                  className="sc-bottom-voice"
+                  onClick={() => setShowVoice(true)}
+                  aria-label="Score by voice"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                    <line x1="12" x2="12" y1="19" y2="22"/>
+                  </svg>
+                </button>
+              ) : (
+                <div style={{ width: 56 }} />
+              )}
+              <button className="sc-bottom-action" onClick={() => setShowLeaderboard(true)}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                </svg>
+                <span>Leaderboard</span>
               </button>
             </>
           )}
