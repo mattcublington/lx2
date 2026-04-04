@@ -128,8 +128,11 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
       setExtractedData(result.extractedData)
       setUploadId(result.uploadId)
       setPhase('review')
-    } catch {
-      setError('Something went wrong. Please try again.')
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Something went wrong'
+      setError(msg.includes('timed out') || msg.includes('timeout')
+        ? 'The request timed out. Please try again — it usually works on the second attempt.'
+        : `Something went wrong: ${msg}`)
       setPhase('form')
     }
   }

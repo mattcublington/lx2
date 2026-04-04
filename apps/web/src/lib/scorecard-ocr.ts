@@ -193,6 +193,12 @@ Rules:
     throw new Error('Could not read hole data from the scorecard. Try a closer, straight-on photo with all holes visible.')
   }
 
+  // Ensure women's rating fields exist (Claude may omit them from the JSON)
+  for (const tee of parsed.tees) {
+    if (tee.courseRatingWomen === undefined) tee.courseRatingWomen = null
+    if (tee.slopeRatingWomen === undefined) tee.slopeRatingWomen = null
+  }
+
   return parsed
 }
 
