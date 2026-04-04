@@ -93,10 +93,6 @@ async function extractScorecardData(
   const response = await anthropic.messages.create({
     model: 'claude-sonnet-4-20250514',
     max_tokens: 16384,
-    thinking: {
-      type: 'enabled',
-      budget_tokens: 8000,
-    },
     messages: [
       {
         role: 'user',
@@ -109,21 +105,24 @@ async function extractScorecardData(
             type: 'text',
             text: `You are a golf scorecard data extractor. Extract structured data from this physical golf scorecard photograph.
 
+IMPORTANT: The scorecard image may be rotated (landscape card photographed in portrait, or vice versa).
+Mentally rotate the image so you can read the text correctly before extracting any numbers.
+Read each number carefully from the card — do NOT guess or interpolate values.
+
 The uploader has suggested the following (use as hints only — trust what you read on the card):
 - Club name hint: "${userClubName}"
 - Course name hint: "${userCourseName}"
 - Country hint: "${userCountry}"
 
-STEP 1 — Before generating JSON, carefully examine the card and identify:
-a) How many distinct tee rows/columns of distances are there? List every one by name and colour.
-   Count the coloured rows carefully — each coloured row of numbers is a separate tee.
-b) What unit are distances in? Look for notes like "measurements are in metres".
-c) Is there a CR/SR (Course Rating / Slope Rating) table anywhere on the card?
-   Check all four corners, the footer, margins, and any separate tables.
-   Common labels: "C.R/S.R", "CR/SR", "C.R.", "S.R.", "SSS", "CSS", "Slope".
-   If found, what are the values? Are they split by Men/Ladies?
+Before generating JSON, carefully examine the card:
+1. How many distinct tee rows of distances are there? Each coloured row of numbers is a separate tee.
+   Common: 3-6 tees. Some cards have more. Count carefully and extract ALL of them.
+2. What unit are distances in? Look for notes like "measurements are in metres".
+3. Look for Course Rating (CR) and Slope Rating (SR) — often in small print at the edges or
+   corners of the card, in a separate table. Labels include: "C.R/S.R", "CR/SR", "C.R.", "S.R.",
+   "SSS", "CSS", "Course Rating", "Slope". They may be split by Men/Ladies.
 
-STEP 2 — Output ONLY valid JSON (no markdown fencing, no explanation) matching this schema:
+Output ONLY valid JSON (no markdown fencing, no other text) matching this schema:
 {
   "courseName": "string",
   "clubName": "string",
@@ -133,11 +132,11 @@ STEP 2 — Output ONLY valid JSON (no markdown fencing, no explanation) matching
     {
       "teeName": "string — the name as shown on card, e.g. 'Protea', 'Blue Crane', 'Yellow'",
       "teeColour": "string — normalised: Yellow, White, Red, Blue, Green, Black, Orange, Purple",
-      "courseRating": "number or null — men's CR",
-      "slopeRating": "number or null — men's SR",
-      "courseRatingWomen": "number or null — women's CR",
-      "slopeRatingWomen": "number or null — women's SR",
-      "par": "number or null",
+      "courseRating": "number or null — men's CR for this tee",
+      "slopeRating": "number or null — men's SR for this tee",
+      "courseRatingWomen": "number or null — women's/ladies' CR for this tee",
+      "slopeRatingWomen": "number or null — women's/ladies' SR for this tee",
+      "par": "number or null — total par",
       "holes": [
         { "hole": 1, "par": 4, "si": 11, "yards": 382 }
       ]
@@ -146,13 +145,15 @@ STEP 2 — Output ONLY valid JSON (no markdown fencing, no explanation) matching
 }
 
 Rules:
-- Extract EVERY tee — count the coloured distance rows carefully. Do not skip any.
-- Do NOT convert units — keep distances exactly as printed on the card
-- Stroke index may be labelled "SI", "S.I.", "Index", or "Hcp"
-- Ignore "Out"/"In"/"Total" summary rows but use them to verify your count
-- For CR/SR: if a single table applies to one tee (e.g. Championship), attach it to that tee.
-  If it applies to all tees, attach it to the first/primary tee.
-  If split by Men/Ladies, use courseRating+slopeRating for men, courseRatingWomen+slopeRatingWomen for women.`,
+- Extract EVERY tee. Do not skip any.
+- Read each distance value directly from the card. Do NOT estimate, hallucinate, or mix up rows.
+  Verify by checking that each tee's total matches the "Out"/"In"/"Total" shown on the card.
+- Do NOT convert units — keep distances exactly as printed on the card.
+- Stroke index may be labelled "SI", "S.I.", "Index", or "Hcp".
+- Ignore "Out"/"In"/"Total" summary rows — only extract individual hole data.
+- For CR/SR: if split by Men/Ladies, use courseRating+slopeRating for men,
+  courseRatingWomen+slopeRatingWomen for women. If CR/SR applies to the whole course
+  rather than a specific tee, attach it to the first/longest tee.`,
           },
         ],
       },
@@ -164,9 +165,7 @@ Rules:
     throw new Error('No text response from Claude')
   }
 
-  // Extract JSON from the response — with extended thinking the model's analysis
-  // goes into the thinking block, so the text should be pure JSON. But handle
-  // cases where there's preamble text or markdown fencing.
+  // Parse the JSON response, stripping any accidental markdown fencing or preamble
   let jsonStr = textBlock.text.trim()
   if (jsonStr.startsWith('```')) {
     jsonStr = jsonStr.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
