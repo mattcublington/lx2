@@ -3,7 +3,7 @@ import { useState, useTransition, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { COURSES, getCourse } from '@/lib/courses'
 import type { Course, CourseHole } from '@/lib/courses'
-import { startRound, searchUsers, getRecentlyPlayedWith } from './actions'
+import { startRound, searchUsers, getRecentlyPlayedWith, getRecentlyPlayedClubs } from './actions'
 import ScorecardUpload from './ScorecardUpload'
 import type { ExtractedCourseData } from '@/lib/scorecard-ocr'
 
@@ -155,17 +155,18 @@ const FIRST_COURSE = COURSES[0]!.id
 
 // ── Shared components ──────────────────────────────────────────────────────────
 
-// Step order for stepper: Course=0, Players=1, Settings=2
+// Step order for stepper: Club=0, Course=1, Players=2, Settings=3
 function stepIndex(step: Step): number {
   if (step === 'venue' || step === 'scorecard-upload') return 0
-  if (step === 'players') return 1
-  return 2 // combination + settings both show as last step
+  if (step === 'combination') return 1
+  if (step === 'players') return 2
+  return 3 // settings
 }
 
 function StepBar({ step }: { step: Step }) {
   const current = stepIndex(step)
   const isAllDone = step === 'settings'
-  const steps = ['Course', 'Players', 'Settings']
+  const steps = ['Club', 'Course', 'Players', 'Settings']
 
   return (
     <div style={{
@@ -322,6 +323,8 @@ function SearchInput({
 // ── Screen 1: Course Selection ─────────────────────────────────────────────────
 
 
+type VenueFilter = 'all' | 'nearby' | 'recent'
+
 function VenueStep({
   selectedClub,
   onSelect,
@@ -337,18 +340,72 @@ function VenueStep({
 }) {
   const venues = getVenues(allCourses)
 
-  const [country, setCountry] = useState('')
   const [search, setSearch] = useState('')
+  const [filter, setFilter] = useState<VenueFilter>('all')
+  const [recentClubs, setRecentClubs] = useState<{ club: string; location: string; country: string; lastPlayed: string }[]>([])
+  const [loadingRecent, setLoadingRecent] = useState(false)
+  const [nearbyLoading, setNearbyLoading] = useState(false)
+  const [nearbyError, setNearbyError] = useState<string | null>(null)
 
-  const countries = [...new Set(venues.map(v => v.country))].sort()
+  // Load recently played clubs when "Recent" tab is activated
+  useEffect(() => {
+    if (filter === 'recent' && recentClubs.length === 0 && !loadingRecent) {
+      setLoadingRecent(true)
+      getRecentlyPlayedClubs().then(clubs => {
+        setRecentClubs(clubs)
+        setLoadingRecent(false)
+      })
+    }
+  }, [filter]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const filtered = venues.filter(v => {
-    if (country && v.country !== country) return false
-    if (!search) return true
-    return v.club.toLowerCase().includes(search.toLowerCase()) ||
+  // Handle nearby tab
+  const handleNearby = () => {
+    if (filter === 'nearby') { setFilter('all'); return }
+    setFilter('nearby')
+    setNearbyLoading(true)
+    setNearbyError(null)
+    if (!navigator.geolocation) {
+      setNearbyError('Location not supported on this device')
+      setNearbyLoading(false)
+      return
+    }
+    navigator.geolocation.getCurrentPosition(
+      () => {
+        // GPS obtained — but courses don't have coordinates yet
+        setNearbyLoading(false)
+        setNearbyError('Nearby search coming soon — GPS courses are being added')
+      },
+      () => {
+        setNearbyLoading(false)
+        setNearbyError('Location access denied. Enable location in your browser settings.')
+      },
+      { timeout: 8000 }
+    )
+  }
+
+  // Build venue list based on active filter
+  const getFilteredVenues = () => {
+    if (filter === 'recent') {
+      // Match recent clubs against known venues
+      const recentClubNames = new Set(recentClubs.map(r => r.club))
+      const matched = venues.filter(v => recentClubNames.has(v.club))
+      if (!search) return matched
+      return matched.filter(v =>
+        v.club.toLowerCase().includes(search.toLowerCase()) ||
+        v.location.toLowerCase().includes(search.toLowerCase())
+      )
+    }
+
+    // 'all' or 'nearby' (nearby falls back to all for now)
+    if (!search) return venues
+    return venues.filter(v =>
+      v.club.toLowerCase().includes(search.toLowerCase()) ||
       v.location.toLowerCase().includes(search.toLowerCase()) ||
       v.country.toLowerCase().includes(search.toLowerCase())
-  })
+    )
+  }
+
+  const filtered = getFilteredVenues()
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, overflow: 'hidden' }}>
@@ -357,28 +414,72 @@ function VenueStep({
           <h1 className="nrw-step-title">
             Where are you playing?
           </h1>
-          <p style={{ margin: 0, fontFamily: font.body, fontSize: 16, color: FE.onSecondary }}>
-            Select a golf club
-          </p>
         </div>
 
-        {countries.length > 1 && (
-          <div style={{ marginBottom: '1rem' }}>
-            <select
-              value={country}
-              onChange={e => setCountry(e.target.value)}
-              style={dropdownStyle}
-              aria-label="Filter by country"
-            >
-              <option value="">All countries</option>
-              {countries.map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
+        <SearchInput value={search} onChange={setSearch} placeholder="Search clubs" />
+
+        {/* Filter tabs: Nearby / Recently played */}
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
+          <button
+            onClick={handleNearby}
+            style={{
+              flex: 1, padding: '0.625rem 0.75rem', borderRadius: 12,
+              border: filter === 'nearby' ? `2px solid ${FE.greenDark}` : '2px solid rgba(26,28,28,0.12)',
+              background: filter === 'nearby' ? 'rgba(13, 99, 27, 0.05)' : FE.white,
+              fontFamily: font.body, fontWeight: 500, fontSize: 14,
+              color: filter === 'nearby' ? FE.greenDark : FE.onSecondary,
+              cursor: 'pointer', transition: 'all 0.15s',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem',
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="currentColor" strokeWidth="2" fill="none"/>
+              <circle cx="12" cy="9" r="2.5" stroke="currentColor" strokeWidth="2"/>
+            </svg>
+            Nearby
+          </button>
+          <button
+            onClick={() => setFilter(filter === 'recent' ? 'all' : 'recent')}
+            style={{
+              flex: 1, padding: '0.625rem 0.75rem', borderRadius: 12,
+              border: filter === 'recent' ? `2px solid ${FE.greenDark}` : '2px solid rgba(26,28,28,0.12)',
+              background: filter === 'recent' ? 'rgba(13, 99, 27, 0.05)' : FE.white,
+              fontFamily: font.body, fontWeight: 500, fontSize: 14,
+              color: filter === 'recent' ? FE.greenDark : FE.onSecondary,
+              cursor: 'pointer', transition: 'all 0.15s',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem',
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/>
+              <path d="M12 7v5l3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Recently played
+          </button>
+        </div>
+
+        {/* Nearby loading / error state */}
+        {filter === 'nearby' && nearbyLoading && (
+          <div style={{ padding: '1.5rem', textAlign: 'center', fontFamily: font.body, fontSize: 14, color: FE.onTertiary }}>
+            Requesting location&hellip;
+          </div>
+        )}
+        {filter === 'nearby' && nearbyError && (
+          <div style={{
+            padding: '1rem', marginBottom: '1rem', borderRadius: 12,
+            background: 'rgba(13, 99, 27, 0.05)', border: '1px solid rgba(13, 99, 27, 0.15)',
+            fontFamily: font.body, fontSize: 14, color: FE.onSecondary, textAlign: 'center',
+          }}>
+            {nearbyError}
           </div>
         )}
 
-        <SearchInput value={search} onChange={setSearch} placeholder="Search clubs or country" />
+        {/* Recently played loading */}
+        {filter === 'recent' && loadingRecent && (
+          <div style={{ padding: '1.5rem', textAlign: 'center', fontFamily: font.body, fontSize: 14, color: FE.onTertiary }}>
+            Loading recent clubs&hellip;
+          </div>
+        )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {filtered.map(venue => {
@@ -425,9 +526,9 @@ function VenueStep({
             )
           })}
 
-          {filtered.length === 0 && (
+          {filtered.length === 0 && !nearbyLoading && !loadingRecent && (
             <div style={{ padding: '2rem', textAlign: 'center', fontFamily: font.body, fontSize: 15, color: FE.onTertiary }}>
-              No clubs found matching &ldquo;{search}&rdquo;
+              {filter === 'recent' ? 'No recently played clubs' : search ? <>No clubs found matching &ldquo;{search}&rdquo;</> : 'No clubs found'}
             </div>
           )}
         </div>
@@ -471,7 +572,7 @@ function VenueStep({
 
       <BottomBar>
         <PrimaryButton onClick={onNext} disabled={!selectedClub}>
-          Next: Players
+          Next: Course
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
@@ -1211,12 +1312,10 @@ function CombinationStep({
           onClick={() => selectedId && onSelect(selectedId, findDbCombo(selectedId))}
           disabled={!selectedId}
         >
-          {selectedCourse ? `Continue with ${shortName(selectedCourse.name)}` : 'Select a combination'}
-          {selectedId && (
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          )}
+          Next: Players
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </PrimaryButton>
       </BottomBar>
     </div>
@@ -1796,18 +1895,18 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
 
   const update = (partial: Partial<WizardState>) => setState(s => ({ ...s, ...partial }))
 
-  // Step order: venue → players → combination → settings
+  // Step order: venue → combination → players → settings
   const goBack = () => {
     if (state.step === 'scorecard-upload') update({ step: 'venue' })
-    else if (state.step === 'players') update({ step: 'venue' })
-    else if (state.step === 'combination') update({ step: 'players' })
-    else if (state.step === 'settings') update({ step: 'combination' })
+    else if (state.step === 'combination') update({ step: 'venue' })
+    else if (state.step === 'players') update({ step: 'combination' })
+    else if (state.step === 'settings') update({ step: 'players' })
   }
 
   const selectVenue = (club: string) => update({ selectedClub: club })
 
-  const proceedToPlayers = () => {
-    if (state.selectedClub) update({ step: 'players' })
+  const proceedToCombination = () => {
+    if (state.selectedClub) update({ step: 'combination' })
   }
 
   const handleScorecardDone = (data: ExtractedCourseData, uploadId: string) => {
@@ -1862,17 +1961,17 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
     }
     setUploadedCourses(prev => [...prev, tempCourse])
 
-    // Select this venue and jump to players
+    // Select this venue and jump to combination (or players if single course)
     update({
       selectedClub: tempCourse.club,
       courseId: tempId,
       tee: primaryTee.teeName,
-      step: 'players',
+      step: 'combination',
     })
   }
 
   const proceedFromPlayers = () => {
-    update({ step: 'combination' })
+    update({ step: 'settings' })
   }
 
   const selectCombination = (courseId: string, dbComboId: string | null) => {
@@ -1889,7 +1988,7 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
       ldEnabled: state.ldEnabled,
       ntpHoles: ntpEnabled ? newNtpHoles : [],
       ldHoles: state.ldEnabled ? newLdHoles : [],
-      step: 'settings',
+      step: 'players',
     })
   }
 
@@ -2007,7 +2106,7 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
           <VenueStep
             selectedClub={state.selectedClub}
             onSelect={selectVenue}
-            onNext={proceedToPlayers}
+            onNext={proceedToCombination}
             onAddCourse={() => update({ step: 'scorecard-upload' })}
             allCourses={allCourses}
           />
@@ -2020,6 +2119,15 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
           />
         )}
 
+        {state.step === 'combination' && state.selectedClub && (
+          <CombinationStep
+            club={state.selectedClub}
+            dbCombinations={dbCombinations}
+            onSelect={selectCombination}
+            allCourses={allCourses}
+          />
+        )}
+
         {state.step === 'players' && (
           <PlayersStep
             players={state.players}
@@ -2028,15 +2136,6 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
             onChange={players => update({ players })}
             onGroupAssignmentsChange={groupAssignments => update({ groupAssignments })}
             onNext={proceedFromPlayers}
-          />
-        )}
-
-        {state.step === 'combination' && state.selectedClub && (
-          <CombinationStep
-            club={state.selectedClub}
-            dbCombinations={dbCombinations}
-            onSelect={selectCombination}
-            allCourses={allCourses}
           />
         )}
 

@@ -300,6 +300,44 @@ export async function getRecentlyPlayedWith(): Promise<{ id: string | null; disp
   return results.slice(0, 20)
 }
 
+export async function getRecentlyPlayedClubs(): Promise<{ club: string; location: string; country: string; lastPlayed: string }[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+
+  // Find events the user has played in, with course info
+  const { data: myEvents } = await supabase
+    .from('event_players')
+    .select('event_id, events(date, courses(name, club, location))')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(50)
+
+  if (!myEvents || myEvents.length === 0) return []
+
+  // Extract unique clubs from events
+  const seen = new Set<string>()
+  const results: { club: string; location: string; country: string; lastPlayed: string }[] = []
+  for (const ep of myEvents) {
+    // Supabase returns single-row joins as objects, but TS types them as arrays
+    const event = ep.events as unknown as { date: string; courses: { name: string; club: string | null; location: string | null } | null } | null
+    if (!event?.courses?.club) continue
+    const club = event.courses.club
+    if (seen.has(club)) continue
+    seen.add(club)
+    // Extract country from location (last part after comma)
+    const locationParts = (event.courses.location ?? '').split(',').map(s => s.trim())
+    const country = locationParts.length > 1 ? locationParts[locationParts.length - 1]! : ''
+    results.push({
+      club,
+      location: event.courses.location ?? '',
+      country,
+      lastPlayed: event.date,
+    })
+  }
+  return results.slice(0, 10)
+}
+
 export async function searchUsers(query: string): Promise<{ id: string; displayName: string; handicapIndex: number | null }[]> {
   if (!query || query.trim().length < 2) return []
   const supabase = await createClient()
