@@ -58,7 +58,7 @@ export default function ReviewActions({
     setError(null)
     startTransition(async () => {
       const newExtracted: ExtractedCourseData = {
-        ...(extractedData ?? { location: null }),
+        ...(extractedData ?? { location: null, distanceUnit: 'metres' as const }),
         courseName: editName.trim(),
         clubName: editClub.trim(),
         tees: editTees,
