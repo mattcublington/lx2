@@ -351,9 +351,9 @@ export default async function ManagePage({ params }: PageProps) {
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                 <path d="M12 4L6 10L12 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              Tournament
+              {event.tournament_id ? 'Tournament' : 'Round'}
             </Link>
-            <div className="mg-hero-eyebrow">Managing tournament</div>
+            <div className="mg-hero-eyebrow">{event.tournament_id ? 'Managing tournament' : 'Managing round'}</div>
             <h1 className="mg-hero-title">{event.name}</h1>
             {event.tournament_id && (
               <div className="mg-hero-subtitle">
@@ -392,9 +392,9 @@ export default async function ManagePage({ params }: PageProps) {
                 <ManageActions eventUrl={eventUrl} eventName={event.name} />
               </div>
 
-              {/* ── Tournament details ── */}
+              {/* ── Event details ── */}
               <div className="mg-card">
-                <div className="mg-card-label">Tournament details</div>
+                <div className="mg-card-label">{event.tournament_id ? 'Tournament details' : 'Round details'}</div>
                 {[
                   ['Date',        formatDate(event.date)],
                   ['Course',      comboName ?? '—'],
@@ -520,7 +520,7 @@ export default async function ManagePage({ params }: PageProps) {
 
                 {/* ── Quick links ── */}
                 <div className="mg-links">
-                  <Link href={`/events/${id}`} className="mg-link">← Tournament</Link>
+                  <Link href={`/events/${id}`} className="mg-link">← {event.tournament_id ? 'Tournament' : 'Round'}</Link>
                   <Link href={`/events/${id}/leaderboard`} className="mg-link primary">Leaderboard →</Link>
                   {event.tournament_id && (
                     <Link href={`/tournaments/${tournamentId}/manage`} className="mg-link">Manage Rounds →</Link>
