@@ -29,6 +29,7 @@ export interface ExtractedCourseData {
   courseName: string
   clubName: string
   location: string | null
+  distanceUnit: 'metres' | 'yards'
   tees: ExtractedTee[]
 }
 
@@ -110,27 +111,30 @@ The uploader has suggested the following (use as hints only — trust what you r
 - Country hint: "${userCountry}"
 
 Extract ALL tees visible on the scorecard. For each tee, extract the hole-by-hole data.
+Some scorecards have many tees (6 or more) — extract every single one. Tees may be labelled
+by colour (Yellow, White, Red, Blue, Black, etc.) or by name (e.g. Protea, Championship, Medal).
 
 Respond with ONLY valid JSON matching this exact schema (no markdown, no explanation):
 {
   "courseName": "string — the course name as printed on the card",
   "clubName": "string — the club name as printed on the card",
   "location": "string or null — any location info visible on the card",
+  "distanceUnit": "string — 'metres' or 'yards', based on what the card uses (check for a note like 'measurements are in metres')",
   "tees": [
     {
-      "teeName": "string — e.g. 'Yellow', 'White', 'Red'",
-      "teeColour": "string — normalised colour: Yellow, White, Red, Blue, Green, Black, Orange, Purple",
+      "teeName": "string — e.g. 'Yellow', 'White', 'Red', 'Championship', 'Protea'",
+      "teeColour": "string — normalised colour: Yellow, White, Red, Blue, Green, Black, Orange, Purple. If the tee has a name but no obvious colour, pick the closest match or use the name",
       "courseRating": "number or null — the men's course rating (CR) for this tee if visible",
       "slopeRating": "number or null — the men's slope rating (SR) for this tee if visible",
-      "courseRatingWomen": "number or null — the women's/ladies' course rating if visible (often different from men's)",
-      "slopeRatingWomen": "number or null — the women's/ladies' slope rating if visible (often different from men's)",
+      "courseRatingWomen": "number or null — the women's/ladies' course rating if visible",
+      "slopeRatingWomen": "number or null — the women's/ladies' slope rating if visible",
       "par": "number or null — total par for this tee if visible",
       "holes": [
         {
           "hole": "number — hole number 1-18",
           "par": "number — par for this hole",
           "si": "number — stroke index",
-          "yards": "number — yardage from this tee"
+          "yards": "number — distance from this tee IN THE ORIGINAL UNIT shown on the card (do NOT convert metres to yards)"
         }
       ]
     }
@@ -138,20 +142,24 @@ Respond with ONLY valid JSON matching this exact schema (no markdown, no explana
 }
 
 Rules:
-- Extract EVERY tee colour visible (there are often 3-5 tees on a scorecard)
-- IMPORTANT: Look carefully for Course Rating (CR) and Slope Rating (SR/Slope) for each tee.
-  They are often printed in a summary row or footer section of the scorecard, sometimes labelled
-  "CR", "SSS", "CSS", "Course Rating", "Standard Scratch", "Slope", "SR", or in a separate
-  ratings table. Check the top, bottom, and margins of the card. These are critical numbers.
-- Many scorecards show SEPARATE CR/SR values for Men and Ladies/Women. Look for rows or columns
-  labelled "Men"/"Ladies", "M"/"L", "Gentlemen"/"Ladies", or gender symbols. Put men's values in
-  courseRating/slopeRating and women's values in courseRatingWomen/slopeRatingWomen.
-- If only one set of CR/SR is shown (no gender split), put it in courseRating/slopeRating and set
-  the women's fields to null
-- If course rating or slope rating is genuinely not visible anywhere on the card, use null
-- If yardage is in metres, convert to yards (multiply by 1.094 and round)
+- Extract EVERY tee visible — do not stop at 5. Some scorecards have 6-8 tees.
+- Tees are often shown as coloured rows/columns of distances. Each distinct row of distances is a separate tee.
+- CRITICAL: Look very carefully for Course Rating (CR) and Slope Rating (SR/Slope).
+  These are often in a SEPARATE TABLE or FOOTER at the bottom/corner of the scorecard.
+  Common labels: "C.R/S.R", "CR/SR", "C.R.", "S.R.", "SSS", "CSS", "Course Rating",
+  "Standard Scratch", "Slope". They may be in very small print at the edges of the card.
+  Look at ALL four corners and edges. On this card, check the bottom-right corner especially.
+- CR/SR values are often shown PER TEE with separate rows for Men and Ladies/Women.
+  Look for rows labelled "Men"/"Ladies", "M"/"L", "Gentlemen"/"Ladies".
+  Put men's values in courseRating/slopeRating, women's in courseRatingWomen/slopeRatingWomen.
+  If CR/SR is shown as a single table (not per-tee), apply it to the most likely tee
+  (usually the championship or primary tee).
+- If only one set of CR/SR is shown (no gender split), put it in courseRating/slopeRating
+  and set women's fields to null
+- If CR/SR is genuinely not visible anywhere on the card, use null
+- Do NOT convert metres to yards — keep the original distances as printed on the card
 - Stroke index is sometimes labelled "SI", "S.I.", "Index", or "Hcp"
-- Total yardage for each tee is sometimes shown in "Out", "In", "Total" rows — ignore those rows for hole data but use them to verify your extraction
+- Total distance rows ("Out", "In", "Total") should be ignored for hole data but used to verify
 - Return ONLY the JSON object, no other text`,
           },
         ],
@@ -192,6 +200,9 @@ Rules:
     console.error('[scorecard-ocr] No tees extracted. Parsed:', JSON.stringify(parsed).slice(0, 500))
     throw new Error('Could not read hole data from the scorecard. Try a closer, straight-on photo with all holes visible.')
   }
+
+  // Default distance unit to yards if not specified
+  if (!parsed.distanceUnit) parsed.distanceUnit = 'yards'
 
   // Ensure women's rating fields exist (Claude may omit them from the JSON)
   for (const tee of parsed.tees) {

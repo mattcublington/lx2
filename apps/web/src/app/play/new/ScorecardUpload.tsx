@@ -527,7 +527,7 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
           <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', fontFamily: font.body, fontSize: 10, color: FE.onTertiary }}>
             <span>Top = par</span>
             <span>Middle = SI</span>
-            <span>Bottom = yards</span>
+            <span>Bottom = {extractedData.distanceUnit === 'metres' ? 'metres' : 'yards'}</span>
           </div>
         </div>
       ))}

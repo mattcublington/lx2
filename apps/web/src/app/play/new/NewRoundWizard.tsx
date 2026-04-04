@@ -1822,12 +1822,17 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
     if (!primaryTee) return
 
     const tempId = `upload-${uploadId}`
+    const isMetres = data.distanceUnit === 'metres'
+    const toYards = (m: number) => Math.round(m * 1.094)
     const holes: CourseHole[] = primaryTee.holes.map(h => ({
-      num: h.hole, par: h.par, si: h.si, yards: h.yards,
+      num: h.hole, par: h.par, si: h.si,
+      yards: isMetres ? toYards(h.yards) : h.yards,
+      ...(isMetres ? { metres: h.yards } : {}),
       teeYards: Object.fromEntries(
         data.tees.map(t => {
           const match = t.holes.find(th => th.hole === h.hole)
-          return [t.teeName, match?.yards ?? h.yards]
+          const dist = match?.yards ?? h.yards
+          return [t.teeName, isMetres ? toYards(dist) : dist]
         })
       ),
     }))
