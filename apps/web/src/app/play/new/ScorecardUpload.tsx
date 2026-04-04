@@ -515,7 +515,7 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
                       style={{ ...smallInputStyle, color: FE.onTertiary, marginTop: 2 }} />
                     <input type="number" inputMode="numeric" min={50} max={700}
                       value={h.yards} onChange={e => updateHole(ti, holeIdx, 'yards', e.target.value)}
-                      aria-label={`Hole ${h.hole} yards`}
+                      aria-label={`Hole ${h.hole} ${extractedData.distanceUnit === 'metres' ? 'metres' : 'yards'}`}
                       style={{ ...smallInputStyle, color: FE.onTertiary, marginTop: 2 }} />
                   </div>
                 )
