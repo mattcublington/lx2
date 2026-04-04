@@ -97,7 +97,6 @@ export async function startRound(data: StartRoundData): Promise<string> {
       .upsert({
         id: user.id,
         email: user.email!,
-        display_name: user.email!.split('@')[0],
         ...(userHandicap !== null ? { handicap_index: userHandicap } : {}),
       }, { onConflict: 'id', ignoreDuplicates: false }),
     dbCourse
