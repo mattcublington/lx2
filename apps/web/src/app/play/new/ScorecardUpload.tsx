@@ -371,7 +371,7 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
   const updateClubName = (val: string) => {
     setExtractedData({ ...extractedData, clubName: val.slice(0, 100) })
   }
-  const updateTeeRating = (teeIdx: number, field: 'courseRating' | 'slopeRating', val: string) => {
+  const updateTeeRating = (teeIdx: number, field: 'courseRating' | 'slopeRating' | 'courseRatingWomen' | 'slopeRatingWomen', val: string) => {
     const num = val === '' ? null : parseFloat(val)
     if (num !== null && isNaN(num)) return
     const tees = [...extractedData.tees]
@@ -456,8 +456,9 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
             </div>
           </div>
 
-          {/* CR / Slope inline editors */}
-          <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem' }}>
+          {/* CR / Slope inline editors — Men */}
+          <div style={{ fontFamily: font.body, fontSize: 11, fontWeight: 600, color: FE.onTertiary, marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Men</div>
+          <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.5rem' }}>
             <label style={{ flex: 1 }}>
               <span style={labelStyle}>Course rating</span>
               <input type="number" inputMode="decimal" step="0.1" min="50" max="90"
@@ -469,6 +470,23 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
               <input type="number" inputMode="numeric" min="55" max="155"
                 value={tee.slopeRating ?? ''} onChange={e => updateTeeRating(ti, 'slopeRating', e.target.value)}
                 placeholder="e.g. 128" style={inputStyle} />
+            </label>
+          </div>
+
+          {/* CR / Slope inline editors — Women */}
+          <div style={{ fontFamily: font.body, fontSize: 11, fontWeight: 600, color: FE.onTertiary, marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Women</div>
+          <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem' }}>
+            <label style={{ flex: 1 }}>
+              <span style={labelStyle}>Course rating</span>
+              <input type="number" inputMode="decimal" step="0.1" min="50" max="90"
+                value={tee.courseRatingWomen ?? ''} onChange={e => updateTeeRating(ti, 'courseRatingWomen', e.target.value)}
+                placeholder="e.g. 73.5" style={inputStyle} />
+            </label>
+            <label style={{ flex: 1 }}>
+              <span style={labelStyle}>Slope rating</span>
+              <input type="number" inputMode="numeric" min="55" max="155"
+                value={tee.slopeRatingWomen ?? ''} onChange={e => updateTeeRating(ti, 'slopeRatingWomen', e.target.value)}
+                placeholder="e.g. 135" style={inputStyle} />
             </label>
           </div>
 

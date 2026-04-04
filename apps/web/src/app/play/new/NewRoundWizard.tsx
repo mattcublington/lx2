@@ -1498,8 +1498,14 @@ function SettingsStep({
                           t.gender === playerGender
                         )
                       : undefined
-                    const crDisplay = playerCrSlope ? playerCrSlope.course_rating.toFixed(1) : (hasCourseRating ? displayCR.toFixed(1) : '—')
-                    const srDisplay = playerCrSlope ? playerCrSlope.slope_rating : (hasCourseRating ? displaySlope : '—')
+                    // For women, use women's tee ratings when available
+                    const playerTeeRatings = playerGender === 'w'
+                      ? (course.teeRatingsWomen?.[playerTee] ?? course.teeRatings?.[playerTee])
+                      : course.teeRatings?.[playerTee]
+                    const fallbackCR = playerTeeRatings?.courseRating ?? displayCR
+                    const fallbackSlope = playerTeeRatings?.slopeRating ?? displaySlope
+                    const crDisplay = playerCrSlope ? playerCrSlope.course_rating.toFixed(1) : (hasCourseRating ? fallbackCR.toFixed(1) : '—')
+                    const srDisplay = playerCrSlope ? playerCrSlope.slope_rating : (hasCourseRating ? fallbackSlope : '—')
 
                     return (
                       <div key={i}>
@@ -1843,6 +1849,11 @@ export default function NewRoundWizard({ displayName, handicapIndex, dbCombinati
         data.tees
           .filter(t => t.slopeRating && t.courseRating)
           .map(t => [t.teeName, { slopeRating: t.slopeRating!, courseRating: t.courseRating! }])
+      ),
+      teeRatingsWomen: Object.fromEntries(
+        data.tees
+          .filter(t => t.slopeRatingWomen && t.courseRatingWomen)
+          .map(t => [t.teeName, { slopeRating: t.slopeRatingWomen!, courseRating: t.courseRatingWomen! }])
       ),
     }
 

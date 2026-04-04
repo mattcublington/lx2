@@ -19,6 +19,8 @@ export interface ExtractedTee {
   teeColour: string
   courseRating: number | null
   slopeRating: number | null
+  courseRatingWomen: number | null
+  slopeRatingWomen: number | null
   par: number | null
   holes: ExtractedHole[]
 }
@@ -118,8 +120,10 @@ Respond with ONLY valid JSON matching this exact schema (no markdown, no explana
     {
       "teeName": "string — e.g. 'Yellow', 'White', 'Red'",
       "teeColour": "string — normalised colour: Yellow, White, Red, Blue, Green, Black, Orange, Purple",
-      "courseRating": "number or null — the course rating for this tee if visible",
-      "slopeRating": "number or null — the slope rating for this tee if visible",
+      "courseRating": "number or null — the men's course rating (CR) for this tee if visible",
+      "slopeRating": "number or null — the men's slope rating (SR) for this tee if visible",
+      "courseRatingWomen": "number or null — the women's/ladies' course rating if visible (often different from men's)",
+      "slopeRatingWomen": "number or null — the women's/ladies' slope rating if visible (often different from men's)",
       "par": "number or null — total par for this tee if visible",
       "holes": [
         {
@@ -139,6 +143,11 @@ Rules:
   They are often printed in a summary row or footer section of the scorecard, sometimes labelled
   "CR", "SSS", "CSS", "Course Rating", "Standard Scratch", "Slope", "SR", or in a separate
   ratings table. Check the top, bottom, and margins of the card. These are critical numbers.
+- Many scorecards show SEPARATE CR/SR values for Men and Ladies/Women. Look for rows or columns
+  labelled "Men"/"Ladies", "M"/"L", "Gentlemen"/"Ladies", or gender symbols. Put men's values in
+  courseRating/slopeRating and women's values in courseRatingWomen/slopeRatingWomen.
+- If only one set of CR/SR is shown (no gender split), put it in courseRating/slopeRating and set
+  the women's fields to null
 - If course rating or slope rating is genuinely not visible anywhere on the card, use null
 - If yardage is in metres, convert to yards (multiply by 1.094 and round)
 - Stroke index is sometimes labelled "SI", "S.I.", "Index", or "Hcp"

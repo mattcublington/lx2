@@ -29,6 +29,8 @@ export interface Course {
   // Per-tee ratings (men's). Used when combination_tees DB lookup is unavailable.
   // Keys match entries in tees[]. Only include tees with known USGA ratings.
   teeRatings?: Record<string, { slopeRating: number; courseRating: number }>
+  // Per-tee ratings (women's). Same structure as teeRatings but for women's CR/SR.
+  teeRatingsWomen?: Record<string, { slopeRating: number; courseRating: number }>
 }
 
 export const COURSES: Course[] = [
