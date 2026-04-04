@@ -364,8 +364,9 @@ export function parseVoiceScore(
 
   // If we have group players but didn't capture any of their scores,
   // penalise confidence to trigger LLM fallback — the transcript likely
-  // contains player names the regex parser couldn't match.
-  if (groupPlayers.length > 0 && playerScores.length === 0 && text.length > 20) {
+  // contains player names the regex parser couldn't match (speech-to-text
+  // often garbles proper nouns like "Rosie" → "rosey"/"rose he").
+  if (groupPlayers.length > 0 && playerScores.length === 0) {
     overallConfidence = Math.min(overallConfidence, 0.6)
   }
 
