@@ -94,7 +94,7 @@ async function extractScorecardData(
   // be altered by user input. The sanitised values are only used as hints —
   // Claude will override them with what it actually reads from the card.
   const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
+    model: 'claude-opus-4-6',
     max_tokens: 16384,
     messages: [
       {
