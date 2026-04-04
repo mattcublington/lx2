@@ -93,6 +93,10 @@ async function extractScorecardData(
   const response = await anthropic.messages.create({
     model: 'claude-sonnet-4-20250514',
     max_tokens: 16384,
+    thinking: {
+      type: 'enabled',
+      budget_tokens: 8000,
+    },
     messages: [
       {
         role: 'user',
@@ -110,57 +114,45 @@ The uploader has suggested the following (use as hints only — trust what you r
 - Course name hint: "${userCourseName}"
 - Country hint: "${userCountry}"
 
-Extract ALL tees visible on the scorecard. For each tee, extract the hole-by-hole data.
-Some scorecards have many tees (6 or more) — extract every single one. Tees may be labelled
-by colour (Yellow, White, Red, Blue, Black, etc.) or by name (e.g. Protea, Championship, Medal).
+STEP 1 — Before generating JSON, carefully examine the card and identify:
+a) How many distinct tee rows/columns of distances are there? List every one by name and colour.
+   Count the coloured rows carefully — each coloured row of numbers is a separate tee.
+b) What unit are distances in? Look for notes like "measurements are in metres".
+c) Is there a CR/SR (Course Rating / Slope Rating) table anywhere on the card?
+   Check all four corners, the footer, margins, and any separate tables.
+   Common labels: "C.R/S.R", "CR/SR", "C.R.", "S.R.", "SSS", "CSS", "Slope".
+   If found, what are the values? Are they split by Men/Ladies?
 
-Respond with ONLY valid JSON matching this exact schema (no markdown, no explanation):
+STEP 2 — Output ONLY valid JSON (no markdown fencing, no explanation) matching this schema:
 {
-  "courseName": "string — the course name as printed on the card",
-  "clubName": "string — the club name as printed on the card",
-  "location": "string or null — any location info visible on the card",
-  "distanceUnit": "string — 'metres' or 'yards', based on what the card uses (check for a note like 'measurements are in metres')",
+  "courseName": "string",
+  "clubName": "string",
+  "location": "string or null",
+  "distanceUnit": "'metres' or 'yards'",
   "tees": [
     {
-      "teeName": "string — e.g. 'Yellow', 'White', 'Red', 'Championship', 'Protea'",
-      "teeColour": "string — normalised colour: Yellow, White, Red, Blue, Green, Black, Orange, Purple. If the tee has a name but no obvious colour, pick the closest match or use the name",
-      "courseRating": "number or null — the men's course rating (CR) for this tee if visible",
-      "slopeRating": "number or null — the men's slope rating (SR) for this tee if visible",
-      "courseRatingWomen": "number or null — the women's/ladies' course rating if visible",
-      "slopeRatingWomen": "number or null — the women's/ladies' slope rating if visible",
-      "par": "number or null — total par for this tee if visible",
+      "teeName": "string — the name as shown on card, e.g. 'Protea', 'Blue Crane', 'Yellow'",
+      "teeColour": "string — normalised: Yellow, White, Red, Blue, Green, Black, Orange, Purple",
+      "courseRating": "number or null — men's CR",
+      "slopeRating": "number or null — men's SR",
+      "courseRatingWomen": "number or null — women's CR",
+      "slopeRatingWomen": "number or null — women's SR",
+      "par": "number or null",
       "holes": [
-        {
-          "hole": "number — hole number 1-18",
-          "par": "number — par for this hole",
-          "si": "number — stroke index",
-          "yards": "number — distance from this tee IN THE ORIGINAL UNIT shown on the card (do NOT convert metres to yards)"
-        }
+        { "hole": 1, "par": 4, "si": 11, "yards": 382 }
       ]
     }
   ]
 }
 
 Rules:
-- Extract EVERY tee visible — do not stop at 5. Some scorecards have 6-8 tees.
-- Tees are often shown as coloured rows/columns of distances. Each distinct row of distances is a separate tee.
-- CRITICAL: Look very carefully for Course Rating (CR) and Slope Rating (SR/Slope).
-  These are often in a SEPARATE TABLE or FOOTER at the bottom/corner of the scorecard.
-  Common labels: "C.R/S.R", "CR/SR", "C.R.", "S.R.", "SSS", "CSS", "Course Rating",
-  "Standard Scratch", "Slope". They may be in very small print at the edges of the card.
-  Look at ALL four corners and edges. On this card, check the bottom-right corner especially.
-- CR/SR values are often shown PER TEE with separate rows for Men and Ladies/Women.
-  Look for rows labelled "Men"/"Ladies", "M"/"L", "Gentlemen"/"Ladies".
-  Put men's values in courseRating/slopeRating, women's in courseRatingWomen/slopeRatingWomen.
-  If CR/SR is shown as a single table (not per-tee), apply it to the most likely tee
-  (usually the championship or primary tee).
-- If only one set of CR/SR is shown (no gender split), put it in courseRating/slopeRating
-  and set women's fields to null
-- If CR/SR is genuinely not visible anywhere on the card, use null
-- Do NOT convert metres to yards — keep the original distances as printed on the card
-- Stroke index is sometimes labelled "SI", "S.I.", "Index", or "Hcp"
-- Total distance rows ("Out", "In", "Total") should be ignored for hole data but used to verify
-- Return ONLY the JSON object, no other text`,
+- Extract EVERY tee — count the coloured distance rows carefully. Do not skip any.
+- Do NOT convert units — keep distances exactly as printed on the card
+- Stroke index may be labelled "SI", "S.I.", "Index", or "Hcp"
+- Ignore "Out"/"In"/"Total" summary rows but use them to verify your count
+- For CR/SR: if a single table applies to one tee (e.g. Championship), attach it to that tee.
+  If it applies to all tees, attach it to the first/primary tee.
+  If split by Men/Ladies, use courseRating+slopeRating for men, courseRatingWomen+slopeRatingWomen for women.`,
           },
         ],
       },
@@ -172,10 +164,18 @@ Rules:
     throw new Error('No text response from Claude')
   }
 
-  // Parse the JSON response, stripping any accidental markdown fencing
+  // Extract JSON from the response — with extended thinking the model's analysis
+  // goes into the thinking block, so the text should be pure JSON. But handle
+  // cases where there's preamble text or markdown fencing.
   let jsonStr = textBlock.text.trim()
   if (jsonStr.startsWith('```')) {
     jsonStr = jsonStr.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
+  }
+  // If the response contains text before JSON, extract just the JSON object
+  const jsonStart = jsonStr.indexOf('{')
+  const jsonEnd = jsonStr.lastIndexOf('}')
+  if (jsonStart > 0 && jsonEnd > jsonStart) {
+    jsonStr = jsonStr.slice(jsonStart, jsonEnd + 1)
   }
 
   let parsed: ExtractedCourseData
