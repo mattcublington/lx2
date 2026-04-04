@@ -54,8 +54,11 @@ export default async function SocietyPage() {
           font-weight: 800;
           font-size: 1.5rem;
           color: #1A2E1A;
-          margin-bottom: 0.75rem;
+          margin-bottom: 0;
           letter-spacing: -0.02em;
+        }
+        .sp-subtitle {
+          font-family: var(--font-dm-sans); color: #6B8C6B; font-size: 15px; margin: 4px 0 0 0; font-weight: 400;
         }
         .sp-body {
           font-size: 0.9375rem;
@@ -83,6 +86,7 @@ export default async function SocietyPage() {
             </svg>
           </div>
           <h1 className="sp-title">Society</h1>
+          <p className="sp-subtitle">Your golf society members and settings</p>
           <p className="sp-body">
             Society features are coming soon — leaderboards, season standings, and member stats for your golf society.
           </p>

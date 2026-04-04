@@ -78,7 +78,7 @@ export default async function CoursesPage() {
                     </div>
                     <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>
                       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase join returns mixed type */}
-                      {(course.course_tees as any[])?.map((t: { tee_name: string }) => t.tee_name).join(', ') || 'No tees'}
+                      {(course.course_tees as any[])?.map((t: { tee_name: string }) => t.tee_name).join(', ') || 'No tees'}{/* Supabase returns JSONB as unknown */}
                     </div>
                   </div>
                 </div>

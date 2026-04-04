@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useTransition } from 'react'
+import Image from 'next/image'
 import { getRecentlyPlayedWith, searchUsersForEvent, addPlayerToEvent } from './actions'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -26,7 +27,6 @@ interface Props {
   groupSize: number
   existingCount: number      // how many already in this group
   onDone: () => void
-  onCancel: () => void
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -38,7 +38,6 @@ export default function PlayerPickerSheet({
   groupSize,
   existingCount,
   onDone,
-  onCancel,
 }: Props) {
   const [recentPlayers, setRecentPlayers] = useState<PickerPlayer[]>([])
   const [searchResults, setSearchResults] = useState<PickerPlayer[]>([])
@@ -419,7 +418,7 @@ export default function PlayerPickerSheet({
             <div key={`sel-${i}`} className="pps-slot">
               <div className="pps-slot-avatar filled">
                 {s.avatarUrl ? (
-                  <img src={s.avatarUrl} alt={s.displayName} />
+                  <Image src={s.avatarUrl} alt={s.displayName} width={48} height={48} />
                 ) : (
                   initials(s.displayName)
                 )}
@@ -593,7 +592,7 @@ function PlayerRow({
     >
       <div className="pps-player-avatar">
         {player.avatarUrl ? (
-          <img src={player.avatarUrl} alt={player.displayName} />
+          <Image src={player.avatarUrl} alt={player.displayName} width={44} height={44} />
         ) : (
           initials
         )}

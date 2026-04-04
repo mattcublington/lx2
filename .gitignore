@@ -49,6 +49,9 @@ docs/superpowers/
 # Git worktrees
 .worktrees/
 
+# Claude Code session data
+.claude/lx2-claude/
+
 # TypeScript incremental build artifacts
 *.tsbuildinfo
 next-env.d.ts

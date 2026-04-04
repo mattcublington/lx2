@@ -312,6 +312,13 @@ export default function NewEventWizard({
           color: #1A2E1A;
         }
         .size-chip.selected { border-color: #0D631B; background: #F0F9F1; color: #0D631B; font-weight: 600; }
+        .nev-course-heading {
+          font-family: var(--font-dm-serif), serif;
+          font-weight: 400;
+          font-size: 1.25rem;
+          color: #1A2E1A;
+          margin: 0 0 12px;
+        }
       `}</style>
 
       {/* ── Hero Banner ── */}
@@ -438,10 +445,7 @@ export default function NewEventWizard({
 
               {/* Course selection */}
               <div>
-                <h2 style={{
-                  fontFamily: 'var(--font-dm-serif), serif', fontWeight: 400,
-                  fontSize: '1.25rem', color: '#1A2E1A', margin: '0 0 12px',
-                }}>
+                <h2 className="nev-course-heading">
                   Select course
                 </h2>
                 {combinations.length === 0 ? (

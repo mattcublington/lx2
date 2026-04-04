@@ -445,7 +445,6 @@ export default function GroupManager({ eventId, groups: initialGroups, players: 
             setPickerGroup(null)
             router.refresh()
           }}
-          onCancel={() => setPickerGroup(null)}
         />
       )}
 

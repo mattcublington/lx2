@@ -166,7 +166,7 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
             </svg>
           </button>
           <div>
-            <h2 style={{ margin: 0, fontFamily: font.display, fontWeight: 700, fontSize: 22, color: FE.forestPrimary }}>
+            <h2 className="scu-section-title">
               Add a course
             </h2>
             <p style={{ margin: 0, fontFamily: font.body, fontSize: 14, color: FE.onTertiary }}>
@@ -365,14 +365,23 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
             animation: 'spin 0.8s linear infinite',
           }} />
         </div>
-        <h2 style={{ fontFamily: font.display, fontWeight: 700, fontSize: 20, color: FE.forestPrimary, marginBottom: '0.5rem' }}>
+        <h2 className="scu-section-title" style={{ fontSize: 20, marginBottom: '0.5rem' }}>
           Reading your scorecard...
         </h2>
         <p style={{ fontFamily: font.body, fontSize: 15, color: FE.onTertiary, margin: 0, lineHeight: 1.5 }}>
           Extracting course data, tees, and hole info.
           <br/>This usually takes 5-10 seconds.
         </p>
-        <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+        <style>{`
+          @keyframes spin { to { transform: rotate(360deg) } }
+          .scu-section-title {
+            margin: 0;
+            font-family: 'Manrope', sans-serif;
+            font-weight: 700;
+            font-size: 22px;
+            color: #1A2E1A;
+          }
+        `}</style>
       </div>
     )
   }
@@ -429,7 +438,7 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
   return (
     <div style={{ flex: 1, overflowY: 'auto' as const, padding: '1.25rem', paddingBottom: 100 }}>
       <div style={{ marginBottom: '1.5rem' }}>
-        <h2 style={{ margin: 0, fontFamily: font.display, fontWeight: 700, fontSize: 22, color: FE.forestPrimary, marginBottom: '0.25rem' }}>
+        <h2 className="scu-section-title" style={{ marginBottom: '0.25rem' }}>
           Check &amp; edit
         </h2>
         <p style={{ margin: 0, fontFamily: font.body, fontSize: 14, color: FE.onTertiary }}>

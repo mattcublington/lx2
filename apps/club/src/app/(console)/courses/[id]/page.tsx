@@ -23,11 +23,11 @@ export default async function CourseDetailPage({ params }: Props) {
   if (!course) notFound()
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase join
-  const holes = ((course.course_holes as any[]) ?? []).sort(
+  const holes = ((course.course_holes as any[]) ?? []).sort( // Supabase returns JSONB as unknown
     (a: { hole_number: number }, b: { hole_number: number }) => a.hole_number - b.hole_number
   )
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase join
-  const tees = ((course.course_tees as any[]) ?? []).sort(
+  const tees = ((course.course_tees as any[]) ?? []).sort( // Supabase returns JSONB as unknown
     (a: { tee_name: string }, b: { tee_name: string }) => a.tee_name.localeCompare(b.tee_name)
   )
 

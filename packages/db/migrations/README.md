@@ -1,3 +1,7 @@
+**ARCHIVE** -- These migrations are historical reference only. The live database is managed via `supabase/migrations/` (timestamp-based). All new migrations must be created there using `supabase migration new <name>`.
+
+---
+
 # Database Migrations
 
 ## Philosophy

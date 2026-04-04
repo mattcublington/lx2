@@ -31,8 +31,15 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/events/new') ||
     pathname.startsWith('/tournaments/new') ||
     pathname.startsWith('/merit/new') ||
+    /^\/events\/[^/]+\/manage(\/|$)/.test(pathname) ||
     /^\/tournaments\/[^/]+\/manage(\/|$)/.test(pathname) ||
-    /^\/merit\/[^/]+\/manage(\/|$)/.test(pathname)
+    /^\/merit\/[^/]+\/manage(\/|$)/.test(pathname) ||
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/play') ||
+    pathname === '/profile' ||
+    pathname.startsWith('/rounds') ||
+    pathname.startsWith('/analysis') ||
+    pathname.startsWith('/society')
 
   if (isProtected && !user) {
     const url = request.nextUrl.clone()
@@ -52,5 +59,11 @@ export const config = {
     '/tournaments/:id/manage',
     '/merit/new',
     '/merit/:id/manage',
+    '/admin/:path*',
+    '/play/:path*',
+    '/profile',
+    '/rounds/:path*',
+    '/analysis',
+    '/society',
   ],
 }

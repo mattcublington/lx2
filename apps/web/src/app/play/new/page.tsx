@@ -70,7 +70,7 @@ export default async function NewRoundPage() {
 
   const extraCourses: Course[] = (ocrCourses ?? []).map(row => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase nested select returns unknown shape
-    const holes: CourseHole[] = ((row.course_holes as any[]) ?? [])
+    const holes: CourseHole[] = ((row.course_holes as any[]) ?? []) // Supabase returns JSONB as unknown
       .sort((a, b) => a.hole_number - b.hole_number)
       .map(h => ({
         num: h.hole_number as number,
@@ -80,7 +80,7 @@ export default async function NewRoundPage() {
       }))
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase nested select returns unknown shape
-    const teeRows = (row.course_tees as any[]) ?? []
+    const teeRows = (row.course_tees as any[]) ?? [] // Supabase returns JSONB as unknown
     const tees = teeRows.map((t: { tee_name: string }) => t.tee_name)
 
     // Fill in per-hole yards from the first available tee (preferring White)

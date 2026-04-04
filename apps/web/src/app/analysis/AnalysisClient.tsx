@@ -642,8 +642,9 @@ export default function AnalysisClient({ displayName, handicapIndex, rounds }: P
           margin-bottom: 0.5rem;
         }
         .an-empty p {
-          font-size: 0.875rem;
-          color: #72786E;
+          font-family: var(--font-dm-sans), sans-serif;
+          font-size: 15px;
+          color: #6B8C6B;
           line-height: 1.6;
         }
 
@@ -712,7 +713,7 @@ export default function AnalysisClient({ displayName, handicapIndex, rounds }: P
                 </svg>
               </div>
               <h2>No round data yet</h2>
-              <p>Play your first round and your stats,<br />trends and insights will appear here.</p>
+              <p>Your stats will appear here after your first round.</p>
             </div>
           ) : (
             <>

@@ -147,21 +147,6 @@ function defaultTee(courseId: string): string {
   return course.tees.includes('White') ? 'White' : (course.tees[0] ?? 'White')
 }
 
-function defaultNtpHoles(courseId: string): number[] {
-  const course = getCourse(courseId)
-  if (!course) return []
-  const par3 = course.holes.find(h => h.par === 3)
-  return par3 ? [par3.num] : []
-}
-
-function defaultLdHoles(courseId: string): number[] {
-  const course = getCourse(courseId)
-  if (!course) return []
-  const par5s = course.holes.filter(h => h.par === 5).map(h => h.num)
-  if (par5s.length > 0) return [par5s[0]!]
-  return course.holes.filter(h => h.par === 4).map(h => h.num).slice(0, 1)
-}
-
 function initials(name: string): string {
   return name.split(' ').slice(0, 2).map(w => w[0]?.toUpperCase() ?? '').join('')
 }
@@ -369,7 +354,7 @@ function VenueStep({
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, overflow: 'hidden' }}>
       <div style={{ flex: 1, overflowY: 'auto' as const, padding: '0 1.25rem', paddingBottom: 16 }}>
         <div style={{ marginBottom: '1.5rem' }}>
-          <h1 style={{ margin: 0, fontFamily: font.display, fontWeight: 700, fontSize: 24, color: FE.forestPrimary, letterSpacing: '-0.01em', marginBottom: '0.5rem' }}>
+          <h1 className="nrw-step-title">
             Where are you playing?
           </h1>
           <p style={{ margin: 0, fontFamily: font.body, fontSize: 16, color: FE.onSecondary }}>
@@ -571,6 +556,15 @@ function PlayerPickerSheet({
         @keyframes slideUp {
           from { transform: translateY(100%); }
           to { transform: translateY(0); }
+        }
+        .nrw-step-title {
+          margin: 0;
+          font-family: 'Manrope', sans-serif;
+          font-weight: 700;
+          font-size: 24px;
+          color: #1A2E1A;
+          letter-spacing: -0.01em;
+          margin-bottom: 0.5rem;
         }
       `}</style>
 
@@ -891,7 +885,7 @@ function PlayersStep({
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, overflow: 'hidden' }}>
       <div style={{ flex: 1, overflowY: 'auto' as const, padding: '0 1.25rem', paddingBottom: 16 }}>
         <div style={{ marginBottom: '1.5rem' }}>
-          <h1 style={{ margin: 0, fontFamily: font.display, fontWeight: 700, fontSize: 24, color: FE.forestPrimary, letterSpacing: '-0.01em', marginBottom: '0.5rem' }}>
+          <h1 className="nrw-step-title">
             Who&rsquo;s playing?
           </h1>
           <p style={{ margin: 0, fontFamily: font.body, fontSize: 16, color: FE.onSecondary, lineHeight: 1.5 }}>
@@ -1148,7 +1142,7 @@ function CombinationStep({
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, overflow: 'hidden' }}>
       <div style={{ flex: 1, overflowY: 'auto' as const, padding: '0 1.25rem', paddingBottom: 16 }}>
         <div style={{ marginBottom: '1.5rem' }}>
-          <h1 style={{ margin: 0, fontFamily: font.display, fontWeight: 700, fontSize: 24, color: FE.forestPrimary, letterSpacing: '-0.01em', marginBottom: '0.5rem' }}>
+          <h1 className="nrw-step-title">
             Which combination?
           </h1>
           <p style={{ margin: 0, fontFamily: font.body, fontSize: 16, color: FE.onSecondary }}>
@@ -1318,7 +1312,7 @@ function SettingsStep({
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, overflow: 'hidden' }}>
       <div style={{ flex: 1, overflowY: 'auto' as const, padding: '0 1.25rem', paddingBottom: 16 }}>
         <div style={{ marginBottom: '1.5rem' }}>
-          <h1 style={{ margin: 0, fontFamily: font.display, fontWeight: 700, fontSize: 24, color: FE.forestPrimary, letterSpacing: '-0.01em', marginBottom: '0.25rem' }}>
+          <h1 className="nrw-step-title" style={{ marginBottom: '0.25rem' }}>
             Round settings
           </h1>
           <p style={{ margin: 0, fontFamily: font.body, fontSize: 16, color: FE.onSecondary }}>

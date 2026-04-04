@@ -292,8 +292,7 @@ export default async function ReviewPage({ params }: PageProps) {
               {/* Scorecard image */}
               <div className="ar-image-wrap">
                 {signedUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={signedUrl} alt="Scorecard photo" className="ar-image" />
+                  <Image src={signedUrl} alt="Scorecard photo" className="ar-image" width={800} height={600} />
                 ) : (
                   <div className="ar-no-image">Image unavailable or expired</div>
                 )}

@@ -279,7 +279,7 @@ export default async function ScorePage({ params, searchParams }: PageProps) {
       })
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any -- JSONB from Supabase, shape validated below
-      const extracted = upload?.extracted_data as any
+      const extracted = upload?.extracted_data as any // Supabase returns JSONB as unknown
       if (extracted?.tees?.[0]?.holes?.length > 0) {
         const tee = extracted.tees[0]
         for (const h of tee.holes) {

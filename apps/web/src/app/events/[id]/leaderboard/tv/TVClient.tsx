@@ -93,6 +93,17 @@ export default function TVClient({
       overflow: 'hidden',
       fontFamily: 'var(--font-dm-sans), sans-serif',
     }}>
+      <style>{`
+        .tv-event-title {
+          font-family: var(--font-dm-serif), serif;
+          font-weight: 400;
+          font-size: clamp(1.5rem, 2.5vw, 2rem);
+          color: #fff;
+          margin: 0;
+          letter-spacing: -0.02em;
+          line-height: 1.1;
+        }
+      `}</style>
 
       {/* ── Top bar ─────────────────────────────────────────────────────────── */}
       <div style={{
@@ -106,15 +117,7 @@ export default function TVClient({
         background: 'rgba(0,0,0,0.2)',
       }}>
         <div>
-          <h1 style={{
-            fontFamily: 'var(--font-dm-serif), serif',
-            fontWeight: 400,
-            fontSize: 'clamp(1.5rem, 2.5vw, 2rem)',
-            color: '#fff',
-            margin: 0,
-            letterSpacing: '-0.02em',
-            lineHeight: 1.1,
-          }}>
+          <h1 className="tv-event-title">
             {eventName}
           </h1>
           <div style={{
