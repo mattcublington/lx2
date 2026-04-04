@@ -50,6 +50,7 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
       const result = await updateProfile({ displayName: name, handicapIndex: parsedHcp })
       if (result.ok) {
         setEditing(null)
+        router.refresh()
       } else {
         setErrorMsg(result.error)
       }
