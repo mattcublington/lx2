@@ -3,7 +3,7 @@ import { useState, useTransition, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { COURSES, getCourse } from '@/lib/courses'
 import type { Course, CourseHole } from '@/lib/courses'
-import { startRound, searchUsers } from './actions'
+import { startRound, searchUsers, getRecentlyPlayedWith } from './actions'
 import ScorecardUpload from './ScorecardUpload'
 import type { ExtractedCourseData } from '@/lib/scorecard-ocr'
 
@@ -293,8 +293,8 @@ function BottomBar({ children }: { children: React.ReactNode }) {
       position: 'fixed', bottom: 0, left: 0, right: 0,
       background: FE.white,
       padding: '1rem 1.25rem',
-      paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))',
-      boxShadow: '0 -2px 8px rgba(26, 28, 28, 0.06)', zIndex: 50,
+      paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))',
+      boxShadow: '0 -4px 12px rgba(26, 28, 28, 0.1)', zIndex: 50,
     }}>
       <div style={{ maxWidth: 430, margin: '0 auto' }}>
         {children}
@@ -369,7 +369,7 @@ function VenueStep({
 
   return (
     <>
-      <div style={{ padding: '0 1.25rem', paddingBottom: 100 }}>
+      <div style={{ padding: '0 1.25rem', paddingBottom: 120 }}>
         <div style={{ marginBottom: '1.5rem' }}>
           <h1 style={{ margin: 0, fontFamily: font.display, fontWeight: 700, fontSize: 24, color: FE.forestPrimary, letterSpacing: '-0.01em', marginBottom: '0.5rem' }}>
             Where are you playing?
@@ -498,6 +498,346 @@ function VenueStep({
   )
 }
 
+// ── Player Picker Sheet (GolfGameBook-style full-screen overlay) ──────────────
+
+interface RecentPlayer {
+  id: string | null
+  displayName: string
+  handicapIndex: number | null
+}
+
+function PlayerPickerSheet({
+  groupIdx,
+  groupSize,
+  currentPlayers,
+  allPlayers,
+  onAdd,
+  onClose,
+}: {
+  groupIdx: number
+  groupSize: number
+  currentPlayers: number[] // indices into allPlayers
+  allPlayers: Player[]
+  onAdd: (name: string, hcp: string) => void
+  onClose: () => void
+}) {
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<{ id: string; displayName: string; handicapIndex: number | null }[]>([])
+  const [searching, setSearching] = useState(false)
+  const [recentPlayers, setRecentPlayers] = useState<RecentPlayer[]>([])
+  const [loadingRecent, setLoadingRecent] = useState(true)
+  const [showManualForm, setShowManualForm] = useState(false)
+  const [manualName, setManualName] = useState('')
+  const [manualHcp, setManualHcp] = useState('')
+  const nameRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    getRecentlyPlayedWith().then(r => { setRecentPlayers(r); setLoadingRecent(false) })
+  }, [])
+
+  useEffect(() => {
+    if (showManualForm) requestAnimationFrame(() => nameRef.current?.focus())
+  }, [showManualForm])
+
+  const handleSearch = async (q: string) => {
+    setSearchQuery(q)
+    if (q.trim().length < 2) { setSearchResults([]); return }
+    setSearching(true)
+    const results = await searchUsers(q)
+    setSearchResults(results)
+    setSearching(false)
+  }
+
+  const addPlayer = (name: string, hcp: string) => {
+    onAdd(name, hcp)
+  }
+
+  // Filter out already-added players from recent list
+  const addedNames = new Set(allPlayers.map(p => p.name.toLowerCase()))
+  const filteredRecent = recentPlayers.filter(r => !addedNames.has(r.displayName.toLowerCase()))
+
+  // Filtered search results (also exclude already added)
+  const filteredSearch = searchResults.filter(r => !addedNames.has(r.displayName.toLowerCase()))
+
+  const slotsTotal = groupSize
+  const slotsFilled = currentPlayers.length
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 100,
+      background: FE.sageBg,
+      display: 'flex', flexDirection: 'column',
+      animation: 'slideUp 0.25s ease-out',
+    }}>
+      <style>{`
+        @keyframes slideUp {
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
+        }
+      `}</style>
+
+      {/* Header */}
+      <div style={{
+        padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        borderBottom: '1px solid rgba(26,28,28,0.08)',
+        background: FE.white,
+      }}>
+        <div style={{ width: 60 }} />
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontFamily: font.display, fontWeight: 700, fontSize: 16, color: FE.forestPrimary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Group {groupIdx + 1}
+          </div>
+          <div style={{ fontFamily: font.body, fontSize: 13, color: FE.onTertiary }}>
+            {slotsFilled}/{slotsTotal}
+          </div>
+        </div>
+        <button
+          onClick={onClose}
+          style={{
+            padding: '8px 16px', borderRadius: 8, border: 'none',
+            background: FE.greenDark, color: '#fff',
+            fontFamily: font.display, fontWeight: 700, fontSize: 14,
+            cursor: 'pointer',
+          }}
+        >
+          Done
+        </button>
+      </div>
+
+      {/* Search bar */}
+      <div style={{ padding: '12px 20px', background: FE.white }}>
+        <div style={{ position: 'relative' }}>
+          <svg
+            style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
+            width="16" height="16" viewBox="0 0 16 16" fill="none"
+          >
+            <circle cx="6.5" cy="6.5" r="5" stroke={FE.greenDark} strokeWidth="1.5"/>
+            <path d="M10.5 10.5 L14 14" stroke={FE.greenDark} strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+          <input
+            type="text" value={searchQuery}
+            onChange={e => handleSearch(e.target.value)}
+            placeholder="Search from all users"
+            style={{
+              ...inputFieldStyle, paddingLeft: 38,
+              borderColor: 'rgba(13,99,27,0.2)',
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Group slots row */}
+      <div style={{
+        padding: '12px 20px', background: FE.white,
+        borderBottom: '1px solid rgba(26,28,28,0.08)',
+        display: 'flex', gap: 16, justifyContent: 'center',
+      }}>
+        {Array.from({ length: slotsTotal }).map((_, i) => {
+          const playerIdx = currentPlayers[i]
+          const player = playerIdx != null ? allPlayers[playerIdx] : null
+          return (
+            <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+              <div style={{
+                width: 48, height: 48, borderRadius: '50%',
+                border: player ? `2px solid ${FE.greenDark}` : '2px dashed rgba(26,28,28,0.2)',
+                background: player
+                  ? (player.isUser ? 'linear-gradient(135deg, #0D631B 0%, #1a5c1a 100%)' : 'linear-gradient(135deg, rgba(13,99,27,0.15) 0%, rgba(61,107,26,0.1) 100%)')
+                  : 'transparent',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: font.display, fontWeight: 700, fontSize: 16,
+                color: player?.isUser ? '#fff' : (player ? FE.greenDark : FE.onTertiary),
+                position: 'relative',
+              }}>
+                {player ? initials(player.name) : (i + 1)}
+              </div>
+              <span style={{
+                fontFamily: font.body, fontSize: 11, color: player ? FE.onPrimary : FE.onTertiary,
+                maxWidth: 60, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center',
+              }}>
+                {player ? player.name.split(' ')[0] : ''}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Scrollable content */}
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+
+        {/* Search results (shown when searching) */}
+        {searchQuery.trim().length >= 2 && (
+          <div style={{ background: FE.white }}>
+            {searching && (
+              <div style={{ padding: '16px 20px', fontFamily: font.body, fontSize: 14, color: FE.onTertiary }}>
+                Searching&hellip;
+              </div>
+            )}
+            {!searching && filteredSearch.length === 0 && searchQuery.trim().length >= 2 && (
+              <div style={{ padding: '16px 20px', fontFamily: font.body, fontSize: 14, color: FE.onTertiary }}>
+                No users found
+              </div>
+            )}
+            {filteredSearch.map(u => (
+              <button
+                key={u.id}
+                onClick={() => addPlayer(u.displayName, u.handicapIndex?.toString() ?? '')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12, width: '100%',
+                  padding: '14px 20px', background: FE.white, border: 'none',
+                  borderBottom: '1px solid rgba(26,28,28,0.06)', cursor: 'pointer',
+                  textAlign: 'left',
+                }}
+              >
+                <div style={{
+                  width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
+                  background: 'linear-gradient(135deg, rgba(13,99,27,0.15) 0%, rgba(61,107,26,0.1) 100%)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontFamily: font.display, fontWeight: 700, fontSize: 14, color: FE.greenDark,
+                }}>
+                  {initials(u.displayName)}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: font.body, fontWeight: 500, fontSize: 15, color: FE.onPrimary }}>
+                    {u.displayName}
+                  </div>
+                  {u.handicapIndex !== null && (
+                    <div style={{ fontFamily: font.body, fontSize: 13, color: FE.onTertiary }}>
+                      {u.handicapIndex}
+                    </div>
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Add unregistered player / manual form */}
+        {searchQuery.trim().length < 2 && (
+          <>
+            <button
+              onClick={() => setShowManualForm(f => !f)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 12, width: '100%',
+                padding: '14px 20px', background: FE.white, border: 'none',
+                borderBottom: '1px solid rgba(26,28,28,0.06)', cursor: 'pointer',
+                textAlign: 'left',
+              }}
+            >
+              <div style={{
+                width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
+                background: FE.greenDark,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M8 3V13M3 8H13" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </div>
+              <span style={{ fontFamily: font.body, fontWeight: 500, fontSize: 15, color: FE.onPrimary }}>
+                Add unregistered player
+              </span>
+            </button>
+
+            {showManualForm && (
+              <div style={{ padding: '12px 20px', background: FE.white, borderBottom: '1px solid rgba(26,28,28,0.06)' }}>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                  <input
+                    ref={nameRef}
+                    type="text" value={manualName}
+                    onChange={e => setManualName(e.target.value)}
+                    placeholder="Name"
+                    enterKeyHint="next"
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('picker-hcp')?.focus() } }}
+                    style={{ ...inputFieldStyle, flex: 2 }}
+                  />
+                  <input
+                    id="picker-hcp"
+                    type="number" value={manualHcp}
+                    onChange={e => setManualHcp(e.target.value)}
+                    placeholder="HCP" min={0} max={54} step={0.1}
+                    enterKeyHint="done"
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); if (manualName.trim()) { addPlayer(manualName, manualHcp); setManualName(''); setManualHcp(''); setShowManualForm(false) } } }}
+                    style={{ ...inputFieldStyle, flex: 1 }}
+                  />
+                </div>
+                <button
+                  onClick={() => { if (manualName.trim()) { addPlayer(manualName, manualHcp); setManualName(''); setManualHcp(''); setShowManualForm(false) } }}
+                  disabled={!manualName.trim()}
+                  style={{
+                    width: '100%', padding: '10px', borderRadius: 10, border: 'none',
+                    background: manualName.trim() ? FE.greenDark : 'rgba(26,28,28,0.12)',
+                    fontFamily: font.body, fontWeight: 600, fontSize: 14,
+                    color: manualName.trim() ? '#fff' : FE.onTertiary,
+                    cursor: manualName.trim() ? 'pointer' : 'default',
+                  }}
+                >
+                  Add to group
+                </button>
+              </div>
+            )}
+
+            {/* Recently played with */}
+            {filteredRecent.length > 0 && (
+              <div style={{ marginTop: 8 }}>
+                <div style={{
+                  padding: '12px 20px 8px',
+                  fontFamily: font.display, fontWeight: 700, fontSize: 15,
+                  color: FE.forestPrimary,
+                }}>
+                  Recently played with
+                </div>
+                <div style={{ background: FE.white }}>
+                  {filteredRecent.map((player, i) => (
+                    <button
+                      key={player.id ?? `guest-${i}`}
+                      onClick={() => addPlayer(player.displayName, player.handicapIndex?.toString() ?? '')}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 12, width: '100%',
+                        padding: '14px 20px', background: FE.white, border: 'none',
+                        borderBottom: '1px solid rgba(26,28,28,0.06)', cursor: 'pointer',
+                        textAlign: 'left',
+                      }}
+                    >
+                      <div style={{
+                        width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
+                        background: 'linear-gradient(135deg, rgba(13,99,27,0.15) 0%, rgba(61,107,26,0.1) 100%)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontFamily: font.display, fontWeight: 700, fontSize: 14, color: FE.greenDark,
+                      }}>
+                        {initials(player.displayName)}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontFamily: font.body, fontWeight: 500, fontSize: 15, color: FE.onPrimary }}>
+                          {player.displayName}
+                        </div>
+                        {player.handicapIndex !== null && (
+                          <div style={{ fontFamily: font.body, fontSize: 13, color: FE.onTertiary }}>
+                            {player.handicapIndex}
+                          </div>
+                        )}
+                      </div>
+                      <div style={{
+                        width: 24, height: 24, borderRadius: '50%',
+                        border: '2px solid rgba(26,28,28,0.15)',
+                        flexShrink: 0,
+                      }} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {loadingRecent && filteredRecent.length === 0 && (
+              <div style={{ padding: '24px 20px', textAlign: 'center', fontFamily: font.body, fontSize: 14, color: FE.onTertiary }}>
+                Loading recent players&hellip;
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ── Screen 2: Player Management (GolfGameBook-style groups) ─────────────────
 
 function PlayersStep({
@@ -515,14 +855,7 @@ function PlayersStep({
   onGroupAssignmentsChange: (assignments: number[][]) => void
   onNext: () => void
 }) {
-  const [editingGroup, setEditingGroup] = useState<number | null>(null)
-  const [editName, setEditName] = useState('')
-  const [editHcp, setEditHcp] = useState('')
-  const [showSearch, setShowSearch] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<{ id: string; displayName: string; handicapIndex: number | null }[]>([])
-  const [searching, setSearching] = useState(false)
-  const nameRef = useRef<HTMLInputElement>(null)
+  const [pickerGroup, setPickerGroup] = useState<number | null>(null)
 
   // Initialize groups: put user (index 0) in group 1
   useEffect(() => {
@@ -531,23 +864,7 @@ function PlayersStep({
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Focus name input when editing starts
-  useEffect(() => {
-    if (editingGroup !== null) {
-      requestAnimationFrame(() => nameRef.current?.focus())
-    }
-  }, [editingGroup])
-
-  const cancelEditing = () => {
-    setEditingGroup(null)
-    setEditName('')
-    setEditHcp('')
-    setShowSearch(false)
-    setSearchQuery('')
-    setSearchResults([])
-  }
-
-  const confirmAdd = (groupIdx: number, name: string, hcp: string) => {
+  const addPlayerToGroup = (groupIdx: number, name: string, hcp: string) => {
     if (!name.trim()) return
     const newPlayer: Player = { name: name.trim(), handicapIndex: hcp, isUser: false, gender: 'm', teeOverride: null }
     const newPlayers = [...players, newPlayer]
@@ -557,7 +874,6 @@ function PlayersStep({
     newGroups[groupIdx]!.push(newIdx)
     onChange(newPlayers)
     onGroupAssignmentsChange(newGroups)
-    cancelEditing()
   }
 
   const removeFromGroup = (groupIdx: number, playerIdx: number) => {
@@ -571,26 +887,11 @@ function PlayersStep({
     onGroupAssignmentsChange([...groupAssignments, []])
   }
 
-  const handleSearch = async (q: string) => {
-    setSearchQuery(q)
-    if (q.trim().length < 2) { setSearchResults([]); return }
-    setSearching(true)
-    const results = await searchUsers(q)
-    setSearchResults(results)
-    setSearching(false)
-  }
-
-  const selectSearchResult = (groupIdx: number, user: { displayName: string; handicapIndex: number | null }) => {
-    confirmAdd(groupIdx, user.displayName, user.handicapIndex?.toString() ?? '')
-  }
-
   const canProceed = players[0]?.name.trim() !== ''
-
-  const compactInput: React.CSSProperties = { ...inputFieldStyle, padding: '8px 10px', fontSize: 14, borderRadius: 10 }
 
   return (
     <>
-      <div style={{ padding: '0 1.25rem', paddingBottom: 100 }}>
+      <div style={{ padding: '0 1.25rem', paddingBottom: 120 }}>
         <div style={{ marginBottom: '1.5rem' }}>
           <h1 style={{ margin: 0, fontFamily: font.display, fontWeight: 700, fontSize: 24, color: FE.forestPrimary, letterSpacing: '-0.01em', marginBottom: '0.5rem' }}>
             Who&rsquo;s playing?
@@ -603,7 +904,7 @@ function PlayersStep({
         {/* Group cards */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {groupAssignments.map((playerIndices, gIdx) => {
-            const emptySlots = Math.max(0, groupSize - playerIndices.length - (editingGroup === gIdx ? 1 : 0))
+            const emptySlots = Math.max(0, groupSize - playerIndices.length)
             return (
               <div key={gIdx} style={{ borderRadius: 16, overflow: 'hidden', boxShadow: FE.shadowFloat }}>
                 {/* Green gradient header */}
@@ -723,104 +1024,14 @@ function PlayersStep({
                     )
                   })}
 
-                  {/* Inline add-player form */}
-                  {editingGroup === gIdx && (
-                    <div style={{
-                      border: `2px solid ${FE.greenDark}`,
-                      borderRadius: 12, padding: '10px',
-                      display: 'flex', flexDirection: 'column', gap: '8px',
-                    }}>
-                      {showSearch ? (
-                        <>
-                          <input
-                            type="text" value={searchQuery}
-                            onChange={e => handleSearch(e.target.value)}
-                            placeholder="Search by name\u2026" autoFocus
-                            enterKeyHint="done"
-                            onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
-                            style={compactInput}
-                          />
-                          {searching && <div style={{ fontFamily: font.body, fontSize: 12, color: FE.onTertiary }}>Searching\u2026</div>}
-                          {searchResults.length > 0 && (
-                            <div style={{ border: FE.borderGhost, borderRadius: 8, overflow: 'hidden' }}>
-                              {searchResults.map(u => (
-                                <button key={u.id} onClick={() => selectSearchResult(gIdx, u)} style={{
-                                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                  width: '100%', padding: '8px 10px', background: FE.white, border: 'none',
-                                  borderBottom: '1px solid rgba(26,28,28,0.06)', cursor: 'pointer', fontFamily: font.body,
-                                }}>
-                                  <span style={{ fontWeight: 500, fontSize: 13, color: FE.onPrimary }}>{u.displayName}</span>
-                                  {u.handicapIndex !== null && <span style={{ fontSize: 12, color: FE.onTertiary }}>{u.handicapIndex}</span>}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                          <button onClick={() => setShowSearch(false)} style={{ fontFamily: font.body, fontSize: 12, color: FE.onTertiary, background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}>
-                            &larr; Manual entry
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <input
-                            ref={nameRef}
-                            type="text" value={editName}
-                            onChange={e => setEditName(e.target.value)}
-                            placeholder="Name"
-                            enterKeyHint="next"
-                            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById(`edit-hcp-${gIdx}`)?.focus() } }}
-                            style={compactInput}
-                          />
-                          <input
-                            id={`edit-hcp-${gIdx}`}
-                            type="number" value={editHcp}
-                            onChange={e => setEditHcp(e.target.value)}
-                            placeholder="HCP" min={0} max={54} step={0.1}
-                            enterKeyHint="done"
-                            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); confirmAdd(gIdx, editName, editHcp) } }}
-                            style={compactInput}
-                          />
-                          <div style={{ display: 'flex', gap: '6px' }}>
-                            <button onClick={() => { setShowSearch(true); setSearchQuery('') }} style={{
-                              flex: 1, padding: '6px', borderRadius: 8, border: FE.borderGhost,
-                              background: 'transparent', fontFamily: font.body, fontSize: 12,
-                              color: FE.berryTertiary, cursor: 'pointer',
-                            }}>
-                              Search
-                            </button>
-                            <button onClick={cancelEditing} style={{
-                              flex: 1, padding: '6px', borderRadius: 8, border: FE.borderGhost,
-                              background: 'transparent', fontFamily: font.body, fontSize: 12,
-                              color: FE.onTertiary, cursor: 'pointer',
-                            }}>
-                              Cancel
-                            </button>
-                            <button
-                              onClick={() => confirmAdd(gIdx, editName, editHcp)}
-                              disabled={!editName.trim()}
-                              style={{
-                                flex: 1, padding: '6px', borderRadius: 8, border: 'none',
-                                background: editName.trim() ? FE.greenDark : 'rgba(26,28,28,0.12)',
-                                fontFamily: font.body, fontSize: 12, fontWeight: 600,
-                                color: editName.trim() ? '#fff' : FE.onTertiary,
-                                cursor: editName.trim() ? 'pointer' : 'default',
-                              }}
-                            >
-                              Add
-                            </button>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Empty add-player slots */}
+                  {/* Empty add-player slots — tap opens picker sheet */}
                   {Array.from({ length: emptySlots }).map((_, i) => (
                     <div
                       key={`empty-${gIdx}-${i}`}
-                      onClick={() => { cancelEditing(); setEditingGroup(gIdx) }}
+                      onClick={() => setPickerGroup(gIdx)}
                       role="button"
                       tabIndex={0}
-                      onKeyDown={e => e.key === 'Enter' && (() => { cancelEditing(); setEditingGroup(gIdx) })()}
+                      onKeyDown={e => e.key === 'Enter' && setPickerGroup(gIdx)}
                       style={{
                         border: '1.5px dashed rgba(13, 99, 27, 0.25)',
                         borderRadius: 12, padding: '12px', cursor: 'pointer',
@@ -888,6 +1099,18 @@ function PlayersStep({
           </svg>
         </PrimaryButton>
       </BottomBar>
+
+      {/* Full-screen player picker sheet */}
+      {pickerGroup !== null && (
+        <PlayerPickerSheet
+          groupIdx={pickerGroup}
+          groupSize={groupSize}
+          currentPlayers={groupAssignments[pickerGroup] ?? []}
+          allPlayers={players}
+          onAdd={(name, hcp) => addPlayerToGroup(pickerGroup, name, hcp)}
+          onClose={() => setPickerGroup(null)}
+        />
+      )}
     </>
   )
 }
@@ -925,7 +1148,7 @@ function CombinationStep({
 
   return (
     <>
-      <div style={{ padding: '0 1.25rem', paddingBottom: 100 }}>
+      <div style={{ padding: '0 1.25rem', paddingBottom: 120 }}>
         <div style={{ marginBottom: '1.5rem' }}>
           <h1 style={{ margin: 0, fontFamily: font.display, fontWeight: 700, fontSize: 24, color: FE.forestPrimary, letterSpacing: '-0.01em', marginBottom: '0.5rem' }}>
             Which combination?
@@ -1095,7 +1318,7 @@ function SettingsStep({
 
   return (
     <>
-      <div style={{ padding: '0 1.25rem', paddingBottom: 100 }}>
+      <div style={{ padding: '0 1.25rem', paddingBottom: 120 }}>
         <div style={{ marginBottom: '1.5rem' }}>
           <h1 style={{ margin: 0, fontFamily: font.display, fontWeight: 700, fontSize: 24, color: FE.forestPrimary, letterSpacing: '-0.01em', marginBottom: '0.25rem' }}>
             Round settings

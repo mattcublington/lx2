@@ -262,6 +262,45 @@ export async function startRound(data: StartRoundData): Promise<string> {
   return `/rounds/${userScorecardId}/score`
 }
 
+export async function getRecentlyPlayedWith(): Promise<{ id: string | null; displayName: string; handicapIndex: number | null }[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+
+  // Find events the user has played in
+  const { data: myEvents } = await supabase
+    .from('event_players')
+    .select('event_id')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(20)
+
+  if (!myEvents || myEvents.length === 0) return []
+
+  const eventIds = myEvents.map(e => e.event_id)
+
+  // Find other players from those events
+  const { data: partners } = await supabase
+    .from('event_players')
+    .select('user_id, display_name, handicap_index')
+    .in('event_id', eventIds)
+    .neq('user_id', user.id)
+    .order('created_at', { ascending: false })
+
+  if (!partners) return []
+
+  // Deduplicate by user_id (prefer registered) then by display_name (for guests)
+  const seen = new Set<string>()
+  const results: { id: string | null; displayName: string; handicapIndex: number | null }[] = []
+  for (const p of partners) {
+    const key = p.user_id ?? `guest:${p.display_name}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    results.push({ id: p.user_id, displayName: p.display_name, handicapIndex: p.handicap_index })
+  }
+  return results.slice(0, 20)
+}
+
 export async function searchUsers(query: string): Promise<{ id: string; displayName: string; handicapIndex: number | null }[]> {
   if (!query || query.trim().length < 2) return []
   const supabase = await createClient()
