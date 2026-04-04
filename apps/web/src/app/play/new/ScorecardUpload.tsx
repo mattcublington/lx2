@@ -49,11 +49,25 @@ function compressImage(file: File, maxDimension = 4000, quality = 0.95): Promise
         width = Math.round(width * scale)
         height = Math.round(height * scale)
       }
+
+      // Scorecards are landscape. If the photo is portrait (height > width),
+      // rotate 90° clockwise so the model reads it upright — this dramatically
+      // improves OCR accuracy on dense number grids.
+      const isPortrait = height > width
       const canvas = document.createElement('canvas')
-      canvas.width = width
-      canvas.height = height
+      if (isPortrait) {
+        canvas.width = height
+        canvas.height = width
+      } else {
+        canvas.width = width
+        canvas.height = height
+      }
       const ctx = canvas.getContext('2d')
       if (!ctx) { reject(new Error('Canvas not supported')); return }
+      if (isPortrait) {
+        ctx.translate(height, 0)
+        ctx.rotate(Math.PI / 2)
+      }
       ctx.drawImage(img, 0, 0, width, height)
       canvas.toBlob(
         blob => blob ? resolve(blob) : reject(new Error('Compression failed')),
@@ -265,7 +279,7 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
                 Tap to photograph the scorecard
               </p>
               <p style={{ fontFamily: font.body, fontSize: 13, color: FE.onTertiary, margin: 0 }}>
-                JPEG, PNG, or WebP up to 10 MB
+                Hold your phone landscape for best results
               </p>
             </>
           )}
