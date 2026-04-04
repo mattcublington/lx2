@@ -358,9 +358,16 @@ export function parseVoiceScore(
   if (ownScore) allConfidences.push(ownScore.confidence)
   for (const ps of playerScores) allConfidences.push(ps.confidence)
 
-  const overallConfidence = allConfidences.length > 0
+  let overallConfidence = allConfidences.length > 0
     ? allConfidences.reduce((sum, c) => sum + c, 0) / allConfidences.length
     : 0
+
+  // If we have group players but didn't capture any of their scores,
+  // penalise confidence to trigger LLM fallback — the transcript likely
+  // contains player names the regex parser couldn't match.
+  if (groupPlayers.length > 0 && playerScores.length === 0 && text.length > 20) {
+    overallConfidence = Math.min(overallConfidence, 0.6)
+  }
 
   return { ownScore, playerScores, unparsed, overallConfidence }
 }

@@ -107,6 +107,10 @@ export default function VoiceConfirm({
         gir: ownScore.gir,
         fairwayHit: ownScore.fairwayHit,
         missDirection: ownScore.missDirection,
+        bunkerShots: ownScore.bunkerShots,
+        penalties: ownScore.penalties,
+        upAndDown: ownScore.upAndDown,
+        sandSave: ownScore.sandSave,
       })
     }
     for (const ps of editPlayerScores) {
@@ -151,6 +155,14 @@ export default function VoiceConfirm({
                     {ownScore.fairwayHit === false && ownScore.missDirection && (
                       <span className="vcf-badge">Miss {ownScore.missDirection}</span>
                     )}
+                    {ownScore.bunkerShots !== undefined && ownScore.bunkerShots > 0 && (
+                      <span className="vcf-badge">{ownScore.bunkerShots} bunker{ownScore.bunkerShots !== 1 ? 's' : ''}</span>
+                    )}
+                    {ownScore.penalties !== undefined && ownScore.penalties > 0 && (
+                      <span className="vcf-badge">{ownScore.penalties} penalty</span>
+                    )}
+                    {ownScore.upAndDown === true && <span className="vcf-badge">Up &amp; down</span>}
+                    {ownScore.sandSave === true && <span className="vcf-badge">Sand save</span>}
                   </div>
                 </div>
               </div>

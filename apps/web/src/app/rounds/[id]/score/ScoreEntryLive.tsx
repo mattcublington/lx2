@@ -446,6 +446,9 @@ const STYLES = `
     box-shadow: 0 24px 64px rgba(26,28,28,0.2);
     animation: sc-modal-in 0.28s cubic-bezier(0.2,0,0,1);
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 2rem);
   }
   @keyframes sc-modal-in {
     from { opacity: 0; transform: translateY(24px) scale(0.97); }
@@ -465,7 +468,7 @@ const STYLES = `
     font-size: 0.875rem; color: #72786E;
     margin-top: 0.25rem; margin-left: 48px;
   }
-  .sc-modal-body { padding: 1.5rem; }
+  .sc-modal-body { padding: 1.5rem; overflow-y: auto; flex: 1; min-height: 0; }
   .sc-qs-lbl {
     font-family: var(--font-lexend), sans-serif;
     font-size: 0.6875rem; font-weight: 500; color: #72786E;
@@ -518,6 +521,7 @@ const STYLES = `
   .sc-modal-ft {
     padding: 0 1.5rem 1.5rem;
     display: flex; flex-direction: column; gap: 0.75rem;
+    flex-shrink: 0;
   }
   .sc-save-btn {
     width: 100%; padding: 1rem;
@@ -1850,6 +1854,10 @@ export default function ScoreEntryLive(props: Props) {
                     fairwayHit: cs.fairwayHit,
                     greenInRegulation: cs.gir,
                     missDirection: cs.missDirection,
+                    bunkerShots: cs.bunkerShots,
+                    penalties: cs.penalties,
+                    upAndDown: cs.upAndDown,
+                    sandSave: cs.sandSave,
                     voiceTranscript: transcriptStr,
                   })
                 } else {
