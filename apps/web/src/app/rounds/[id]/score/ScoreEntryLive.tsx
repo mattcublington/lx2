@@ -113,28 +113,6 @@ const STYLES = `
   }
   .sc-icon-btn:hover { background: rgba(26,28,28,0.05); color: #1A2E1A; }
 
-  /* ── Share code chip ───────────────────────────────────── */
-  .sc-share-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    padding: 0.3rem 0.625rem;
-    border-radius: 20px;
-    border: 1.5px solid rgba(13, 99, 27, 0.25);
-    background: rgba(13, 99, 27, 0.07);
-    color: #0D631B;
-    font-family: var(--font-manrope), 'Manrope', sans-serif;
-    font-weight: 700;
-    font-size: 0.8125rem;
-    letter-spacing: 0.08em;
-    cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .sc-share-chip:hover { background: rgba(13, 99, 27, 0.12); border-color: rgba(13, 99, 27, 0.4); }
-  .sc-share-chip.copied { background: rgba(13, 99, 27, 0.15); color: #0D631B; border-color: rgba(13, 99, 27, 0.5); }
-
   /* ── Hole navigation ───────────────────────────────────── */
   .sc-nav {
     background: #FFFFFF;
@@ -1058,7 +1036,7 @@ export default function ScoreEntryLive(props: Props) {
     scorecardId, eventId, playerName, handicapIndex, format, allowancePct,
     holes, initialScores, initialPickups, ntpHoles, ldHoles, eventPlayerId,
     selectedTee, eventName, eventDate, groupPlayers, initialHole = 0,
-    shareCode, isOrganiser, myFlightNumber, allGroups = [],
+    isOrganiser, myFlightNumber, allGroups = [],
   } = props
 
   const router = useRouter()
@@ -1091,7 +1069,6 @@ export default function ScoreEntryLive(props: Props) {
   const [showContestOverlay, setShowContestOverlay] = useState(false)
   const [cardView, setCardView] = useState<'front9' | 'back9' | 'all18'>('front9')
   const [showLeaderboard, setShowLeaderboard] = useState(false)
-  const [codeCopied, setCodeCopied] = useState(false)
   const [activeGroup, setActiveGroup] = useState<number | null>(myFlightNumber ?? null)
   const [showVoice, setShowVoice] = useState(false)
 
