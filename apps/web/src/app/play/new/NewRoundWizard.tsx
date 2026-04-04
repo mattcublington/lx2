@@ -1367,6 +1367,12 @@ const TEE_COLOUR_MAP: Record<string, { bg: string; border: string }> = {
   'Red':           { bg: '#EF4444', border: '#EF4444' },
   'Red/Black':     { bg: 'linear-gradient(90deg,#EF4444 50%,#1a1a1a 50%)', border: 'rgba(26,28,28,0.15)' },
   'Black':         { bg: '#1a1a1a', border: '#1a1a1a' },
+  // Fancourt Montagu named tees
+  'Protea':        { bg: '#1a1a1a', border: '#1a1a1a' },
+  'Springbok':     { bg: '#FCD34D', border: '#ca9f1a' },
+  'Galjoen':       { bg: '#FFFFFF', border: 'rgba(26,28,28,0.25)' },
+  'Yellowwood':    { bg: '#3B82F6', border: '#3B82F6' },
+  'Blue Crane':    { bg: '#EF4444', border: '#EF4444' },
 }
 
 function SettingsStep({
@@ -1443,7 +1449,7 @@ function SettingsStep({
                 {course.tees.map(tee => {
                   const swatch = TEE_COLOUR_MAP[tee] ?? { bg: '#ccc', border: '#ccc' }
                   const selected = state.tee === tee
-                  const isLight = tee === 'White' || tee === 'Yellow'
+                  const isLight = tee === 'White' || tee === 'Yellow' || tee === 'Galjoen' || tee === 'Springbok'
                   const isGradient = swatch.bg.includes('gradient')
                   const textColor = isLight ? FE.onPrimary : '#FFFFFF'
                   const checkColor = isLight ? FE.greenDark : '#FFFFFF'
