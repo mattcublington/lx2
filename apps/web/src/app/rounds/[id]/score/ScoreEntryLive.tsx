@@ -15,6 +15,7 @@ import {
 } from '@/lib/score-entry-helpers'
 import VoiceScoring from './VoiceScoring'
 import { saveVoiceScoreDetails } from './voice-actions'
+import { saveHoleStats } from './stat-actions'
 
 // Prevents concurrent drain runs per scorecard.
 const draining = new Set<string>()
@@ -542,6 +543,68 @@ const STYLES = `
     transition: all 0.14s;
   }
   .sc-pickup-lnk:hover { border-color: #923357; background: rgba(146,51,87,0.04); }
+
+  /* ── Stats panel (inside score modal) ─────────────────── */
+  .sc-stats-toggle {
+    display: flex; align-items: center; justify-content: center; gap: 0.375rem;
+    background: none; border: none; cursor: pointer;
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+    font-size: 0.75rem; font-weight: 500; color: #6B8C6B;
+    padding: 0.5rem 0; margin: 0.75rem auto 0; width: 100%; text-align: center;
+    transition: color 0.15s;
+  }
+  .sc-stats-toggle:hover { color: #0D631B; }
+  .sc-stats-toggle svg { transition: transform 0.2s; }
+  .sc-stats-toggle.open svg { transform: rotate(180deg); }
+  .sc-stats-panel {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0.625rem; padding-top: 0.75rem;
+    animation: sc-stats-in 0.2s ease;
+  }
+  @keyframes sc-stats-in {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .sc-stat-item {
+    display: flex; flex-direction: column; gap: 0.25rem;
+  }
+  .sc-stat-item.full { grid-column: 1 / -1; }
+  .sc-stat-label {
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+    font-size: 0.6875rem; font-weight: 500; color: #6B8C6B;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .sc-stat-row {
+    display: flex; gap: 0.375rem;
+  }
+  .sc-stat-btn {
+    flex: 1; padding: 0.5rem 0.25rem;
+    border-radius: 8px; border: 1.5px solid #E0EBE0;
+    background: #FFFFFF; color: #1A2E1A;
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+    font-size: 0.75rem; font-weight: 500;
+    cursor: pointer; text-align: center;
+    transition: all 0.14s;
+  }
+  .sc-stat-btn:hover { border-color: rgba(13,99,27,0.3); background: rgba(13,99,27,0.04); }
+  .sc-stat-btn.active { background: #0D631B; color: #FFFFFF; border-color: #0D631B; }
+  .sc-stat-stepper {
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .sc-stat-step-btn {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 1.5px solid #E0EBE0; background: #FFFFFF;
+    color: #0D631B; font-size: 1rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.14s;
+  }
+  .sc-stat-step-btn:hover { border-color: #0D631B; background: rgba(13,99,27,0.06); }
+  .sc-stat-step-val {
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+    font-size: 0.9375rem; font-weight: 600; color: #1A2E1A;
+    min-width: 20px; text-align: center;
+  }
+  .sc-stat-step-val.dim { color: #C8D4C8; }
 
   /* ── Settings modal ────────────────────────────────────── */
   .sc-settings {
@@ -1223,9 +1286,21 @@ export default function ScoreEntryLive(props: Props) {
     checkAutoAdvance(hole.holeInRound)
   }
 
-  function handleModalSave(scId: string, value: number) {
+  function handleModalSave(scId: string, value: number, stats?: HoleStatState) {
     if (scId === scorecardId) {
       tapScore(value)
+      // Persist stats if provided (own score only)
+      if (stats) {
+        saveHoleStats(scorecardId, hole.holeInRound, {
+          putts: stats.putts,
+          fairwayHit: stats.fairwayHit,
+          greenInRegulation: stats.gir,
+          bunkerShots: stats.bunkerShots,
+          penalties: stats.penalties,
+          upAndDown: stats.upAndDown,
+          sandSave: stats.sandSave,
+        })
+      }
     } else {
       setLiveScores(prev => ({
         ...prev,
@@ -1887,7 +1962,7 @@ export default function ScoreEntryLive(props: Props) {
             currentScore={modalCurrentScore}
             isPickup={scoreModalId === scorecardId ? isPickup : false}
             format={format}
-            onSave={(v) => handleModalSave(scoreModalId, v)}
+            onSave={(v, stats) => handleModalSave(scoreModalId, v, stats)}
             onPickup={() => handleModalPickup(scoreModalId)}
             onUndo={scoreModalId === scorecardId ? () => {
               d({ type: 'UNDO', holeInRound: hole.holeInRound })
@@ -1969,18 +2044,36 @@ interface ScoreModalProps {
   currentScore: number | null
   isPickup: boolean
   format: 'stableford' | 'strokeplay' | 'matchplay'
-  onSave: (value: number) => void
+  initialStats?: HoleStatState
+  onSave: (value: number, stats?: HoleStatState) => void
   onPickup: () => void
   onUndo?: (() => void) | undefined
   onClose: () => void
 }
 
+interface HoleStatState {
+  putts: number | null
+  fairwayHit: boolean | null
+  gir: boolean | null
+  bunkerShots: number | null
+  penalties: number | null
+  upAndDown: boolean | null
+  sandSave: boolean | null
+}
+
+const EMPTY_STATS: HoleStatState = {
+  putts: null, fairwayHit: null, gir: null,
+  bunkerShots: null, penalties: null, upAndDown: null, sandSave: null,
+}
+
 function ScoreModal({
   player, isOwn, holeInRound, par, hcOnHole,
-  currentScore, isPickup, format,
+  currentScore, isPickup, format, initialStats,
   onSave, onPickup, onUndo, onClose,
 }: ScoreModalProps) {
   const [selected, setSelected] = useState<number | null>(currentScore)
+  const [statsOpen, setStatsOpen] = useState(false)
+  const [stats, setStats] = useState<HoleStatState>(initialStats ?? EMPTY_STATS)
   const initials = player.displayName.split(' ').filter(Boolean).map((w: string) => w[0]).join('').slice(0, 2).toUpperCase() || '?'
 
   // 7 quick-select values centered on par
@@ -1996,6 +2089,18 @@ function ScoreModal({
       : strokeResult(selected, par)
 
   const alreadyScored = currentScore !== null || isPickup
+
+  // Stat helpers
+  const toggleBool = (key: 'fairwayHit' | 'gir' | 'upAndDown' | 'sandSave', val: boolean) => {
+    setStats(prev => ({ ...prev, [key]: prev[key] === val ? null : val }))
+  }
+  const stepNum = (key: 'putts' | 'bunkerShots' | 'penalties', delta: number) => {
+    setStats(prev => ({ ...prev, [key]: Math.max(0, (prev[key] ?? 0) + delta) }))
+  }
+
+  // Check if any stats have been entered
+  const hasStats = stats.putts !== null || stats.fairwayHit !== null || stats.gir !== null ||
+    stats.bunkerShots !== null || stats.penalties !== null || stats.upAndDown !== null || stats.sandSave !== null
 
   return (
     <div className="sc-overlay" onClick={onClose}>
@@ -2048,13 +2153,98 @@ function ScoreModal({
           {feedbackText && (
             <span className="sc-feedback">{feedbackText}</span>
           )}
+
+          {/* Stats toggle — only for own score */}
+          {isOwn && (
+            <>
+              <button
+                className={`sc-stats-toggle${statsOpen ? ' open' : ''}`}
+                onClick={() => setStatsOpen(!statsOpen)}
+              >
+                {hasStats ? 'Stats added' : 'Add stats'} (optional)
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+
+              {statsOpen && (
+                <div className="sc-stats-panel">
+                  {/* Putts */}
+                  <div className="sc-stat-item">
+                    <span className="sc-stat-label">Putts</span>
+                    <div className="sc-stat-stepper">
+                      <button className="sc-stat-step-btn" onClick={() => stepNum('putts', -1)} aria-label="Fewer putts">&minus;</button>
+                      <span className={`sc-stat-step-val${stats.putts === null ? ' dim' : ''}`}>{stats.putts ?? '–'}</span>
+                      <button className="sc-stat-step-btn" onClick={() => stepNum('putts', 1)} aria-label="More putts">+</button>
+                    </div>
+                  </div>
+
+                  {/* Bunker shots */}
+                  <div className="sc-stat-item">
+                    <span className="sc-stat-label">Bunkers</span>
+                    <div className="sc-stat-stepper">
+                      <button className="sc-stat-step-btn" onClick={() => stepNum('bunkerShots', -1)} aria-label="Fewer bunkers">&minus;</button>
+                      <span className={`sc-stat-step-val${stats.bunkerShots === null ? ' dim' : ''}`}>{stats.bunkerShots ?? '–'}</span>
+                      <button className="sc-stat-step-btn" onClick={() => stepNum('bunkerShots', 1)} aria-label="More bunkers">+</button>
+                    </div>
+                  </div>
+
+                  {/* Penalties */}
+                  <div className="sc-stat-item">
+                    <span className="sc-stat-label">Penalties</span>
+                    <div className="sc-stat-stepper">
+                      <button className="sc-stat-step-btn" onClick={() => stepNum('penalties', -1)} aria-label="Fewer penalties">&minus;</button>
+                      <span className={`sc-stat-step-val${stats.penalties === null ? ' dim' : ''}`}>{stats.penalties ?? '–'}</span>
+                      <button className="sc-stat-step-btn" onClick={() => stepNum('penalties', 1)} aria-label="More penalties">+</button>
+                    </div>
+                  </div>
+
+                  {/* GIR */}
+                  <div className="sc-stat-item">
+                    <span className="sc-stat-label">Green in Reg</span>
+                    <div className="sc-stat-row">
+                      <button className={`sc-stat-btn${stats.gir === true ? ' active' : ''}`} onClick={() => toggleBool('gir', true)}>Yes</button>
+                      <button className={`sc-stat-btn${stats.gir === false ? ' active' : ''}`} onClick={() => toggleBool('gir', false)}>No</button>
+                    </div>
+                  </div>
+
+                  {/* Fairway hit — only relevant for par 4/5 */}
+                  {par >= 4 && (
+                    <div className="sc-stat-item">
+                      <span className="sc-stat-label">Fairway</span>
+                      <div className="sc-stat-row">
+                        <button className={`sc-stat-btn${stats.fairwayHit === true ? ' active' : ''}`} onClick={() => toggleBool('fairwayHit', true)}>Hit</button>
+                        <button className={`sc-stat-btn${stats.fairwayHit === false ? ' active' : ''}`} onClick={() => toggleBool('fairwayHit', false)}>Miss</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Up and down */}
+                  <div className="sc-stat-item">
+                    <span className="sc-stat-label">Up &amp; Down</span>
+                    <div className="sc-stat-row">
+                      <button className={`sc-stat-btn${stats.upAndDown === true ? ' active' : ''}`} onClick={() => toggleBool('upAndDown', true)}>Yes</button>
+                      <button className={`sc-stat-btn${stats.upAndDown === false ? ' active' : ''}`} onClick={() => toggleBool('upAndDown', false)}>No</button>
+                    </div>
+                  </div>
+
+                  {/* Sand save */}
+                  <div className="sc-stat-item">
+                    <span className="sc-stat-label">Sand Save</span>
+                    <div className="sc-stat-row">
+                      <button className={`sc-stat-btn${stats.sandSave === true ? ' active' : ''}`} onClick={() => toggleBool('sandSave', true)}>Yes</button>
+                      <button className={`sc-stat-btn${stats.sandSave === false ? ' active' : ''}`} onClick={() => toggleBool('sandSave', false)}>No</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
 
         {/* Footer */}
         <div className="sc-modal-ft">
           <button className="sc-save-btn"
             disabled={selected === null}
-            onClick={() => { if (selected !== null) onSave(selected) }}>
+            onClick={() => { if (selected !== null) onSave(selected, hasStats ? stats : undefined) }}>
             Save score
           </button>
           {alreadyScored && onUndo ? (

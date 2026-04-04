@@ -47,10 +47,15 @@ Rules:
 - "missed the green" = gir: false
 - "hit the fairway" = fairwayHit: true
 - "missed fairway left/right" = fairwayHit: false + missDirection
+- "bunker" / "sand" / "was in a bunker" = bunkerShots: 1 (or specific count if stated)
+- "penalty" / "penalty stroke" / "OB" / "water" = penalties: 1 (or count)
+- "up and down" / "got up and down" = upAndDown: true
+- "didn't get up and down" = upAndDown: false
+- "sand save" / "saved it from the bunker" = sandSave: true
 
 Output ONLY valid JSON matching this schema:
 {
-  "ownScore": { "player": "self", "score": number|null, "putts": number?, "gir": boolean?, "fairwayHit": boolean?, "missDirection": "left"|"right"|"short"|"long"?, "notes": string?, "confidence": number } | null,
+  "ownScore": { "player": "self", "score": number|null, "putts": number?, "gir": boolean?, "fairwayHit": boolean?, "missDirection": "left"|"right"|"short"|"long"?, "bunkerShots": number?, "penalties": number?, "upAndDown": boolean?, "sandSave": boolean?, "notes": string?, "confidence": number } | null,
   "playerScores": [{ "player": "player_id", "playerName": "display name", "score": number|null, "confidence": number }],
   "unparsed": string[],
   "overallConfidence": number

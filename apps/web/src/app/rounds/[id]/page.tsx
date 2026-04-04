@@ -349,6 +349,47 @@ const STYLES = `
     border-bottom: 1px solid rgba(26, 28, 28, 0.06);
   }
 
+  /* Stats card */
+  .rs-stats-card {
+    animation: rs-rise 0.4s 0.08s cubic-bezier(0.2, 0, 0, 1) both;
+  }
+  .rs-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: rgba(26, 28, 28, 0.06);
+  }
+  .rs-stat-tile {
+    background: #FFFFFF;
+    padding: 1rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.125rem;
+  }
+  .rs-stat-value {
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 1.375rem;
+    color: #0D631B;
+    line-height: 1;
+  }
+  .rs-stat-sub {
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+    font-size: 0.6875rem;
+    color: #A0B09A;
+    font-weight: 400;
+    min-height: 0.875rem;
+  }
+  .rs-stat-name {
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: #72786E;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
   /* Chart card */
   .rs-chart-card { padding-bottom: 0.75rem; }
   .rs-chart-legend {
@@ -940,13 +981,33 @@ export default async function RoundSummaryPage({ params }: PageProps) {
   // ── 3. Scores ──────────────────────────────────────────────────────────────
   const { data: holeScoreRows } = await supabase
     .from('hole_scores')
-    .select('hole_number, gross_strokes')
+    .select('hole_number, gross_strokes, putts, fairway_hit, green_in_regulation, bunker_shots, penalties, up_and_down, sand_save')
     .eq('scorecard_id', id)
 
   const scores: Record<number, number | null> = {}
   for (const row of holeScoreRows ?? []) {
     scores[row.hole_number] = row.gross_strokes ?? null
   }
+
+  // ── Stats aggregation ──────────────────────────────────────────────────────
+  let totalPutts = 0, puttsHoles = 0
+  let girYes = 0, girTotal = 0
+  let fwyYes = 0, fwyTotal = 0
+  let bunkerTotal = 0, penaltyTotal = 0
+  let uadYes = 0, uadTotal = 0
+  let sandYes = 0, sandTotal = 0
+
+  for (const row of holeScoreRows ?? []) {
+    if (row.putts != null) { totalPutts += row.putts; puttsHoles++ }
+    if (row.green_in_regulation != null) { girTotal++; if (row.green_in_regulation) girYes++ }
+    if (row.fairway_hit != null) { fwyTotal++; if (row.fairway_hit) fwyYes++ }
+    if (row.bunker_shots != null) bunkerTotal += row.bunker_shots
+    if (row.penalties != null) penaltyTotal += row.penalties
+    if (row.up_and_down != null) { uadTotal++; if (row.up_and_down) uadYes++ }
+    if (row.sand_save != null) { sandTotal++; if (row.sand_save) sandYes++ }
+  }
+
+  const hasStats = puttsHoles > 0 || girTotal > 0 || fwyTotal > 0 || bunkerTotal > 0 || penaltyTotal > 0
 
   // ── 4. Group players + contest entries (for leaderboard) ──────────────────
   const [{ data: allPlayers }, { data: contestEntries }] = await Promise.all([
@@ -1152,6 +1213,64 @@ export default async function RoundSummaryPage({ params }: PageProps) {
           {!courseDataUnavailable && holesPlayed > 0 && (
             <section className="rs-card rs-chart-card">
               <ChartSection holes={holes} scores={scores} hcStrokes={hcStrokes} />
+            </section>
+          )}
+
+          {/* Round stats */}
+          {hasStats && (
+            <section className="rs-card rs-stats-card">
+              <div className="rs-card-hd">Round Stats</div>
+              <div className="rs-stats-grid">
+                {puttsHoles > 0 && (
+                  <div className="rs-stat-tile">
+                    <span className="rs-stat-value">{totalPutts}</span>
+                    <span className="rs-stat-sub">{(totalPutts / puttsHoles).toFixed(1)} avg</span>
+                    <span className="rs-stat-name">Putts</span>
+                  </div>
+                )}
+                {girTotal > 0 && (
+                  <div className="rs-stat-tile">
+                    <span className="rs-stat-value">{Math.round(girYes / girTotal * 100)}%</span>
+                    <span className="rs-stat-sub">{girYes}/{girTotal}</span>
+                    <span className="rs-stat-name">GIR</span>
+                  </div>
+                )}
+                {fwyTotal > 0 && (
+                  <div className="rs-stat-tile">
+                    <span className="rs-stat-value">{Math.round(fwyYes / fwyTotal * 100)}%</span>
+                    <span className="rs-stat-sub">{fwyYes}/{fwyTotal}</span>
+                    <span className="rs-stat-name">Fairways</span>
+                  </div>
+                )}
+                {bunkerTotal > 0 && (
+                  <div className="rs-stat-tile">
+                    <span className="rs-stat-value">{bunkerTotal}</span>
+                    <span className="rs-stat-sub">&nbsp;</span>
+                    <span className="rs-stat-name">Bunker Shots</span>
+                  </div>
+                )}
+                {penaltyTotal > 0 && (
+                  <div className="rs-stat-tile">
+                    <span className="rs-stat-value">{penaltyTotal}</span>
+                    <span className="rs-stat-sub">&nbsp;</span>
+                    <span className="rs-stat-name">Penalties</span>
+                  </div>
+                )}
+                {uadTotal > 0 && (
+                  <div className="rs-stat-tile">
+                    <span className="rs-stat-value">{Math.round(uadYes / uadTotal * 100)}%</span>
+                    <span className="rs-stat-sub">{uadYes}/{uadTotal}</span>
+                    <span className="rs-stat-name">Up &amp; Down</span>
+                  </div>
+                )}
+                {sandTotal > 0 && (
+                  <div className="rs-stat-tile">
+                    <span className="rs-stat-value">{Math.round(sandYes / sandTotal * 100)}%</span>
+                    <span className="rs-stat-sub">{sandYes}/{sandTotal}</span>
+                    <span className="rs-stat-name">Sand Saves</span>
+                  </div>
+                )}
+              </div>
             </section>
           )}
 

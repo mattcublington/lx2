@@ -31,7 +31,7 @@ export default async function AnalysisPage() {
         course_combinations ( name, loop_1_id, loop_2_id )
       ),
       event_players!inner ( user_id ),
-      hole_scores ( hole_number, gross_strokes )
+      hole_scores ( hole_number, gross_strokes, putts, fairway_hit, green_in_regulation, bunker_shots, penalties, up_and_down, sand_save )
     `)
     .eq('event_players.user_id', user.id)
     .order('created_at', { ascending: true })
@@ -39,6 +39,13 @@ export default async function AnalysisPage() {
   type HoleScore = {
     hole_number: number
     gross_strokes: number | null
+    putts: number | null
+    fairway_hit: boolean | null
+    green_in_regulation: boolean | null
+    bunker_shots: number | null
+    penalties: number | null
+    up_and_down: boolean | null
+    sand_save: boolean | null
   }
 
   type RawScorecard = {
@@ -144,6 +151,23 @@ export default async function AnalysisPage() {
         else triples++
       }
 
+      // Stats aggregation
+      let puttsSum = 0, puttsCount = 0
+      let girHit = 0, girCount = 0
+      let fwyHit = 0, fwyCount = 0
+      let bunkers = 0, penalties = 0
+      let uadHit = 0, uadCount = 0
+      let sandHit = 0, sandCount = 0
+      for (const h of c.hole_scores) {
+        if (h.putts != null) { puttsSum += h.putts; puttsCount++ }
+        if (h.green_in_regulation != null) { girCount++; if (h.green_in_regulation) girHit++ }
+        if (h.fairway_hit != null) { fwyCount++; if (h.fairway_hit) fwyHit++ }
+        if (h.bunker_shots != null) bunkers += h.bunker_shots
+        if (h.penalties != null) penalties += h.penalties
+        if (h.up_and_down != null) { uadCount++; if (h.up_and_down) uadHit++ }
+        if (h.sand_save != null) { sandCount++; if (h.sand_save) sandHit++ }
+      }
+
       return {
         id: c.id,
         date: c.events?.date ?? c.created_at.slice(0, 10),
@@ -158,6 +182,17 @@ export default async function AnalysisPage() {
         bogeys,
         doubles,
         triples,
+        // Stats
+        puttsTotal: puttsCount > 0 ? puttsSum : null,
+        puttsAvg: puttsCount > 0 ? puttsSum / puttsCount : null,
+        girPct: girCount > 0 ? girHit / girCount : null,
+        girRatio: girCount > 0 ? `${girHit}/${girCount}` : null,
+        fwyPct: fwyCount > 0 ? fwyHit / fwyCount : null,
+        fwyRatio: fwyCount > 0 ? `${fwyHit}/${fwyCount}` : null,
+        bunkerShots: bunkers > 0 ? bunkers : null,
+        penaltyStrokes: penalties > 0 ? penalties : null,
+        uadPct: uadCount > 0 ? uadHit / uadCount : null,
+        sandPct: sandCount > 0 ? sandHit / sandCount : null,
       }
     })
     .sort((a, b) => a.date.localeCompare(b.date))

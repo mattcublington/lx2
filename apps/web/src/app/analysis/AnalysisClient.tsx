@@ -18,6 +18,16 @@ interface RoundSummary {
   bogeys: number
   doubles: number
   triples: number
+  puttsTotal: number | null
+  puttsAvg: number | null
+  girPct: number | null
+  girRatio: string | null
+  fwyPct: number | null
+  fwyRatio: string | null
+  bunkerShots: number | null
+  penaltyStrokes: number | null
+  uadPct: number | null
+  sandPct: number | null
 }
 
 interface Props {
@@ -64,6 +74,34 @@ export default function AnalysisClient({ displayName, handicapIndex, rounds }: P
   }
   const distTotal = dist.eagles + dist.birdies + dist.pars + dist.bogeys + dist.doubles + dist.triples
   const distPct = (v: number) => distTotal > 0 ? (v / distTotal * 100) : 0
+
+  // Aggregate performance stats across all rounds
+  const roundsWithPutts = rounds.filter(r => r.puttsAvg !== null)
+  const roundsWithGir = rounds.filter(r => r.girPct !== null)
+  const roundsWithFwy = rounds.filter(r => r.fwyPct !== null)
+  const roundsWithUad = rounds.filter(r => r.uadPct !== null)
+
+  const avgPuttsPerHole = roundsWithPutts.length > 0
+    ? roundsWithPutts.reduce((s, r) => s + (r.puttsAvg ?? 0), 0) / roundsWithPutts.length
+    : null
+  const avgGirPct = roundsWithGir.length > 0
+    ? roundsWithGir.reduce((s, r) => s + (r.girPct ?? 0), 0) / roundsWithGir.length * 100
+    : null
+  const avgFwyPct = roundsWithFwy.length > 0
+    ? roundsWithFwy.reduce((s, r) => s + (r.fwyPct ?? 0), 0) / roundsWithFwy.length * 100
+    : null
+  const avgUadPct = roundsWithUad.length > 0
+    ? roundsWithUad.reduce((s, r) => s + (r.uadPct ?? 0), 0) / roundsWithUad.length * 100
+    : null
+  const totalBunkers = rounds.reduce((s, r) => s + (r.bunkerShots ?? 0), 0)
+  const totalPenalties = rounds.reduce((s, r) => s + (r.penaltyStrokes ?? 0), 0)
+
+  const hasAnyStats = avgPuttsPerHole !== null || avgGirPct !== null || avgFwyPct !== null
+
+  // Stats trend — last 10 rounds (for mini sparklines)
+  const puttsTrend = fullRounds.slice(-10).filter(r => r.puttsAvg !== null).map(r => r.puttsAvg!)
+  const girTrend = fullRounds.slice(-10).filter(r => r.girPct !== null).map(r => r.girPct! * 100)
+  const fwyTrend = fullRounds.slice(-10).filter(r => r.fwyPct !== null).map(r => r.fwyPct! * 100)
 
   // Scoring trend — last 10 rounds
   const trendRounds = fullRounds.slice(-10)
@@ -449,6 +487,59 @@ export default function AnalysisClient({ displayName, handicapIndex, rounds }: P
         .an-bar-double { background: linear-gradient(90deg, #A0785A, #c29878); }
         .an-bar-triple { background: linear-gradient(90deg, #923357, #b04a6f); }
 
+        /* ── Performance stats grid ── */
+        .an-perf-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 1px;
+          background: rgba(26, 28, 28, 0.06);
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 4px 12px rgba(26, 28, 28, 0.04);
+        }
+        .an-perf-tile {
+          background: #FFFFFF;
+          padding: 1rem 0.625rem;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.125rem;
+        }
+        .an-perf-val {
+          font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+          font-weight: 700;
+          font-size: 1.375rem;
+          color: #0D631B;
+          line-height: 1;
+        }
+        .an-perf-sub {
+          font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+          font-size: 0.625rem;
+          color: #A0B09A;
+          min-height: 0.875rem;
+        }
+        .an-perf-label {
+          font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+          font-size: 0.625rem;
+          font-weight: 500;
+          color: #72786E;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+        }
+        .an-perf-spark {
+          display: flex;
+          align-items: flex-end;
+          gap: 2px;
+          height: 20px;
+          margin-top: 0.25rem;
+        }
+        .an-perf-spark-bar {
+          width: 4px;
+          border-radius: 2px;
+          background: rgba(13, 99, 27, 0.25);
+          transition: height 0.3s;
+        }
+
         /* ── Recent rounds table ── */
         .an-rounds-card {
           background: #FFFFFF;
@@ -733,6 +824,83 @@ export default function AnalysisClient({ displayName, handicapIndex, rounds }: P
                         <div className="an-dist-count">{row.val}</div>
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Performance stats */}
+              {hasAnyStats && (
+                <div className="an-section">
+                  <h2 className="an-section-title">Performance Stats</h2>
+                  <div className="an-perf-grid">
+                    {avgPuttsPerHole !== null && (
+                      <div className="an-perf-tile">
+                        <span className="an-perf-val">{avgPuttsPerHole.toFixed(1)}</span>
+                        <span className="an-perf-sub">per hole</span>
+                        <span className="an-perf-label">Putts</span>
+                        {puttsTrend.length > 2 && (
+                          <div className="an-perf-spark">
+                            {puttsTrend.map((v, i) => {
+                              const min = Math.min(...puttsTrend)
+                              const max = Math.max(...puttsTrend)
+                              const h = max > min ? ((v - min) / (max - min)) * 16 + 4 : 10
+                              return <div key={i} className="an-perf-spark-bar" style={{ height: `${h}px` }} />
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {avgGirPct !== null && (
+                      <div className="an-perf-tile">
+                        <span className="an-perf-val">{Math.round(avgGirPct)}%</span>
+                        <span className="an-perf-sub">{roundsWithGir.length} rounds</span>
+                        <span className="an-perf-label">GIR</span>
+                        {girTrend.length > 2 && (
+                          <div className="an-perf-spark">
+                            {girTrend.map((v, i) => {
+                              const h = v / 100 * 16 + 4
+                              return <div key={i} className="an-perf-spark-bar" style={{ height: `${h}px` }} />
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {avgFwyPct !== null && (
+                      <div className="an-perf-tile">
+                        <span className="an-perf-val">{Math.round(avgFwyPct)}%</span>
+                        <span className="an-perf-sub">{roundsWithFwy.length} rounds</span>
+                        <span className="an-perf-label">Fairways</span>
+                        {fwyTrend.length > 2 && (
+                          <div className="an-perf-spark">
+                            {fwyTrend.map((v, i) => {
+                              const h = v / 100 * 16 + 4
+                              return <div key={i} className="an-perf-spark-bar" style={{ height: `${h}px` }} />
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {avgUadPct !== null && (
+                      <div className="an-perf-tile">
+                        <span className="an-perf-val">{Math.round(avgUadPct)}%</span>
+                        <span className="an-perf-sub">{roundsWithUad.length} rounds</span>
+                        <span className="an-perf-label">Up &amp; Down</span>
+                      </div>
+                    )}
+                    {totalBunkers > 0 && (
+                      <div className="an-perf-tile">
+                        <span className="an-perf-val">{totalBunkers}</span>
+                        <span className="an-perf-sub">{totalRounds} rounds</span>
+                        <span className="an-perf-label">Bunkers</span>
+                      </div>
+                    )}
+                    {totalPenalties > 0 && (
+                      <div className="an-perf-tile">
+                        <span className="an-perf-val">{totalPenalties}</span>
+                        <span className="an-perf-sub">{totalRounds} rounds</span>
+                        <span className="an-perf-label">Penalties</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

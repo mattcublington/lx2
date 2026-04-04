@@ -102,6 +102,10 @@ export interface HoleScore {
   fairway_hit: boolean | null
   green_in_regulation: boolean | null
   miss_direction: string | null         // 'left' | 'right' | 'short' | 'long'
+  bunker_shots: number | null
+  penalties: number | null
+  up_and_down: boolean | null
+  sand_save: boolean | null
   input_method: string | null           // 'manual' | 'voice'
   voice_transcript: string | null
   created_at: string

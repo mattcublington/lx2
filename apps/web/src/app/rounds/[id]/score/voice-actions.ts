@@ -16,6 +16,10 @@ export async function saveVoiceScoreDetails(
     fairwayHit?: boolean | undefined
     greenInRegulation?: boolean | undefined
     missDirection?: string | undefined
+    bunkerShots?: number | undefined
+    penalties?: number | undefined
+    upAndDown?: boolean | undefined
+    sandSave?: boolean | undefined
     voiceTranscript: string
   },
 ): Promise<void> {
@@ -42,6 +46,10 @@ export async function saveVoiceScoreDetails(
       fairway_hit: details.fairwayHit ?? null,
       green_in_regulation: details.greenInRegulation ?? null,
       miss_direction: details.missDirection ?? null,
+      bunker_shots: details.bunkerShots ?? null,
+      penalties: details.penalties ?? null,
+      up_and_down: details.upAndDown ?? null,
+      sand_save: details.sandSave ?? null,
       input_method: 'voice',
       voice_transcript: details.voiceTranscript,
     })

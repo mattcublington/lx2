@@ -26,6 +26,10 @@ export interface ParsedOwnScore {
   gir?: boolean
   fairwayHit?: boolean
   missDirection?: 'left' | 'right' | 'short' | 'long'
+  bunkerShots?: number
+  penalties?: number
+  upAndDown?: boolean
+  sandSave?: boolean
   notes?: string
   confidence: number
 }

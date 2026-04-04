@@ -12,6 +12,10 @@ interface ConfirmedScore {
   gir?: boolean | undefined
   fairwayHit?: boolean | undefined
   missDirection?: string | undefined
+  bunkerShots?: number | undefined
+  penalties?: number | undefined
+  upAndDown?: boolean | undefined
+  sandSave?: boolean | undefined
 }
 
 interface VoiceConfirmProps {
@@ -268,7 +272,7 @@ const STYLES = `
     width: 36px; height: 36px;
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    font-family: var(--font-manrope), 'Manrope', sans-serif;
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
     font-weight: 700;
     font-size: 0.875rem;
     color: #FFFFFF;
@@ -326,7 +330,7 @@ const STYLES = `
     flex-shrink: 0;
   }
   .vcf-gross {
-    font-family: var(--font-manrope), 'Manrope', sans-serif;
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
     font-weight: 700;
     font-size: 1.5rem;
     color: #1A2E1A;
