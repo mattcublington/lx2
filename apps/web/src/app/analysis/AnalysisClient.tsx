@@ -244,7 +244,7 @@ export default function AnalysisClient({ displayName, handicapIndex, rounds }: P
         .an-title {
           font-family: var(--font-manrope), sans-serif;
           font-weight: 800;
-          font-size: 1.375rem;
+          font-size: 1.1875rem;
           color: #fff;
           letter-spacing: -0.03em;
           line-height: 1.1;
@@ -252,7 +252,7 @@ export default function AnalysisClient({ displayName, handicapIndex, rounds }: P
         }
         .an-subtitle {
           font-family: var(--font-dm-sans), sans-serif;
-          font-size: 0.8125rem;
+          font-size: 0.6875rem;
           font-weight: 400;
           color: rgba(255, 255, 255, 0.6);
           line-height: 1.3;
@@ -681,12 +681,6 @@ export default function AnalysisClient({ displayName, handicapIndex, rounds }: P
 
             <div className="an-title-card">
               <div className="an-title-left">
-                <div className="an-title-icon">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M3 17l4-8 4 4 4-6 4 4" stroke="#fff" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M3 21h18" stroke="#fff" strokeWidth="1.75" strokeLinecap="round"/>
-                  </svg>
-                </div>
                 <div className="an-title-info">
                   <h1 className="an-title">Analysis</h1>
                   <p className="an-subtitle">{displayName}&apos;s performance overview</p>

@@ -321,12 +321,12 @@ export default function PlayDashboard({
           color: #fff;
           font-family: var(--font-manrope), sans-serif;
           font-weight: 800;
-          font-size: 1.25rem;
+          font-size: 1.0625rem;
         }
         .fe-banner-info { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
         .fe-greeting-sub {
           font-family: var(--font-dm-sans), sans-serif;
-          font-size: 0.8125rem;
+          font-size: 0.6875rem;
           font-weight: 400;
           color: rgba(255,255,255,0.6);
           line-height: 1.2;
@@ -334,7 +334,7 @@ export default function PlayDashboard({
         .fe-name {
           font-family: var(--font-manrope), sans-serif;
           font-weight: 800;
-          font-size: 1.375rem;
+          font-size: 1.1875rem;
           color: #fff;
           letter-spacing: -0.03em;
           line-height: 1.1;
@@ -344,7 +344,7 @@ export default function PlayDashboard({
         }
         .fe-profile-sub {
           font-family: var(--font-dm-sans), sans-serif;
-          font-size: 0.75rem;
+          font-size: 0.625rem;
           font-weight: 400;
           color: rgba(255,255,255,0.45);
           line-height: 1.3;
@@ -398,7 +398,7 @@ export default function PlayDashboard({
         }
         .fe-hcp-label {
           font-family: var(--font-dm-sans), sans-serif;
-          font-size: 0.6875rem;
+          font-size: 0.5625rem;
           font-weight: 600;
           color: rgba(255, 255, 255, 0.65);
           text-transform: uppercase;
@@ -407,7 +407,7 @@ export default function PlayDashboard({
         .fe-hcp-value {
           font-family: var(--font-manrope), sans-serif;
           font-weight: 800;
-          font-size: 1.125rem;
+          font-size: 0.9375rem;
           color: #fff;
           letter-spacing: -0.02em;
         }
@@ -455,14 +455,14 @@ export default function PlayDashboard({
         .fe-stat-val {
           font-family: var(--font-manrope), sans-serif;
           font-weight: 700;
-          font-size: 1.5rem;
+          font-size: 1.25rem;
           color: #1A2E1A;
           margin-bottom: 0.2rem;
           letter-spacing: -0.02em;
         }
         .fe-stat-label {
           font-family: var(--font-lexend), sans-serif;
-          font-size: 0.6875rem;
+          font-size: 0.5625rem;
           font-weight: 400;
           color: #72786E;
           line-height: 1.3;
@@ -503,7 +503,7 @@ export default function PlayDashboard({
           width: 100%;
           padding: 0.875rem 1.125rem;
           font-family: var(--font-dm-sans), sans-serif;
-          font-size: 0.9375rem;
+          font-size: 0.8125rem;
           font-weight: 500;
           color: rgba(255,255,255,0.88);
           background: none;
@@ -543,7 +543,7 @@ export default function PlayDashboard({
         }
         .fe-insight-label {
           font-family: var(--font-lexend), sans-serif;
-          font-size: 0.625rem;
+          font-size: 0.5625rem;
           font-weight: 600;
           text-transform: uppercase;
           letter-spacing: 0.08em;
@@ -552,7 +552,7 @@ export default function PlayDashboard({
         }
         .fe-insight-text {
           font-family: var(--font-dm-sans), sans-serif;
-          font-size: 0.875rem;
+          font-size: 0.75rem;
           font-weight: 400;
           color: #1A2E1A;
           line-height: 1.5;
@@ -582,7 +582,7 @@ export default function PlayDashboard({
         }
         .fe-pulse-title {
           font-family: var(--font-lexend), sans-serif;
-          font-size: 0.6875rem;
+          font-size: 0.5625rem;
           font-weight: 600;
           text-transform: uppercase;
           letter-spacing: 0.08em;
@@ -593,7 +593,7 @@ export default function PlayDashboard({
           align-items: center;
           gap: 0.3rem;
           font-family: var(--font-lexend), sans-serif;
-          font-size: 0.8125rem;
+          font-size: 0.6875rem;
           font-weight: 500;
           padding: 0.2rem 0.5rem;
           border-radius: 6px;
@@ -620,23 +620,23 @@ export default function PlayDashboard({
         .fe-pulse-score-val {
           font-family: var(--font-manrope), sans-serif;
           font-weight: 700;
-          font-size: 0.6875rem;
+          font-size: 0.5625rem;
           color: #1A2E1A;
         }
         .fe-pulse-score-val.latest {
           color: #0D631B;
-          font-size: 0.75rem;
+          font-size: 0.625rem;
         }
         .fe-pulse-score-date {
           font-family: var(--font-lexend), sans-serif;
-          font-size: 0.5625rem;
+          font-size: 0.5rem;
           color: #72786E;
         }
         .fe-pulse-footer {
           display: flex;
           gap: 1.5rem;
           font-family: var(--font-lexend), sans-serif;
-          font-size: 0.8125rem;
+          font-size: 0.6875rem;
           color: #72786E;
         }
 
@@ -656,7 +656,7 @@ export default function PlayDashboard({
           border-radius: 16px;
           font-family: var(--font-manrope), sans-serif;
           font-weight: 700;
-          font-size: 1rem;
+          font-size: 0.875rem;
           cursor: pointer;
           box-shadow: 0 8px 24px rgba(13, 99, 27, 0.2);
           transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
@@ -745,14 +745,14 @@ export default function PlayDashboard({
         .fe-action-title {
           font-family: var(--font-dm-sans), sans-serif;
           font-weight: 700;
-          font-size: 1.0625rem;
+          font-size: 0.9375rem;
           letter-spacing: -0.01em;
           text-align: left;
           line-height: 1.2;
         }
         .fe-action-sub {
           font-family: var(--font-dm-sans), sans-serif;
-          font-size: 0.8125rem;
+          font-size: 0.6875rem;
           font-weight: 400;
           text-align: left;
           line-height: 1.4;
@@ -773,7 +773,7 @@ export default function PlayDashboard({
           border-radius: 14px;
           font-family: var(--font-dm-sans), sans-serif;
           font-weight: 600;
-          font-size: 0.8125rem;
+          font-size: 0.6875rem;
           letter-spacing: 0.06em;
           text-transform: uppercase;
           cursor: pointer;
@@ -800,13 +800,13 @@ export default function PlayDashboard({
         .fe-section-title {
           font-family: var(--font-manrope), sans-serif;
           font-weight: 700;
-          font-size: 1.125rem;
+          font-size: 0.9375rem;
           color: #1A2E1A;
           letter-spacing: -0.01em;
         }
         .fe-section-link {
           font-family: var(--font-lexend), sans-serif;
-          font-size: 0.8125rem;
+          font-size: 0.6875rem;
           font-weight: 500;
           color: #6B8C6B;
           text-decoration: none;
@@ -847,7 +847,7 @@ export default function PlayDashboard({
         .fe-course {
           font-family: var(--font-lexend), sans-serif;
           font-weight: 500;
-          font-size: 0.9375rem;
+          font-size: 0.8125rem;
           color: #1A2E1A;
           margin-bottom: 0.2rem;
           white-space: nowrap;
@@ -856,13 +856,13 @@ export default function PlayDashboard({
         }
         .fe-round-date {
           font-family: var(--font-lexend), sans-serif;
-          font-size: 0.8125rem;
+          font-size: 0.6875rem;
           font-weight: 400;
           color: #72786E;
         }
         .fe-round-chev {
           color: #C8D4C8;
-          font-size: 1.125rem;
+          font-size: 0.9375rem;
           margin-left: 0.75rem;
           flex-shrink: 0;
           transition: transform 0.15s, color 0.15s;
@@ -878,13 +878,13 @@ export default function PlayDashboard({
         }
         .fe-empty-h {
           font-family: var(--font-manrope), sans-serif;
-          font-size: 1rem;
+          font-size: 0.875rem;
           font-weight: 600;
           color: #C0CFC0;
           margin-bottom: 0.5rem;
         }
         .fe-empty-p {
-          font-size: 0.875rem;
+          font-size: 0.75rem;
           color: #72786E;
           line-height: 1.6;
         }
@@ -917,7 +917,7 @@ export default function PlayDashboard({
           padding: 0.375rem 0.75rem;
           border-radius: 10px;
           font-family: var(--font-lexend), sans-serif;
-          font-size: 0.75rem;
+          font-size: 0.625rem;
           font-weight: 500;
           color: #923357;
           margin-bottom: 0.75rem;
@@ -925,7 +925,7 @@ export default function PlayDashboard({
         .fe-event-name {
           font-family: var(--font-manrope), sans-serif;
           font-weight: 700;
-          font-size: 1.125rem;
+          font-size: 0.9375rem;
           color: #1A2E1A;
           margin-bottom: 0.5rem;
           letter-spacing: -0.01em;
@@ -935,7 +935,7 @@ export default function PlayDashboard({
           align-items: center;
           gap: 1rem;
           font-family: var(--font-lexend), sans-serif;
-          font-size: 0.875rem;
+          font-size: 0.75rem;
           color: #44483E;
         }
         .fe-event-detail {
@@ -976,7 +976,7 @@ export default function PlayDashboard({
         .fe-org-name {
           font-family: var(--font-lexend), sans-serif;
           font-weight: 500;
-          font-size: 0.9375rem;
+          font-size: 0.8125rem;
           color: #1A2E1A;
           margin-bottom: 0.15rem;
           white-space: nowrap;
@@ -985,7 +985,7 @@ export default function PlayDashboard({
         }
         .fe-org-meta {
           font-family: var(--font-lexend), sans-serif;
-          font-size: 0.8125rem;
+          font-size: 0.6875rem;
           color: #72786E;
         }
         .fe-org-badge {
@@ -994,7 +994,7 @@ export default function PlayDashboard({
           padding: 0.25rem 0.625rem;
           border-radius: 8px;
           font-family: var(--font-lexend), sans-serif;
-          font-size: 0.6875rem;
+          font-size: 0.5625rem;
           font-weight: 600;
           text-transform: uppercase;
           letter-spacing: 0.04em;
@@ -1024,7 +1024,7 @@ export default function PlayDashboard({
             max-width: 560px;
             padding: 2rem 2rem;
           }
-          .fe-name { font-size: 1.5rem; }
+          .fe-name { font-size: 1.25rem; }
           .fe-avatar, .fe-avatar-placeholder { width: 56px; height: 56px; }
           .fe-banner { min-height: 240px; }
           .fe-profile-card { margin: 0 1rem 1rem; padding: 1.125rem 1.5rem; }
@@ -1072,7 +1072,6 @@ export default function PlayDashboard({
                 <div className="fe-banner-info">
                   <div className="fe-greeting-sub">{greetingPrefix},</div>
                   <h1 className="fe-name">{firstName}</h1>
-                  <div className="fe-profile-sub">Ready for your next round?</div>
                 </div>
               </Link>
               {handicapIndex != null && (

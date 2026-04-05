@@ -166,7 +166,7 @@ export default async function RoundsPage() {
         .rp-title {
           font-family: var(--font-manrope), sans-serif;
           font-weight: 800;
-          font-size: 1.375rem;
+          font-size: 1.1875rem;
           color: #fff;
           letter-spacing: -0.03em;
           line-height: 1.1;
@@ -174,7 +174,7 @@ export default async function RoundsPage() {
         }
         .rp-subtitle {
           font-family: var(--font-dm-sans), sans-serif;
-          font-size: 0.8125rem;
+          font-size: 0.6875rem;
           font-weight: 400;
           color: rgba(255, 255, 255, 0.6);
           line-height: 1.3;
@@ -353,13 +353,6 @@ export default async function RoundsPage() {
             {/* ── Title card (inside banner, frosted glass) ── */}
             <div className="rp-title-card">
               <div className="rp-title-left">
-                <div className="rp-title-icon">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <rect x="3" y="4" width="18" height="16" rx="2" stroke="#fff" strokeWidth="1.75"/>
-                    <path d="M3 10h18" stroke="#fff" strokeWidth="1.75"/>
-                    <path d="M9 4v6M15 4v6" stroke="#fff" strokeWidth="1.75" strokeLinecap="round"/>
-                  </svg>
-                </div>
                 <div className="rp-title-info">
                   <h1 className="rp-title">My Rounds</h1>
                   <p className="rp-subtitle">Your scorecard history</p>
