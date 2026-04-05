@@ -1677,8 +1677,8 @@ function SettingsStep({
                             style={dropdownStyle}
                             aria-label={`Gender for ${player.name}`}
                           >
-                            <option value="m">M</option>
-                            <option value="w">W</option>
+                            <option value="m">Mens</option>
+                            <option value="w">Womens</option>
                           </select>
                         </div>
                         <div style={{ fontFamily: font.body, fontSize: 12, color: FE.onTertiary, paddingLeft: '0.25rem', marginTop: '0.5rem' }}>
