@@ -2,7 +2,7 @@
   "name": "LX2",
   "short_name": "LX2",
   "description": "Golf scoring and society management",
-  "start_url": "/",
+  "start_url": "/play",
   "display": "standalone",
   "background_color": "#0a1f0a",
   "theme_color": "#0D631B",

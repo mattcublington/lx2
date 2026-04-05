@@ -1,5 +1,5 @@
 'use client'
-import { useState, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -17,6 +17,12 @@ function AuthForm() {
   const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [isStandalone, setIsStandalone] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(display-mode: standalone)')
+    setIsStandalone(mq.matches || (navigator as unknown as { standalone?: boolean }).standalone === true)
+  }, [])
 
   const supabase = createClient()
 
@@ -54,6 +60,314 @@ function AuthForm() {
     setLoading(false)
   }
 
+  // ── PWA standalone: native app sign-in ──────────────────────────────────────
+  if (isStandalone) {
+    return (
+      <>
+        <style>{`
+          .pwa-auth {
+            min-height: 100dvh;
+            background: #0a1f0a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1.5rem;
+            padding-top: env(safe-area-inset-top, 0);
+            padding-bottom: env(safe-area-inset-bottom, 0);
+            font-family: var(--font-dm-sans, 'DM Sans', sans-serif);
+            color: #fff;
+            overflow: hidden;
+          }
+
+          .pwa-auth-inner {
+            width: 100%;
+            max-width: 360px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+            animation: pwa-fade-in 0.5s ease forwards 0.05s;
+          }
+
+          @keyframes pwa-fade-in {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+
+          .pwa-logo {
+            margin-bottom: 1rem;
+          }
+
+          .pwa-welcome {
+            font-family: var(--font-dm-serif, 'DM Serif Display', serif);
+            font-size: 1.75rem;
+            font-weight: 400;
+            color: #fff;
+            margin-bottom: 0.375rem;
+            text-align: center;
+          }
+
+          .pwa-subtitle {
+            font-family: var(--font-dm-sans, 'DM Sans', sans-serif);
+            font-size: 0.9375rem;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 2.5rem;
+            text-align: center;
+          }
+
+          .pwa-google-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 20px;
+            background: #fff;
+            color: #1A2E1A;
+            border: none;
+            border-radius: 12px;
+            font-family: var(--font-dm-sans, 'DM Sans', sans-serif);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+          }
+          .pwa-google-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+          }
+          .pwa-google-btn:active:not(:disabled) { transform: translateY(0); }
+          .pwa-google-btn:disabled { opacity: 0.6; cursor: default; }
+
+          .pwa-divider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            width: 100%;
+            margin: 1.5rem 0;
+          }
+          .pwa-divider-line {
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.12);
+          }
+          .pwa-divider-text {
+            font-size: 0.8125rem;
+            color: rgba(255, 255, 255, 0.35);
+          }
+
+          .pwa-form-group {
+            width: 100%;
+            margin-bottom: 1rem;
+          }
+
+          .pwa-label {
+            display: block;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 6px;
+          }
+
+          .pwa-input {
+            width: 100%;
+            padding: 12px 14px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            color: #fff;
+            font-family: var(--font-dm-sans, 'DM Sans', sans-serif);
+            font-size: 1rem;
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.15s, background 0.15s;
+          }
+          .pwa-input::placeholder { color: rgba(255, 255, 255, 0.25); }
+          .pwa-input:focus {
+            border-color: rgba(13, 99, 27, 0.7);
+            background: rgba(255, 255, 255, 0.12);
+          }
+
+          .pwa-submit-btn {
+            width: 100%;
+            padding: 14px 20px;
+            background: #0D631B;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-family: var(--font-dm-sans, 'DM Sans', sans-serif);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: background 0.15s, transform 0.15s;
+          }
+          .pwa-submit-btn:hover:not(:disabled) {
+            background: #0a4f15;
+            transform: translateY(-1px);
+          }
+          .pwa-submit-btn:active:not(:disabled) { transform: translateY(0); }
+          .pwa-submit-btn:disabled { background: #3a5a3a; cursor: default; }
+
+          .pwa-error {
+            width: 100%;
+            font-size: 0.8125rem;
+            color: #f87171;
+            margin-bottom: 10px;
+            line-height: 1.4;
+          }
+
+          .pwa-success {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(13, 99, 27, 0.2);
+            border: 1px solid rgba(13, 99, 27, 0.35);
+            border-radius: 10px;
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.5;
+          }
+
+          .pwa-toggle {
+            margin-top: 1.5rem;
+            text-align: center;
+          }
+          .pwa-toggle-btn {
+            font-family: var(--font-dm-sans, 'DM Sans', sans-serif);
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.5);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            transition: color 0.15s;
+          }
+          .pwa-toggle-btn:hover { color: rgba(255, 255, 255, 0.8); }
+
+          .pwa-hint {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.3);
+            margin-top: 4px;
+          }
+        `}</style>
+
+        <div className="pwa-auth">
+          <div className="pwa-auth-inner">
+            <div className="pwa-logo">
+              <Image
+                src="/lx2-logo.svg"
+                alt="LX2"
+                width={120}
+                height={60}
+                style={{ height: '48px', width: 'auto', filter: 'brightness(0) invert(1)' }}
+                priority
+              />
+            </div>
+
+            <h1 className="pwa-welcome">
+              {mode === 'signin' ? 'Welcome back' : 'Create account'}
+            </h1>
+            <p className="pwa-subtitle">
+              {mode === 'signin' ? 'Sign in to continue' : 'Get started with LX2'}
+            </p>
+
+            {success ? (
+              <div className="pwa-success">{success}</div>
+            ) : (
+              <>
+                <button
+                  className="pwa-google-btn"
+                  onClick={handleGoogle}
+                  disabled={googleLoading}
+                >
+                  <svg width="18" height="18" viewBox="0 0 18 18">
+                    <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
+                    <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+                    <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
+                    <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/>
+                  </svg>
+                  {googleLoading ? 'Redirecting...' : 'Continue with Google'}
+                </button>
+
+                <div className="pwa-divider">
+                  <div className="pwa-divider-line" />
+                  <span className="pwa-divider-text">or</span>
+                  <div className="pwa-divider-line" />
+                </div>
+
+                <form onSubmit={handleSubmit} style={{ width: '100%' }}>
+                  <div className="pwa-form-group">
+                    <label className="pwa-label" htmlFor="pwa-email">Email</label>
+                    <input
+                      id="pwa-email"
+                      type="email"
+                      className="pwa-input"
+                      placeholder="your@email.com"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      required
+                      autoComplete="email"
+                    />
+                  </div>
+
+                  <div className="pwa-form-group">
+                    <label className="pwa-label" htmlFor="pwa-password">Password</label>
+                    <input
+                      id="pwa-password"
+                      type="password"
+                      className="pwa-input"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      required
+                      minLength={mode === 'signup' ? 8 : undefined}
+                      autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                    />
+                    {mode === 'signup' && (
+                      <div className="pwa-hint">Minimum 8 characters</div>
+                    )}
+                  </div>
+
+                  {error && <div className="pwa-error">{error}</div>}
+
+                  <button
+                    type="submit"
+                    className="pwa-submit-btn"
+                    disabled={loading || !email || !password}
+                  >
+                    {loading ? '...' : mode === 'signin' ? 'Sign in' : 'Create account'}
+                  </button>
+                </form>
+              </>
+            )}
+
+            <div className="pwa-toggle">
+              {mode === 'signin' ? (
+                <button
+                  className="pwa-toggle-btn"
+                  onClick={() => { setMode('signup'); setError(''); setSuccess('') }}
+                >
+                  Create account
+                </button>
+              ) : (
+                <button
+                  className="pwa-toggle-btn"
+                  onClick={() => { setMode('signin'); setError(''); setSuccess('') }}
+                >
+                  Already have an account? Sign in
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </>
+    )
+  }
+
+  // ── Browser: standard login page ────────────────────────────────────────────
   return (
     <>
       <style>{`
@@ -343,7 +657,7 @@ function AuthForm() {
                     className="btn btn-primary"
                     disabled={loading || !email || !password}
                   >
-                    {loading ? '…' : mode === 'signin' ? 'Sign in' : 'Create account'}
+                    {loading ? '...' : mode === 'signin' ? 'Sign in' : 'Create account'}
                   </button>
 
                   <div className="divider">
@@ -364,7 +678,7 @@ function AuthForm() {
                       <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
                       <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/>
                     </svg>
-                    {googleLoading ? 'Redirecting…' : 'Continue with Google'}
+                    {googleLoading ? 'Redirecting...' : 'Continue with Google'}
                   </button>
                 </form>
               )}
