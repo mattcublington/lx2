@@ -218,13 +218,13 @@ export default async function RoundsPage() {
         .rp-count-value {
           font-family: var(--font-manrope), sans-serif;
           font-weight: 800;
-          font-size: 1.125rem;
+          font-size: 0.9375rem;
           color: #fff;
           letter-spacing: -0.02em;
         }
         .rp-count-label {
           font-family: var(--font-dm-sans), sans-serif;
-          font-size: 0.6875rem;
+          font-size: 0.5625rem;
           font-weight: 600;
           color: rgba(255, 255, 255, 0.65);
           text-transform: uppercase;
@@ -257,7 +257,7 @@ export default async function RoundsPage() {
         .rp-info { flex: 1; min-width: 0; }
         .rp-course {
           font-weight: 500;
-          font-size: 0.9375rem;
+          font-size: 0.8125rem;
           color: #1A2E1A;
           margin-bottom: 0.2rem;
           white-space: nowrap;
@@ -265,14 +265,14 @@ export default async function RoundsPage() {
           text-overflow: ellipsis;
         }
         .rp-meta {
-          font-size: 0.8125rem;
+          font-size: 0.6875rem;
           color: #72786E;
           display: flex;
           gap: 0.5rem;
           align-items: center;
         }
         .rp-format {
-          font-size: 0.6875rem;
+          font-size: 0.5625rem;
           font-weight: 600;
           padding: 2px 6px;
           border-radius: 6px;
@@ -281,7 +281,7 @@ export default async function RoundsPage() {
         }
         .rp-chev {
           color: #C8D4C8;
-          font-size: 1.125rem;
+          font-size: 0.9375rem;
           margin-left: 0.75rem;
           flex-shrink: 0;
           transition: transform 0.15s, color 0.15s;
@@ -295,12 +295,12 @@ export default async function RoundsPage() {
         }
         .rp-empty-h {
           font-family: var(--font-manrope), sans-serif;
-          font-size: 1rem;
+          font-size: 0.875rem;
           font-weight: 600;
           color: #C0CFC0;
           margin-bottom: 0.5rem;
         }
-        .rp-empty-p { font-size: 0.875rem; color: #72786E; line-height: 1.6; }
+        .rp-empty-p { font-size: 0.75rem; color: #72786E; line-height: 1.6; }
         .rp-cta {
           display: flex;
           align-items: center;
@@ -314,7 +314,7 @@ export default async function RoundsPage() {
           border-radius: 14px;
           font-family: var(--font-manrope), sans-serif;
           font-weight: 700;
-          font-size: 0.9375rem;
+          font-size: 0.8125rem;
           cursor: pointer;
           text-decoration: none;
           margin-bottom: 1.25rem;

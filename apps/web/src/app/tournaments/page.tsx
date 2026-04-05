@@ -343,13 +343,13 @@ export default async function TournamentsPage() {
         .th-count-value {
           font-family: var(--font-manrope), sans-serif;
           font-weight: 800;
-          font-size: 1.125rem;
+          font-size: 0.9375rem;
           color: #fff;
           letter-spacing: -0.02em;
         }
         .th-count-label {
           font-family: var(--font-dm-sans), sans-serif;
-          font-size: 0.6875rem;
+          font-size: 0.5625rem;
           font-weight: 600;
           color: rgba(255, 255, 255, 0.65);
           text-transform: uppercase;
@@ -376,7 +376,7 @@ export default async function TournamentsPage() {
           border-radius: 12px;
           font-family: var(--font-dm-sans), sans-serif;
           font-weight: 600;
-          font-size: 0.875rem;
+          font-size: 0.75rem;
           text-decoration: none;
           box-shadow: 0 4px 14px rgba(13, 99, 27, 0.18);
           transition: transform 0.15s, box-shadow 0.15s;
@@ -396,7 +396,7 @@ export default async function TournamentsPage() {
           border-radius: 12px;
           font-family: var(--font-dm-sans), sans-serif;
           font-weight: 600;
-          font-size: 0.875rem;
+          font-size: 0.75rem;
           text-decoration: none;
           transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
         }
@@ -411,7 +411,7 @@ export default async function TournamentsPage() {
         .th-section-title {
           font-family: var(--font-dm-sans), sans-serif;
           font-weight: 700;
-          font-size: 0.8125rem;
+          font-size: 0.6875rem;
           color: #6B8C6B;
           text-transform: uppercase;
           letter-spacing: 0.06em;
@@ -422,7 +422,7 @@ export default async function TournamentsPage() {
           text-align: center;
           background: #FFFFFF;
           border-radius: 14px;
-          font-size: 0.875rem;
+          font-size: 0.75rem;
           color: #6B8C6B;
           line-height: 1.6;
           border: 1px solid #E0EBE0;
@@ -453,7 +453,7 @@ export default async function TournamentsPage() {
         .th-card-name {
           font-family: var(--font-dm-sans), sans-serif;
           font-weight: 600;
-          font-size: 1rem;
+          font-size: 0.875rem;
           color: #1A2E1A;
           margin-bottom: 0.3rem;
           white-space: nowrap;
@@ -461,7 +461,7 @@ export default async function TournamentsPage() {
           text-overflow: ellipsis;
         }
         .th-card-meta {
-          font-size: 0.8125rem;
+          font-size: 0.6875rem;
           color: #6B8C6B;
           display: flex;
           gap: 0.5rem;
@@ -473,29 +473,29 @@ export default async function TournamentsPage() {
           background: rgba(13, 99, 27, 0.08) !important;
           color: #0D631B !important;
           border-color: rgba(13, 99, 27, 0.15) !important;
-          font-size: 0.6875rem !important;
+          font-size: 0.5625rem !important;
         }
         .th-badge-active, .th-badge-upcoming {
           background: rgba(13, 99, 27, 0.1) !important;
           color: #0D631B !important;
           border-color: rgba(13, 99, 27, 0.2) !important;
-          font-size: 0.6875rem !important;
+          font-size: 0.5625rem !important;
         }
         .th-badge-in-progress {
           background: rgba(230, 130, 0, 0.1) !important;
           color: #a05800 !important;
           border-color: rgba(230, 130, 0, 0.2) !important;
-          font-size: 0.6875rem !important;
+          font-size: 0.5625rem !important;
         }
         .th-badge-completed {
           background: rgba(107, 140, 107, 0.12) !important;
           color: #4a6e4a !important;
           border-color: rgba(107, 140, 107, 0.2) !important;
-          font-size: 0.6875rem !important;
+          font-size: 0.5625rem !important;
         }
         .th-chev {
           color: #C8D4C8;
-          font-size: 1.125rem;
+          font-size: 0.9375rem;
           margin-left: 0.75rem;
           flex-shrink: 0;
           transition: transform 0.15s, color 0.15s;

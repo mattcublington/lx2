@@ -296,13 +296,13 @@ export default function AnalysisClient({ displayName, handicapIndex, rounds }: P
         .an-count-value {
           font-family: var(--font-manrope), sans-serif;
           font-weight: 800;
-          font-size: 1.125rem;
+          font-size: 0.9375rem;
           color: #fff;
           letter-spacing: -0.02em;
         }
         .an-count-label {
           font-family: var(--font-dm-sans), sans-serif;
-          font-size: 0.6875rem;
+          font-size: 0.5625rem;
           font-weight: 600;
           color: rgba(255, 255, 255, 0.65);
           text-transform: uppercase;
@@ -334,7 +334,7 @@ export default function AnalysisClient({ displayName, handicapIndex, rounds }: P
           color: #fff;
         }
         .an-sum-label {
-          font-size: 0.6875rem;
+          font-size: 0.5625rem;
           font-weight: 400;
           color: #72786E;
           margin-bottom: 0.35rem;
@@ -345,13 +345,13 @@ export default function AnalysisClient({ displayName, handicapIndex, rounds }: P
         .an-sum-val {
           font-family: var(--font-manrope), sans-serif;
           font-weight: 700;
-          font-size: 1.75rem;
+          font-size: 1.5rem;
           letter-spacing: -0.02em;
           line-height: 1.1;
         }
         .an-sum-card.highlight .an-sum-val { color: #fff; }
         .an-sum-note {
-          font-size: 0.6875rem;
+          font-size: 0.5625rem;
           color: #72786E;
           margin-top: 0.25rem;
         }
@@ -368,7 +368,7 @@ export default function AnalysisClient({ displayName, handicapIndex, rounds }: P
         .an-section-title {
           font-family: var(--font-manrope), sans-serif;
           font-weight: 700;
-          font-size: 1.0625rem;
+          font-size: 0.9375rem;
           color: #1A2E1A;
           margin-bottom: 0.75rem;
           letter-spacing: -0.01em;
@@ -408,7 +408,7 @@ export default function AnalysisClient({ displayName, handicapIndex, rounds }: P
         }
         .an-chart-par-label {
           fill: #72786E;
-          font-size: 0.5625rem;
+          font-size: 0.5rem;
           font-family: var(--font-lexend), sans-serif;
         }
         .an-chart-label {
@@ -440,7 +440,7 @@ export default function AnalysisClient({ displayName, handicapIndex, rounds }: P
         }
         .an-dist-row:last-child { margin-bottom: 0; }
         .an-dist-label {
-          font-size: 0.75rem;
+          font-size: 0.5625rem;
           font-weight: 500;
           color: #44483E;
           width: 72px;
@@ -465,13 +465,13 @@ export default function AnalysisClient({ displayName, handicapIndex, rounds }: P
           min-width: fit-content;
         }
         .an-dist-bar span {
-          font-size: 0.6875rem;
+          font-size: 0.5625rem;
           font-weight: 600;
           color: #fff;
           white-space: nowrap;
         }
         .an-dist-count {
-          font-size: 0.6875rem;
+          font-size: 0.5625rem;
           font-weight: 600;
           color: #72786E;
           margin-left: 8px;
@@ -508,19 +508,19 @@ export default function AnalysisClient({ displayName, handicapIndex, rounds }: P
         .an-perf-val {
           font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
           font-weight: 700;
-          font-size: 1.375rem;
+          font-size: 1.1875rem;
           color: #0D631B;
           line-height: 1;
         }
         .an-perf-sub {
           font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
-          font-size: 0.625rem;
+          font-size: 0.5625rem;
           color: #A0B09A;
           min-height: 0.875rem;
         }
         .an-perf-label {
           font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
-          font-size: 0.625rem;
+          font-size: 0.5625rem;
           font-weight: 500;
           color: #72786E;
           text-transform: uppercase;
@@ -558,25 +558,25 @@ export default function AnalysisClient({ displayName, handicapIndex, rounds }: P
         .an-round-info { flex: 1; min-width: 0; }
         .an-round-course {
           font-weight: 500;
-          font-size: 0.875rem;
+          font-size: 0.75rem;
           color: #1A2E1A;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
         }
         .an-round-date {
-          font-size: 0.75rem;
+          font-size: 0.625rem;
           color: #72786E;
         }
         .an-round-score {
           font-family: var(--font-manrope), sans-serif;
           font-weight: 700;
-          font-size: 1.125rem;
+          font-size: 0.9375rem;
           flex-shrink: 0;
           margin-left: 0.75rem;
         }
         .an-round-par {
-          font-size: 0.75rem;
+          font-size: 0.625rem;
           font-weight: 500;
           margin-left: 0.5rem;
           flex-shrink: 0;
@@ -599,19 +599,19 @@ export default function AnalysisClient({ displayName, handicapIndex, rounds }: P
         .an-hcp-val {
           font-family: var(--font-manrope), sans-serif;
           font-weight: 800;
-          font-size: 2.5rem;
+          font-size: 2.125rem;
           letter-spacing: -0.03em;
           line-height: 1;
         }
         .an-hcp-info { flex: 1; }
         .an-hcp-label {
-          font-size: 0.8125rem;
+          font-size: 0.6875rem;
           font-weight: 500;
           color: rgba(255,255,255,0.7);
           margin-bottom: 0.25rem;
         }
         .an-hcp-detail {
-          font-size: 0.75rem;
+          font-size: 0.625rem;
           color: rgba(255,255,255,0.5);
         }
 
@@ -637,13 +637,13 @@ export default function AnalysisClient({ displayName, handicapIndex, rounds }: P
         .an-empty h2 {
           font-family: var(--font-manrope), sans-serif;
           font-weight: 700;
-          font-size: 1.125rem;
+          font-size: 0.9375rem;
           color: #1A2E1A;
           margin-bottom: 0.5rem;
         }
         .an-empty p {
           font-family: var(--font-dm-sans), sans-serif;
-          font-size: 0.9375rem;
+          font-size: 0.8125rem;
           color: #6B8C6B;
           line-height: 1.6;
         }
