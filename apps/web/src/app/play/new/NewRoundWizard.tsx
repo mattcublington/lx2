@@ -1496,25 +1496,21 @@ function SettingsStep({
                       onClick={() => onUpdate({ tee })}
                       style={{
                         position: 'relative',
-                        padding: '0.875rem 0.75rem',
+                        padding: '0.75rem 0.5rem',
                         borderRadius: 12,
                         border: selected ? `2.5px solid ${FE.greenDark}` : `2px solid ${swatch.border}`,
                         background: isGradient ? swatch.bg : swatch.bg,
                         cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                        fontFamily: font.body, fontWeight: 600, fontSize: 14,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontFamily: font.body, fontWeight: 600, fontSize: 12,
                         color: textColor,
                         transition: 'all 0.2s ease-in-out',
                         boxShadow: selected ? `0 0 0 3px rgba(13,99,27,0.15)` : 'none',
                         outline: 'none',
-                        minHeight: 48,
+                        minHeight: 44,
+                        overflow: 'hidden',
                       }}
                     >
-                      {selected && (
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                          <path d="M3 8L6.5 11.5L13 4.5" stroke={checkColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      )}
                       {tee}
                     </button>
                   )
