@@ -67,7 +67,7 @@ function AuthForm() {
         <style>{`
           .pwa-auth {
             min-height: 100dvh;
-            background: #0a1f0a;
+            background: #F0F4EC;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -76,7 +76,7 @@ function AuthForm() {
             padding-top: env(safe-area-inset-top, 0);
             padding-bottom: env(safe-area-inset-bottom, 0);
             font-family: var(--font-dm-sans, 'DM Sans', sans-serif);
-            color: #fff;
+            color: #1A2E1A;
             overflow: hidden;
           }
 
@@ -103,7 +103,7 @@ function AuthForm() {
             font-family: var(--font-dm-serif, 'DM Serif Display', serif);
             font-size: 1.75rem;
             font-weight: 400;
-            color: #fff;
+            color: #1A2E1A;
             margin-bottom: 0.375rem;
             text-align: center;
           }
@@ -112,7 +112,7 @@ function AuthForm() {
             font-family: var(--font-dm-sans, 'DM Sans', sans-serif);
             font-size: 0.9375rem;
             font-weight: 400;
-            color: rgba(255, 255, 255, 0.5);
+            color: #6B8C6B;
             margin-bottom: 2.5rem;
             text-align: center;
           }
@@ -126,17 +126,18 @@ function AuthForm() {
             padding: 14px 20px;
             background: #fff;
             color: #1A2E1A;
-            border: none;
+            border: 1px solid #E0EBE0;
             border-radius: 12px;
             font-family: var(--font-dm-sans, 'DM Sans', sans-serif);
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
+            box-shadow: 0 2px 8px rgba(26, 28, 28, 0.06);
             transition: transform 0.15s ease, box-shadow 0.15s ease;
           }
           .pwa-google-btn:hover:not(:disabled) {
             transform: translateY(-1px);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 16px rgba(26, 28, 28, 0.12);
           }
           .pwa-google-btn:active:not(:disabled) { transform: translateY(0); }
           .pwa-google-btn:disabled { opacity: 0.6; cursor: default; }
@@ -151,11 +152,11 @@ function AuthForm() {
           .pwa-divider-line {
             flex: 1;
             height: 1px;
-            background: rgba(255, 255, 255, 0.12);
+            background: #E0EBE0;
           }
           .pwa-divider-text {
             font-size: 0.8125rem;
-            color: rgba(255, 255, 255, 0.35);
+            color: #6B8C6B;
           }
 
           .pwa-form-group {
@@ -167,27 +168,27 @@ function AuthForm() {
             display: block;
             font-size: 0.8125rem;
             font-weight: 500;
-            color: rgba(255, 255, 255, 0.6);
+            color: #1A2E1A;
             margin-bottom: 6px;
           }
 
           .pwa-input {
             width: 100%;
             padding: 12px 14px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 10px;
-            color: #fff;
+            background: #ffffff;
+            border: 1px solid #E0EBE0;
+            border-radius: 12px;
+            color: #1A2E1A;
             font-family: var(--font-dm-sans, 'DM Sans', sans-serif);
             font-size: 1rem;
             outline: none;
             box-sizing: border-box;
-            transition: border-color 0.15s, background 0.15s;
+            transition: border-color 0.15s, box-shadow 0.15s;
           }
-          .pwa-input::placeholder { color: rgba(255, 255, 255, 0.25); }
+          .pwa-input::placeholder { color: #6B8C6B; }
           .pwa-input:focus {
-            border-color: rgba(13, 99, 27, 0.7);
-            background: rgba(255, 255, 255, 0.12);
+            border-color: #0D631B;
+            box-shadow: 0 0 0 3px rgba(13, 99, 27, 0.08);
           }
 
           .pwa-submit-btn {
@@ -209,12 +210,12 @@ function AuthForm() {
             transform: translateY(-1px);
           }
           .pwa-submit-btn:active:not(:disabled) { transform: translateY(0); }
-          .pwa-submit-btn:disabled { background: #3a5a3a; cursor: default; }
+          .pwa-submit-btn:disabled { background: #9ca3af; cursor: default; }
 
           .pwa-error {
             width: 100%;
             font-size: 0.8125rem;
-            color: #f87171;
+            color: #dc2626;
             margin-bottom: 10px;
             line-height: 1.4;
           }
@@ -222,11 +223,11 @@ function AuthForm() {
           .pwa-success {
             width: 100%;
             padding: 14px 18px;
-            background: rgba(13, 99, 27, 0.2);
-            border: 1px solid rgba(13, 99, 27, 0.35);
-            border-radius: 10px;
+            background: #E8F5EE;
+            border: 1px solid rgba(13, 99, 27, 0.2);
+            border-radius: 12px;
             font-size: 0.875rem;
-            color: rgba(255, 255, 255, 0.85);
+            color: #1A2E1A;
             line-height: 1.5;
           }
 
@@ -238,18 +239,18 @@ function AuthForm() {
             font-family: var(--font-dm-sans, 'DM Sans', sans-serif);
             font-size: 0.875rem;
             font-weight: 500;
-            color: rgba(255, 255, 255, 0.5);
+            color: #0D631B;
             background: none;
             border: none;
             cursor: pointer;
             padding: 0;
-            transition: color 0.15s;
+            transition: opacity 0.15s;
           }
-          .pwa-toggle-btn:hover { color: rgba(255, 255, 255, 0.8); }
+          .pwa-toggle-btn:hover { opacity: 0.8; }
 
           .pwa-hint {
             font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.3);
+            color: #6B8C6B;
             margin-top: 4px;
           }
         `}</style>
@@ -262,7 +263,7 @@ function AuthForm() {
                 alt="LX2"
                 width={120}
                 height={60}
-                style={{ height: '48px', width: 'auto', filter: 'brightness(0) invert(1)' }}
+                style={{ height: '48px', width: 'auto' }}
                 priority
               />
             </div>
