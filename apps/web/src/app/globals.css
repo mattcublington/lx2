@@ -4,6 +4,8 @@
 
 :root {
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* App-wide scale: 120% base = all rem values +20% bigger */
+  font-size: 120%;
 }
 
 * {

@@ -698,7 +698,7 @@ function PlayerPickerSheet({
           margin: 0;
           font-family: 'Manrope', sans-serif;
           font-weight: 700;
-          font-size: 24px;
+          font-size: 1.5rem;
           color: #1A2E1A;
           letter-spacing: -0.01em;
           margin-bottom: 0.5rem;

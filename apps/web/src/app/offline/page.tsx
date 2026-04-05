@@ -43,19 +43,19 @@ export default function OfflinePage() {
           text-align: center;
         }
         .offline-icon {
-          font-size: 64px;
+          font-size: 4rem;
           margin-bottom: 24px;
           opacity: 0.6;
         }
         .offline-title {
           font-family: var(--font-dm-serif), serif;
-          font-size: 28px;
+          font-size: 1.75rem;
           font-weight: 400;
           margin: 0 0 12px;
           color: #1A2E1A;
         }
         .offline-message {
-          font-size: 16px;
+          font-size: 1rem;
           color: #6B8C6B;
           margin: 0 0 32px;
           max-width: 320px;
@@ -68,7 +68,7 @@ export default function OfflinePage() {
           border-radius: 12px;
           padding: 14px 32px;
           font-family: var(--font-dm-sans), sans-serif;
-          font-size: 16px;
+          font-size: 1rem;
           font-weight: 600;
           cursor: pointer;
           transition: background 0.15s, transform 0.15s;
@@ -84,7 +84,7 @@ export default function OfflinePage() {
         }
         .offline-hint {
           margin-top: 24px;
-          font-size: 13px;
+          font-size: 0.8125rem;
           color: #6B8C6B;
         }
       `}</style>

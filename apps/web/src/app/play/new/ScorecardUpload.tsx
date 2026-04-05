@@ -378,7 +378,7 @@ export default function ScorecardUpload({ onDone, onCancel }: Props) {
             margin: 0;
             font-family: 'Manrope', sans-serif;
             font-weight: 700;
-            font-size: 22px;
+            font-size: 1.375rem;
             color: #1A2E1A;
           }
         `}</style>

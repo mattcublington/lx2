@@ -137,7 +137,7 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
           align-items: center;
           justify-content: center;
           color: #1A2E1A;
-          font-size: 20px;
+          font-size: 1.25rem;
           border-radius: 12px;
           transition: all 0.2s ease-in-out;
           flex-shrink: 0;
@@ -149,7 +149,7 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
         .pf-header-title {
           font-family: var(--font-manrope, 'Manrope', sans-serif);
           font-weight: 700;
-          font-size: 18px;
+          font-size: 1.125rem;
           color: #1A2E1A;
           letter-spacing: -0.01em;
           margin: 0;
@@ -285,7 +285,7 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
         .pf-user-name {
           font-family: var(--font-manrope, 'Manrope', sans-serif);
           font-weight: 700;
-          font-size: 24px;
+          font-size: 1.5rem;
           color: #1A2E1A;
           margin: 0 0 0.5rem;
         }
@@ -293,7 +293,7 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
         .pf-user-email {
           font-family: var(--font-lexend, 'Lexend', sans-serif);
           font-weight: 400;
-          font-size: 14px;
+          font-size: 0.875rem;
           color: #72786E;
           margin: 0 0 1rem;
         }
@@ -301,7 +301,7 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
         .pf-edit-link {
           font-family: var(--font-lexend, 'Lexend', sans-serif);
           font-weight: 500;
-          font-size: 14px;
+          font-size: 0.875rem;
           color: #923357;
           text-decoration: none;
           background: none;
@@ -322,7 +322,7 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
         .pf-section-hd {
           font-family: var(--font-manrope, 'Manrope', sans-serif);
           font-weight: 700;
-          font-size: 18px;
+          font-size: 1.125rem;
           color: #1A2E1A;
           letter-spacing: -0.01em;
           margin: 0 0 1rem;
@@ -359,7 +359,7 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
         .pf-field-label {
           font-family: var(--font-lexend, 'Lexend', sans-serif);
           font-weight: 500;
-          font-size: 14px;
+          font-size: 0.875rem;
           color: #1A2E1A;
           margin-bottom: 0.25rem;
           display: block;
@@ -368,7 +368,7 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
         .pf-field-value {
           font-family: var(--font-lexend, 'Lexend', sans-serif);
           font-weight: 400;
-          font-size: 16px;
+          font-size: 1rem;
           color: #44483E;
           margin-bottom: 0.25rem;
         }
@@ -376,7 +376,7 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
         .pf-field-note {
           font-family: var(--font-lexend, 'Lexend', sans-serif);
           font-weight: 400;
-          font-size: 13px;
+          font-size: 0.8125rem;
           color: #72786E;
           line-height: 1.4;
         }
@@ -396,7 +396,7 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
           border-radius: 8px;
           padding: 8px 10px;
           font-family: var(--font-lexend, 'Lexend', sans-serif);
-          font-size: 15px;
+          font-size: 0.9375rem;
           color: #1A2E1A;
           background: #fff;
           outline: none;
@@ -422,7 +422,7 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
           border-radius: 8px;
           padding: 9px 16px;
           font-family: var(--font-lexend, 'Lexend', sans-serif);
-          font-size: 13px;
+          font-size: 0.8125rem;
           font-weight: 500;
           cursor: pointer;
           transition: background 0.15s, transform 0.15s;
@@ -439,7 +439,7 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
           border-radius: 8px;
           padding: 9px 16px;
           font-family: var(--font-lexend, 'Lexend', sans-serif);
-          font-size: 13px;
+          font-size: 0.8125rem;
           font-weight: 500;
           color: #72786E;
           cursor: pointer;
@@ -466,7 +466,7 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
           border: 1.5px solid #E0EBE0;
           background: #fff;
           font-family: var(--font-lexend, 'Lexend', sans-serif);
-          font-size: 14px;
+          font-size: 0.875rem;
           font-weight: 500;
           color: #72786E;
           cursor: pointer;
@@ -492,7 +492,7 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
         .pf-acct-link {
           font-family: var(--font-lexend, 'Lexend', sans-serif);
           font-weight: 500;
-          font-size: 14px;
+          font-size: 0.875rem;
           color: #0D631B;
           text-decoration: none;
           display: flex;
@@ -510,7 +510,7 @@ export default function ProfileClient({ userId, email, displayName, handicapInde
         .pf-signout-btn {
           font-family: var(--font-lexend, 'Lexend', sans-serif);
           font-weight: 500;
-          font-size: 14px;
+          font-size: 0.875rem;
           color: #923357;
           background: none;
           border: none;

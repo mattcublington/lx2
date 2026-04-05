@@ -91,7 +91,7 @@ function SignupForm() {
         .signup-title {
           font-family: var(--font-manrope, 'Manrope', sans-serif);
           font-weight: 700;
-          font-size: 32px;
+          font-size: 2rem;
           line-height: 1.2;
           color: #1A2E1A;
           margin: 0 0 0.5rem 0;
@@ -100,7 +100,7 @@ function SignupForm() {
         .signup-subhead {
           font-family: var(--font-lexend, 'Lexend', sans-serif);
           font-weight: 400;
-          font-size: 16px;
+          font-size: 1rem;
           color: #44483E;
           line-height: 1.5;
           margin: 0;
@@ -121,7 +121,7 @@ function SignupForm() {
           display: block;
           font-family: var(--font-lexend, 'Lexend', sans-serif);
           font-weight: 500;
-          font-size: 14px;
+          font-size: 0.875rem;
           color: #1A2E1A;
           margin-bottom: 0.5rem;
         }
@@ -133,7 +133,7 @@ function SignupForm() {
           border: 1px solid rgba(26, 28, 28, 0.12);
           border-radius: 16px;
           font-family: var(--font-lexend, 'Lexend', sans-serif);
-          font-size: 16px;
+          font-size: 1rem;
           color: #1A2E1A;
           outline: none;
           box-sizing: border-box;
@@ -164,7 +164,7 @@ function SignupForm() {
 
         .terms-text {
           font-family: var(--font-lexend, 'Lexend', sans-serif);
-          font-size: 13px;
+          font-size: 0.8125rem;
           color: #72786E;
           line-height: 1.5;
           margin: 1.4rem 0 2rem;
@@ -177,7 +177,7 @@ function SignupForm() {
         .terms-text a:hover { opacity: 0.8; }
 
         .error-text {
-          font-size: 13px;
+          font-size: 0.8125rem;
           color: #dc2626;
           margin-bottom: 1rem;
           line-height: 1.4;
@@ -188,7 +188,7 @@ function SignupForm() {
           background: #E8F5EE;
           border-radius: 12px;
           border: 1px solid rgba(13, 99, 27, 0.2);
-          font-size: 14px;
+          font-size: 0.875rem;
           color: #1A2E1A;
           line-height: 1.5;
           margin-bottom: 1rem;
@@ -203,7 +203,7 @@ function SignupForm() {
           border-radius: 16px;
           font-family: var(--font-manrope, 'Manrope', sans-serif);
           font-weight: 700;
-          font-size: 16px;
+          font-size: 1rem;
           cursor: pointer;
           margin-top: auto;
           transition: all 0.2s ease-in-out;
@@ -220,7 +220,7 @@ function SignupForm() {
           text-align: center;
           margin-top: 1.5rem;
           font-family: var(--font-lexend, 'Lexend', sans-serif);
-          font-size: 14px;
+          font-size: 0.875rem;
           color: #72786E;
         }
         .footer-link a {
@@ -233,7 +233,7 @@ function SignupForm() {
 
         @media (max-width: 768px) {
           .signup-page { padding: 1.5rem 1.25rem; }
-          .signup-title { font-size: 28px; }
+          .signup-title { font-size: 1.75rem; }
         }
       `}</style>
 

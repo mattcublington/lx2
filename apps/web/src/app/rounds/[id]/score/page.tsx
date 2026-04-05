@@ -39,13 +39,13 @@ interface PageProps {
 function ErrorCard({ title, body, retry }: { title: string; body: string; retry?: string }) {
   return (
     <div style={{ maxWidth: 420, margin: '0 auto', padding: '40px 20px', fontFamily: "'DM Sans', system-ui, sans-serif", color: '#1a2e1a', background: '#FAFBF8', minHeight: '100vh' }}>
-      <div style={{ fontWeight: 700, fontSize: 18, letterSpacing: -0.3, marginBottom: 4 }}>
+      <div style={{ fontWeight: 700, fontSize: '1.125rem', letterSpacing: -0.3, marginBottom: 4 }}>
         LX<span style={{ color: '#0D631B' }}>2</span>
       </div>
-      <div style={{ marginTop: 32, fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{title}</div>
-      <div style={{ fontSize: 14, color: '#6B8C6B', lineHeight: 1.5 }}>{body}</div>
+      <div style={{ marginTop: 32, fontSize: '1.125rem', fontWeight: 600, marginBottom: 8 }}>{title}</div>
+      <div style={{ fontSize: '0.875rem', color: '#6B8C6B', lineHeight: 1.5 }}>{body}</div>
       {retry && (
-        <a href={retry} style={{ display: 'inline-block', marginTop: 20, color: '#0D631B', fontWeight: 600, fontSize: 14 }}>
+        <a href={retry} style={{ display: 'inline-block', marginTop: 20, color: '#0D631B', fontWeight: 600, fontSize: '0.875rem' }}>
           Try again
         </a>
       )}

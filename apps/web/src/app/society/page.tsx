@@ -58,7 +58,7 @@ export default async function SocietyPage() {
           letter-spacing: -0.02em;
         }
         .sp-subtitle {
-          font-family: var(--font-dm-sans); color: #6B8C6B; font-size: 15px; margin: 4px 0 0 0; font-weight: 400;
+          font-family: var(--font-dm-sans); color: #6B8C6B; font-size: 0.9375rem; margin: 4px 0 0 0; font-weight: 400;
         }
         .sp-body {
           font-size: 0.9375rem;

@@ -208,7 +208,7 @@ export default function HomePage() {
           color: #fff;
           font-family: var(--font-manrope), 'Manrope', sans-serif;
           font-weight: 700;
-          font-size: 15px;
+          font-size: 0.9375rem;
           text-decoration: none;
           backdrop-filter: blur(8px);
           -webkit-backdrop-filter: blur(8px);

@@ -643,10 +643,10 @@ function ScorecardTable({
 
   const th: React.CSSProperties = {
     padding: '5px 6px', textAlign: 'center', fontFamily: "'Lexend', sans-serif",
-    fontSize: 10, fontWeight: 500, color: '#72786E', whiteSpace: 'nowrap',
+    fontSize: '0.625rem', fontWeight: 500, color: '#72786E', whiteSpace: 'nowrap',
   }
   const td: React.CSSProperties = {
-    padding: '6px 6px', textAlign: 'center', fontSize: 11,
+    padding: '6px 6px', textAlign: 'center', fontSize: '0.6875rem',
     fontFamily: "'Lexend', sans-serif",
   }
   const tdBold: React.CSSProperties = { ...td, fontWeight: 700, fontFamily: "'Manrope', sans-serif" }
@@ -753,11 +753,11 @@ function ScorecardTable({
           borderTop: '1px solid rgba(26,28,28,0.08)',
         }}>
           {isStableford ? (
-            <span style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 15, color: '#0D631B' }}>
+            <span style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: '0.9375rem', color: '#0D631B' }}>
               {grandTotalPts} pts total
             </span>
           ) : (
-            <span style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 15, color: '#1A2E1A' }}>
+            <span style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: '0.9375rem', color: '#1A2E1A' }}>
               {grandTotalGross} strokes
             </span>
           )}
@@ -772,9 +772,9 @@ function ScorecardTable({
 function ErrorCard({ title, body }: { title: string; body: string }) {
   return (
     <div style={{ maxWidth: 420, margin: '0 auto', padding: '40px 20px', fontFamily: "'DM Sans', sans-serif", color: '#1a2e1a', minHeight: '100vh' }}>
-      <div style={{ marginTop: 32, fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{title}</div>
-      <div style={{ fontSize: 14, color: '#6B8C6B', lineHeight: 1.5 }}>{body}</div>
-      <Link href="/rounds" style={{ display: 'inline-block', marginTop: 20, color: '#0D631B', fontWeight: 600, fontSize: 14 }}>
+      <div style={{ marginTop: 32, fontSize: '1.125rem', fontWeight: 600, marginBottom: 8 }}>{title}</div>
+      <div style={{ fontSize: '0.875rem', color: '#6B8C6B', lineHeight: 1.5 }}>{body}</div>
+      <Link href="/rounds" style={{ display: 'inline-block', marginTop: 20, color: '#0D631B', fontWeight: 600, fontSize: '0.875rem' }}>
         ← My Rounds
       </Link>
     </div>

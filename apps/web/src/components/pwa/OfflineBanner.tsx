@@ -74,7 +74,7 @@ export default function OfflineBanner() {
           background: #1A2E1A;
           color: #F2F5F0;
           font-family: var(--font-dm-sans), sans-serif;
-          font-size: 13px;
+          font-size: 0.8125rem;
           font-weight: 400;
           padding: 10px 20px;
           text-align: center;

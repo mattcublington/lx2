@@ -408,18 +408,18 @@ export default function AnalysisClient({ displayName, handicapIndex, rounds }: P
         }
         .an-chart-par-label {
           fill: #72786E;
-          font-size: 9px;
+          font-size: 0.5625rem;
           font-family: var(--font-lexend), sans-serif;
         }
         .an-chart-label {
           fill: #72786E;
-          font-size: 8px;
+          font-size: 0.5rem;
           font-family: var(--font-lexend), sans-serif;
           text-anchor: middle;
         }
         .an-chart-score-label {
           fill: #1A2E1A;
-          font-size: 8px;
+          font-size: 0.5rem;
           font-family: var(--font-manrope), sans-serif;
           font-weight: 700;
           text-anchor: middle;
@@ -643,7 +643,7 @@ export default function AnalysisClient({ displayName, handicapIndex, rounds }: P
         }
         .an-empty p {
           font-family: var(--font-dm-sans), sans-serif;
-          font-size: 15px;
+          font-size: 0.9375rem;
           color: #6B8C6B;
           line-height: 1.6;
         }
