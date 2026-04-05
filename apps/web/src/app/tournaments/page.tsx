@@ -362,15 +362,17 @@ export default async function TournamentsPage() {
         }
         .th-cta-row {
           display: flex;
+          flex-direction: column;
           gap: 0.75rem;
-          flex-wrap: wrap;
           margin-bottom: 2rem;
         }
         .th-cta-primary {
-          display: inline-flex;
+          display: flex;
           align-items: center;
+          justify-content: center;
           gap: 0.5rem;
-          padding: 0.75rem 1.25rem;
+          width: 100%;
+          padding: 1rem 1.25rem;
           background: linear-gradient(135deg, #0D631B 0%, #0a4f15 100%);
           color: #FFFFFF;
           border-radius: 12px;
@@ -386,10 +388,12 @@ export default async function TournamentsPage() {
           box-shadow: 0 8px 22px rgba(13, 99, 27, 0.25);
         }
         .th-cta-outline {
-          display: inline-flex;
+          display: flex;
           align-items: center;
+          justify-content: center;
           gap: 0.5rem;
-          padding: 0.75rem 1.25rem;
+          width: 100%;
+          padding: 1rem 1.25rem;
           background: #FFFFFF;
           color: #0D631B;
           border: 1.5px solid #0D631B;
