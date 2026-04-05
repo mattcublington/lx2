@@ -14,8 +14,9 @@ ALTER TABLE public.course_tees
   ADD COLUMN IF NOT EXISTS gender text NOT NULL DEFAULT 'men'
   CHECK (gender IN ('men', 'ladies'));
 
--- Replace unique index (course_id, tee_name) with (course_id, tee_name, gender)
-DROP INDEX IF EXISTS public.course_tees_course_id_tee_name_key;
+-- Replace unique constraint (course_id, tee_name) with (course_id, tee_name, gender)
+ALTER TABLE public.course_tees
+  DROP CONSTRAINT IF EXISTS course_tees_course_id_tee_name_key;
 
 CREATE UNIQUE INDEX IF NOT EXISTS course_tees_course_id_tee_name_gender_key
   ON public.course_tees (course_id, tee_name, gender);
