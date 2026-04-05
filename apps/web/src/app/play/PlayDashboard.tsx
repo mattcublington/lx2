@@ -1104,9 +1104,6 @@ export default function PlayDashboard({
         {/* ── Main ── */}
         <main className="fe-main">
 
-          {/* Golf Form Pulse — sparkline of recent scores */}
-          {recentScores.length >= 2 && <FormPulse recentScores={recentScores} />}
-
           {/* Primary CTA — active round or action cards */}
           {activeRoundId ? (
             <Link href={`/rounds/${activeRoundId}/score`} className="fe-cta join">
@@ -1140,6 +1137,9 @@ export default function PlayDashboard({
               <span className="fe-join-chevron">›</span>
             </Link>
           )}
+
+          {/* Golf Form Pulse — sparkline of recent scores */}
+          {recentScores.length >= 2 && <FormPulse recentScores={recentScores} />}
 
           {/* Daily insight */}
           <div className="fe-insight">
