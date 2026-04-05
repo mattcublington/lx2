@@ -53,6 +53,7 @@ export interface CourseHoleSource {
   si: number
   yards: number
   metres?: number
+  teeYards?: Record<string, number>
 }
 
 export interface CourseSource {

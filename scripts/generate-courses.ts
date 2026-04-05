@@ -59,11 +59,11 @@ function buildHolesFromLoops(
   return lines.join('\n')
 }
 
-function renderTeeRatings(teeRatings: Record<string, { slopeRating: number; courseRating: number }>): string {
+function renderTeeRatings(teeRatings: Record<string, { slopeRating: number; courseRating: number }>, propName = 'teeRatings'): string {
   const entries = Object.entries(teeRatings)
     .map(([tee, r]) => `${JSON.stringify(tee)}: { slopeRating: ${r.slopeRating}, courseRating: ${r.courseRating} }`)
     .join(', ')
-  return `    teeRatings: { ${entries} },`
+  return `    ${propName}: { ${entries} },`
 }
 
 function renderCombination(combo: ClubCombination, loops: Record<string, ClubLoop>, clubData: ClubData): string {
@@ -75,6 +75,11 @@ function renderCombination(combo: ClubCombination, loops: Record<string, ClubLoo
   lines.push(`    location: '${clubData.location}',`)
   lines.push(`    country: '${clubData.country}',`)
   lines.push(`    continent: '${clubData.continent}',`)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lat/lng not in strict ClubData type yet
+  const cd = clubData as any
+  if (cd.lat !== undefined && cd.lng !== undefined) {
+    lines.push(`    lat: ${cd.lat}, lng: ${cd.lng},`)
+  }
   lines.push(`    slopeRating: ${combo.slopeRating}, courseRating: ${combo.courseRating}, par: ${combo.par},`)
   lines.push(`    tees: ${JSON.stringify(combo.tees)},`)
   lines.push(`    defaultRatingTee: '${combo.defaultRatingTee}',`)
@@ -97,17 +102,27 @@ function renderCourse(course: NonNullable<ClubData['courses']>[number], clubData
   lines.push(`    location: '${clubData.location}',`)
   lines.push(`    country: '${clubData.country}',`)
   lines.push(`    continent: '${clubData.continent}',`)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lat/lng/teeRatingsWomen not in strict CourseSource type yet
+  const cs = course as any
+  const cd2 = clubData as any
+  if (cd2.lat !== undefined && cd2.lng !== undefined) {
+    lines.push(`    lat: ${cd2.lat}, lng: ${cd2.lng},`)
+  }
   lines.push(`    slopeRating: ${course.slopeRating}, courseRating: ${course.courseRating}, par: ${course.par},`)
   lines.push(`    tees: ${JSON.stringify(course.tees)},`)
   lines.push(`    defaultRatingTee: '${course.defaultRatingTee}',`)
   if (course.teeRatings && Object.keys(course.teeRatings).length > 0) {
     lines.push(renderTeeRatings(course.teeRatings))
   }
+  if (cs.teeRatingsWomen && Object.keys(cs.teeRatingsWomen).length > 0) {
+    lines.push(renderTeeRatings(cs.teeRatingsWomen, 'teeRatingsWomen'))
+  }
   lines.push(`    holes: [`)
-  course.holes.forEach(hole => {
+  course.holes.forEach((hole, i) => {
     const metresPart = hole.metres !== undefined ? `, metres: ${hole.metres}` : ''
+    const teeYardsPart = hole.teeYards ? `, teeYards: ${JSON.stringify(hole.teeYards)}` : ''
     lines.push(
-      `      { num: ${String(hole.par < 0 ? hole.par : hole.par).padStart(2)}, par: ${hole.par}, si: ${String(hole.si).padStart(2)},  yards: ${hole.yards}${metresPart} },`
+      `      { num: ${String(i + 1).padStart(2)},  par: ${hole.par}, si: ${String(hole.si).padStart(2)},  yards: ${hole.yards}${metresPart}${teeYardsPart} },`
     )
   })
   lines.push(`    ],`)
@@ -186,6 +201,11 @@ export interface Course {
   // Per-tee ratings (men's). Used when combination_tees DB lookup is unavailable.
   // Keys match entries in tees[]. Only include tees with known USGA ratings.
   teeRatings?: Record<string, { slopeRating: number; courseRating: number }>
+  // Per-tee ratings (women's). Same structure as teeRatings but for women's CR/SR.
+  teeRatingsWomen?: Record<string, { slopeRating: number; courseRating: number }>
+  // GPS coordinates (club-level, used for nearby search)
+  lat?: number
+  lng?: number
 }
 
 export const COURSES: Course[] = [

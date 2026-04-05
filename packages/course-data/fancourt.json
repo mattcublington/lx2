@@ -1,266 +1,139 @@
 {
-  "club": {
-    "name": "Fancourt",
-    "location": "George, Western Cape, South Africa",
-    "phone": "+27 (0)44 804 0182",
-    "country": "ZA"
-  },
+  "_comment": "Fancourt — George, Western Cape, South Africa. Four courses. All distances originally in metres; yards = round(metres × 1.09361). Source: fancourt_courses.json (scorecard data, April 2026). Default tee: Galjoen (Outeniqua, men 10-17), White (The Links, men), Full Course (The Links Experience, men), Blue (Par 3, men). Par 3 Blue/Green distances are UNVERIFIED.",
+  "club": "Fancourt",
+  "location": "George, Western Cape, South Africa",
+  "country": "South Africa",
+  "continent": "Africa",
   "courses": [
     {
-      "name": "Outeniqua",
-      "holes": 18,
+      "id": "fancourt-outeniqua",
+      "name": "Fancourt — Outeniqua",
       "par": 72,
-      "par_by_hole": {
-        "front": [4, 5, 4, 3, 4, 4, 3, 5, 4],
-        "back":  [4, 5, 3, 4, 4, 3, 4, 5, 4]
+      "tees": ["Protea", "Springbok", "Galjoen", "Yellowwood", "Blue Crane"],
+      "defaultRatingTee": "Galjoen",
+      "slopeRating": 127,
+      "courseRating": 69.6,
+      "teeRatings": {
+        "Protea":    { "slopeRating": 131, "courseRating": 73.9 },
+        "Springbok": { "slopeRating": 132, "courseRating": 71.4 },
+        "Galjoen":   { "slopeRating": 127, "courseRating": 69.6 },
+        "Yellowwood":{ "slopeRating": 123, "courseRating": 68.2 },
+        "Blue Crane":{ "slopeRating": 116, "courseRating": 66.3 }
       },
-      "par_out": 36,
-      "par_in": 36,
-      "stroke_index": {
-        "front": [17, 15, 3, 7, 5, 13, 9, 11, 1],
-        "back":  [12, 8, 14, 6, 2, 16, 4, 18, 10]
+      "teeRatingsWomen": {
+        "Galjoen":   { "slopeRating": 131, "courseRating": 76.1 },
+        "Yellowwood":{ "slopeRating": 130, "courseRating": 73.8 },
+        "Blue Crane":{ "slopeRating": 126, "courseRating": 71.7 }
       },
-      "tees": [
-        {
-          "name": "Protea",
-          "gender": "men",
-          "category": "Men Professional",
-          "distances_front": [305, 497, 398, 184, 301, 358, 162, 529, 396],
-          "distances_back":  [324, 507, 173, 372, 421, 149, 390, 491, 344],
-          "out": 3130, "in": 3171, "total": 6301,
-          "course_rating": 73.9, "slope_rating": 131
-        },
-        {
-          "name": "Springbok",
-          "gender": "men",
-          "category": "Men 0-9",
-          "distances_front": [302, 480, 377, 180, 285, 331, 160, 497, 385],
-          "distances_back":  [306, 490, 160, 369, 384, 143, 357, 462, 318],
-          "out": 2997, "in": 2989, "total": 5986,
-          "course_rating": 71.4, "slope_rating": 132
-        },
-        {
-          "name": "Galjoen",
-          "gender": "men",
-          "category": "Men 10-17",
-          "distances_front": [278, 474, 353, 160, 267, 308, 134, 468, 361],
-          "distances_back":  [281, 463, 158, 358, 362, 129, 334, 421, 294],
-          "out": 2803, "in": 2800, "total": 5603,
-          "course_rating": 69.6, "slope_rating": 127
-        },
-        {
-          "name": "Yellowwood",
-          "gender": "men",
-          "category": "Men 18-24",
-          "distances_front": [278, 474, 335, 134, 267, 308, 122, 424, 310],
-          "distances_back":  [281, 432, 158, 352, 329, 129, 288, 421, 288],
-          "out": 2652, "in": 2678, "total": 5330,
-          "course_rating": 68.2, "slope_rating": 123
-        },
-        {
-          "name": "Blue Crane",
-          "gender": "men",
-          "category": "Men 25-36",
-          "distances_front": [264, 434, 334, 122, 214, 291, 95, 423, 309],
-          "distances_back":  [239, 431, 141, 324, 328, 111, 288, 364, 266],
-          "out": 2486, "in": 2492, "total": 4978,
-          "course_rating": 66.3, "slope_rating": 116
-        },
-        {
-          "name": "Galjoen",
-          "gender": "ladies",
-          "category": "Ladies Professional",
-          "distances_front": [278, 474, 353, 160, 267, 308, 134, 468, 361],
-          "distances_back":  [281, 463, 158, 358, 362, 129, 334, 421, 294],
-          "out": 2803, "in": 2800, "total": 5603,
-          "course_rating": 76.1, "slope_rating": 131
-        },
-        {
-          "name": "Yellowwood",
-          "gender": "ladies",
-          "category": "Ladies 0-9",
-          "distances_front": [278, 474, 335, 134, 267, 308, 122, 424, 310],
-          "distances_back":  [281, 432, 158, 352, 329, 129, 288, 421, 288],
-          "out": 2652, "in": 2678, "total": 5330,
-          "course_rating": 73.8, "slope_rating": 130
-        },
-        {
-          "name": "Blue Crane",
-          "gender": "ladies",
-          "category": "Ladies 10+",
-          "distances_front": [264, 434, 334, 122, 214, 291, 95, 423, 309],
-          "distances_back":  [239, 431, 141, 324, 328, 111, 288, 364, 266],
-          "out": 2486, "in": 2492, "total": 4978,
-          "course_rating": 71.7, "slope_rating": 126
-        }
-      ],
-      "hole_names": null,
-      "plus_strokes": { "+1": 2, "+2": 17, "+3": 1, "+4": 10 },
-      "unit": "metres"
+      "holes": [
+        { "par": 4, "si": 17, "yards": 304, "metres": 278, "teeYards": { "Protea": 334, "Springbok": 330, "Galjoen": 304, "Yellowwood": 304, "Blue Crane": 289 } },
+        { "par": 5, "si": 15, "yards": 518, "metres": 474, "teeYards": { "Protea": 544, "Springbok": 525, "Galjoen": 518, "Yellowwood": 518, "Blue Crane": 475 } },
+        { "par": 4, "si":  3, "yards": 386, "metres": 353, "teeYards": { "Protea": 435, "Springbok": 412, "Galjoen": 386, "Yellowwood": 366, "Blue Crane": 365 } },
+        { "par": 3, "si":  7, "yards": 175, "metres": 160, "teeYards": { "Protea": 201, "Springbok": 197, "Galjoen": 175, "Yellowwood": 147, "Blue Crane": 133 } },
+        { "par": 4, "si":  5, "yards": 292, "metres": 267, "teeYards": { "Protea": 329, "Springbok": 312, "Galjoen": 292, "Yellowwood": 292, "Blue Crane": 234 } },
+        { "par": 4, "si": 13, "yards": 337, "metres": 308, "teeYards": { "Protea": 392, "Springbok": 362, "Galjoen": 337, "Yellowwood": 337, "Blue Crane": 318 } },
+        { "par": 3, "si":  9, "yards": 147, "metres": 134, "teeYards": { "Protea": 177, "Springbok": 175, "Galjoen": 147, "Yellowwood": 133, "Blue Crane": 104 } },
+        { "par": 5, "si": 11, "yards": 512, "metres": 468, "teeYards": { "Protea": 579, "Springbok": 544, "Galjoen": 512, "Yellowwood": 464, "Blue Crane": 463 } },
+        { "par": 4, "si":  1, "yards": 395, "metres": 361, "teeYards": { "Protea": 433, "Springbok": 421, "Galjoen": 395, "Yellowwood": 339, "Blue Crane": 338 } },
+        { "par": 4, "si": 12, "yards": 307, "metres": 281, "teeYards": { "Protea": 354, "Springbok": 335, "Galjoen": 307, "Yellowwood": 307, "Blue Crane": 261 } },
+        { "par": 5, "si":  8, "yards": 506, "metres": 463, "teeYards": { "Protea": 554, "Springbok": 536, "Galjoen": 506, "Yellowwood": 472, "Blue Crane": 471 } },
+        { "par": 3, "si": 14, "yards": 173, "metres": 158, "teeYards": { "Protea": 189, "Springbok": 175, "Galjoen": 173, "Yellowwood": 173, "Blue Crane": 154 } },
+        { "par": 4, "si":  6, "yards": 392, "metres": 358, "teeYards": { "Protea": 407, "Springbok": 404, "Galjoen": 392, "Yellowwood": 385, "Blue Crane": 354 } },
+        { "par": 4, "si":  2, "yards": 396, "metres": 362, "teeYards": { "Protea": 460, "Springbok": 420, "Galjoen": 396, "Yellowwood": 360, "Blue Crane": 359 } },
+        { "par": 3, "si": 16, "yards": 141, "metres": 129, "teeYards": { "Protea": 163, "Springbok": 156, "Galjoen": 141, "Yellowwood": 141, "Blue Crane": 121 } },
+        { "par": 4, "si":  4, "yards": 365, "metres": 334, "teeYards": { "Protea": 427, "Springbok": 390, "Galjoen": 365, "Yellowwood": 315, "Blue Crane": 315 } },
+        { "par": 5, "si": 18, "yards": 460, "metres": 421, "teeYards": { "Protea": 537, "Springbok": 505, "Galjoen": 460, "Yellowwood": 460, "Blue Crane": 398 } },
+        { "par": 4, "si": 10, "yards": 322, "metres": 294, "teeYards": { "Protea": 376, "Springbok": 348, "Galjoen": 322, "Yellowwood": 315, "Blue Crane": 291 } }
+      ]
     },
     {
-      "name": "The Links",
-      "holes": 18,
+      "id": "fancourt-the-links",
+      "name": "Fancourt — The Links",
       "par": 73,
-      "par_by_hole": {
-        "front": [4, 3, 4, 4, 5, 4, 4, 3, 5],
-        "back":  [4, 3, 4, 5, 4, 4, 5, 3, 5]
+      "tees": ["Black", "Yellow", "White", "Red"],
+      "defaultRatingTee": "White",
+      "slopeRating": 137,
+      "courseRating": 70.9,
+      "teeRatings": {
+        "Black":  { "slopeRating": 149, "courseRating": 77.8 },
+        "Yellow": { "slopeRating": 141, "courseRating": 74.1 },
+        "White":  { "slopeRating": 137, "courseRating": 70.9 }
       },
-      "par_out": 36,
-      "par_in": 37,
-      "stroke_index": {
-        "front_mens":   [16, 6, 2, 8, 18, 14, 4, 12, 10],
-        "back_mens":    [3, 17, 1, 13, 15, 5, 7, 9, 11],
-        "front_ladies": [4, 16, 2, 10, 8, 14, 12, 18, 6],
-        "back_ladies":  [3, 17, 1, 13, 15, 5, 7, 9, 11]
+      "teeRatingsWomen": {
+        "White": { "slopeRating": 146, "courseRating": 77.5 },
+        "Red":   { "slopeRating": 133, "courseRating": 73.3 }
       },
-      "tees": [
-        {
-          "name": "Black",
-          "colour": "black",
-          "gender": "men",
-          "distances_front": [362, 216, 429, 452, 502, 312, 435, 185, 557],
-          "distances_back":  [373, 147, 440, 487, 330, 436, 534, 170, 563],
-          "out": 3450, "in": 3480, "total": 6930,
-          "course_rating": 77.8, "slope_rating": 149
-        },
-        {
-          "name": "Yellow",
-          "colour": "yellow",
-          "gender": "men",
-          "distances_front": [333, 196, 355, 399, 458, 297, 385, 143, 520],
-          "distances_back":  [357, 135, 419, 468, 296, 344, 523, 149, 483],
-          "out": 3086, "in": 3174, "total": 6360,
-          "course_rating": 74.1, "slope_rating": 141
-        },
-        {
-          "name": "White",
-          "colour": "white",
-          "gender": "men",
-          "distances_front": [303, 156, 336, 377, 420, 282, 354, 127, 492],
-          "distances_back":  [303, 119, 381, 450, 280, 323, 450, 125, 443],
-          "out": 2847, "in": 2874, "total": 5721,
-          "course_rating": 70.9, "slope_rating": 137
-        },
-        {
-          "name": "White",
-          "colour": "white",
-          "gender": "ladies",
-          "distances_front": [303, 156, 336, 377, 420, 282, 354, 127, 492],
-          "distances_back":  [303, 119, 381, 450, 280, 323, 450, 125, 443],
-          "out": 2847, "in": 2874, "total": 5721,
-          "course_rating": 77.5, "slope_rating": 146
-        },
-        {
-          "name": "Red",
-          "colour": "red",
-          "gender": "ladies",
-          "distances_front": [282, 120, 317, 356, 365, 264, 328, 92, 460],
-          "distances_back":  [286, 96, 307, 429, 264, 305, 408, 103, 342],
-          "out": 2584, "in": 2540, "total": 5124,
-          "course_rating": 73.3, "slope_rating": 133
-        }
-      ],
-      "hole_names": {
-        "1": "On Ye Go", "2": "Lang Drop", "3": "Calamity",
-        "4": "Tranquility", "5": "Wetland", "6": "Five Penny Piece",
-        "7": "Wide", "8": "Bonnie View", "9": "Long",
-        "10": "Kilimanjaro", "11": "Valley", "12": "Sheer Murrrder",
-        "13": "Outeniqua", "14": "Wee Wrecker", "15": "Roon the Bend",
-        "16": "Westward Hol", "17": "Prayer", "18": "Near the Dram"
-      },
-      "plus_strokes": { "+1": 5, "+2": 13, "+3": 1, "+4": 14 },
-      "unit": "metres"
+      "holes": [
+        { "par": 4, "si": 16, "yards": 331, "metres": 303, "teeYards": { "Black": 396, "Yellow": 364, "White": 331, "Red": 308 } },
+        { "par": 3, "si":  6, "yards": 171, "metres": 156, "teeYards": { "Black": 236, "Yellow": 214, "White": 171, "Red": 131 } },
+        { "par": 4, "si":  2, "yards": 367, "metres": 336, "teeYards": { "Black": 469, "Yellow": 388, "White": 367, "Red": 347 } },
+        { "par": 4, "si":  8, "yards": 412, "metres": 377, "teeYards": { "Black": 494, "Yellow": 436, "White": 412, "Red": 389 } },
+        { "par": 5, "si": 18, "yards": 459, "metres": 420, "teeYards": { "Black": 549, "Yellow": 501, "White": 459, "Red": 399 } },
+        { "par": 4, "si": 14, "yards": 308, "metres": 282, "teeYards": { "Black": 341, "Yellow": 325, "White": 308, "Red": 289 } },
+        { "par": 4, "si":  4, "yards": 387, "metres": 354, "teeYards": { "Black": 476, "Yellow": 421, "White": 387, "Red": 359 } },
+        { "par": 3, "si": 12, "yards": 139, "metres": 127, "teeYards": { "Black": 202, "Yellow": 156, "White": 139, "Red": 101 } },
+        { "par": 5, "si": 10, "yards": 538, "metres": 492, "teeYards": { "Black": 609, "Yellow": 569, "White": 538, "Red": 503 } },
+        { "par": 4, "si":  3, "yards": 331, "metres": 303, "teeYards": { "Black": 408, "Yellow": 390, "White": 331, "Red": 313 } },
+        { "par": 3, "si": 17, "yards": 130, "metres": 119, "teeYards": { "Black": 161, "Yellow": 148, "White": 130, "Red": 105 } },
+        { "par": 4, "si":  1, "yards": 417, "metres": 381, "teeYards": { "Black": 481, "Yellow": 458, "White": 417, "Red": 336 } },
+        { "par": 5, "si": 13, "yards": 492, "metres": 450, "teeYards": { "Black": 533, "Yellow": 512, "White": 492, "Red": 469 } },
+        { "par": 4, "si": 15, "yards": 306, "metres": 280, "teeYards": { "Black": 361, "Yellow": 324, "White": 306, "Red": 289 } },
+        { "par": 4, "si":  5, "yards": 353, "metres": 323, "teeYards": { "Black": 477, "Yellow": 376, "White": 353, "Red": 334 } },
+        { "par": 5, "si":  7, "yards": 492, "metres": 450, "teeYards": { "Black": 584, "Yellow": 572, "White": 492, "Red": 446 } },
+        { "par": 3, "si":  9, "yards": 137, "metres": 125, "teeYards": { "Black": 186, "Yellow": 163, "White": 137, "Red": 113 } },
+        { "par": 5, "si": 11, "yards": 484, "metres": 443, "teeYards": { "Black": 616, "Yellow": 528, "White": 484, "Red": 374 } }
+      ]
     },
     {
-      "_comment": "The Links Experience played as a full/normal course with mixed par values. Tees: Full Course (black), White, Red.",
-      "name": "The Links Experience",
-      "holes": 9,
+      "id": "fancourt-links-experience",
+      "name": "Fancourt — The Links Experience",
       "par": 34,
-      "par_by_hole": [4, 4, 3, 4, 4, 3, 4, 3, 5],
-      "stroke_index": [9, 1, 7, 3, 4, 3, 7, 8, 9],
-      "tees": [
-        {
-          "name": "Full Course", "colour": "black", "gender": "men",
-          "distances": [343, 361, 105, 362, 331, 129, 376, 170, 484],
-          "total": 2661, "course_rating": 66.6, "slope_rating": 128
-        },
-        {
-          "name": "Full Course", "colour": "black", "gender": "ladies",
-          "distances": [343, 361, 105, 362, 331, 129, 376, 170, 484],
-          "total": 2661, "course_rating": 74.2, "slope_rating": 131
-        },
-        {
-          "name": "White", "colour": "white", "gender": "men",
-          "distances": [335, 340, 105, 332, 310, 120, 355, 156, 452],
-          "total": 2505, "course_rating": 65.0, "slope_rating": 124
-        },
-        {
-          "name": "White", "colour": "white", "gender": "ladies",
-          "distances": [335, 340, 105, 332, 310, 120, 355, 156, 452],
-          "total": 2505, "course_rating": 71.8, "slope_rating": 121
-        },
-        {
-          "name": "Red", "colour": "red", "gender": "men",
-          "distances": [294, 282, 93, 318, 282, 110, 298, 117, 348],
-          "total": 2142, "course_rating": 63.0, "slope_rating": 110
-        },
-        {
-          "name": "Red", "colour": "red", "gender": "ladies",
-          "distances": [294, 282, 93, 318, 282, 110, 298, 117, 348],
-          "total": 2142, "course_rating": 68.0, "slope_rating": 115
-        }
-      ],
-      "hole_names": {
-        "1": "Wamkelekile", "2": "Down the hill", "3": "It'll be a skoosh",
-        "4": "Devil's elbow", "5": "Low land", "6": "Beag",
-        "7": "Wide", "8": "Mulligan", "9": "Up the hill"
+      "tees": ["Full Course", "White", "Red"],
+      "defaultRatingTee": "Full Course",
+      "slopeRating": 128,
+      "courseRating": 66.6,
+      "teeRatings": {
+        "Full Course": { "slopeRating": 128, "courseRating": 66.6 },
+        "White":       { "slopeRating": 124, "courseRating": 65.0 },
+        "Red":         { "slopeRating": 110, "courseRating": 63.0 }
       },
-      "unit": "metres",
-      "notes": "Stroke index has some duplicated values (3, 7, 9 each appear twice) — verify against physical card. Red total may be 2142 or 2242 — verify."
+      "teeRatingsWomen": {
+        "Full Course": { "slopeRating": 131, "courseRating": 74.2 },
+        "White":       { "slopeRating": 121, "courseRating": 71.8 },
+        "Red":         { "slopeRating": 115, "courseRating": 68.0 }
+      },
+      "holes": [
+        { "par": 4, "si": 9, "yards": 375, "metres": 343, "teeYards": { "Full Course": 375, "White": 366, "Red": 322 } },
+        { "par": 4, "si": 1, "yards": 395, "metres": 361, "teeYards": { "Full Course": 395, "White": 372, "Red": 308 } },
+        { "par": 3, "si": 7, "yards": 115, "metres": 105, "teeYards": { "Full Course": 115, "White": 115, "Red": 102 } },
+        { "par": 4, "si": 3, "yards": 396, "metres": 362, "teeYards": { "Full Course": 396, "White": 363, "Red": 348 } },
+        { "par": 4, "si": 4, "yards": 362, "metres": 331, "teeYards": { "Full Course": 362, "White": 339, "Red": 308 } },
+        { "par": 3, "si": 3, "yards": 141, "metres": 129, "teeYards": { "Full Course": 141, "White": 131, "Red": 120 } },
+        { "par": 4, "si": 7, "yards": 411, "metres": 376, "teeYards": { "Full Course": 411, "White": 388, "Red": 326 } },
+        { "par": 3, "si": 8, "yards": 186, "metres": 170, "teeYards": { "Full Course": 186, "White": 171, "Red": 128 } },
+        { "par": 5, "si": 9, "yards": 529, "metres": 484, "teeYards": { "Full Course": 529, "White": 494, "Red": 381 } }
+      ]
     },
     {
-      "_comment": "The Links Experience played as a Par 3 course. Same 9 holes but ALL par 3. Uses Blue and Green tees (shorter distances).",
-      "name": "The Links Experience (Par 3)",
-      "holes": 9,
+      "_comment": "Par 3 variant — same 9 physical holes as The Links Experience but all par 3 with shorter Blue/Green tees. VERIFY: Blue and Green tee distances are best-guess from low-resolution scorecard.",
+      "id": "fancourt-links-experience-par3",
+      "name": "Fancourt — The Links Experience (Par 3)",
       "par": 27,
-      "par_by_hole": [3, 3, 3, 3, 3, 3, 3, 3, 3],
-      "stroke_index": [9, 1, 7, 3, 4, 3, 7, 8, 9],
-      "tees": [
-        {
-          "name": "Blue", "colour": "blue", "gender": "men",
-          "distances": ["VERIFY — possibly [113, 148, 93, 133, 158, 110, 104, 117, 106]"],
-          "total": 1082, "total_confidence": "low",
-          "course_rating": null, "slope_rating": null,
-          "note": "NEEDS VERIFICATION — Blue tee distances and CR/SR could not be read with confidence from the scorecard image"
-        },
-        {
-          "name": "Blue", "colour": "blue", "gender": "ladies",
-          "distances": ["VERIFY"],
-          "total": 1082, "total_confidence": "low",
-          "course_rating": null, "slope_rating": null
-        },
-        {
-          "name": "Green", "colour": "green", "gender": "men",
-          "distances": ["VERIFY — possibly [85, 119, 82, 97, 118, 82, 78, 91, 82]"],
-          "total": 834, "total_confidence": "low",
-          "course_rating": null, "slope_rating": null,
-          "note": "NEEDS VERIFICATION — Green tee distances and CR/SR could not be read with confidence from the scorecard image"
-        },
-        {
-          "name": "Green", "colour": "green", "gender": "ladies",
-          "distances": ["VERIFY"],
-          "total": 834, "total_confidence": "low",
-          "course_rating": null, "slope_rating": null
-        }
-      ],
-      "hole_names": {
-        "1": "Wamkelekile", "2": "Down the hill", "3": "It'll be a skoosh",
-        "4": "Devil's elbow", "5": "Low land", "6": "Beag",
-        "7": "Wide", "8": "Mulligan", "9": "Up the hill"
-      },
-      "unit": "metres",
-      "notes": "NEEDS VERIFICATION: The Blue and Green tee distances and CR/SR could not be reliably read from the scorecard PDF — the text is too small in the rotated layout. The totals 1082m and 834m are best guesses. You may want to verify these against the physical card or the Fancourt website before seeding."
+      "tees": ["Blue", "Green"],
+      "defaultRatingTee": "",
+      "slopeRating": 0,
+      "courseRating": 0,
+      "holes": [
+        { "par": 3, "si": 9, "yards": 124, "metres": 113, "teeYards": { "Blue": 124, "Green": 93 } },
+        { "par": 3, "si": 1, "yards": 162, "metres": 148, "teeYards": { "Blue": 162, "Green": 130 } },
+        { "par": 3, "si": 7, "yards": 102, "metres": 93,  "teeYards": { "Blue": 102, "Green": 90 } },
+        { "par": 3, "si": 3, "yards": 145, "metres": 133, "teeYards": { "Blue": 145, "Green": 106 } },
+        { "par": 3, "si": 4, "yards": 173, "metres": 158, "teeYards": { "Blue": 173, "Green": 129 } },
+        { "par": 3, "si": 3, "yards": 120, "metres": 110, "teeYards": { "Blue": 120, "Green": 90 } },
+        { "par": 3, "si": 7, "yards": 114, "metres": 104, "teeYards": { "Blue": 114, "Green": 85 } },
+        { "par": 3, "si": 8, "yards": 128, "metres": 117, "teeYards": { "Blue": 128, "Green": 100 } },
+        { "par": 3, "si": 9, "yards": 116, "metres": 106, "teeYards": { "Blue": 116, "Green": 90 } }
+      ]
     }
   ]
 }
