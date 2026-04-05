@@ -1,0 +1,266 @@
+{
+  "club": {
+    "name": "Fancourt",
+    "location": "George, Western Cape, South Africa",
+    "phone": "+27 (0)44 804 0182",
+    "country": "ZA"
+  },
+  "courses": [
+    {
+      "name": "Outeniqua",
+      "holes": 18,
+      "par": 72,
+      "par_by_hole": {
+        "front": [4, 5, 4, 3, 4, 4, 3, 5, 4],
+        "back":  [4, 5, 3, 4, 4, 3, 4, 5, 4]
+      },
+      "par_out": 36,
+      "par_in": 36,
+      "stroke_index": {
+        "front": [17, 15, 3, 7, 5, 13, 9, 11, 1],
+        "back":  [12, 8, 14, 6, 2, 16, 4, 18, 10]
+      },
+      "tees": [
+        {
+          "name": "Protea",
+          "gender": "men",
+          "category": "Men Professional",
+          "distances_front": [305, 497, 398, 184, 301, 358, 162, 529, 396],
+          "distances_back":  [324, 507, 173, 372, 421, 149, 390, 491, 344],
+          "out": 3130, "in": 3171, "total": 6301,
+          "course_rating": 73.9, "slope_rating": 131
+        },
+        {
+          "name": "Springbok",
+          "gender": "men",
+          "category": "Men 0-9",
+          "distances_front": [302, 480, 377, 180, 285, 331, 160, 497, 385],
+          "distances_back":  [306, 490, 160, 369, 384, 143, 357, 462, 318],
+          "out": 2997, "in": 2989, "total": 5986,
+          "course_rating": 71.4, "slope_rating": 132
+        },
+        {
+          "name": "Galjoen",
+          "gender": "men",
+          "category": "Men 10-17",
+          "distances_front": [278, 474, 353, 160, 267, 308, 134, 468, 361],
+          "distances_back":  [281, 463, 158, 358, 362, 129, 334, 421, 294],
+          "out": 2803, "in": 2800, "total": 5603,
+          "course_rating": 69.6, "slope_rating": 127
+        },
+        {
+          "name": "Yellowwood",
+          "gender": "men",
+          "category": "Men 18-24",
+          "distances_front": [278, 474, 335, 134, 267, 308, 122, 424, 310],
+          "distances_back":  [281, 432, 158, 352, 329, 129, 288, 421, 288],
+          "out": 2652, "in": 2678, "total": 5330,
+          "course_rating": 68.2, "slope_rating": 123
+        },
+        {
+          "name": "Blue Crane",
+          "gender": "men",
+          "category": "Men 25-36",
+          "distances_front": [264, 434, 334, 122, 214, 291, 95, 423, 309],
+          "distances_back":  [239, 431, 141, 324, 328, 111, 288, 364, 266],
+          "out": 2486, "in": 2492, "total": 4978,
+          "course_rating": 66.3, "slope_rating": 116
+        },
+        {
+          "name": "Galjoen",
+          "gender": "ladies",
+          "category": "Ladies Professional",
+          "distances_front": [278, 474, 353, 160, 267, 308, 134, 468, 361],
+          "distances_back":  [281, 463, 158, 358, 362, 129, 334, 421, 294],
+          "out": 2803, "in": 2800, "total": 5603,
+          "course_rating": 76.1, "slope_rating": 131
+        },
+        {
+          "name": "Yellowwood",
+          "gender": "ladies",
+          "category": "Ladies 0-9",
+          "distances_front": [278, 474, 335, 134, 267, 308, 122, 424, 310],
+          "distances_back":  [281, 432, 158, 352, 329, 129, 288, 421, 288],
+          "out": 2652, "in": 2678, "total": 5330,
+          "course_rating": 73.8, "slope_rating": 130
+        },
+        {
+          "name": "Blue Crane",
+          "gender": "ladies",
+          "category": "Ladies 10+",
+          "distances_front": [264, 434, 334, 122, 214, 291, 95, 423, 309],
+          "distances_back":  [239, 431, 141, 324, 328, 111, 288, 364, 266],
+          "out": 2486, "in": 2492, "total": 4978,
+          "course_rating": 71.7, "slope_rating": 126
+        }
+      ],
+      "hole_names": null,
+      "plus_strokes": { "+1": 2, "+2": 17, "+3": 1, "+4": 10 },
+      "unit": "metres"
+    },
+    {
+      "name": "The Links",
+      "holes": 18,
+      "par": 73,
+      "par_by_hole": {
+        "front": [4, 3, 4, 4, 5, 4, 4, 3, 5],
+        "back":  [4, 3, 4, 5, 4, 4, 5, 3, 5]
+      },
+      "par_out": 36,
+      "par_in": 37,
+      "stroke_index": {
+        "front_mens":   [16, 6, 2, 8, 18, 14, 4, 12, 10],
+        "back_mens":    [3, 17, 1, 13, 15, 5, 7, 9, 11],
+        "front_ladies": [4, 16, 2, 10, 8, 14, 12, 18, 6],
+        "back_ladies":  [3, 17, 1, 13, 15, 5, 7, 9, 11]
+      },
+      "tees": [
+        {
+          "name": "Black",
+          "colour": "black",
+          "gender": "men",
+          "distances_front": [362, 216, 429, 452, 502, 312, 435, 185, 557],
+          "distances_back":  [373, 147, 440, 487, 330, 436, 534, 170, 563],
+          "out": 3450, "in": 3480, "total": 6930,
+          "course_rating": 77.8, "slope_rating": 149
+        },
+        {
+          "name": "Yellow",
+          "colour": "yellow",
+          "gender": "men",
+          "distances_front": [333, 196, 355, 399, 458, 297, 385, 143, 520],
+          "distances_back":  [357, 135, 419, 468, 296, 344, 523, 149, 483],
+          "out": 3086, "in": 3174, "total": 6360,
+          "course_rating": 74.1, "slope_rating": 141
+        },
+        {
+          "name": "White",
+          "colour": "white",
+          "gender": "men",
+          "distances_front": [303, 156, 336, 377, 420, 282, 354, 127, 492],
+          "distances_back":  [303, 119, 381, 450, 280, 323, 450, 125, 443],
+          "out": 2847, "in": 2874, "total": 5721,
+          "course_rating": 70.9, "slope_rating": 137
+        },
+        {
+          "name": "White",
+          "colour": "white",
+          "gender": "ladies",
+          "distances_front": [303, 156, 336, 377, 420, 282, 354, 127, 492],
+          "distances_back":  [303, 119, 381, 450, 280, 323, 450, 125, 443],
+          "out": 2847, "in": 2874, "total": 5721,
+          "course_rating": 77.5, "slope_rating": 146
+        },
+        {
+          "name": "Red",
+          "colour": "red",
+          "gender": "ladies",
+          "distances_front": [282, 120, 317, 356, 365, 264, 328, 92, 460],
+          "distances_back":  [286, 96, 307, 429, 264, 305, 408, 103, 342],
+          "out": 2584, "in": 2540, "total": 5124,
+          "course_rating": 73.3, "slope_rating": 133
+        }
+      ],
+      "hole_names": {
+        "1": "On Ye Go", "2": "Lang Drop", "3": "Calamity",
+        "4": "Tranquility", "5": "Wetland", "6": "Five Penny Piece",
+        "7": "Wide", "8": "Bonnie View", "9": "Long",
+        "10": "Kilimanjaro", "11": "Valley", "12": "Sheer Murrrder",
+        "13": "Outeniqua", "14": "Wee Wrecker", "15": "Roon the Bend",
+        "16": "Westward Hol", "17": "Prayer", "18": "Near the Dram"
+      },
+      "plus_strokes": { "+1": 5, "+2": 13, "+3": 1, "+4": 14 },
+      "unit": "metres"
+    },
+    {
+      "_comment": "The Links Experience played as a full/normal course with mixed par values. Tees: Full Course (black), White, Red.",
+      "name": "The Links Experience",
+      "holes": 9,
+      "par": 34,
+      "par_by_hole": [4, 4, 3, 4, 4, 3, 4, 3, 5],
+      "stroke_index": [9, 1, 7, 3, 4, 3, 7, 8, 9],
+      "tees": [
+        {
+          "name": "Full Course", "colour": "black", "gender": "men",
+          "distances": [343, 361, 105, 362, 331, 129, 376, 170, 484],
+          "total": 2661, "course_rating": 66.6, "slope_rating": 128
+        },
+        {
+          "name": "Full Course", "colour": "black", "gender": "ladies",
+          "distances": [343, 361, 105, 362, 331, 129, 376, 170, 484],
+          "total": 2661, "course_rating": 74.2, "slope_rating": 131
+        },
+        {
+          "name": "White", "colour": "white", "gender": "men",
+          "distances": [335, 340, 105, 332, 310, 120, 355, 156, 452],
+          "total": 2505, "course_rating": 65.0, "slope_rating": 124
+        },
+        {
+          "name": "White", "colour": "white", "gender": "ladies",
+          "distances": [335, 340, 105, 332, 310, 120, 355, 156, 452],
+          "total": 2505, "course_rating": 71.8, "slope_rating": 121
+        },
+        {
+          "name": "Red", "colour": "red", "gender": "men",
+          "distances": [294, 282, 93, 318, 282, 110, 298, 117, 348],
+          "total": 2142, "course_rating": 63.0, "slope_rating": 110
+        },
+        {
+          "name": "Red", "colour": "red", "gender": "ladies",
+          "distances": [294, 282, 93, 318, 282, 110, 298, 117, 348],
+          "total": 2142, "course_rating": 68.0, "slope_rating": 115
+        }
+      ],
+      "hole_names": {
+        "1": "Wamkelekile", "2": "Down the hill", "3": "It'll be a skoosh",
+        "4": "Devil's elbow", "5": "Low land", "6": "Beag",
+        "7": "Wide", "8": "Mulligan", "9": "Up the hill"
+      },
+      "unit": "metres",
+      "notes": "Stroke index has some duplicated values (3, 7, 9 each appear twice) — verify against physical card. Red total may be 2142 or 2242 — verify."
+    },
+    {
+      "_comment": "The Links Experience played as a Par 3 course. Same 9 holes but ALL par 3. Uses Blue and Green tees (shorter distances).",
+      "name": "The Links Experience (Par 3)",
+      "holes": 9,
+      "par": 27,
+      "par_by_hole": [3, 3, 3, 3, 3, 3, 3, 3, 3],
+      "stroke_index": [9, 1, 7, 3, 4, 3, 7, 8, 9],
+      "tees": [
+        {
+          "name": "Blue", "colour": "blue", "gender": "men",
+          "distances": ["VERIFY — possibly [113, 148, 93, 133, 158, 110, 104, 117, 106]"],
+          "total": 1082, "total_confidence": "low",
+          "course_rating": null, "slope_rating": null,
+          "note": "NEEDS VERIFICATION — Blue tee distances and CR/SR could not be read with confidence from the scorecard image"
+        },
+        {
+          "name": "Blue", "colour": "blue", "gender": "ladies",
+          "distances": ["VERIFY"],
+          "total": 1082, "total_confidence": "low",
+          "course_rating": null, "slope_rating": null
+        },
+        {
+          "name": "Green", "colour": "green", "gender": "men",
+          "distances": ["VERIFY — possibly [85, 119, 82, 97, 118, 82, 78, 91, 82]"],
+          "total": 834, "total_confidence": "low",
+          "course_rating": null, "slope_rating": null,
+          "note": "NEEDS VERIFICATION — Green tee distances and CR/SR could not be read with confidence from the scorecard image"
+        },
+        {
+          "name": "Green", "colour": "green", "gender": "ladies",
+          "distances": ["VERIFY"],
+          "total": 834, "total_confidence": "low",
+          "course_rating": null, "slope_rating": null
+        }
+      ],
+      "hole_names": {
+        "1": "Wamkelekile", "2": "Down the hill", "3": "It'll be a skoosh",
+        "4": "Devil's elbow", "5": "Low land", "6": "Beag",
+        "7": "Wide", "8": "Mulligan", "9": "Up the hill"
+      },
+      "unit": "metres",
+      "notes": "NEEDS VERIFICATION: The Blue and Green tee distances and CR/SR could not be reliably read from the scorecard PDF — the text is too small in the rotated layout. The totals 1082m and 834m are best guesses. You may want to verify these against the physical card or the Fancourt website before seeding."
+    }
+  ]
+}
