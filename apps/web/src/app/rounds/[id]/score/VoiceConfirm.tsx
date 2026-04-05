@@ -44,6 +44,36 @@ function scoreName(gross: number, par: number): string {
   return `+${diff}`
 }
 
+/** Check for inconsistencies between score and stats */
+function getWarnings(score: number | null, stats: ParsedOwnScore, par: number): string[] {
+  if (score === null) return []
+  const warnings: string[] = []
+  const diff = score - par
+
+  // GIR + 1 putt should be birdie or better
+  if (stats.gir === true && stats.putts === 1 && diff > -1) {
+    warnings.push('GIR + 1 putt usually means birdie or better')
+  }
+  // GIR + 2 putts should be par
+  if (stats.gir === true && stats.putts === 2 && diff > 0) {
+    warnings.push('GIR + 2 putts usually means par')
+  }
+  // No GIR + up & down should be par (no penalties)
+  if (stats.gir === false && stats.upAndDown === true && (stats.penalties ?? 0) === 0 && diff > 0) {
+    warnings.push('Up & down usually means par')
+  }
+  // Putts can't exceed score
+  if (stats.putts !== undefined && stats.putts >= score) {
+    warnings.push(`${stats.putts} putts seems too many for a score of ${score}`)
+  }
+  // Score too low for penalties
+  if (stats.penalties !== undefined && stats.penalties > 0 && diff < 0) {
+    warnings.push(`Under par with ${stats.penalties} penalty — double check`)
+  }
+
+  return warnings
+}
+
 export default function VoiceConfirm({
   ownScore,
   playerScores,
@@ -134,75 +164,129 @@ export default function VoiceConfirm({
 
         <div className="vcf-scores">
           {/* Own score — rich detail */}
-          {ownScore && (
-            <div className="vcf-row vcf-row-self" onClick={() => setCorrecting({ type: 'self' })}>
-              <div className="vcf-row-left">
-                <div className="vcf-avatar vcf-avatar-self">
-                  {markerName.charAt(0).toUpperCase()}
-                </div>
-                <div className="vcf-row-info">
-                  <span className="vcf-name">{markerName} <span className="vcf-you">(you)</span></span>
-                  <div className="vcf-badges">
-                    {editOwnScore !== null && (
-                      <span className="vcf-badge vcf-badge-score">{scoreName(editOwnScore, par)}</span>
+          {ownScore && (() => {
+            const warnings = getWarnings(editOwnScore, ownScore, par)
+            const hasStats = ownScore.putts !== undefined || ownScore.gir !== undefined ||
+              ownScore.fairwayHit !== undefined || (ownScore.bunkerShots ?? 0) > 0 ||
+              (ownScore.penalties ?? 0) > 0 || ownScore.upAndDown || ownScore.sandSave
+            return (
+              <div className="vcf-row vcf-row-self" onClick={() => setCorrecting({ type: 'self' })}>
+                {/* Top section: name + score */}
+                <div className="vcf-row-top">
+                  <div className="vcf-row-left">
+                    <div className="vcf-avatar vcf-avatar-self">
+                      {markerName.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="vcf-row-info">
+                      <span className="vcf-name">{markerName} <span className="vcf-you">(you)</span></span>
+                      {editOwnScore !== null && (
+                        <span className="vcf-badge vcf-badge-score">{scoreName(editOwnScore, par)}</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="vcf-row-right">
+                    {editOwnScore !== null ? (
+                      <>
+                        <span className="vcf-gross">{editOwnScore}</span>
+                        {format === 'stableford' && (
+                          <span className="vcf-pts">{ptsLabel(pts(editOwnScore, par, hcShots), editOwnScore, par, hcShots)}</span>
+                        )}
+                      </>
+                    ) : (
+                      <span className="vcf-pickup-label">Pick up</span>
                     )}
-                    {ownScore.putts !== undefined && (
-                      <span className="vcf-badge">{ownScore.putts} putt{ownScore.putts !== 1 ? 's' : ''}</span>
-                    )}
-                    {ownScore.gir === true && <span className="vcf-badge vcf-badge-gir">GIR</span>}
-                    {ownScore.gir === false && <span className="vcf-badge">No GIR</span>}
-                    {ownScore.fairwayHit === true && <span className="vcf-badge">FIR</span>}
-                    {ownScore.fairwayHit === false && ownScore.missDirection && (
-                      <span className="vcf-badge">Miss {ownScore.missDirection}</span>
-                    )}
-                    {ownScore.bunkerShots !== undefined && ownScore.bunkerShots > 0 && (
-                      <span className="vcf-badge">{ownScore.bunkerShots} bunker{ownScore.bunkerShots !== 1 ? 's' : ''}</span>
-                    )}
-                    {ownScore.penalties !== undefined && ownScore.penalties > 0 && (
-                      <span className="vcf-badge">{ownScore.penalties} penalty</span>
-                    )}
-                    {ownScore.upAndDown === true && <span className="vcf-badge">Up &amp; down</span>}
-                    {ownScore.sandSave === true && <span className="vcf-badge">Sand save</span>}
+                    <svg className="vcf-edit-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
                   </div>
                 </div>
-              </div>
-              <div className="vcf-row-right">
-                {editOwnScore !== null ? (
-                  <>
-                    <span className="vcf-gross">{editOwnScore}</span>
-                    {format === 'stableford' && (
-                      <span className="vcf-pts">{ptsLabel(pts(editOwnScore, par, hcShots), editOwnScore, par, hcShots)}</span>
+
+                {/* Stats grid */}
+                {hasStats && (
+                  <div className="vcf-stats-grid">
+                    {ownScore.putts !== undefined && (
+                      <div className="vcf-stat">
+                        <span className="vcf-stat-value">{ownScore.putts}</span>
+                        <span className="vcf-stat-label">putt{ownScore.putts !== 1 ? 's' : ''}</span>
+                      </div>
                     )}
-                  </>
-                ) : (
-                  <span className="vcf-pickup-label">Pick up</span>
+                    {ownScore.gir !== undefined && (
+                      <div className={`vcf-stat ${ownScore.gir ? 'vcf-stat-positive' : ''}`}>
+                        <span className="vcf-stat-value">{ownScore.gir ? '\u2713' : '\u2717'}</span>
+                        <span className="vcf-stat-label">GIR</span>
+                      </div>
+                    )}
+                    {ownScore.fairwayHit !== undefined && (
+                      <div className={`vcf-stat ${ownScore.fairwayHit ? 'vcf-stat-positive' : ''}`}>
+                        <span className="vcf-stat-value">
+                          {ownScore.fairwayHit ? '\u2713' : (ownScore.missDirection ? ownScore.missDirection.charAt(0).toUpperCase() : '\u2717')}
+                        </span>
+                        <span className="vcf-stat-label">{ownScore.fairwayHit ? 'FIR' : `Miss ${ownScore.missDirection ?? ''}`}</span>
+                      </div>
+                    )}
+                    {ownScore.bunkerShots !== undefined && ownScore.bunkerShots > 0 && (
+                      <div className="vcf-stat">
+                        <span className="vcf-stat-value">{ownScore.bunkerShots}</span>
+                        <span className="vcf-stat-label">bunker{ownScore.bunkerShots !== 1 ? 's' : ''}</span>
+                      </div>
+                    )}
+                    {ownScore.penalties !== undefined && ownScore.penalties > 0 && (
+                      <div className="vcf-stat vcf-stat-warn">
+                        <span className="vcf-stat-value">{ownScore.penalties}</span>
+                        <span className="vcf-stat-label">penalty</span>
+                      </div>
+                    )}
+                    {ownScore.upAndDown === true && (
+                      <div className="vcf-stat vcf-stat-positive">
+                        <span className="vcf-stat-value">{'\u2713'}</span>
+                        <span className="vcf-stat-label">Up &amp; down</span>
+                      </div>
+                    )}
+                    {ownScore.sandSave === true && (
+                      <div className="vcf-stat vcf-stat-positive">
+                        <span className="vcf-stat-value">{'\u2713'}</span>
+                        <span className="vcf-stat-label">Sand save</span>
+                      </div>
+                    )}
+                  </div>
                 )}
-                <svg className="vcf-edit-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+
+                {/* Inconsistency warnings */}
+                {warnings.length > 0 && (
+                  <div className="vcf-warnings">
+                    {warnings.map((w, i) => (
+                      <div key={i} className="vcf-warning">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        <span>{w}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
-          )}
+            )
+          })()}
 
           {/* Other players — gross + points */}
           {editPlayerScores.map((ps, i) => (
             <div key={ps.player} className="vcf-row" onClick={() => setCorrecting({ type: 'player', index: i })}>
-              <div className="vcf-row-left">
-                <div className="vcf-avatar" style={{ background: PLAYER_COLOURS[i % PLAYER_COLOURS.length] }}>
-                  {ps.playerName.charAt(0).toUpperCase()}
+              <div className="vcf-row-top">
+                <div className="vcf-row-left">
+                  <div className="vcf-avatar" style={{ background: PLAYER_COLOURS[i % PLAYER_COLOURS.length] }}>
+                    {ps.playerName.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="vcf-name">{ps.playerName}</span>
                 </div>
-                <span className="vcf-name">{ps.playerName}</span>
-              </div>
-              <div className="vcf-row-right">
-                {ps.score !== null ? (
-                  <>
-                    <span className="vcf-gross">{ps.score}</span>
-                    {format === 'stableford' && (
-                      <span className="vcf-pts">{pts(ps.score, par, 0)} pts</span>
-                    )}
-                  </>
-                ) : (
-                  <span className="vcf-pickup-label">Pick up</span>
-                )}
-                <svg className="vcf-edit-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                <div className="vcf-row-right">
+                  {ps.score !== null ? (
+                    <>
+                      <span className="vcf-gross">{ps.score}</span>
+                      {format === 'stableford' && (
+                        <span className="vcf-pts">{pts(ps.score, par, 0)} pts</span>
+                      )}
+                    </>
+                  ) : (
+                    <span className="vcf-pickup-label">Pick up</span>
+                  )}
+                  <svg className="vcf-edit-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                </div>
               </div>
             </div>
           ))}
@@ -259,8 +343,7 @@ const STYLES = `
     border-radius: 12px;
     padding: 0.875rem 1rem;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
     gap: 0.75rem;
     cursor: pointer;
     transition: border-color 0.15s, transform 0.15s;
@@ -272,6 +355,12 @@ const STYLES = `
   .vcf-row-self {
     border-color: rgba(13,99,27,0.3);
     background: rgba(13,99,27,0.03);
+  }
+  .vcf-row-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
   }
   .vcf-row-left {
     display: flex;
@@ -313,30 +402,87 @@ const STYLES = `
     font-size: 0.75rem;
     color: #72786E;
   }
-  .vcf-badges {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.375rem;
-    margin-top: 0.125rem;
-  }
   .vcf-badge {
     font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
     font-weight: 600;
     color: #1A2E1A;
     background: #F0F4EC;
-    padding: 0.25rem 0.625rem;
+    padding: 0.1875rem 0.5rem;
     border-radius: 8px;
+    display: inline-block;
+    margin-top: 0.25rem;
   }
   .vcf-badge-score {
     color: #FFFFFF;
     background: #0D631B;
     font-weight: 700;
   }
-  .vcf-badge-gir {
+  .vcf-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+    gap: 0.5rem;
+    border-top: 1px solid #E0EBE0;
+    padding-top: 0.75rem;
+  }
+  .vcf-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.125rem;
+    padding: 0.375rem 0.25rem;
+    border-radius: 8px;
+    background: #F0F4EC;
+  }
+  .vcf-stat-positive {
+    background: rgba(13,99,27,0.1);
+  }
+  .vcf-stat-positive .vcf-stat-value {
     color: #0D631B;
-    background: rgba(13,99,27,0.15);
+  }
+  .vcf-stat-warn {
+    background: #FEF3E2;
+  }
+  .vcf-stat-warn .vcf-stat-value {
+    color: #B85C2A;
+  }
+  .vcf-stat-value {
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+    font-size: 1rem;
     font-weight: 700;
+    color: #1A2E1A;
+    line-height: 1.2;
+  }
+  .vcf-stat-label {
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: #6B8C6B;
+    line-height: 1.2;
+    text-align: center;
+  }
+  .vcf-warnings {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    border-top: 1px solid #E0EBE0;
+    padding-top: 0.625rem;
+  }
+  .vcf-warning {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #B85C2A;
+    background: #FEF3E2;
+    padding: 0.375rem 0.625rem;
+    border-radius: 8px;
+  }
+  .vcf-warning svg {
+    flex-shrink: 0;
+    color: #B85C2A;
   }
   .vcf-row-right {
     display: flex;
