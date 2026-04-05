@@ -1,5 +1,5 @@
 // ─── BUMP THIS ON EVERY DEPLOY THAT CHANGES SERVER-RENDERED HTML ───────────
-const CACHE_VERSION = 'v5'
+const CACHE_VERSION = 'v6'
 // ─────────────────────────────────────────────────────────────────────────────
 
 const CACHE_NAME = `lx2-${CACHE_VERSION}`
