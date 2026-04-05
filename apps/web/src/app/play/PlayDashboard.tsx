@@ -1122,8 +1122,8 @@ export default function PlayDashboard({
               <Link href="/events/new" className="fe-action-card secondary">
                 <div className="fe-action-icon"><TournamentIcon /></div>
                 <div className="fe-action-text">
-                  <div className="fe-action-title">Organise a tournament</div>
-                  <div className="fe-action-sub">Create and manage competitions</div>
+                  <div className="fe-action-title">Organise an event</div>
+                  <div className="fe-action-sub">Set up a round for your group</div>
                 </div>
               </Link>
             </div>

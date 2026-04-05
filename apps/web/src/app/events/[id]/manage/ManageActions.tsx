@@ -287,7 +287,7 @@ export function DeleteEventButton({ eventId, eventName, finalised }: { eventId: 
         background: '#F2F5F0', color: '#6B8C6B', fontSize: '0.8125rem', fontWeight: 500,
         fontFamily: 'var(--font-dm-sans), sans-serif', textAlign: 'center', lineHeight: 1.4,
       }}>
-        Finalised tournaments cannot be deleted. Reopen the event first.
+        Finalised rounds cannot be deleted. Reopen the round first.
       </div>
     )
   }

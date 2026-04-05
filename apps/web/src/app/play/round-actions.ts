@@ -59,12 +59,16 @@ export async function deleteRound(scorecardId: string): Promise<{ error?: string
   // 2. Check if event is finalised — block deletion of locked scores
   const { data: event } = await admin
     .from('events')
-    .select('finalised, created_by')
+    .select('finalised, created_by, tournament_id')
     .eq('id', sc.event_id)
     .single()
 
+  const isTournament = !!event?.tournament_id
+
   if (event?.finalised) {
-    return { error: 'This round belongs to a finalised tournament. Scores are locked.' }
+    return { error: isTournament
+      ? 'This round belongs to a finalised tournament. Scores are locked.'
+      : 'This round is finalised. Scores are locked.' }
   }
 
   // 3. Count other players in this event
@@ -85,7 +89,7 @@ export async function deleteRound(scorecardId: string): Promise<{ error?: string
   }
 
   if (isMultiPlayer && isOrganiser) {
-    return { error: 'You organised this tournament. Delete it from the manage page, or remove individual players there.' }
+    return { error: 'You organised this round. Delete it from the manage page, or remove individual players there.' }
   }
 
   // 5. Solo round — safe to delete everything

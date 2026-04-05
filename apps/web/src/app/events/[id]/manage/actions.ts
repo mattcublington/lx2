@@ -184,15 +184,16 @@ export async function confirmPlayer(eventId: string, playerId: string): Promise<
 export async function deleteEvent(eventId: string): Promise<{ error?: string }> {
   const { admin } = await assertEventOrganiser(eventId)
 
-  // Check if finalised — block deletion of locked tournaments
+  // Check if finalised — block deletion of locked events
   const { data: event } = await admin
     .from('events')
-    .select('finalised')
+    .select('finalised, tournament_id')
     .eq('id', eventId)
     .single()
 
   if (event?.finalised) {
-    return { error: 'This tournament is finalised. Unfinalise it first before deleting.' }
+    const label = event.tournament_id ? 'tournament' : 'round'
+    return { error: `This ${label} is finalised. Unfinalise it first before deleting.` }
   }
 
   // Check if any scorecards have been submitted (have scores)

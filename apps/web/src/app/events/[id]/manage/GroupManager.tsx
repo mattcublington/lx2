@@ -166,7 +166,7 @@ export default function GroupManager({ eventId, groups: initialGroups, players: 
   }
 
   function handleRemovePlayer(playerId: string) {
-    if (!confirm('Remove this player from the tournament?')) return
+    if (!confirm('Remove this player from this round?')) return
     setPlayers(prev => prev.filter(p => p.id !== playerId))
     startTransition(async () => {
       await removePlayerFromEvent(eventId, playerId)
