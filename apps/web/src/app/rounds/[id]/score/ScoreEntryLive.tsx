@@ -13,7 +13,11 @@ import {
   strokeResult,
   scoreReducer,
 } from '@/lib/score-entry-helpers'
-import VoiceScoring from './VoiceScoring'
+import VoiceConfirm from './VoiceConfirm'
+import type { ConfirmedScore } from './VoiceConfirm'
+import { useVoiceInput } from '@lx2/ui'
+import { parseVoiceScore } from '@lx2/scoring'
+import type { VoiceParseResult } from '@lx2/scoring'
 import { saveVoiceScoreDetails } from './voice-actions'
 import { saveHoleStats } from './stat-actions'
 
@@ -369,12 +373,106 @@ const STYLES = `
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     box-shadow: 0 4px 14px rgba(13,99,27,0.3);
-    transition: transform 0.15s, box-shadow 0.15s;
+    transition: all 0.2s;
     flex-shrink: 0;
   }
   .sc-bottom-voice:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 18px rgba(13,99,27,0.4);
+  }
+  .sc-bottom-voice:disabled {
+    opacity: 0.6;
+    cursor: default;
+    transform: none;
+  }
+  .sc-bottom-voice-recording {
+    background: #E24B4A;
+    box-shadow: 0 4px 16px rgba(226,75,74,0.35);
+    animation: sc-voice-pulse 1.5s ease-in-out infinite;
+  }
+  .sc-bottom-voice-recording:hover {
+    box-shadow: 0 6px 20px rgba(226,75,74,0.45);
+  }
+  @keyframes sc-voice-pulse {
+    0%, 100% { box-shadow: 0 4px 16px rgba(226,75,74,0.35); }
+    50% { box-shadow: 0 4px 24px rgba(226,75,74,0.55); }
+  }
+  .sc-voice-spinner {
+    width: 24px; height: 24px;
+    border: 2.5px solid rgba(255,255,255,0.3);
+    border-top-color: #FFFFFF;
+    border-radius: 50%;
+    animation: sc-voice-spin 0.6s linear infinite;
+  }
+  @keyframes sc-voice-spin {
+    to { transform: rotate(360deg); }
+  }
+  .sc-voice-status {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+  }
+  .sc-voice-status-label {
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #E24B4A;
+  }
+  .sc-voice-transcript {
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+    font-size: 0.9375rem;
+    color: #1A2E1A;
+    text-align: center;
+    min-height: 1.5rem;
+    padding: 0.5rem 0;
+  }
+  .sc-voice-example {
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+    font-size: 0.6875rem;
+    color: #72786E;
+    background: #FFFFFF;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    text-align: center;
+    font-style: italic;
+    border: 1.5px solid #E0EBE0;
+  }
+  .sc-voice-parsing {
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+    font-size: 0.8125rem;
+    color: #72786E;
+  }
+  .sc-voice-error {
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+    font-size: 0.75rem;
+    color: #E24B4A;
+  }
+  .sc-voice-overlay {
+    position: fixed; inset: 0;
+    background: rgba(26,28,28,0.6);
+    z-index: 200;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+  .sc-voice-sheet {
+    background: #F0F4EC;
+    border-radius: 24px 24px 0 0;
+    width: 100%;
+    max-width: 480px;
+    max-height: 85vh;
+    overflow-y: auto;
+    animation: sc-voice-sheet-up 0.28s cubic-bezier(0.2,0,0,1);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  @keyframes sc-voice-sheet-up {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
   }
   .sc-act-finish {
     background: linear-gradient(135deg, #0D631B 0%, #0a4f15 100%);
@@ -1070,7 +1168,12 @@ export default function ScoreEntryLive(props: Props) {
   const [cardView, setCardView] = useState<'front9' | 'back9' | 'all18'>('front9')
   const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [activeGroup, setActiveGroup] = useState<number | null>(myFlightNumber ?? null)
-  const [showVoice, setShowVoice] = useState(false)
+
+  // Voice recording state — lifted from VoiceScoring so the bottom bar button is the record button
+  type VoicePhase = 'idle' | 'listening' | 'parsing' | 'confirm'
+  const [voicePhase, setVoicePhase] = useState<VoicePhase>('idle')
+  const [voiceParseResult, setVoiceParseResult] = useState<VoiceParseResult | null>(null)
+  const { isListening, transcript, interimTranscript, startListening, stopListening, error: voiceError } = useVoiceInput()
 
   const autoAdvanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const autoAdvancedHoles = useRef<Set<number>>(new Set())
@@ -1149,6 +1252,90 @@ export default function ScoreEntryLive(props: Props) {
     window.addEventListener('online', drainQueue)
     return () => window.removeEventListener('online', drainQueue)
   }, [drainQueue])
+
+  // ── Voice: auto-parse when recording stops ────────────────────────────────
+  const LLM_CONFIDENCE_THRESHOLD = 0.8
+
+  useEffect(() => {
+    if (voicePhase === 'listening' && !isListening && transcript) {
+      setVoicePhase('parsing')
+      const currentHole = holes[s.hole]!
+      const holeCtx = {
+        holeNumber: currentHole.holeInRound,
+        par: currentHole.par,
+        strokeIndex: currentHole.siM ?? 1,
+      }
+      const gp = groupPlayers
+        .filter(p => !p.isCurrentUser && p.scorecardId)
+        .map(p => ({ id: p.scorecardId, displayName: p.displayName }))
+      const result = parseVoiceScore(transcript, holeCtx, gp)
+      if (result.overallConfidence >= LLM_CONFIDENCE_THRESHOLD) {
+        setVoiceParseResult(result)
+        setVoicePhase('confirm')
+      } else {
+        fetch('/api/parse-voice-score', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            transcript,
+            hole: { number: holeCtx.holeNumber, par: holeCtx.par, strokeIndex: holeCtx.strokeIndex },
+            players: gp.map(p => ({ id: p.id, name: p.displayName })),
+          }),
+        })
+          .then(resp => resp.ok ? resp.json() : result)
+          .then((r: VoiceParseResult) => { setVoiceParseResult(r); setVoicePhase('confirm') })
+          .catch(() => { setVoiceParseResult(result); setVoicePhase('confirm') })
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isListening, transcript, voicePhase])
+
+  function handleMicTap() {
+    if (voicePhase === 'idle') {
+      startListening()
+      setVoicePhase('listening')
+    } else if (voicePhase === 'listening') {
+      stopListening()
+    }
+  }
+
+  async function handleVoiceConfirm(scores: ConfirmedScore[]) {
+    const hir = holes[s.hole]!.holeInRound
+    const transcriptStr = scores.map(cs => `${cs.displayName}: ${cs.score}`).join(', ')
+    for (const cs of scores) {
+      if (cs.playerId === 'self') {
+        if (cs.score !== null) {
+          d({ type: 'SCORE', holeInRound: hir, v: cs.score })
+          await persistScore(hir, cs.score)
+        } else {
+          d({ type: 'PICKUP', holeInRound: hir })
+          await persistScore(hir, null)
+        }
+        saveVoiceScoreDetails(scorecardId, hir, {
+          putts: cs.putts,
+          fairwayHit: cs.fairwayHit,
+          greenInRegulation: cs.gir,
+          missDirection: cs.missDirection,
+          bunkerShots: cs.bunkerShots,
+          penalties: cs.penalties,
+          upAndDown: cs.upAndDown,
+          sandSave: cs.sandSave,
+          voiceTranscript: transcriptStr,
+        })
+      } else {
+        const targetScorecardId = cs.playerId
+        await persistScoreForOther(targetScorecardId, hir, cs.score)
+      }
+    }
+    setVoicePhase('idle')
+    setVoiceParseResult(null)
+  }
+
+  function handleVoiceReRecord() {
+    setVoiceParseResult(null)
+    startListening()
+    setVoicePhase('listening')
+  }
 
   // ── Must be declared before getRunningTotal() call below (avoids TDZ in production) ──
   const effectiveHc    = Math.round(handicapIndex * allowancePct)
@@ -1822,58 +2009,46 @@ export default function ScoreEntryLive(props: Props) {
           })}
         </div>
 
-        {/* ── Voice scoring overlay ── */}
-        {showVoice && (
-          <VoiceScoring
-            hole={{
-              holeNumber: hole.holeInRound,
-              par: hole.par,
-              strokeIndex: hole.siM ?? 1,
-            }}
-            groupPlayers={groupPlayers
-              .filter(p => !p.isCurrentUser && p.scorecardId)
-              .map(p => ({
-                id: p.scorecardId,
-                displayName: p.displayName,
-              }))}
-            format={format}
-            playingHandicap={Math.round(handicapIndex * allowancePct)}
-            hcShots={hcOnHole}
-            markerName={playerName}
-            holeNumber={hole.holeInRound}
-            par={hole.par}
-            onScoresConfirmed={async (scores) => {
-              const transcriptStr = scores.map(cs => `${cs.displayName}: ${cs.score}`).join(', ')
-              for (const cs of scores) {
-                const hir = hole.holeInRound
-                if (cs.playerId === 'self') {
-                  if (cs.score !== null) {
-                    d({ type: 'SCORE', holeInRound: hir, v: cs.score })
-                    await enqueueScore({ scorecard_id: scorecardId, hole_number: hir, gross_strokes: cs.score, queued_at: Date.now() })
-                  } else {
-                    d({ type: 'PICKUP', holeInRound: hir })
-                    await enqueueScore({ scorecard_id: scorecardId, hole_number: hir, gross_strokes: null, queued_at: Date.now() })
-                  }
-                  saveVoiceScoreDetails(scorecardId, hir, {
-                    putts: cs.putts,
-                    fairwayHit: cs.fairwayHit,
-                    greenInRegulation: cs.gir,
-                    missDirection: cs.missDirection,
-                    bunkerShots: cs.bunkerShots,
-                    penalties: cs.penalties,
-                    upAndDown: cs.upAndDown,
-                    sandSave: cs.sandSave,
-                    voiceTranscript: transcriptStr,
-                  })
-                } else {
-                  const targetScorecardId = cs.playerId
-                  await enqueueScore({ scorecard_id: targetScorecardId, hole_number: hir, gross_strokes: cs.score, queued_at: Date.now() })
-                }
-              }
-              setShowVoice(false)
-            }}
-            onCancel={() => setShowVoice(false)}
-          />
+        {/* ── Voice: listening indicator ── */}
+        {voicePhase === 'listening' && (
+          <div className="sc-voice-status">
+            <span className="sc-voice-status-label">Listening...</span>
+            <div className="sc-voice-transcript">{interimTranscript || transcript || 'Speak now...'}</div>
+            <div className="sc-voice-example">
+              &ldquo;I got a bogey, two putts. Dave par, Rich five, Tommo four.&rdquo;
+            </div>
+          </div>
+        )}
+        {voicePhase === 'parsing' && (
+          <div className="sc-voice-status">
+            <div className="sc-voice-transcript">{transcript}</div>
+            <span className="sc-voice-parsing">Parsing scores...</span>
+          </div>
+        )}
+        {voiceError && voicePhase !== 'idle' && (
+          <div className="sc-voice-status">
+            <span className="sc-voice-error">{voiceError}</span>
+          </div>
+        )}
+
+        {/* ── Voice confirm overlay ── */}
+        {voicePhase === 'confirm' && voiceParseResult && (
+          <div className="sc-voice-overlay">
+            <div className="sc-voice-sheet">
+              <VoiceConfirm
+                ownScore={voiceParseResult.ownScore}
+                playerScores={voiceParseResult.playerScores}
+                par={hole.par}
+                holeNumber={hole.holeInRound}
+                playingHandicap={Math.round(handicapIndex * allowancePct)}
+                hcShots={hcOnHole}
+                markerName={playerName}
+                format={format}
+                onConfirm={handleVoiceConfirm}
+                onReRecord={handleVoiceReRecord}
+              />
+            </div>
+          </div>
         )}
 
         {/* ── Finish round banner ── */}
@@ -1910,15 +2085,20 @@ export default function ScoreEntryLive(props: Props) {
               </button>
               {typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) ? (
                 <button
-                  className="sc-bottom-voice"
-                  onClick={() => setShowVoice(true)}
-                  aria-label="Score by voice"
+                  className={`sc-bottom-voice${voicePhase === 'listening' ? ' sc-bottom-voice-recording' : ''}`}
+                  onClick={handleMicTap}
+                  disabled={voicePhase === 'parsing' || voicePhase === 'confirm'}
+                  aria-label={voicePhase === 'listening' ? 'Stop recording' : 'Score by voice'}
                 >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                    <line x1="12" x2="12" y1="19" y2="22"/>
-                  </svg>
+                  {voicePhase === 'parsing' ? (
+                    <div className="sc-voice-spinner" />
+                  ) : (
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                      <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                      <line x1="12" x2="12" y1="19" y2="22"/>
+                    </svg>
+                  )}
                 </button>
               ) : (
                 <div style={{ width: 56 }} />
